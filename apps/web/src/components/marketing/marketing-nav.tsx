@@ -1,23 +1,12 @@
 // Sticky nav for the marketing landing page. Cream backdrop-blur, AIRA
 // tree-of-life logo + wordmark left, quiet "Get notified at launch" anchor
 // link (brass-gold underline, not a pill button — keeps the editorial
-// register).
-//
-// The marketing page is fully unauthenticated pre-launch, so `signedIn` is
-// no longer used to switch CTAs. Kept as an optional ignored prop so
-// existing call sites (apps/web/src/app/page.tsx in pre-T11 state, plus
-// legal-page.tsx which never passed it) still typecheck through the
-// T10 → T11 transition. T11 drops the prop entirely.
+// register). The marketing page is fully unauthenticated pre-launch.
 
 import Image from "next/image"
 import Link from "next/link"
 
-type MarketingNavProps = {
-  /** @deprecated — ignored. Removed in T11 cutover. */
-  signedIn?: boolean
-}
-
-export function MarketingNav({}: MarketingNavProps = {}) {
+export function MarketingNav() {
   return (
     <nav className="sticky top-0 z-50 bg-[color:oklch(0.90_0.04_85_/_85%)] backdrop-blur-[10px]">
       <div className="mx-auto flex h-20 max-w-[1180px] items-center justify-between px-6">
