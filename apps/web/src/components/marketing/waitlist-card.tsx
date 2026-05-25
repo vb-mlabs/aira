@@ -150,9 +150,13 @@ export function WaitlistCard({
           </form>
 
           {status.kind === "error" ? (
-            <p className="mt-3 text-xs text-destructive" role="alert">
-              {status.message}
-            </p>
+            <div
+              role="alert"
+              className="mx-auto mt-4 inline-flex items-center gap-2 rounded-lg bg-[color:oklch(0.55_0.22_27_/_10%)] px-3 py-2 text-sm font-semibold text-destructive"
+            >
+              <span aria-hidden="true">⚠</span>
+              <span>{status.message}</span>
+            </div>
           ) : null}
 
           <p className="mt-4 text-xs text-muted-foreground">
