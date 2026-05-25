@@ -50,9 +50,9 @@ export function MarketingFooter() {
             </div>
           </div>
 
-          <FooterColumn title="For users" links={forUsersLinks} />
-          <FooterColumn title="For businesses" links={forBusinessesLinks} />
-          <FooterColumn title="Legal" links={legalLinks} />
+          <FooterColumn title="Browse" links={forUsersLinks} />
+          <FooterColumn title="Get listed" links={forBusinessesLinks} />
+          <FooterColumn title="About" links={legalLinks} />
         </div>
 
         <div className="flex flex-col items-start justify-between gap-3 border-t border-border/25 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
