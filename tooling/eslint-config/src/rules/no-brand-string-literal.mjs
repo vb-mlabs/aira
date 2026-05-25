@@ -52,6 +52,13 @@ const ALLOW_PATTERNS = [
   /[\\/]e2e[\\/]/, // tests legitimately import brand to assert against it
   /[\\/]tests[\\/]/,
   /[\\/]node_modules[\\/]/,
+  // Marketing copy is intrinsically brand-laden — every paragraph mentions
+  // the brand name, tagline, founding city, parent entity. Sourcing every
+  // word via brand.name is unnatural for prose and pollutes JSX. The rule's
+  // intent is to prevent accidental brand-string drift in *app* code, not
+  // to wrap marketing copy. Decision locked in .mstack/reviews/2026-05-25-
+  // marketing-page-launch.md.
+  /[\\/]components[\\/]marketing[\\/]/,
 ];
 
 export default {

@@ -14,11 +14,13 @@ export const brand = {
   // First-match split; case-sensitive. If the substring doesn't appear in
   // `tagline`, the hero renders the tagline as plain text.
   taglineHighlight: "REACH",
-  // Placeholders — replace with real values before launch.
-  supportEmail: "support@aira.app",
-  socialHandle: "@aira_atl",
+  // Production identity. Postmark sender signature for airabynisarga.com
+  // is a Sprint 0 follow-up — until DKIM/SPF lands, transactional email
+  // falls back to the console driver (see packages/email/src/index.ts).
+  supportEmail: "support@airabynisarga.com",
+  socialHandle: "@airabynisarga",
   legalEntity: "Nisarga Group LLC",
-  url: "https://aira.app",
+  url: "https://airabynisarga.com",
 
   // Email-client-safe sRGB hex palette. Gmail, Outlook, and Yahoo do not
   // support oklch() in inline CSS, so React Email templates cannot import
