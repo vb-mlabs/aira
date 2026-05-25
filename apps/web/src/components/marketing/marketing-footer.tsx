@@ -67,9 +67,10 @@ export function MarketingFooter() {
 
 function ContactStrip() {
   return (
-    <div className="flex flex-col items-center justify-between gap-6 border-t border-border/25 pt-7 text-muted-foreground sm:flex-row">
+    <div className="flex justify-center pt-2">
+      <div className="flex flex-col items-center gap-5 rounded-full bg-card px-8 py-4 text-muted-foreground shadow-[0_10px_30px_-18px_oklch(0.25_0.04_60_/_30%)] ring-1 ring-border/20 sm:flex-row sm:gap-7">
       <div className="flex items-center gap-5">
-        <hr className="hidden h-px w-12 border-0 bg-brand-gold/50 sm:block" />
+        <hr className="hidden h-px w-10 border-0 bg-brand-gold/50 sm:block" />
         <span aria-hidden="true" className="font-display text-lg text-brand-gold">
           ✦
         </span>
@@ -110,6 +111,7 @@ function ContactStrip() {
         <span className="font-display text-[15px] text-foreground">
           Operated by {brand.legalEntity} ✦
         </span>
+      </div>
       </div>
     </div>
   )
