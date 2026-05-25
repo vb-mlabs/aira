@@ -5,100 +5,199 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design tokens — shadcn's vocabulary as the source of truth (background,
+ * AIRA design tokens — shadcn's vocabulary as the source of truth (background,
  * foreground, card, popover, primary, secondary, muted, accent, destructive,
- * border, input, ring, chart, sidebar). Mirrored as TS in src/config/design.ts.
+ * border, input, ring, chart, sidebar). Mirrored as TS in
+ * packages/config/src/design.ts. AIRA-specific extensions live below the
+ * shadcn block: success, warning, tier1/2/3, brand-cream-bright/-muted,
+ * brand-gold, info, plus gradient + shadow utility tokens.
  *
- * Values are OKLCH (shadcn convention). Add semantic tokens (success, warning)
- * below as needed; success/warning are MLabs-specific additions.
+ * Values are OKLCH (shadcn convention). Figma is the canonical source for
+ * the olive green, cream, and gold; eyedropped values are noted in design.ts.
  */
 
 :root {
-  --background:            oklch(1 0 0);
-  --foreground:            oklch(0.145 0 0);
-  --card:                  oklch(1 0 0);
-  --card-foreground:       oklch(0.145 0 0);
-  --popover:               oklch(1 0 0);
-  --popover-foreground:    oklch(0.145 0 0);
-  /* MLabs orange (~#FF6B2C). White-on-orange is a deliberate brand
-     choice; does not meet WCAG AA body text (~2.6:1). The pair is
-     exempted from check-contrast — see scripts/check-contrast.ts. */
-  --primary:               oklch(0.69 0.18 39);
-  --primary-foreground:    oklch(0.985 0 0);
-  --secondary:             oklch(0.97 0 0);
-  --secondary-foreground:  oklch(0.205 0 0);
-  --muted:                 oklch(0.97 0.003 80);
-  --muted-foreground:      oklch(0.48 0 0);
-  --accent:                oklch(0.97 0 0);
-  --accent-foreground:     oklch(0.205 0 0);
-  --destructive:           oklch(0.577 0.245 27.325);
-  --border:                oklch(0.62 0.005 80);
-  --input:                 oklch(0.62 0.005 80);
-  --ring:                  oklch(0.62 0.19 39);
-  --radius:                0.625rem;
+  /* Warm cream paper aesthetic — no white surfaces. */
+  --background:            oklch(0.90 0.04 85);
+  --foreground:            oklch(0.25 0.04 60);
+  --card:                  oklch(0.95 0.02 85);
+  --card-foreground:       oklch(0.25 0.04 60);
+  --popover:               oklch(0.95 0.02 85);
+  --popover-foreground:    oklch(0.25 0.04 60);
+  /* AIRA olive green (~#4F653B). Cream-on-green passes AA body (~4.65:1). */
+  --primary:               oklch(0.46 0.07 132);
+  --primary-foreground:    oklch(0.94 0.02 80);
+  --secondary:             oklch(0.93 0.03 85);
+  --secondary-foreground:  oklch(0.25 0.04 60);
+  --muted:                 oklch(0.88 0.03 85);
+  --muted-foreground:      oklch(0.45 0.04 60);
+  --accent:                oklch(0.95 0.02 85);
+  --accent-foreground:     oklch(0.25 0.04 60);
+  --destructive:           oklch(0.55 0.22 27);
+  --border:                oklch(0.50 0.07 80);
+  --input:                 oklch(0.50 0.07 80);
+  --ring:                  oklch(0.46 0.07 132);
+  --radius:                0.875rem;
 
-  /* MLabs additions on top of shadcn */
-  --success:               oklch(0.48 0.16 145);
-  --success-foreground:    oklch(0.985 0 0);
-  --warning:               oklch(0.78 0.16 80);
-  --warning-foreground:    oklch(0.205 0 0);
+  /* AIRA semantic additions */
+  --success:               oklch(0.46 0.07 132);
+  --success-foreground:    oklch(0.94 0.02 80);
+  --warning:               oklch(0.62 0.13 55);
+  --warning-foreground:    oklch(0.20 0.03 60);
 
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Tier system — sponsored placement AND PRD category hierarchy (L0/L1/L2). */
+  --tier1:                 oklch(0.46 0.07 132);  /* olive green */
+  --tier1-foreground:      oklch(0.94 0.02 80);
+  --tier2:                 oklch(0.62 0.13 55);   /* burnt orange — AA-Large exemption on fg */
+  --tier2-foreground:      oklch(0.94 0.02 80);
+  --tier3:                 oklch(0.43 0.09 55);   /* chocolate brown */
+  --tier3-foreground:      oklch(0.94 0.02 80);
 
-  --sidebar:                       oklch(0.985 0 0);
-  --sidebar-foreground:            oklch(0.145 0 0);
-  --sidebar-primary:               oklch(0.205 0 0);
-  --sidebar-primary-foreground:    oklch(0.985 0 0);
-  --sidebar-accent:                oklch(0.97 0 0);
-  --sidebar-accent-foreground:     oklch(0.205 0 0);
-  --sidebar-border:                oklch(0.922 0 0);
-  --sidebar-ring:                  oklch(0.708 0 0);
+  /* Brand cream variants — used on DARK surfaces (sidebar, footer cards),
+     distinct from --background (page cream) on purpose. */
+  --brand-cream-bright:    oklch(0.94 0.02 80);   /* #F3EBDD */
+  --brand-cream-muted:     oklch(0.90 0.04 80);   /* #E9DDC7 */
+
+  /* Brass gold — rare ornamental accent (hairlines, dividers). */
+  --brand-gold:            oklch(0.66 0.10 80);   /* #B8904A */
+
+  /* Verified badge — small icon-on-pill on listing cards.
+     Darker than Figma's sky to clear AA-Large (3:1) against white icon. */
+  --info:                  oklch(0.55 0.18 240);
+  --info-foreground:       oklch(0.985 0 0);
+
+  /* Gradient utilities — Figma uses 145deg linear-gradients on tier badges
+     and primary CTAs. Apply via background-image: var(--gradient-primary). */
+  --gradient-primary: linear-gradient(
+    145deg,
+    oklch(0.52 0.08 132) 6%,
+    oklch(0.46 0.07 132) 94%
+  );
+  --gradient-tier2: linear-gradient(
+    145deg,
+    oklch(0.72 0.10 65) 6%,
+    oklch(0.62 0.13 55) 94%
+  );
+  --gradient-tier3: linear-gradient(
+    145deg,
+    oklch(0.49 0.09 55) 6%,
+    oklch(0.43 0.09 55) 94%
+  );
+
+  /* Shadow tokens — Figma canonical values. */
+  --shadow-primary-glow:   0 3px 5px oklch(0.46 0.07 132 / 35%);
+  --shadow-drawer:         4px 0 12px rgb(0 0 0 / 15%);
+  --shadow-card:           0 1px 2px oklch(0.25 0.04 60 / 8%);
+
+  /* SVG paper-grain texture — applied to body for page cream surface.
+     Low-frequency turbulence at 12% opacity reads as hand-made paper without
+     fighting form inputs. Tune baseFrequency for finer/coarser grain. */
+  --texture-paper:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.16  0 0 0 0 0.08  0 0 0 0.12 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
+  /* Charts — using the AIRA earth palette so dashboards inherit the brand. */
+  --chart-1: oklch(0.46 0.07 132);  /* olive green */
+  --chart-2: oklch(0.62 0.13 55);   /* burnt orange */
+  --chart-3: oklch(0.43 0.09 55);   /* chocolate brown */
+  --chart-4: oklch(0.66 0.10 80);   /* brass gold */
+  --chart-5: oklch(0.55 0.18 240);  /* verified blue */
+
+  /* Sidebar = the dark green drawer. Cream text on warm dark green, with
+     translucent cream borders matching the Figma "glass" buttons. */
+  --sidebar:                       oklch(0.42 0.06 130);
+  --sidebar-foreground:            oklch(0.94 0.02 80);
+  --sidebar-primary:               oklch(0.66 0.10 80);
+  --sidebar-primary-foreground:    oklch(0.22 0.03 60);
+  --sidebar-accent:                oklch(0.94 0.02 80 / 15%);
+  --sidebar-accent-foreground:     oklch(0.94 0.02 80);
+  --sidebar-border:                oklch(0.94 0.02 80 / 15%);
+  --sidebar-ring:                  oklch(0.66 0.10 80);
+
+  /* SVG green-paper texture for the sidebar — same fractal noise tinted
+     toward the olive palette. Apply via background-image on sidebar surface. */
+  --texture-paper-green:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
 .dark {
-  /* MLabs navy (~#0A0F1C). Surface separation via slightly lighter card. */
-  --background:            oklch(0.18 0.02 260);
-  --foreground:            oklch(0.985 0 0);
-  --card:                  oklch(0.22 0.03 260);
-  --card-foreground:       oklch(0.985 0 0);
-  --popover:               oklch(0.22 0.03 260);
-  --popover-foreground:    oklch(0.985 0 0);
-  --primary:               oklch(0.69 0.18 39);
-  --primary-foreground:    oklch(0.985 0 0);
-  --secondary:             oklch(0.27 0.02 260);
-  --secondary-foreground:  oklch(0.985 0 0);
-  --muted:                 oklch(0.27 0.02 260);
-  --muted-foreground:      oklch(0.708 0 0);
-  --accent:                oklch(0.27 0.02 260);
-  --accent-foreground:     oklch(0.985 0 0);
-  --destructive:           oklch(0.704 0.191 22.216);
-  --border:                oklch(1 0 0 / 35%);
-  --input:                 oklch(1 0 0 / 40%);
-  --ring:                  oklch(0.69 0.18 39);
+  /* Coffee/leather warm dark — extrapolated from the light palette.
+     Needs client review before shipping. */
+  --background:            oklch(0.18 0.03 60);
+  --foreground:            oklch(0.94 0.02 80);
+  --card:                  oklch(0.22 0.03 60);
+  --card-foreground:       oklch(0.94 0.02 80);
+  --popover:               oklch(0.22 0.03 60);
+  --popover-foreground:    oklch(0.94 0.02 80);
+  /* Same olive as light — keeps cream-on-green at AA 4.5:1. */
+  --primary:               oklch(0.46 0.07 132);
+  --primary-foreground:    oklch(0.94 0.02 80);
+  --secondary:             oklch(0.28 0.03 60);
+  --secondary-foreground:  oklch(0.94 0.02 80);
+  --muted:                 oklch(0.28 0.03 60);
+  --muted-foreground:      oklch(0.70 0.04 80);
+  --accent:                oklch(0.28 0.03 60);
+  --accent-foreground:     oklch(0.94 0.02 80);
+  --destructive:           oklch(0.65 0.20 27);
+  /* Strong cream alpha so hairlines clear 3:1 after compositing on warm dark. */
+  --border:                oklch(0.94 0.02 80 / 50%);
+  --input:                 oklch(0.94 0.02 80 / 45%);
+  /* Brighter ring on dark so focus state pops against the dark bg. */
+  --ring:                  oklch(0.62 0.10 132);
 
-  --success:               oklch(0.7 0.18 145);
-  --success-foreground:    oklch(0.145 0 0);
-  --warning:               oklch(0.82 0.16 80);
-  --warning-foreground:    oklch(0.145 0 0);
+  --success:               oklch(0.46 0.07 132);
+  --success-foreground:    oklch(0.94 0.02 80);
+  --warning:               oklch(0.72 0.13 55);
+  --warning-foreground:    oklch(0.18 0.03 60);
 
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --tier1:                 oklch(0.46 0.07 132);
+  --tier1-foreground:      oklch(0.94 0.02 80);
+  /* Darker burnt orange on dark to stay within AA-Large (3:1) under cream. */
+  --tier2:                 oklch(0.55 0.13 55);
+  --tier2-foreground:      oklch(0.94 0.02 80);
+  --tier3:                 oklch(0.52 0.09 55);
+  --tier3-foreground:      oklch(0.94 0.02 80);
 
-  --sidebar:                       oklch(0.205 0 0);
-  --sidebar-foreground:            oklch(0.985 0 0);
-  --sidebar-primary:               oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground:    oklch(0.985 0 0);
-  --sidebar-accent:                oklch(0.269 0 0);
-  --sidebar-accent-foreground:     oklch(0.985 0 0);
-  --sidebar-border:                oklch(1 0 0 / 10%);
-  --sidebar-ring:                  oklch(0.556 0 0);
+  --brand-cream-bright:    oklch(0.94 0.02 80);
+  --brand-cream-muted:     oklch(0.86 0.04 80);
+  --brand-gold:            oklch(0.74 0.10 80);
+
+  --info:                  oklch(0.55 0.18 240);
+  --info-foreground:       oklch(0.985 0 0);
+
+  --gradient-primary: linear-gradient(
+    145deg,
+    oklch(0.52 0.08 132) 6%,
+    oklch(0.46 0.07 132) 94%
+  );
+  --gradient-tier2: linear-gradient(
+    145deg,
+    oklch(0.62 0.13 55) 6%,
+    oklch(0.55 0.13 55) 94%
+  );
+  --gradient-tier3: linear-gradient(
+    145deg,
+    oklch(0.58 0.09 55) 6%,
+    oklch(0.52 0.09 55) 94%
+  );
+
+  --shadow-primary-glow:   0 3px 5px oklch(0.46 0.07 132 / 35%);
+  --shadow-drawer:         4px 0 12px rgb(0 0 0 / 40%);
+  --shadow-card:           0 1px 2px rgb(0 0 0 / 40%);
+
+  --chart-1: oklch(0.46 0.07 132);
+  --chart-2: oklch(0.55 0.13 55);
+  --chart-3: oklch(0.52 0.09 55);
+  --chart-4: oklch(0.74 0.10 80);
+  --chart-5: oklch(0.55 0.18 240);
+
+  --sidebar:                       oklch(0.32 0.06 130);
+  --sidebar-foreground:            oklch(0.94 0.02 80);
+  --sidebar-primary:               oklch(0.74 0.10 80);
+  --sidebar-primary-foreground:    oklch(0.18 0.03 60);
+  --sidebar-accent:                oklch(0.94 0.02 80 / 15%);
+  --sidebar-accent-foreground:     oklch(0.94 0.02 80);
+  --sidebar-border:                oklch(0.94 0.02 80 / 35%);
+  --sidebar-ring:                  oklch(0.74 0.10 80);
 }
 
 @theme inline {
@@ -126,6 +225,20 @@
   --color-warning:            var(--warning);
   --color-warning-foreground: var(--warning-foreground);
 
+  --color-tier1:              var(--tier1);
+  --color-tier1-foreground:   var(--tier1-foreground);
+  --color-tier2:              var(--tier2);
+  --color-tier2-foreground:   var(--tier2-foreground);
+  --color-tier3:              var(--tier3);
+  --color-tier3-foreground:   var(--tier3-foreground);
+
+  --color-brand-cream-bright: var(--brand-cream-bright);
+  --color-brand-cream-muted:  var(--brand-cream-muted);
+  --color-brand-gold:         var(--brand-gold);
+
+  --color-info:               var(--info);
+  --color-info-foreground:    var(--info-foreground);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -141,10 +254,12 @@
   --color-sidebar-border:                var(--sidebar-border);
   --color-sidebar-ring:                  var(--sidebar-ring);
 
-  /* next/font sets --font-inter / --font-jetbrains-mono on <html> via layout.tsx */
-  --font-sans:    var(--font-inter), system-ui, sans-serif;
+  /* Lato (sans) + Cormorant Garamond (display) loaded via next/font in
+     layout.tsx — variables --font-lato + --font-cormorant-garamond are set
+     on <html>. JetBrains Mono kept for the rare code-rendering surface. */
+  --font-sans:    var(--font-lato), system-ui, sans-serif;
   --font-mono:    var(--font-jetbrains-mono), ui-monospace, monospace;
-  --font-heading: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-cormorant-garamond), Georgia, serif;
 
   --radius-sm:  calc(var(--radius) * 0.6);
   --radius-md:  calc(var(--radius) * 0.8);
@@ -170,6 +285,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Layer the SVG paper-grain texture over the cream base. The texture
+       is encoded inline above as --texture-paper. */
+    background-image: var(--texture-paper);
+    background-repeat: repeat;
+    background-size: 320px 320px;
   }
   html {
     @apply font-sans;

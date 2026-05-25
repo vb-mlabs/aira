@@ -9,15 +9,16 @@
 
 export const brand = {
   name: "AIRA",
-  tagline: "AI engineering with guardrails, conventions, and a paper trail",
+  tagline: "ROOTS & REACH",
   // Substring of `tagline` rendered in `text-primary` on the landing hero.
   // First-match split; case-sensitive. If the substring doesn't appear in
   // `tagline`, the hero renders the tagline as plain text.
-  taglineHighlight: "paper trail",
-  supportEmail: "support@example.com",
-  socialHandle: "@mlabs",
-  legalEntity: "Million Labs Ltd",
-  url: "https://example.com",
+  taglineHighlight: "REACH",
+  // Placeholders — replace with real values before launch.
+  supportEmail: "support@aira.app",
+  socialHandle: "@aira_atl",
+  legalEntity: "Nisarga Group LLC",
+  url: "https://aira.app",
 
   // Email-client-safe sRGB hex palette. Gmail, Outlook, and Yahoo do not
   // support oklch() in inline CSS, so React Email templates cannot import
@@ -25,16 +26,16 @@ export const brand = {
   // design.colors.light (see packages/config/src/design.ts). Keep in sync
   // when the design tokens change.
   //
-  // `border` is the one deliberate divergence: design uses ~#9C9C9C (3:1
-  // on-screen visibility); emails read better with a softer separator.
+  // `border` is the one deliberate divergence: design uses #C9B795 (3:1
+  // warm tan on cream); emails read better with a softer separator.
   emailColors: {
-    primary:           "#FF6B2C",  // oklch(0.69 0.18 39)
-    primaryForeground: "#FFFFFF",  // oklch(0.985 0 0) — brand choice, AA-exempt (see design.ts)
-    background:        "#FFFFFF",  // oklch(1 0 0)
-    foreground:        "#1A1A1A",  // oklch(0.145 0 0)
-    muted:             "#F5F5F5",  // oklch(0.97 0.003 80)
-    mutedForeground:   "#7A7A7A",  // oklch(0.48 0 0)
-    border:            "#E5E5E5",  // softer than design.border for email
+    primary:           "#4F653B",  // oklch(0.46 0.07 132) — AIRA olive green
+    primaryForeground: "#F3EBDD",  // oklch(0.94 0.02 80) — AIRA cream, AA-passing on green
+    background:        "#EAE0CB",  // oklch(0.90 0.04 85) — page cream
+    foreground:        "#3D2814",  // oklch(0.25 0.04 60) — warm dark brown
+    muted:             "#E2D5BC",  // oklch(0.88 0.03 85)
+    mutedForeground:   "#735239",  // oklch(0.45 0.04 60)
+    border:            "#D8C9AC",  // softer than design.border for email
   },
 } as const
 

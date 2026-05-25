@@ -58,3 +58,8 @@ next-env.d.ts
 .claude/ide/
 .claude/.credentials.json
 .fork-config.json
+
+# Dev-only symlinks for design system preview HTML (target .mstack/ which is
+# tracked separately; the symlinks themselves use absolute paths that only
+# resolve in this workspace).
+apps/web/public/design-preview/

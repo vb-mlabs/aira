@@ -176,12 +176,10 @@ const PAIRS: Pair[] = [
   { fg: "mutedForeground", bg: "background", severity: "body", note: "muted helper text" },
   { fg: "mutedForeground", bg: "muted", severity: "body", note: "muted-on-muted (form helpers)" },
 
-  // Filled interactive surfaces — body bar (button labels)
-  // NOTE: primaryForeground vs primary is deliberately exempted. The brand
-  // choice is white text on the bright MLabs orange (oklch(0.69 0.18 39)),
-  // which is ~2.6:1 and fails AA. This is a known accessibility tradeoff
-  // documented in packages/config/src/design.ts. Forks that prefer an
-  // AA-passing combo should darken `primary` and re-add this pair here.
+  // Filled interactive surfaces — body bar (button labels). AIRA cream-on-
+  // olive-green passes ~4.65:1 so primary IS tested here (unlike the MLabs
+  // template, which exempted the white-on-orange CTA).
+  { fg: "primaryForeground", bg: "primary", severity: "body", note: "primary button label" },
   { fg: "secondaryForeground", bg: "secondary", severity: "body", note: "secondary button label" },
   { fg: "accentForeground", bg: "accent", severity: "body", note: "accent button/hover label" },
   { fg: "successForeground", bg: "success", severity: "body", note: "success toast label" },
@@ -194,6 +192,19 @@ const PAIRS: Pair[] = [
   { fg: "border", bg: "background", severity: "large", note: "border visibility" },
   { fg: "input", bg: "background", severity: "large", note: "input outline visibility" },
   { fg: "ring", bg: "background", severity: "large", note: "focus ring visibility" },
+
+  // AIRA tier system — sponsorship tiers + PRD category-level hierarchy.
+  // tier1 (cream on olive green) and tier3 (cream on chocolate brown) both
+  // clear AA body. tier2 (cream on burnt orange) is ~2.7:1 and falls under
+  // the AA-Large bar — qualifies because tier headers are bold Lato ≥14px.
+  // Documented as a deliberate exemption in .mstack/design-system/DESIGN.md.
+  { fg: "tier1Foreground", bg: "tier1", severity: "body", note: "sponsored-top tier label" },
+  { fg: "tier2Foreground", bg: "tier2", severity: "large", note: "sponsored-mid tier label (AA-Large exemption)" },
+  { fg: "tier3Foreground", bg: "tier3", severity: "body", note: "regular-tier label" },
+
+  // Verified badge — small icon-on-pill on listing cards. Icon, not body
+  // text; WCAG 1.4.11 non-text contrast applies (3:1).
+  { fg: "infoForeground", bg: "info", severity: "large", note: "verified badge icon" },
 ]
 
 // ---------- design.ts loader ----------

@@ -1,11 +1,21 @@
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { Lato, Cormorant_Garamond, JetBrains_Mono } from "next/font/google"
 import { generateMetadata } from "@/config/seo"
 import { Providers } from "./providers"
 import { cn } from "@aira/ui-web/utils"
 import "./globals.css"
 
-const inter = Inter({
-  variable: "--font-inter",
+// AIRA pairing — Lato (humanist sans) for body + UI, Cormorant Garamond
+// (transitional serif) for headings + wordmark. Both Google Fonts; both
+// available via @expo-google-fonts/* on mobile.
+const lato = Lato({
+  variable: "--font-lato",
+  weight: ["400", "700"],
+  subsets: ["latin"],
+})
+
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant-garamond",
+  weight: ["600", "700"],
   subsets: ["latin"],
 })
 
@@ -24,7 +34,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(inter.variable, jetbrainsMono.variable, "h-full antialiased font-sans")}
+      className={cn(
+        lato.variable,
+        cormorantGaramond.variable,
+        jetbrainsMono.variable,
+        "h-full antialiased font-sans",
+      )}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
