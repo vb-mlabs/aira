@@ -1,0 +1,15 @@
+/* Drop-cap for the lead paragraph in <AboutEditorial>. Lives in its own
+   CSS file because Tailwind v4 doesn't have a clean utility for ::first-letter
+   styling at this scale (the @apply pattern doesn't fully apply font-family
+   from a custom var inside a pseudo-element). */
+
+.about-drop-cap::first-letter {
+  font-family: var(--font-heading), Georgia, serif;
+  font-weight: 700;
+  font-size: 4.5em;
+  float: left;
+  line-height: 0.85;
+  padding-right: 12px;
+  padding-top: 6px;
+  color: var(--primary);
+}
