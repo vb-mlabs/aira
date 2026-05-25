@@ -62,10 +62,8 @@ Curl pre-checks: ✅ all routes 200 · ✅ OG/Twitter meta tags present · ✅ m
 - **Actual:** Three Next.js dev-only warnings.
 - **Console errors:** captured in `results.json`
 - **Suspected cause:** `phone-showcase.tsx` `<Image>` has `width={260} height={563}` but CSS applies `h-auto w-full`, so Next.js can't verify aspect ratio. Also missing `priority` on the first (above-the-fold) phone.
-- **Fix plan:** In `apps/web/src/components/marketing/phone-showcase.tsx`:
-  - Add `priority` prop to the first `PhoneFrame` (the left one — Home screen is the LCP).
-  - Add `style={{ width: "100%", height: "auto" }}` to the `<Image>` to silence the aspect-ratio warning, OR drop the explicit `w-full` Tailwind class and let the intrinsic dimensions handle it.
-- **Status:** open
+- **Fix plan (applied):** Tried inline `style={{ width: "100%", height: "auto" }}` first; didn't satisfy Next.js's runtime aspect check. Switched PhoneFrame to next/image `fill` mode + parent with `aspect-[190/411]` (≈260/563 intrinsic). Added `priority` to both phones (LCP candidate depends on viewport).
+- **Status:** ✅ fixed (commit `122e9f4`) — re-verified: zero console warnings on `/`
 
 ### Issue 3: Inline form error is too small to notice
 
