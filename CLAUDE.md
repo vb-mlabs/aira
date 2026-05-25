@@ -91,6 +91,22 @@ This template ships an opinionated agent workflow. Prefer these over freelancing
 `.mstack/` is the workflow's working directory (plans, reviews, code ledgers,
 QA reports). Treat its files as durable artifacts — don't delete without reason.
 
+## Replit session bootstrap
+
+This workspace runs on Replit, where `~/.claude/` may be wiped between
+sessions. The persistent memory directory is symlinked into the repo at
+`.claude/memory/` so memories survive restarts. At the start of every Replit
+session, before writing any memory, verify the symlink and recreate it if
+missing:
+
+```bash
+[ -L /home/runner/.claude/projects/-home-runner-workspace/memory ] \
+  || bash .claude/scripts/setup-memory.sh
+```
+
+The script is idempotent and migrates any pre-existing memories at the
+default location into the repo before linking.
+
 ## When in doubt
 
 - New feature → `/mlabs-plan`, not direct edits to `apps/` or `packages/`.
