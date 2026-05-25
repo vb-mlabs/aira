@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as SplashScreen from "expo-splash-screen";
 import { ToastProvider } from "../components/ui/Toast";
-import { useColorScheme } from "../lib/theme";
 import { useAppFonts } from "../lib/fonts";
 import "../global.css";
 
@@ -26,7 +25,6 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const scheme = useColorScheme();
   const fontsLoaded = useAppFonts();
 
   React.useEffect(() => {
@@ -41,7 +39,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+          <StatusBar style="dark" />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(app)" />

@@ -40,6 +40,7 @@ export default function RootLayout({
         jetbrainsMono.variable,
         "h-full antialiased font-sans",
       )}
+      style={{ colorScheme: "light" }}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">

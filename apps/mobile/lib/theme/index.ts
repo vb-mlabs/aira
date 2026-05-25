@@ -1,9 +1,10 @@
 /**
- * Theme: system-follow only in v1. Reads OS color scheme via React Native's
- * `useColorScheme()` (Expo passes through). No in-app toggle until TODOS #3.
+ * Theme: light-only. The dark token set in ./tokens.ts is preserved for
+ * future re-enable, but neither web nor mobile exposes a switch. Web pins
+ * via next-themes forcedTheme; mobile pins via Expo userInterfaceStyle:
+ * "light" plus this hook returning "light" unconditionally.
  */
 
-import { useColorScheme as useRNColorScheme } from "react-native";
 import { design } from "./tokens";
 
 export { design };
@@ -11,8 +12,7 @@ export { design };
 export type ColorScheme = "light" | "dark";
 
 export function useColorScheme(): ColorScheme {
-  const scheme = useRNColorScheme();
-  return scheme === "dark" ? "dark" : "light";
+  return "light";
 }
 
 export type ThemeColors = Record<keyof typeof design.colors.light, string>;

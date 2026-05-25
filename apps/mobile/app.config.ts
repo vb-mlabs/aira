@@ -15,7 +15,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: "aira",
   version: "0.1.0",
   orientation: "portrait",
-  userInterfaceStyle: "automatic",
+  userInterfaceStyle: "light",
   icon: "./assets/icon.png",
   splash: {
     image: "./assets/splash.png",
