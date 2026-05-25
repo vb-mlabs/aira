@@ -26,6 +26,7 @@ PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
 
 [agent]
 expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
 
 [workflows]
 runButton = "Project"
