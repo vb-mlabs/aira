@@ -33,21 +33,21 @@ export function BusinessPanel() {
   return (
     <section
       id="businesses"
-      className="bg-[color:oklch(0.42_0.06_130)] bg-[image:var(--texture-paper-green)] bg-repeat py-[120px] text-[color:var(--brand-cream-bright)]"
+      className="bg-[color:oklch(0.42_0.06_130)] bg-[image:var(--texture-paper-green)] bg-repeat py-[120px] text-brand-cream-bright"
       style={{ backgroundSize: "320px 320px" }}
     >
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[80px]">
         <div>
-          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-[color:var(--brand-gold)]">
+          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
             For business owners
           </span>
-          <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] text-[color:var(--brand-cream-bright)] md:text-5xl">
+          <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] text-brand-cream-bright md:text-5xl">
             List your business{" "}
-            <em className="font-bold italic text-[color:var(--brand-gold)]">
+            <em className="font-bold italic text-brand-gold">
               where Atlanta&rsquo;s Indian community looks first.
             </em>
           </h2>
-          <p className="mt-4 text-[17px] leading-[1.7] text-[color:var(--brand-cream-muted)]">
+          <p className="mt-4 text-[17px] leading-[1.7] text-brand-cream-muted">
             Get in front of a curated, growing audience. Verified members get
             the blue tick. Sponsored placement puts you at the top of your
             category.
@@ -58,12 +58,12 @@ export function BusinessPanel() {
               <li key={perk.title} className="flex items-start gap-[14px]">
                 <span
                   aria-hidden="true"
-                  className="mt-[3px] flex size-[22px] flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-cream-bright)] text-[11px] font-bold text-[color:oklch(0.42_0.06_130)]"
+                  className="mt-[3px] flex size-[22px] flex-shrink-0 items-center justify-center rounded-full bg-brand-cream-bright text-[11px] font-bold text-[color:oklch(0.42_0.06_130)]"
                 >
                   ✓
                 </span>
-                <p className="text-[15px] leading-[1.55] text-[color:var(--brand-cream-muted)]">
-                  <strong className="text-[color:var(--brand-cream-bright)]">
+                <p className="text-[15px] leading-[1.55] text-brand-cream-muted">
+                  <strong className="text-brand-cream-bright">
                     {perk.title}
                   </strong>{" "}
                   &mdash; {perk.body}
@@ -74,7 +74,7 @@ export function BusinessPanel() {
 
           <a
             href={mailto}
-            className="inline-flex items-center gap-2 rounded-full bg-[color:var(--brand-cream-bright)] px-7 py-[14px] font-sans text-sm font-bold tracking-[0.3px] text-[color:oklch(0.42_0.06_130)] no-underline transition-transform hover:-translate-y-px"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-cream-bright px-7 py-[14px] font-sans text-sm font-bold tracking-[0.3px] text-[color:oklch(0.42_0.06_130)] no-underline transition-transform hover:-translate-y-px"
           >
             Get in touch about being listed →
           </a>
@@ -119,12 +119,12 @@ function ListingCardPreview() {
         </div>
         <button
           type="button"
-          className="flex-shrink-0 rounded-full bg-[image:var(--gradient-tier2)] px-3 py-1.5 text-[11px] font-bold text-[color:var(--brand-cream-bright)]"
+          className="flex-shrink-0 rounded-full bg-[image:var(--gradient-tier2)] px-3 py-1.5 text-[11px] font-bold text-brand-cream-bright"
         >
           More info
         </button>
       </div>
-      <p className="mt-3.5 text-center font-display text-sm italic text-[color:var(--brand-cream-muted)]">
+      <p className="mt-3.5 text-center font-display text-sm italic text-brand-cream-muted">
         A listing on AIRA &mdash; verified tick, quick actions, sponsored
         placement.
       </p>

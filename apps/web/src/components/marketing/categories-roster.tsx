@@ -6,6 +6,8 @@
 //
 // Marketing copy lives inline (allowlisted in tooling/eslint-config — T9).
 
+import { Ornament } from "./_ornament"
+
 type Tier = "tier1" | "tier2" | "tier3"
 
 type Category = {
@@ -74,7 +76,7 @@ export function CategoriesRoster() {
       <div className="mx-auto max-w-[1180px]">
         <header className="mb-16 text-center">
           <Ornament />
-          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-[color:var(--brand-gold)]">
+          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
             What you&rsquo;ll find
           </span>
           <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-5xl">
@@ -92,13 +94,13 @@ export function CategoriesRoster() {
             <div
               key={cat.numeral}
               className={
-                "grid grid-cols-[40px_1fr_24px] items-baseline gap-4 border-t border-[color:oklch(0.50_0.07_80_/_25%)] py-8 md:grid-cols-[64px_1fr_auto] md:gap-6 " +
+                "grid grid-cols-[40px_1fr_24px] items-baseline gap-4 border-t border-border/25 py-8 md:grid-cols-[64px_1fr_auto] md:gap-6 " +
                 (i === categories.length - 1
-                  ? "border-b border-[color:oklch(0.50_0.07_80_/_25%)]"
+                  ? "border-b border-border/25"
                   : "")
               }
             >
-              <span className="font-display text-[22px] font-medium italic tracking-wide text-[color:var(--brand-gold)] md:text-[28px]">
+              <span className="font-display text-[22px] font-medium italic tracking-wide text-brand-gold md:text-[28px]">
                 {cat.numeral}
               </span>
               <div>
@@ -114,7 +116,7 @@ export function CategoriesRoster() {
                   {cat.examples}
                 </p>
               </div>
-              <span className="self-center font-display text-2xl text-[color:var(--brand-gold)] md:text-[28px]">
+              <span className="self-center font-display text-2xl text-brand-gold md:text-[28px]">
                 ›
               </span>
             </div>
@@ -136,14 +138,3 @@ function tierBorder(tier: Tier): string {
   }
 }
 
-function Ornament() {
-  return (
-    <div className="mb-8 flex items-center justify-center gap-4">
-      <hr className="h-px w-12 border-0 bg-[color:oklch(0.66_0.10_80_/_50%)]" />
-      <span className="font-display text-2xl text-[color:var(--brand-gold)]">
-        ✦
-      </span>
-      <hr className="h-px w-12 border-0 bg-[color:oklch(0.66_0.10_80_/_50%)]" />
-    </div>
-  )
-}

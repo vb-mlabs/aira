@@ -55,7 +55,7 @@ export function MarketingFooter() {
           <FooterColumn title="Legal" links={legalLinks} />
         </div>
 
-        <div className="flex flex-col items-start justify-between gap-3 border-t border-[color:oklch(0.50_0.07_80_/_25%)] pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-border/25 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
           <span>
             © {year} {brand.legalEntity}. All rights reserved.
           </span>

@@ -6,6 +6,7 @@
 // Copy is locked from .mstack/mockups/marketing-page/v4/index.html. Marketing
 // prose lives inline (allowlisted in tooling/eslint-config — see T9).
 
+import { Ornament } from "./_ornament"
 import "./about-editorial.css"
 
 export function AboutEditorial() {
@@ -14,7 +15,7 @@ export function AboutEditorial() {
       <div className="mx-auto max-w-[1180px]">
         <header className="mb-16 text-center">
           <Ornament />
-          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-[color:var(--brand-gold)]">
+          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
             Why we built this
           </span>
           <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-5xl">
@@ -51,14 +52,3 @@ export function AboutEditorial() {
   )
 }
 
-function Ornament() {
-  return (
-    <div className="mb-8 flex items-center justify-center gap-4">
-      <hr className="h-px w-12 border-0 bg-[color:oklch(0.66_0.10_80_/_50%)]" />
-      <span className="font-display text-2xl text-[color:var(--brand-gold)]">
-        ✦
-      </span>
-      <hr className="h-px w-12 border-0 bg-[color:oklch(0.66_0.10_80_/_50%)]" />
-    </div>
-  )
-}

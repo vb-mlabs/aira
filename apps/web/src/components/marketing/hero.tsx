@@ -27,7 +27,7 @@ export function Hero() {
       </h1>
       <p className="mt-7 font-display text-[24px] italic text-muted-foreground">
         Roots &amp;{" "}
-        <em className="font-bold not-italic text-[color:var(--brand-gold)]">
+        <em className="font-bold not-italic text-brand-gold">
           Reach
         </em>
       </p>
