@@ -18,6 +18,7 @@ import { render } from "@react-email/render"
 import { NotificationEmail } from "./templates/notification"
 import { PasswordResetEmail } from "./templates/password-reset"
 import { VerifyEmail } from "./templates/verify-email"
+import { WaitlistWelcomeEmail } from "./templates/waitlist-welcome"
 import type { EmailDriver } from "./types"
 
 interface BaseSendOpts {
@@ -49,6 +50,7 @@ export interface EmailTemplates {
       ctaUrl?: string
     },
   ) => Promise<void>
+  sendWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
 }
 
 export function createTemplates({
@@ -123,6 +125,21 @@ export function createTemplates({
       await getDriver().send({
         to: opts.to,
         subject: opts.title,
+        html,
+        text,
+        fromName: brandName,
+      })
+    },
+
+    async sendWaitlistWelcomeEmail(opts) {
+      const tree = <WaitlistWelcomeEmail {...layoutChrome} />
+      const [html, text] = await Promise.all([
+        render(tree),
+        render(tree, { plainText: true }),
+      ])
+      await getDriver().send({
+        to: opts.to,
+        subject: `You're on the ${brandName} waitlist — see you in Atlanta soon`,
         html,
         text,
         fromName: brandName,

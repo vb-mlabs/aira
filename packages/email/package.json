@@ -13,6 +13,7 @@
     "./templates/verify-email": "./src/templates/verify-email.tsx",
     "./templates/password-reset": "./src/templates/password-reset.tsx",
     "./templates/notification": "./src/templates/notification.tsx",
+    "./templates/waitlist-welcome": "./src/templates/waitlist-welcome.tsx",
     "./components/Layout": "./src/components/Layout.tsx",
     "./components/Button": "./src/components/Button.tsx",
     "./drivers/console": "./src/drivers/console.ts",

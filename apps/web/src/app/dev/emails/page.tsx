@@ -9,6 +9,7 @@ import { brand } from "@aira/config"
 import { NotificationEmail } from "@aira/email/templates/notification"
 import { PasswordResetEmail } from "@aira/email/templates/password-reset"
 import { VerifyEmail } from "@aira/email/templates/verify-email"
+import { WaitlistWelcomeEmail } from "@aira/email/templates/waitlist-welcome"
 import { render } from "@react-email/render"
 import { env } from "@/config/env"
 
@@ -62,6 +63,11 @@ export default async function DevEmailsPage() {
           ctaUrl="https://app.example.com/signals/42"
         />,
       ),
+    },
+    {
+      slug: "waitlist-welcome",
+      subject: `You're on the ${brand.name} waitlist — see you in Atlanta soon`,
+      html: await render(<WaitlistWelcomeEmail {...layoutChrome} />),
     },
   ]
 
