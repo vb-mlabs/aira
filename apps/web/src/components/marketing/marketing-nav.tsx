@@ -1,8 +1,9 @@
 // Sticky nav for the marketing landing page. Cream backdrop-blur, AIRA
-// tree-of-life logo + wordmark left, two CTAs on the right:
+// tree-of-life logo + wordmark left, three CTAs on the right:
 //   1. "Get notified at launch" — quiet brass-gold anchor → waitlist card
 //      (kept for low-commit visitors; hidden on small screens)
-//   2. "Get Started" — primary olive pill → /signup (the real auth route,
+//   2. "Sign in" — quiet text link → /login (for returning users)
+//   3. "Get Started" — primary olive pill → /signup (the real auth route,
 //      available now that Better Auth ships in the template)
 
 import Image from "next/image"
@@ -37,6 +38,12 @@ export function MarketingNav() {
             className="hidden border-b border-brand-gold/60 pb-[3px] text-[13px] font-bold uppercase tracking-[0.5px] text-foreground transition-colors hover:border-primary hover:text-primary sm:inline-block"
           >
             Get notified at launch
+          </Link>
+          <Link
+            href="/login"
+            className="text-[13px] font-bold uppercase tracking-[0.5px] text-muted-foreground no-underline transition-colors hover:text-primary"
+          >
+            Sign in
           </Link>
           <Link
             href="/signup"
