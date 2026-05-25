@@ -19,11 +19,13 @@ export function PhoneShowcase() {
             src="/marketing-images/home-screen.png"
             alt="AIRA mobile home screen — categories and featured businesses"
             tilt="left"
+            priority
           />
           <PhoneFrame
             src="/marketing-images/business-listing.png"
             alt="AIRA mobile business-listing screen — sponsored and verified businesses"
             tilt="right"
+            priority
           />
         </div>
 
@@ -70,10 +72,12 @@ function PhoneFrame({
   src,
   alt,
   tilt,
+  priority = false,
 }: {
   src: string
   alt: string
   tilt: "left" | "right"
+  priority?: boolean
 }) {
   const tiltClasses =
     tilt === "left"
@@ -82,17 +86,21 @@ function PhoneFrame({
   return (
     <div
       className={
-        "absolute w-[190px] overflow-hidden rounded-[30px] bg-background shadow-[0_50px_100px_-30px_oklch(0.25_0.04_60_/_45%),_0_0_0_1px_oklch(0.50_0.07_80_/_25%)] md:w-[260px] " +
+        // aspect-[190/411] derives the phone's height from its width
+        // (190 / 411 ≈ 260 / 563 — same aspect, ints that Tailwind's
+        // arbitrary-value parser tolerates). Switching to `fill` mode on
+        // the Image keeps Next.js's aspect-ratio runtime check happy.
+        "absolute aspect-[190/411] w-[190px] overflow-hidden rounded-[30px] bg-background shadow-[0_50px_100px_-30px_oklch(0.25_0.04_60_/_45%),_0_0_0_1px_oklch(0.50_0.07_80_/_25%)] md:w-[260px] " +
         tiltClasses
       }
     >
       <Image
         src={src}
         alt={alt}
-        width={260}
-        height={563}
+        fill
         sizes="(max-width: 900px) 190px, 260px"
-        className="block h-auto w-full"
+        priority={priority}
+        className="object-cover"
       />
     </div>
   )
