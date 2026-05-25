@@ -20,7 +20,7 @@ export function Hero() {
         priority
         className="mb-9 size-[140px] drop-shadow-[0_16px_32px_oklch(0.25_0.04_60_/_25%)]"
       />
-      <h1 className="m-0 max-w-[900px] font-display text-[44px] font-semibold leading-[1.02] tracking-tight text-foreground md:text-[7.5vw] md:[font-size:clamp(44px,7.5vw,88px)]">
+      <h1 className="m-0 max-w-[900px] font-display text-[40px] font-semibold leading-[1.02] tracking-tight text-foreground md:text-[6.8vw] md:[font-size:clamp(40px,6.8vw,80px)]">
         A directory of Atlanta&rsquo;s Indian community,
         <br />
         <em className="font-bold italic text-primary">curated with care.</em>
