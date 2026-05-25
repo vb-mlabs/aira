@@ -1,0 +1,25 @@
+# Maestro flow 11 — backgrounded mid-upload completes or fails clearly
+# Verifies the avatar upload either succeeds across an app-background or
+# surfaces a clear error toast on resume.
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn: "Profile"
+- tapOn: "Change avatar"
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    index: 0
+# Background the app immediately while the upload is in flight.
+- pressKey: Home
+- waitForAnimationToEnd
+- launchApp:
+    clearState: false
+# Either the upload finished while backgrounded, or we see a clear error.
+- waitFor:
+    visible:
+      text: "Avatar updated|Couldn't update avatar"
+      regex: true
+    timeout: 15000

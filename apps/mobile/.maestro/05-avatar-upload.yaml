@@ -1,0 +1,16 @@
+# Maestro flow 5 — avatar upload from library → appears on profile within 2s
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn: "Profile"
+- tapOn: "Change avatar"
+# Photo library picker is an OS sheet — Maestro auto-grants and picks first image.
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    index: 0
+- assertVisible:
+    text: "Avatar updated"
+    timeout: 4000

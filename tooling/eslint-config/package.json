@@ -1,0 +1,29 @@
+{
+  "name": "@mlabs/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/base.mjs",
+  "exports": {
+    "./base": "./src/base.mjs",
+    "./next": "./src/next.mjs",
+    "./expo": "./src/expo.mjs",
+    "./library": "./src/library.mjs",
+    "./rules/no-brand-string-literal": "./src/rules/no-brand-string-literal.mjs",
+    "./rules/no-drizzle-in-schemas": "./src/rules/no-drizzle-in-schemas.mjs"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "eslint": "^9"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.59.3"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "vitest": "^4.1.5"
+  }
+}

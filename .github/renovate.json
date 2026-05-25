@@ -1,0 +1,117 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "timezone": "Europe/London",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "rebaseWhen": "conflicted",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Expo SDK + react-native are version-locked to each other; group them so any SDK bump lands as a single PR. Major bumps still route through the dashboard for manual approval.",
+      "matchPackageNames": [
+        "expo",
+        "/^expo-/",
+        "react-native",
+        "/^react-native-/",
+        "/^@react-native\\//",
+        "/^@react-native-community\\//",
+        "@expo/metro-runtime",
+        "@expo/vector-icons",
+        "jest-expo",
+        "eslint-config-expo"
+      ],
+      "groupName": "expo sdk"
+    },
+    {
+      "description": "Mobile keeps Tailwind 3 until NativeWind ships Tailwind 4 support — no auto-bump",
+      "matchFileNames": ["apps/mobile/package.json"],
+      "matchPackageNames": ["tailwindcss", "nativewind"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "All other major bumps land via dependency dashboard approval, not auto-PR",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Group the Next.js ecosystem",
+      "matchPackageNames": ["next", "eslint-config-next"],
+      "groupName": "next.js"
+    },
+    {
+      "description": "Group TypeScript + @types/node across web + packages (mobile is excluded above)",
+      "matchPackageNames": ["typescript", "@types/node"],
+      "groupName": "typescript"
+    },
+    {
+      "description": "Group Drizzle + Neon (kept on the same release cadence)",
+      "matchPackageNames": ["/^drizzle-/", "/^@neondatabase\\//"],
+      "groupName": "drizzle + neon"
+    },
+    {
+      "description": "Group Better Auth core + plugins",
+      "matchPackageNames": ["better-auth", "/^@better-auth\\//"],
+      "groupName": "better-auth"
+    },
+    {
+      "description": "Group lint + test tooling on the web/packages side",
+      "matchPackageNames": [
+        "eslint",
+        "/^eslint-/",
+        "/^@eslint\\//",
+        "vitest",
+        "/^@vitest\\//",
+        "@vitejs/plugin-react",
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser",
+        "typescript-eslint"
+      ],
+      "groupName": "lint + test tooling"
+    },
+    {
+      "description": "Group Drizzle + Postgres adapters",
+      "matchPackageNames": ["drizzle-orm", "drizzle-kit", "/^@neondatabase\\//", "pg"],
+      "groupName": "db tooling"
+    },
+    {
+      "description": "Group Tailwind + UI base layer (web)",
+      "matchPackageNames": [
+        "tailwindcss",
+        "/^@tailwindcss\\//",
+        "tailwind-merge",
+        "tailwind-variants",
+        "class-variance-authority",
+        "clsx"
+      ],
+      "groupName": "tailwind + ui base"
+    },
+    {
+      "description": "Group test runtime ecosystem",
+      "matchPackageNames": [
+        "@testing-library/react",
+        "@testing-library/dom",
+        "@testing-library/jest-dom",
+        "@testing-library/user-event",
+        "jsdom",
+        "msw"
+      ],
+      "groupName": "testing libraries"
+    },
+    {
+      "description": "Group turborepo + workspace tooling",
+      "matchPackageNames": ["turbo", "syncpack", "lefthook", "tsx"],
+      "groupName": "monorepo tooling"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  }
+}

@@ -1,0 +1,16 @@
+# Maestro flow 10 — admin bans user via web → next mobile call refresh fails → signed out
+# Pre-req: external test helper deletes the refresh-token row for the user
+# while the flow is running (Maestro 'runScript' or sibling Playwright step).
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn: "Notifications"
+- assertVisible: "Notifications"
+- runScript: scripts/admin-ban-user.js     # deletes refresh token server-side
+- waitForAnimationToEnd
+# Wait one poll cycle so the next request hits 401 → refresh fails → sign-out
+- waitFor:
+    visible:
+      text: "Welcome back"
+    timeout: 15000

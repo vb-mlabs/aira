@@ -1,0 +1,18 @@
+# Maestro flow 6 — send DM to existing user → appears in thread → web user sees within 10s
+# The web-side assertion is performed by a sibling Playwright run, kicked off
+# by the surrounding CI/local script before this flow starts.
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn: "Messages"
+- tapOn:
+    text: "${PEER_NAME}"
+    optional: false
+- tapOn:
+    id: "Message input"
+- inputText: "Hello from Maestro ${RUN_ID}"
+- tapOn: "Send message"
+- assertVisible:
+    text: "Hello from Maestro ${RUN_ID}"
+    timeout: 3000

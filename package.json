@@ -1,0 +1,47 @@
+{
+  "name": "mlabs-template",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.26.1",
+  "scripts": {
+    "dev": "pnpm --filter @mlabs/web dev",
+    "build": "turbo run build",
+    "start": "pnpm --filter @mlabs/web start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:watch": "pnpm --filter @mlabs/web test:watch",
+    "e2e": "pnpm --filter @mlabs/web e2e",
+    "db:generate": "pnpm --filter @mlabs/db generate",
+    "db:migrate": "pnpm --filter @mlabs/db migrate",
+    "db:studio": "pnpm --filter @mlabs/db studio",
+    "verify:deeplinks": "tsx scripts/verify-deeplinks.ts",
+    "email:smoke": "tsx scripts/email-smoke.ts",
+    "stripe:webhook-setup": "tsx scripts/stripe-webhook-setup.ts",
+    "check-contrast": "tsx scripts/check-contrast.ts",
+    "gen:mobile-tw": "tsx scripts/gen-mobile-tailwind.ts",
+    "gen:mobile-tw:check": "tsx scripts/gen-mobile-tailwind.ts --check",
+    "rename": "tsx scripts/rename.ts",
+    "claude": "claude"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-code": "^2.1.150",
+    "@mlabs/config": "workspace:*",
+    "drizzle-kit": "^0.31.10",
+    "lefthook": "^2.1.6",
+    "syncpack": "15.1.2",
+    "tsx": "^4.21.0",
+    "turbo": "^2.5.10",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@anthropic-ai/claude-code",
+      "esbuild",
+      "lefthook",
+      "msw",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@mlabs/email",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./url": "./src/url.ts",
+    "./templates": "./src/templates.tsx",
+    "./templates/verify-email": "./src/templates/verify-email.tsx",
+    "./templates/password-reset": "./src/templates/password-reset.tsx",
+    "./templates/notification": "./src/templates/notification.tsx",
+    "./components/Layout": "./src/components/Layout.tsx",
+    "./components/Button": "./src/components/Button.tsx",
+    "./drivers/console": "./src/drivers/console.ts",
+    "./drivers/postmark": "./src/drivers/postmark.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
+    "postmark": "^4.0.7",
+    "react": "19.2.4",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@mlabs/tsconfig": "workspace:*",
+    "@types/react": "^19",
+    "typescript": "^5.9.3"
+  }
+}

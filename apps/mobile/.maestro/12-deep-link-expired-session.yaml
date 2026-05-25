@@ -1,0 +1,27 @@
+# Maestro flow 12 — deep-link into (app) from an unauthenticated state
+# bounces to welcome (gate works).
+#
+# Original intent was to seed a stale refresh token in SecureStore and
+# deep-link from there, but Maestro has no SecureStore-write primitive
+# and the codebase has no dev-only seed hook. The semantically-equivalent
+# scenario is: no tokens + deep link into /(app)/messages/<id> → the
+# (app) gate at _layout.tsx should redirect to welcome rather than
+# crashing or rendering a 401ing tab bar.
+#
+# Whether the gate fires because of `me.isError` (401) or because of
+# `!me.data?.emailVerified` (no session at all), the user-visible
+# behavior is identical — the gate is a single bounce-to-welcome on any
+# unauthenticated state.
+#
+# See .mstack/learnings.jsonl for the deviation note.
+
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: true
+- stopApp
+- openLink: "mlabs:///messages/test-id"
+- assertVisible:
+    text: "Create account"
+    timeout: 8000
+- assertVisible: "Sign in"

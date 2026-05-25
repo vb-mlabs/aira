@@ -1,0 +1,28 @@
+# Pre-commit hooks. Install per-clone with: npx lefthook install
+#
+# The migration check enforces the Drizzle workflow: schema changes MUST come
+# with a matching generated migration in drizzle/migrations/. Prevents the
+# "works locally, breaks on deploy" footgun where someone edits schema and
+# forgets `npm run db:generate`.
+#
+# Bypass an individual commit with `git commit --no-verify` (use sparingly —
+# only for refactors that touch schema files but don't change DB shape).
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: check-migrations
+      run: bash .lefthook/pre-commit/check-migrations.sh
+    # WCAG-AA contrast guard. Reads packages/config/src/design.ts and fails
+    # if any foreground/background pair falls below 4.5:1 (body) or 3:1
+    # (large / interactive). Fast — runs every commit rather than as a
+    # glob-scoped hook because palette tweaks ripple through tokens that
+    # aren't always named in the diff.
+    - name: check-contrast
+      run: pnpm --silent check-contrast
+    # Mobile Tailwind config drift guard. Only runs when the relevant inputs
+    # change. Forces the generated apps/mobile/tailwind.config.js to stay in sync
+    # with packages/config/src/design.ts.
+    - name: check-mobile-tailwind
+      glob: "{packages/config/src/design.ts,apps/mobile/tailwind.config.js,scripts/gen-mobile-tailwind.ts}"
+      run: pnpm gen:mobile-tw:check

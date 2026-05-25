@@ -1,0 +1,23 @@
+# Maestro flow 11 — fresh install cold launch shows welcome screen,
+# CTAs navigate to sign-up / login.
+#
+# Run locally: `maestro test apps/mobile/.maestro/11-welcome-cold-launch.yaml`
+
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "Create account"
+    timeout: 5000
+- assertVisible: "Sign in"
+
+# Tap "Sign in" → login screen
+- tapOn: "Sign in"
+- assertVisible: "Welcome back"
+
+# Back to welcome, then tap "Create account" → sign-up screen
+- back
+- assertVisible: "Create account"
+- tapOn: "Create account"
+- assertVisible: "Create your account"

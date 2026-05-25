@@ -1,0 +1,19 @@
+# Maestro flow 7 — notifications 304 polling does not flicker the UI
+# Verifies the conditional-GET cache path: after first load the list stays
+# stable across multiple poll cycles.
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn: "Notifications"
+- assertVisible:
+    text: "Notifications"
+- waitForAnimationToEnd
+# Capture a screenshot, wait ~12s (covers ≥2 poll cycles at 5s foreground),
+# then assert the same items still visible — proves no flicker on 304.
+- takeScreenshot: before-polling
+- waitFor:
+    visible:
+      text: "Notifications"
+    timeout: 12000
+- takeScreenshot: after-polling

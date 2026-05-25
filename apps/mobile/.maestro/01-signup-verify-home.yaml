@@ -1,0 +1,28 @@
+# Maestro flow 1 — signup → verify email → tap universal link → app opens → home
+#
+# Pre-req: a test-only API endpoint that exposes the latest verification token
+# for a given email so we can synthesize the deep-link inside the flow.
+# Run locally only: `maestro test mobile/.maestro/01-signup-verify-home.yaml`
+
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Create account"
+    optional: true
+- tapOn:
+    id: "Name"
+- inputText: "Test User"
+- tapOn:
+    id: "Email"
+- inputText: "maestro+${RUN_ID}@example.com"
+- tapOn:
+    id: "Password"
+- inputText: "supersecret123"
+- tapOn: "Create account"
+- assertVisible: "Check your email"
+# Synthesize verification universal link (test-only):
+- openLink: "mlabs://verify?token=${VERIFY_TOKEN}"
+- assertVisible:
+    text: "Welcome"
+    timeout: 5000

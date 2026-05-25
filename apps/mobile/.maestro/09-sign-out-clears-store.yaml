@@ -1,0 +1,23 @@
+# Maestro flow 9 — sign out clears SecureStore → next launch shows welcome
+#
+# Post welcome+gate refactor (2026-05-24): sign-out lands on the welcome
+# screen (top of the unauthenticated stack), not directly on /login. The
+# (app) gate at _layout.tsx redirects there once useSignOut's qc.clear()
+# flips useMe() to undefined.
+
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn: "Profile"
+- tapOn: "Sign out"
+- tapOn: "Sign out"   # confirm in dialog
+- assertVisible:
+    text: "Create account"
+    timeout: 5000
+- assertVisible: "Sign in"
+- stopApp
+- launchApp:
+    clearState: false
+- assertVisible: "Create account"
+- assertVisible: "Sign in"

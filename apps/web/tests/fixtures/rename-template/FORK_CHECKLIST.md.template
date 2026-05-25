@@ -1,0 +1,6 @@
+# Fork checklist — {{DISPLAY_NAME}}
+
+Renamed on {{RENAMED_AT}}: `@mlabs` → `{{NAMESPACE}}`, slug → `{{SLUG}}`,
+deep-link host → `{{DEEPLINK_HOST}}`.
+
+(Test fixture — minimal template body for assertions.)

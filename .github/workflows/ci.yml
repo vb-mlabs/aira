@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  DO_NOT_TRACK: 1
+
+jobs:
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-typecheck-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-typecheck-${{ runner.os }}-
+      - run: pnpm turbo run typecheck
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-lint-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-lint-${{ runner.os }}-
+      - run: pnpm turbo run lint
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-test-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-test-${{ runner.os }}-
+      - run: pnpm turbo run test
+
+  syncpack:
+    # Enforces consistent dependency versions across the workspace. The
+    # config in .syncpackrc.json carves out the deliberate divergences
+    # (React 18/19 split, mobile's pinned TS 5.3 / eslint 8 / tailwind 3
+    # during the Phase 6 SDK upgrade window). Any other mismatch is a
+    # bug — most often a fresh dep that landed in only one package.
+    name: syncpack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm syncpack lint
+
+  dedupe-check:
+    # Fails when pnpm dedupe would change the lockfile — i.e., when a
+    # dep is resolved at multiple compatible versions and could collapse
+    # to one. Catches accidental bloat introduced by transitive peer
+    # mismatches before it lands.
+    name: dedupe-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dedupe --check
+
+  bundle-scan:
+    # Exports the mobile JS bundle and greps for server-only env names and
+    # workspace package paths. The mobile bundle should never reference the
+    # Postgres URL, Better Auth secret, the Postmark SDK, or any of the
+    # server-only @mlabs/* packages — if a refactor accidentally pulls one
+    # of those in through a shared module, this job fails the PR.
+    name: bundle-scan (mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Export mobile JS bundle (iOS)
+        run: pnpm --filter @mlabs/mobile exec expo export --platform ios --output-dir /tmp/expo-bundle
+      - name: Scan bundle for forbidden server-only references
+        run: |
+          set -euo pipefail
+          PATTERN='DATABASE_URL|BETTER_AUTH_SECRET|postmark|@mlabs/db|@mlabs/services|@mlabs/auth/server'
+          if grep -rlE "$PATTERN" /tmp/expo-bundle/_expo; then
+            echo "::error::Forbidden server-only references found in mobile bundle output (see matched files above)."
+            exit 1
+          fi
+          echo "Bundle scan clean: no server-only references detected."

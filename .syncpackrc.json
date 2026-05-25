@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/syncpack@15.1.2/dist/schema.json",
+  "versionGroups": [
+    {
+      "label": "Mobile React + @types/react versions are set by Expo SDK 55 (exact-pin React 19.2.0, ~19.2.x types) — web tracks its own React 19.2.x patch via Next's recommended pin. Both are 19.2.x; the patch drift is intentional.",
+      "packages": ["@mlabs/mobile"],
+      "dependencies": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "isIgnored": true
+    },
+    {
+      "label": "Mobile pins Tailwind 3 (NativeWind 4 requires 3.4+; NativeWind hasn't moved to Tailwind 4 yet)",
+      "packages": ["@mlabs/mobile"],
+      "dependencies": ["tailwindcss"],
+      "isIgnored": true
+    },
+    {
+      "label": "tailwind-config peer accepts both Tailwind 3 (mobile/NativeWind) and Tailwind 4 (web)",
+      "packages": ["@mlabs/tailwind-config"],
+      "dependencies": ["tailwindcss"],
+      "isIgnored": true
+    },
+    {
+      "label": "ui-web declares React 19 as a peer range; the web app pins to an exact 19.x — both satisfy each other",
+      "packages": ["@mlabs/ui-web"],
+      "dependencies": ["react", "react-dom"],
+      "isIgnored": true
+    }
+  ]
+}

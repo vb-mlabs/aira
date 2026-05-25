@@ -1,0 +1,16 @@
+{
+  "name": "@mlabs/prettier-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "peerDependencies": {
+    "prettier": "^3"
+  },
+  "dependencies": {
+    "prettier-plugin-tailwindcss": "^0.6.11"
+  }
+}

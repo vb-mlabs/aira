@@ -1,0 +1,4 @@
+appId: com.example.mlabs
+---
+- openLink: "mlabs://verify?token=abc"
+- assertVisible: "Welcome to MLabs Template"

@@ -1,0 +1,24 @@
+{
+  "name": "@mlabs/tailwind-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./preset.js",
+  "types": "./preset.d.ts",
+  "exports": {
+    ".": {
+      "types": "./preset.d.ts",
+      "default": "./preset.js"
+    },
+    "./preset": {
+      "types": "./preset.d.ts",
+      "default": "./preset.js"
+    }
+  },
+  "dependencies": {
+    "@mlabs/config": "workspace:*"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^3 || ^4"
+  }
+}

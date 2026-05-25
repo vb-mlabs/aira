@@ -1,0 +1,5 @@
+$ curl -X OPTIONS -H "Origin: http://evil.example" http://localhost:3000/api/auth/get-session
+
+HTTP/1.1 204 No Content
+
+(no CORS headers — Access-Control-Allow-Origin absent)

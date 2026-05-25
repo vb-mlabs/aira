@@ -1,0 +1,16 @@
+# Maestro flow 3 — login as unverified user shows inline error + resend button
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Log in"
+- tapOn:
+    id: "Email"
+- inputText: "unverified@example.com"
+- tapOn:
+    id: "Password"
+- inputText: "supersecret123"
+- tapOn: "Sign in"
+- assertVisible: "Please verify your email to sign in."
+- assertVisible: "Resend verification email"
+- tapOn: "Resend verification email"

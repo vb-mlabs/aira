@@ -1,0 +1,11 @@
+{
+  "name": "mlabs-template",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "rename": "tsx scripts/rename.ts"
+  },
+  "devDependencies": {
+    "@mlabs/config": "workspace:*"
+  }
+}

@@ -1,0 +1,323 @@
+# Handover — `{{PROJECT_NAME}}`
+
+> **Template note:** copy this file to `HANDOVER.md` (root) in each fork and
+> fill in the placeholders. Phase 10's `pnpm rename` script automates the
+> safe replacements (package names, imports, brand strings); the per-client
+> setup below (accounts, secrets, OAuth) is intentionally manual.
+> Substitution markers below use `{{...}}` syntax.
+>
+> Delete this template-note block before delivering to the client.
+
+This document is what MLabs delivers to the client at project handoff. It
+covers every secret, account, and one-off configuration step the client must
+own going forward.
+
+**Project owner (MLabs):** `{{MLABS_OWNER_EMAIL}}`
+**Client owner:** `{{CLIENT_OWNER_EMAIL}}`
+**Handover date:** `{{HANDOVER_DATE}}`
+
+---
+
+## 1. Production EAS submission checklist
+
+The MLabs template ships dev + preview EAS profiles. Production submit is a
+per-fork concern — these are the accounts and credentials the client must
+own before the app reaches the stores. Reference: [`docs/handover/eas-submission.md`](docs/handover/eas-submission.md).
+
+### iOS
+
+- [ ] **Apple Developer Program** — paid membership ($99/yr, renews annually).
+      Account: `{{APPLE_DEVELOPER_ACCOUNT_EMAIL}}`
+- [ ] **Apple Team ID** captured: `{{APPLE_TEAM_ID}}`
+      Source: Apple Developer Portal → Membership → Team ID.
+- [ ] **iOS bundle identifier** assigned: `{{IOS_BUNDLE_ID}}`
+      Mirrored in `apps/mobile/app.config.ts` (`ios.bundleIdentifier`).
+- [ ] **App Store Connect listing** created (screenshots, description, age
+      rating, privacy policy URL, support URL).
+- [ ] **App Store Connect API key** generated for EAS Submit
+      (Users and Access → Integrations → App Store Connect API).
+- [ ] **Associated Domains capability** enabled for the App ID; entry
+      added: `applinks:{{PROD_HOST}}`.
+- [ ] **TestFlight** internal testers wired (at minimum the client + 1
+      MLabs engineer for warranty period).
+- [ ] **Push notification entitlement** — deferred for v1 (polling-only).
+      When push lands: generate APNs Auth Key, upload via `eas credentials`,
+      update `apps/mobile/app.config.ts` ios entitlements.
+
+### Android
+
+- [ ] **Google Play Console** — paid account ($25 one-time).
+      Account: `{{GOOGLE_PLAY_ACCOUNT_EMAIL}}`
+- [ ] **Android package name** assigned: `{{ANDROID_PACKAGE}}`
+      Mirrored in `apps/mobile/app.config.ts` (`android.package`).
+- [ ] **Play Console internal track** configured with testers list.
+- [ ] **Play Console service account JSON** generated for EAS Submit
+      (Setup → API access). Stored at: `{{ANDROID_SERVICE_ACCOUNT_PATH}}`
+      (NOT committed; client owns this file).
+- [ ] **Signing keys** — Play App Signing enabled (default).
+      SHA-256 fingerprint of the **App signing key** (not upload key)
+      captured: `{{ANDROID_CERT_SHA256}}`
+- [ ] **EAS Submit** profile in `apps/mobile/eas.json` updated with service
+      account path.
+
+For step-by-step walkthroughs see [`docs/handover/eas-submission.md`](docs/handover/eas-submission.md).
+
+---
+
+## 2. Deep-link configuration — bundle ID / Team ID / SHA collection
+
+The MLabs template ships placeholder manifests at:
+
+- `public/.well-known/apple-app-site-association`
+- `public/.well-known/assetlinks.json`
+
+Both contain `{{...}}` placeholders. They must be substituted with real
+values before the production web app is deployed, otherwise universal
+links will fall back to in-browser.
+
+### Apple — collecting the values
+
+```bash
+# Apple Team ID (10 chars, alphanumeric):
+#   https://developer.apple.com/account → Membership → Team ID
+
+# Bundle identifier:
+#   from apps/mobile/app.config.ts → ios.bundleIdentifier
+```
+
+Substitute into `public/.well-known/apple-app-site-association`:
+
+```diff
+-       "appID": "{{APPLE_TEAM_ID}}.{{IOS_BUNDLE_ID}}",
++       "appID": "ABCDE12345.com.client.appname",
+```
+
+### Android — collecting the SHA-256
+
+For EAS-managed signing keys (default for new MLabs projects):
+
+```bash
+cd apps/mobile
+npx eas credentials -p android
+# select: production → keystore → show
+# Copy the "SHA-256 Fingerprint" value (32 hex bytes separated by colons).
+```
+
+For Play App Signing (recommended in production — Google rotates the upload
+key but the App signing key stays stable):
+
+```
+Play Console → App → Setup → App integrity → App signing
+  → "App signing key certificate" → SHA-256 certificate fingerprint
+```
+
+> **Use the App signing key SHA, NOT the upload key SHA.** The upload key
+> changes if you ever rotate it; the App signing key is what Android verifies
+> against in the wild.
+
+Substitute into `public/.well-known/assetlinks.json`:
+
+```diff
+-     "package_name": "{{ANDROID_PACKAGE}}",
++     "package_name": "com.client.appname",
+      "sha256_cert_fingerprints": [
+-       "{{ANDROID_CERT_SHA256}}"
++       "A1:B2:C3:...:8F:90"
+      ]
+```
+
+### Verify
+
+After deploying the web app with the substituted manifests:
+
+```bash
+pnpm verify:deeplinks -- https://{{PROD_HOST}}
+```
+
+Expect all checks green. Red items block universal-link UX in the wild.
+
+---
+
+## 3. Pre-launch checklist
+
+Run through this in order **right before** flipping production traffic on.
+
+### Secret rotation
+
+The MLabs handoff rotates these from "MLabs-dev" values to "client-prod"
+values. Both old and new must be valid simultaneously during handoff window
+(typically 24h) to avoid breaking live sessions.
+
+- [ ] **`BETTER_AUTH_SECRET`** rotated.
+      Generate with `openssl rand -base64 32`. Update in `{{HOSTING_PROVIDER}}` secrets.
+- [ ] **`POSTMARK_API_KEY`** rotated.
+      Either transfer the Postmark Server (Postmark UI → Server Settings →
+      Account → Transfer ownership) or create a new Server in the client's
+      Postmark account and swap the token.
+- [ ] **`DATABASE_URL`** rotated.
+      Either transfer the Neon project (Neon UI → Settings → Transfer to
+      Organization) or `pg_dump` + restore into a client-owned Neon project.
+- [ ] **`REPLIT_OBJECT_STORAGE_BUCKET_ID`** — re-pointed at a client-owned
+      bucket (see §6 below).
+- [ ] All other env vars in `.env.example` reviewed for MLabs-specific values.
+
+### Build-time gates
+
+- [ ] `pnpm verify:deeplinks -- https://{{PROD_HOST}}` — green.
+- [ ] `pnpm check-contrast` — green (WCAG AA across all token pairs).
+- [ ] `pnpm lint` — green.
+- [ ] `pnpm typecheck` — green (or only pre-existing waivers).
+- [ ] `pnpm test` — green.
+
+### Mobile manual gates
+
+- [ ] **Maestro suite** — 11 flows run locally against a production-built
+      preview app (CONTRIBUTING.md has the runner). All green.
+- [ ] iOS TestFlight build installed + smoke-tested by both MLabs and client.
+- [ ] Android Internal Track build installed + smoke-tested.
+
+### Web manual gates
+
+- [ ] Sign-up → verify email → home flow walked end-to-end on prod.
+- [ ] Password reset flow walked end-to-end on prod.
+- [ ] Admin dashboard accessible to client's admin account.
+- [ ] Sentry / log dashboard wired and reporting from prod (if applicable).
+
+---
+
+## 4. Backups + Disaster recovery
+
+### Neon — Point-in-Time Recovery
+
+Enable PITR on the production Neon project:
+
+```
+Neon Console → Project → Settings → Backups → Enable point-in-time recovery
+```
+
+Retention: 7 days minimum for paid tier; 24h on free tier. Bump to 30 days
+if the client's data-loss tolerance is tighter than a week.
+
+### Recovery commands
+
+To create a recovery branch from a specific moment:
+
+```bash
+# Via Neon CLI
+neonctl branches create \
+  --project-id <project-id> \
+  --parent main \
+  --name recovery-$(date +%Y%m%d-%H%M) \
+  --parent-timestamp "2026-MM-DDTHH:MM:SSZ"
+```
+
+Then update `DATABASE_URL` to point at the recovery branch's connection
+string. Validate, then promote (Neon UI → Branches → recovery → Promote
+to main) to make it the new primary.
+
+### Replit Object Storage
+
+Object Storage buckets are append-only in practice (no versioning native).
+For DR: client should run a weekly `replit-object-storage cp` mirror to an
+external S3 bucket if their data sensitivity warrants it. Out of scope for
+v1 — flagged for TODOS.
+
+### Postmark
+
+Postmark retains 45 days of delivery history at the Server level. For
+longer audit trails, configure Postmark → Server Settings → Webhooks →
+Delivery webhook → POST to client's log sink.
+
+---
+
+## 5. Postmark setup
+
+Per `docs/handover/postmark-templates.md` (full detail there). Summary
+checklist:
+
+- [ ] Postmark account owned by client OR a "team member"-shared MLabs
+      Postmark server with delivery routing through the client's domain
+      (recommendation: client-owned).
+- [ ] **Domain verification** — add TXT + DKIM + Return-Path records to
+      the client's DNS:
+      ```
+      Postmark → Sender Signatures → Add Domain → {{EMAIL_DOMAIN}}
+        → copy the TXT + DKIM + Return-Path records
+        → add to client's DNS provider
+        → wait for verification (usually 5 min, up to 24h)
+      ```
+- [ ] **Sender signature** verified for the from-email
+      (`{{POSTMARK_FROM_EMAIL}}`).
+- [ ] **Template IDs** copied across (either transferred with the Server,
+      or re-created from `docs/handover/postmark-templates.md` and the
+      new IDs written into `POSTMARK_TEMPLATE_*` env vars).
+- [ ] **Suppression list** reviewed — any MLabs-dev test bounces purged
+      before production traffic ramps.
+
+---
+
+## 6. Replit setup
+
+Per `docs/handover/replit-setup.md`. Summary checklist:
+
+- [ ] **Replit project ownership transferred** to client's Replit account.
+      Replit UI → Project → Settings → Transfer ownership.
+- [ ] **`.replit` deploy config** preserved (Reserved VM, not Autoscale —
+      polling endpoints require warm instance per `docs/decisions/0002-polling-load.md`).
+- [ ] **Object Storage bucket** created in the client's project.
+      Tools → Object Storage → Create bucket. Copy bucket ID to
+      `REPLIT_OBJECT_STORAGE_BUCKET_ID` in the client's secrets.
+- [ ] **Custom domain** — set up at Replit UI → Domains → Connect domain
+      ({{PROD_HOST}}). Wait for SSL provisioning (~5 min).
+- [ ] **Deployment env vars** — all secrets from §3 copied into Replit's
+      Secrets pane on the client's project (NOT the MLabs project).
+- [ ] **Sleep / scaling policy** — Reserved VM Hacker tier is the default
+      starting point; monitor and bump to Pro if peak traffic exceeds the
+      polling math in `docs/decisions/0002-polling-load.md`.
+
+---
+
+## 7. Post-handover responsibilities
+
+What MLabs continues to own for `{{WARRANTY_DAYS}}` days after handover:
+
+- Bug fixes against the merged spec
+- One free secret-rotation if accidental exposure (`BETTER_AUTH_SECRET` etc.)
+- 1h consult per week for client engineering questions
+
+What MLabs does NOT own post-handover:
+
+- New features
+- Apple / Google account renewals (client owns)
+- Server scaling / cost management (client owns)
+- Postmark deliverability incidents from client-generated traffic
+- App Store rejection appeals for content reasons
+
+---
+
+## 8. Contact
+
+| Role | Name | Email |
+|---|---|---|
+| MLabs project owner | `{{MLABS_OWNER_NAME}}` | `{{MLABS_OWNER_EMAIL}}` |
+| MLabs emergency on-call (`{{WARRANTY_DAYS}}`-day warranty) | `{{MLABS_ONCALL_NAME}}` | `{{MLABS_ONCALL_EMAIL}}` |
+| Client primary | `{{CLIENT_OWNER_NAME}}` | `{{CLIENT_OWNER_EMAIL}}` |
+
+For escalations during the warranty window: email with subject prefix
+`[{{PROJECT_NAME}} P1]` for production incidents, `[{{PROJECT_NAME}} P2]`
+for non-critical issues.
+
+---
+
+## References
+
+- `docs/forking-guide.md` — three tiers of change (safe / extend / don't touch)
+- `docs/decisions/0006-monorepo.md` — monorepo architecture
+- `docs/decisions/0007-service-layer.md` — service layer + defineOperation
+- `docs/api-versioning.md` — `/api/v1/*` evolution policy
+- `docs/generated-artifacts.md` — what's generated and when to regenerate
+- `docs/handover/eas-submission.md` — full EAS Submit walkthrough
+- `docs/handover/postmark-templates.md` — template specs + per-fork setup
+- `docs/handover/replit-setup.md` — Replit deploy walkthrough
+- `docs/decisions/0002-polling-load.md` — scaling math
+- `docs/decisions/0004-expo-over-natively.md` — mobile platform choice

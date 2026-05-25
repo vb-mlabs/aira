@@ -1,0 +1,8 @@
+{
+  "name": "@mlabs/auth",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@mlabs/db": "workspace:*"
+  }
+}

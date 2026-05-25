@@ -1,0 +1,19 @@
+{
+  "name": "@mlabs/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./design": "./src/design.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@mlabs/tsconfig": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

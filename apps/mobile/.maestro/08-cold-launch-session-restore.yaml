@@ -1,0 +1,10 @@
+# Maestro flow 8 — cold launch restores session from SecureStore → lands on Home
+appId: ${MAESTRO_APP_ID}
+---
+# Don't clear state — we want the stored refresh token preserved.
+- launchApp:
+    clearState: false
+- assertVisible:
+    text: "Welcome"
+    timeout: 8000
+- assertVisible: "Home"

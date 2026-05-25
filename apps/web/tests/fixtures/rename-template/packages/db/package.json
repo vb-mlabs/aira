@@ -1,0 +1,9 @@
+{
+  "name": "@mlabs/db",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./client": "./src/client.ts",
+    "./schema": "./src/schema/index.ts"
+  }
+}

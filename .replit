@@ -1,0 +1,164 @@
+# Replit configuration for the MLabs template.
+#
+# Deployment target: Reserved VM. Autoscale is incompatible
+# with our polling endpoints because each polling request would cold-start.
+
+run = "pnpm dev"
+entrypoint = "apps/web/src/app/page.tsx"
+modules = ["nodejs-20"]
+
+hidden = [".next", "node_modules", ".cache", ".lefthook"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+deploymentTarget = "vm"
+build = ["sh", "-c", "rm -rf apps/web/.next && pnpm install --frozen-lockfile=false && pnpm --filter @mlabs/db migrate && pnpm --filter @mlabs/web build && cp -r apps/web/public apps/web/.next/standalone/apps/web/public-runtime && rm -rf apps/web/.next/standalone/apps/web/public && mv apps/web/.next/standalone/apps/web/public-runtime apps/web/.next/standalone/apps/web/public && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static && NODE_VER=20.18.1 && NODE_TARBALL=\"node-v${NODE_VER}-linux-x64.tar.xz\" && curl -fsSL \"https://nodejs.org/dist/v${NODE_VER}/${NODE_TARBALL}\" -o \"/tmp/${NODE_TARBALL}\" && curl -fsSL \"https://nodejs.org/dist/v${NODE_VER}/SHASUMS256.txt\" -o /tmp/SHASUMS256.txt && (cd /tmp && grep \" ${NODE_TARBALL}$\" SHASUMS256.txt | sha256sum -c -) && tar -xJf \"/tmp/${NODE_TARBALL}\" -C /tmp && cp \"/tmp/node-v${NODE_VER}-linux-x64/bin/node\" apps/web/.next/standalone/node-runtime && chmod +x apps/web/.next/standalone/node-runtime && rm -rf \"/tmp/node-v${NODE_VER}-linux-x64\" \"/tmp/${NODE_TARBALL}\" /tmp/SHASUMS256.txt && node scripts/deploy-prune.cjs"]
+run = ["sh", "-c", "PORT=5000 HOSTNAME=0.0.0.0 exec ./apps/web/.next/standalone/node-runtime apps/web/.next/standalone/apps/web/server.js"]
+
+[env]
+# SKIP_ENV_VALIDATION is set during build only; runtime validates fully.
+NEXT_TELEMETRY_DISABLED = "1"
+# Safety net — if any transitive dep ever postinstalls Playwright,
+# skip the ~1 GB Chromium download. The deploy image doesn't need it.
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
+[agent]
+expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Mobile (Expo Web)"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/web dev -p 5000 -H 0.0.0.0"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+# Separate e2e workflow that pins BETTER_AUTH_URL to http://127.0.0.1:5000
+# so Playwright's globalSetup signs cookies the live dev server can read.
+# Pinning BETTER_AUTH_URL on the default workflow has side effects on
+# regular Replit-domain browser sessions (cookies + email links point at
+# 127.0.0.1), so the split-workflow pattern keeps the default clean.
+[[workflows.workflow]]
+name = "Start application (e2e)"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "BETTER_AUTH_URL=http://127.0.0.1:5000 pnpm --filter @mlabs/web dev -p 5000 -H 0.0.0.0"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Mobile (Expo Web)"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/mobile exec expo start --web --port 8080"
+waitForPort = 8080
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Expo Go (Tunnel)"
+mode = "sequential"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/mobile exec expo start --tunnel"
+
+# Native simulator workflow: starts Metro with the proxy env vars so the
+# bundle URLs Metro hands out resolve through the Replit HTTPS dev domain.
+# This is what lets Replit's built-in iOS/Android preview pane attach to a
+# real native bundle (not just the Expo Web build). Port 8081 must remain
+# exposed below for the simulator to reach the packager.
+[[workflows.workflow]]
+name = "Mobile (Native Simulator)"
+mode = "sequential"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN pnpm --filter @mlabs/mobile exec expo start"
+waitForPort = 8081
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "EAS Init"
+mode = "sequential"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/mobile exec eas init"
+
+[[workflows.workflow]]
+name = "EAS Update"
+mode = "sequential"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/mobile exec eas update --auto"
+
+[[workflows.workflow]]
+name = "EAS Publish Preview iOS"
+mode = "sequential"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/mobile exec eas build --platform ios --profile preview"
+
+[[workflows.workflow]]
+name = "EAS Publish Preview Android"
+mode = "sequential"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @mlabs/mobile exec eas build --platform android --profile preview"
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
