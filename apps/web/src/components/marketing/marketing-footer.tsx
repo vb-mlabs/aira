@@ -67,22 +67,22 @@ export function MarketingFooter() {
 
 function ContactStrip() {
   return (
-    <div className="flex flex-col items-center justify-between gap-5 border-t border-border/25 pt-6 text-xs text-muted-foreground sm:flex-row">
-      <div className="flex items-center gap-4">
-        <hr className="hidden h-px w-10 border-0 bg-brand-gold/50 sm:block" />
-        <span aria-hidden="true" className="font-display text-base text-brand-gold">
+    <div className="flex flex-col items-center justify-between gap-6 border-t border-border/25 pt-7 text-muted-foreground sm:flex-row">
+      <div className="flex items-center gap-5">
+        <hr className="hidden h-px w-12 border-0 bg-brand-gold/50 sm:block" />
+        <span aria-hidden="true" className="font-display text-lg text-brand-gold">
           ✦
         </span>
-        <span className="font-display text-sm tracking-wide text-foreground">
+        <span className="font-display text-[15px] tracking-wide text-foreground">
           Contact Us
         </span>
-        <ul className="flex items-center gap-2">
+        <ul className="flex items-center gap-2.5">
           <li>
             <ContactIcon
               href={`mailto:${brand.supportEmail}`}
               label={`Email ${brand.name}`}
             >
-              <Mail aria-hidden="true" className="size-4" />
+              <Mail aria-hidden="true" className="size-[18px]" />
             </ContactIcon>
           </li>
           <li>
@@ -91,7 +91,7 @@ function ContactStrip() {
               label={`${brand.legalEntity} website`}
               external
             >
-              <Globe aria-hidden="true" className="size-4" />
+              <Globe aria-hidden="true" className="size-[18px]" />
             </ContactIcon>
           </li>
           <li>
@@ -105,9 +105,11 @@ function ContactStrip() {
           </li>
         </ul>
       </div>
-      <div className="flex items-center gap-4">
-        <span aria-hidden="true" className="hidden h-4 w-px bg-border/40 sm:block" />
-        <span>Operated by {brand.legalEntity} ✦</span>
+      <div className="flex items-center gap-5">
+        <span aria-hidden="true" className="hidden h-5 w-px bg-border/40 sm:block" />
+        <span className="font-display text-[15px] text-foreground">
+          Operated by {brand.legalEntity} ✦
+        </span>
       </div>
     </div>
   )
@@ -118,7 +120,7 @@ function LinkedInGlyph() {
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      className="size-4 fill-current"
+      className="size-[18px] fill-current"
     >
       <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.37V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
     </svg>
@@ -144,7 +146,7 @@ function ContactIcon({
       href={href}
       aria-label={label}
       {...externalProps}
-      className="flex size-9 items-center justify-center rounded-full bg-primary text-brand-cream-bright no-underline transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="flex size-10 items-center justify-center rounded-full bg-primary text-brand-cream-bright no-underline transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       {children}
     </Link>
