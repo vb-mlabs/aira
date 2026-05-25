@@ -50,6 +50,13 @@
       "when": 1779530206698,
       "tag": "0006_worried_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779706675422,
+      "tag": "0007_sharp_arachne",
+      "breakpoints": true
     }
   ]
 }
