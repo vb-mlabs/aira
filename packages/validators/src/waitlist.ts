@@ -23,7 +23,10 @@ export const WaitlistSignupSchema = z.object({
   email: emailSchema,
   source: WaitlistSourceSchema.default("marketing-hero"),
   /** Honeypot anti-spam. Hidden in the rendered form via CSS so humans
-   *  never see it; bots fill every field. Non-empty == spam, drop silently. */
-  _h: z.string().max(0, "spam").optional(),
+   *  never see it; bots fill every field. The route handler checks this
+   *  AFTER Zod parsing and returns 200-silent if non-empty (so bots can't
+   *  tell from the response that we trapped them — a Zod max(0) constraint
+   *  would 400 instead). Validator stays permissive on the type. */
+  _h: z.string().optional(),
 });
 export type WaitlistSignupInput = z.infer<typeof WaitlistSignupSchema>;

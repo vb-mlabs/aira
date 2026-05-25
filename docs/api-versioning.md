@@ -26,6 +26,7 @@ by design:
 | POST | `/api/v1/profile/password` | required | op | `changePasswordOp` |
 | POST | `/api/v1/avatar` | required | route-direct | multipart/form-data |
 | DELETE | `/api/v1/avatar` | required | route-direct | |
+| POST | `/api/v1/waitlist` | **public** | route-direct | Honeypot anti-spam; sync welcome email; defineOperation can't host public routes (auth-only) |
 
 ## Compatibility policy
 
