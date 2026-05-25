@@ -260,6 +260,13 @@
   --font-sans:    var(--font-lato), system-ui, sans-serif;
   --font-mono:    var(--font-jetbrains-mono), ui-monospace, monospace;
   --font-heading: var(--font-cormorant-garamond), Georgia, serif;
+  /* `font-display` Tailwind utility — alias of font-heading. The marketing
+     components were authored against the design-system convention
+     (fonts.display in packages/config/src/design.ts) and use the
+     `font-display` className; without this alias Tailwind silently no-ops
+     the class and headings fall back to the inherited font-sans (Lato).
+     Caught in /mlabs-qa run 2026-05-25-1120 — see report.md Issue 1. */
+  --font-display: var(--font-cormorant-garamond), Georgia, serif;
 
   --radius-sm:  calc(var(--radius) * 0.6);
   --radius-md:  calc(var(--radius) * 0.8);
