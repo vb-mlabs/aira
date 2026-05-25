@@ -1,4 +1,4 @@
-// @mlabs/eslint-config/expo — preset for the Expo mobile app.
+// @aira/eslint-config/expo — preset for the Expo mobile app.
 //
 // Today mobile uses `expo lint` (the Expo CLI's built-in ESLint integration).
 // This preset is a thin wrapper that adds MLabs custom rules on top, so when
@@ -23,18 +23,18 @@ const noServerImports = {
         patterns: [
           {
             group: [
-              "@mlabs/db",
-              "@mlabs/db/*",
-              "@mlabs/auth/server",
-              "@mlabs/auth/server/*",
-              "@mlabs/services",
-              "@mlabs/services/*",
-              "@mlabs/email",
-              "@mlabs/email/*",
+              "@aira/db",
+              "@aira/db/*",
+              "@aira/auth/server",
+              "@aira/auth/server/*",
+              "@aira/services",
+              "@aira/services/*",
+              "@aira/email",
+              "@aira/email/*",
               "server-only",
             ],
             message:
-              "Server-side package — not allowed in mobile. Import shared schemas/types from @mlabs/validators or @mlabs/api instead.",
+              "Server-side package — not allowed in mobile. Import shared schemas/types from @aira/validators or @aira/api instead.",
           },
         ],
       },

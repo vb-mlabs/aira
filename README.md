@@ -1,4 +1,4 @@
-# MLabs Template
+# AIRA
 
 The Million Labs MVP template. Fork this for every new project.
 
@@ -23,7 +23,7 @@ $EDITOR .env.local
 # 3. Run web dev
 pnpm dev
 #    OR mobile dev:
-pnpm --filter @mlabs/mobile start
+pnpm --filter @aira/mobile start
 ```
 
 Web: <http://localhost:3000>
@@ -55,7 +55,7 @@ tooling/
 | Command | What it does |
 |---|---|
 | `pnpm dev` | Web dev (Next.js, port 3000) |
-| `pnpm --filter @mlabs/mobile start` | Mobile dev (Expo) |
+| `pnpm --filter @aira/mobile start` | Mobile dev (Expo) |
 | `pnpm build` | Production build (all apps via turbo) |
 | `pnpm typecheck` | `tsc --noEmit` across all packages (turbo) |
 | `pnpm lint` | ESLint across all packages (turbo) |
@@ -74,7 +74,7 @@ tooling/
    legal entity, URL. (The `no-brand-string-literal` ESLint rule
    enforces that this file is the only place the literal brand name
    appears outside config/templates/legal/docs/tests dirs.) Both web
-   and mobile import from `@mlabs/config`.
+   and mobile import from `@aira/config`.
 2. Edit `packages/config/src/design.ts` colors (OKLCH — light + dark),
    AND mirror them in `apps/web/src/app/globals.css`. Then run
    `pnpm gen:mobile-tw` to regenerate mobile's Tailwind config.
@@ -97,8 +97,8 @@ pnpm rename \
 
 Rewrites every `@mlabs/<pkg>` package name, workspace dependency,
 import statement, and path alias to your scope; replaces the
-`"MLabs Template"` display-name phrase, `"mlabs"` slug + scheme,
-deep-link host, and `"mlabs-mobile"` JWT issuer; writes
+`"AIRA"` display-name phrase, `"mlabs"` slug + scheme,
+deep-link host, and `"aira-mobile"` JWT issuer; writes
 `.fork-config.json` for idempotent re-runs. Bare references to
 "MLabs" in agency-attribution prose (HANDOVER, DESIGN, AGENTS,
 `.replit`) stay intact by design. `.well-known/` placeholders

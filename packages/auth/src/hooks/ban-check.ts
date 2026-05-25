@@ -6,8 +6,8 @@ import "server-only"
 
 import { eq } from "drizzle-orm"
 import { APIError } from "better-auth/api"
-import type { Database } from "@mlabs/db/client"
-import { user as defaultUserTable } from "@mlabs/db/schema"
+import type { Database } from "@aira/db/client"
+import { user as defaultUserTable } from "@aira/db/schema"
 
 export interface CreateBanCheckHookOptions {
   db: Database

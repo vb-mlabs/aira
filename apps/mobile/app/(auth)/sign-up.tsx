@@ -14,8 +14,8 @@ import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
 import { useSignUp } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
-import { SignUpSchema } from "@mlabs/validators";
-import { brand } from "@mlabs/config";
+import { SignUpSchema } from "@aira/validators";
+import { brand } from "@aira/config";
 
 /**
  * Sign-up screen.

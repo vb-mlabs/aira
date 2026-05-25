@@ -14,7 +14,7 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("@/config/env", () => ({
   env: {
     BETTER_AUTH_URL: "https://example.com",
-    EXPO_SCHEME: "mlabs",
+    EXPO_SCHEME: "aira",
     NODE_ENV: "test",
   },
 }))
@@ -83,21 +83,21 @@ describe("buildAppLinkUrl with EXPO_SCHEME unset (web-only fork)", () => {
 describe("buildAppLinkUrl with EXPO_SCHEME set", () => {
   it("returns a custom-scheme deep link", () => {
     expect(buildAppLinkUrl("/reset-password", { token: "abc" })).toBe(
-      "mlabs://reset-password?token=abc",
+      "aira://reset-password?token=abc",
     )
   })
 
   it("URL-encodes deep-link query params", () => {
     const url = buildAppLinkUrl("/verify", { token: "a/b+c=" })
-    expect(url).toBe("mlabs://verify?token=a%2Fb%2Bc%3D")
+    expect(url).toBe("aira://verify?token=a%2Fb%2Bc%3D")
   })
 
   it("strips a leading slash on the path component", () => {
-    expect(buildAppLinkUrl("/x")).toBe("mlabs://x")
-    expect(buildAppLinkUrl("x")).toBe("mlabs://x")
+    expect(buildAppLinkUrl("/x")).toBe("aira://x")
+    expect(buildAppLinkUrl("x")).toBe("aira://x")
   })
 
   it("omits the question mark when there are no params", () => {
-    expect(buildAppLinkUrl("/home")).toBe("mlabs://home")
+    expect(buildAppLinkUrl("/home")).toBe("aira://home")
   })
 })

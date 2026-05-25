@@ -4,8 +4,8 @@
 // enumeration of "wrong conv" vs "not in it".
 
 import { notFound } from "next/navigation"
-import { messages } from "@mlabs/services"
-import { ApiError } from "@mlabs/api"
+import { messages } from "@aira/services"
+import { ApiError } from "@aira/api"
 import { db } from "@/lib/db"
 import { getCallerContext } from "@/lib/auth/server"
 import { Thread } from "@/features/messages"

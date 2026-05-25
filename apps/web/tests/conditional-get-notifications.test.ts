@@ -35,7 +35,7 @@ vi.mock("@/lib/auth/server", () => ({
 
 const tsHolder: { value: Date | null } = { value: null }
 const mockGetUnreadCount = vi.fn()
-vi.mock("@mlabs/services", () => ({
+vi.mock("@aira/services", () => ({
   notifications: {
     getFreshness: vi.fn(async () => ({ ts: tsHolder.value })),
     getUnreadCount: (...args: unknown[]) => mockGetUnreadCount(...args),

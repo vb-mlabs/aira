@@ -44,7 +44,7 @@ Read the current state in parallel:
 
 Classify:
 
-- **from-scratch** — brand.name is still `"MLabs Template"` AND no
+- **from-scratch** — brand.name is still `"AIRA"` AND no
   `DESIGN.md` exists. Treat as a fresh project.
 - **rebrand** — brand.name has been customised, tokens are mostly the
   shadcn / MLabs defaults, no `DESIGN.md`. The user has named their

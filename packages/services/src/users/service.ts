@@ -1,7 +1,7 @@
 import "server-only"
 
 // Users domain — account-level mutations (delete, etc.). Read paths for
-// admin tooling live in @mlabs/services/admin (when that lands).
+// admin tooling live in @aira/services/admin (when that lands).
 //
 // Phase 4 covers deleteAccount only. PATCH /api/profile (name) + POST
 // /api/profile/password are deferred to Phase 5 because they're tightly
@@ -11,10 +11,10 @@ import "server-only"
 // and the auth composition root can be reshaped.
 
 import { eq } from "drizzle-orm"
-import { user as userTable, session as sessionTable } from "@mlabs/db/schema"
-import { createAudit } from "@mlabs/db/audit"
-import type { Database } from "@mlabs/db/client"
-import type { CallerContext } from "@mlabs/api/context"
+import { user as userTable, session as sessionTable } from "@aira/db/schema"
+import { createAudit } from "@aira/db/audit"
+import type { Database } from "@aira/db/client"
+import type { CallerContext } from "@aira/api/context"
 
 export interface DeleteAccountResult {
   ok: true

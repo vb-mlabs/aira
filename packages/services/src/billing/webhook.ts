@@ -24,8 +24,8 @@ import "server-only"
 //
 // Caller wiring (sketch — lands in fork's webhook route):
 //
-//   import { handleStripeEvent } from "@mlabs/services/billing"
-//   import { getStripe } from "@mlabs/services/billing"
+//   import { handleStripeEvent } from "@aira/services/billing"
+//   import { getStripe } from "@aira/services/billing"
 //   import { env } from "@/config/env"
 //
 //   export async function POST(req: Request) {
@@ -39,8 +39,8 @@ import "server-only"
 //     return new Response(null, { status: 200 })
 //   }
 
-import type { Database } from "@mlabs/db/client"
-import { webhook_event } from "@mlabs/db/schema"
+import type { Database } from "@aira/db/client"
+import { webhook_event } from "@aira/db/schema"
 import type { Stripe } from "stripe"
 
 /**

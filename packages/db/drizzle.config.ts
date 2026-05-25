@@ -1,7 +1,7 @@
 import type { Config } from "drizzle-kit"
 
-// Drizzle Kit config for @mlabs/db — drives `pnpm --filter @mlabs/db generate`
-// and `pnpm --filter @mlabs/db migrate`. Schema files live under src/schema/*
+// Drizzle Kit config for @aira/db — drives `pnpm --filter @aira/db generate`
+// and `pnpm --filter @aira/db migrate`. Schema files live under src/schema/*
 // and are re-exported from src/schema/index.ts. Migrations are committed to
 // drizzle/migrations/.
 //

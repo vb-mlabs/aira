@@ -1,4 +1,4 @@
-# TEMPLATE.md — Importing the MLabs Template into Replit
+# TEMPLATE.md — Importing the AIRA into Replit
 
 This document captures every step taken (and every friction point hit) when
 importing this template into a fresh Replit workspace, so future imports go
@@ -18,7 +18,7 @@ steps unnecessary on the next fork.
 | 5 | Switch deployment `build` / `run` from `npm` to `pnpm` | `.replit` `[deployment]` (via `deployConfig`) | Template shipped with `npm install && npm run build` / `npm start`. This is a pnpm workspace — every internal package uses the `workspace:*` protocol, which npm cannot resolve. Deploy build fails before Next.js ever runs. |
 | 6 | (Optional) `.env.local` from `.env.example` | repo root | Most env vars are `.optional()` in `apps/web/src/config/env.ts`, so the app boots without them. They're required for actual feature use (DB, auth, email, uploads). |
 | 7 | Run DB migrations against production Neon | `pnpm db:migrate` w/ prod `DATABASE_URL` | Production runtime hits `relation "error_log" does not exist`. Migrations are not auto-applied on first deploy. |
-| 8 | Replace `@mlabs/web` with `@<new-scope>/web` in `.replit` `[workflows]` | `.replit` | Surfaced on the BetFrnd fork. `pnpm rename` correctly updates the `[deployment]` block but **leaves `[[workflows.workflow.tasks]] args` untouched**, because `scripts/rename.ts` walks the repo via a `TEXT_EXTENSIONS` allowlist and short-circuits on extensionless files. Result: Replit preview URL returns 500 because `pnpm --filter @mlabs/web` matches no workspace. |
+| 8 | Replace `@aira/web` with `@<new-scope>/web` in `.replit` `[workflows]` | `.replit` | Surfaced on the BetFrnd fork. `pnpm rename` correctly updates the `[deployment]` block but **leaves `[[workflows.workflow.tasks]] args` untouched**, because `scripts/rename.ts` walks the repo via a `TEXT_EXTENSIONS` allowlist and short-circuits on extensionless files. Result: Replit preview URL returns 500 because `pnpm --filter @aira/web` matches no workspace. |
 | 9 | Add Chromium runtime libs to `replit.nix` | `replit.nix` | Surfaced on the BetFrnd fork. mstack's `/mlabs-qa` skill drives Playwright, but `chrome-headless-shell` fails on launch (`error while loading shared libraries: libglib-2.0.so.0`) because the Replit Nix env ships only `pkgs.unzip`. `ldd` confirms ~14 system libs are missing. `/mlabs-qa` cannot run on Replit until these are added. |
 | 10 | Switch **both** migration script and app runtime DB client from Neon HTTP driver to WebSocket (`Pool`) driver | `packages/db/scripts/migrate.ts`, `packages/db/src/client.ts` | Surfaced on the BetFrnd fork. The template originally used `neon-http` everywhere. Drizzle's migrator needs multi-statement transactions — HTTP returns `null` rows and crashes mid-migration. **Also**, the HTTP driver returns `rows: null` (instead of `rows: []`) for zero-row queries against real tables, which crashes drizzle's adapter (`Cannot read properties of null (reading 'map')`) — surfaced when BetterAuth's signup did its "does this email exist?" lookup. `neon-http` is only correct for true edge runtimes (Cloudflare Workers, Vercel Edge); on Replit / VPS / any long-lived Node server, use `neon-serverless` + `Pool` for everything. Always call `pool.end()` in `finally` (migrate script only — long-lived app should keep the Pool). |
 | 11 | Switch deploy to **Next.js standalone output** + prune the workspace before image upload | `apps/web/next.config.ts`, `.replit` `[deployment]`, new `scripts/deploy-prune.cjs` | Surfaced on the BetFrnd fork. First production deploy failed with `error: image size is over the limit of 8 GiB`. Default `next start` needs the full `node_modules` graph (~2 GB once all workspace devDeps land — Playwright, vitest, drizzle-kit, eslint, the Claude Code CLI in root devDeps, etc.), and the Replit Reserved VM image bundles **the entire workspace tree** — including a stale 582 MB `apps/web/.next/dev` Turbopack cache, `apps/mobile`, `attached_assets/`, `.mstack/`, and `zipFile.zip`. `.replit hidden = [...]` is an IDE-only file-tree setting, **not** a deploy exclusion, and the Replit deploy bundler ignores `.gitignore`. Fix: emit a self-contained `.next/standalone/` runtime, copy `public/` + `.next/static/` back into it, delete everything else not on the runtime path, and run the standalone server instead of `next start`. Target image size after these changes is 150–300 MB. |
@@ -74,7 +74,7 @@ or before running `/mlabs-qa`.
   port is `3000`.
 - Created the workflow:
   ```
-  pnpm --filter @mlabs/web dev -p 5000 -H 0.0.0.0
+  pnpm --filter @aira/web dev -p 5000 -H 0.0.0.0
   ```
   with `waitForPort: 5000`, `outputType: "webview"`. This auto-added a
   `[[ports]] localPort = 5000, externalPort = 80` block to `.replit`.
@@ -111,7 +111,7 @@ or before running `/mlabs-qa`.
 
 - First **Publish** attempt failed at the build step. No runtime logs
   were produced because the build never reached the runtime stage.
-- Reproduced locally with `pnpm --filter @mlabs/web build` — local
+- Reproduced locally with `pnpm --filter @aira/web build` — local
   build succeeded, so the issue was the **deploy command itself**, not
   the code.
 - Root cause: `.replit` `[deployment]` shipped with
@@ -127,8 +127,8 @@ or before running `/mlabs-qa`.
   ```toml
   [deployment]
   deploymentTarget = "vm"
-  build = ["sh", "-c", "pnpm install --frozen-lockfile=false && pnpm --filter @mlabs/web build"]
-  run   = ["sh", "-c", "pnpm --filter @mlabs/web start -p 5000 -H 0.0.0.0"]
+  build = ["sh", "-c", "pnpm install --frozen-lockfile=false && pnpm --filter @aira/web build"]
+  run   = ["sh", "-c", "pnpm --filter @aira/web start -p 5000 -H 0.0.0.0"]
   ```
 - Secondary runtime warnings observed during static-page generation
   (not blocking the build):
@@ -144,14 +144,14 @@ or before running `/mlabs-qa`.
 
 - After `pnpm rename --namespace @betfrnd --slug betfrnd …` reported
   "Renamed across 168 file(s)" and `[deployment]` in `.replit` correctly
-  read `@mlabs/web`, the **Replit preview URL still returned 500**.
+  read `@aira/web`, the **Replit preview URL still returned 500**.
 - `curl -s https://<preview>.replit.dev/` → `HTTP/2 500`.
 - Root cause: `.replit` `[[workflows.workflow.tasks]] args` still said
   ```
-  pnpm --filter @mlabs/web dev -p 5000 -H 0.0.0.0
+  pnpm --filter @aira/web dev -p 5000 -H 0.0.0.0
   ```
   `pnpm --filter` matched no workspace (because the rename moved
-  everything to `@mlabs/*`), so port 5000 had no server.
+  everything to `@aira/*`), so port 5000 had no server.
 - Why the rename missed it: `scripts/rename.ts` decides whether to
   rewrite a file via `shouldRewrite()`, which walks extensions through
   a `TEXT_EXTENSIONS` allowlist (`.ts, .tsx, .json, .yaml, …`) and
@@ -161,12 +161,12 @@ or before running `/mlabs-qa`.
   configuration for the MLabs template.") is intentionally preserved
   post-rename — it reads as agency attribution ("the template that
   MLabs delivered"). The rename script's substitution list covers
-  `@mlabs/*`, `mlabs-template`, `mlabs/mlabs template`, `MLabs Template`
-  (phrase), `mlabs-mobile`, `scheme: "mlabs"`, `mlabs://`,
-  `mlabs.example.com` — but deliberately not standalone bare `MLabs`
+  `@aira/*`, `mlabs-template`, `aira/aira template`, `AIRA`
+  (phrase), `aira-mobile`, `scheme: "aira"`, `aira://`,
+  `app.aira.com` — but deliberately not standalone bare `MLabs`
   or bare lowercase `mlabs` (preserved as attribution).
-- **Fix** (manual, this fork): edit `.replit`. Replace `@mlabs/web` with
-  `@mlabs/web` in the workflows task; update the header comment; also
+- **Fix** (manual, this fork): edit `.replit`. Replace `@aira/web` with
+  `@aira/web` in the workflows task; update the header comment; also
   fix the stale top-level `run = "npm run dev"` → `pnpm dev`, and
   `entrypoint = "src/app/page.tsx"` → `apps/web/src/app/(marketing)/page.tsx`.
 
@@ -181,7 +181,7 @@ or before running `/mlabs-qa`.
 > rationale). The driver-mismatch lesson (use `neon-serverless` +
 > `Pool`, not `neon-http`) still applies.
 
-- After running `pnpm --filter @mlabs/db migrate` with `DATABASE_URL` set,
+- After running `pnpm --filter @aira/db migrate` with `DATABASE_URL` set,
   the script consistently exited with:
   ```
   Migration lock not acquired — another deploy is running. Exiting.
@@ -193,7 +193,7 @@ or before running `/mlabs-qa`.
   with no process on the other end. Session-level locks can only be released
   by the same session — no new connection can unlock them.
 - Added a `--force` flag (`process.argv.includes("--force")`) that skips the
-  lock check for manual recovery. Running `pnpm --filter @mlabs/db migrate -- --force`
+  lock check for manual recovery. Running `pnpm --filter @aira/db migrate -- --force`
   cleared the immediate blocker.
 - Root cause B — **wrong driver for migrations**: With `--force`, the script
   reached `migrate()` and crashed:
@@ -275,7 +275,7 @@ or before running `/mlabs-qa`.
   in 8.6s, all 24 static pages generated, the route manifest printed.
   The failure was entirely about what got packed into the deploy image.
 - Disk audit of the workspace right after a successful `pnpm --filter
-  @mlabs/web build`:
+  @aira/web build`:
   ```
   2.0G  node_modules/
   591M  apps/web/
@@ -333,7 +333,7 @@ or before running `/mlabs-qa`.
      `outputFileTracingRoot` is essential in a pnpm workspace. Omit it
      and Next's tracer scopes to `apps/web/` only, missing every
      symlinked `packages/*` dep and shipping a broken bundle — every
-     route that imports `@mlabs/db` etc. 500s on first request with
+     route that imports `@aira/db` etc. 500s on first request with
      `Cannot find module`. Pointing it at the monorepo root lets the
      tracer follow pnpm symlinks correctly.
   2. Add `scripts/deploy-prune.cjs` — runs after `next build` and
@@ -365,8 +365,8 @@ or before running `/mlabs-qa`.
      build = ["sh", "-c", """
        rm -rf apps/web/.next \
          && pnpm install --frozen-lockfile=false \
-         && pnpm --filter @mlabs/db migrate \
-         && pnpm --filter @mlabs/web build \
+         && pnpm --filter @aira/db migrate \
+         && pnpm --filter @aira/web build \
          && cp -r apps/web/public apps/web/.next/standalone/apps/web/public-runtime \
          && rm -rf apps/web/.next/standalone/apps/web/public \
          && mv apps/web/.next/standalone/apps/web/public-runtime apps/web/.next/standalone/apps/web/public \
@@ -449,7 +449,7 @@ out of the box on Replit.
 5. **Pre-create the workflow definition in `.replit`.** The template
    should ship with:
    ```toml
-   run = "pnpm --filter @mlabs/web dev"
+   run = "pnpm --filter @aira/web dev"
    ```
    and a `[[workflows.workflow]]` block matching it, so the workspace
    boots immediately on import without an agent step.
@@ -536,7 +536,7 @@ deployment block") with more specific gaps observed mid-fork.
     then dropped again — it over-rewrote agency-attribution prose in
     `HANDOVER.md.template`, `DESIGN.md`, `AGENTS.md`,
     `tooling/eslint-config/**`, and `.replit`. Current approach: only
-    the `"MLabs Template"` phrase matcher rewrites the capital-M form
+    the `"AIRA"` phrase matcher rewrites the capital-M form
     (catches README heading, `app.config.ts` name, DESIGN.md
     attribution). Bare `MLabs` stays as agency credit — no
     `SKIP_PATH_SUFFIXES` opt-out needed. See
@@ -775,7 +775,7 @@ deploy-time story for a pnpm monorepo on Replit Reserved VM.
     `outputFileTracingRoot` is the critical detail in a pnpm workspace:
     omit it and the tracer scopes to `apps/web/` only, misses every
     symlinked `packages/*` dep, and ships a runtime that 500s on the
-    first request that imports `@mlabs/db` with `Cannot find module`.
+    first request that imports `@aira/db` with `Cannot find module`.
 
 23. **Ship `scripts/deploy-prune.ts`** (or `.cjs` if you want to avoid
     the tsx hop in the deploy build) alongside the template, and call

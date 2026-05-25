@@ -7,9 +7,9 @@
 // handles auth, Zod, permission, and ApiError translation.
 
 import { NextResponse } from "next/server"
-import { ApiError } from "@mlabs/api"
-import { buildContext } from "@mlabs/api/server"
-import { messages } from "@mlabs/services"
+import { ApiError } from "@aira/api"
+import { buildContext } from "@aira/api/server"
+import { messages } from "@aira/services"
 import { db } from "@/lib/db"
 import { getSessionFromHeaders } from "@/lib/auth/server"
 import { openOrCreate1to1Op } from "@/server/operations/messages"

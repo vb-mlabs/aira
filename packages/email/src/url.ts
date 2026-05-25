@@ -41,7 +41,7 @@ export function buildAuthUrl(
 }
 
 /**
- * Deep link to the installed mobile app (e.g. `mlabs://reset-password?token=...`).
+ * Deep link to the installed mobile app (e.g. `aira://reset-password?token=...`).
  *
  * Falls back to buildAuthUrl when no app scheme is configured — web-only forks
  * still get a working email link instead of an invalid `undefined://...` URL.

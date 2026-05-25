@@ -3,7 +3,7 @@
 // routes isn't leaked. Locked decision in /plan-eng-review for W8.
 
 import Link from "next/link"
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 import { requireAdmin } from "@/lib/auth/server"
 import { SignOutButton } from "../(app)/_components/sign-out-button"
 

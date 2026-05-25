@@ -1,6 +1,6 @@
 // Public surface of features/notifications.
 //
-// Server logic now lives in @mlabs/services/notifications — pages, dev
+// Server logic now lives in @aira/services/notifications — pages, dev
 // seeds, and operations import from there. The Server Action shim at
 // ./server-actions wraps the operations for "use client" callers (the
 // notification list + item buttons). This barrel re-exports the UI

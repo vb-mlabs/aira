@@ -22,7 +22,7 @@ appId: ${MAESTRO_APP_ID}
 - tapOn: "Create account"
 - assertVisible: "Check your email"
 # Synthesize verification universal link (test-only):
-- openLink: "mlabs://verify?token=${VERIFY_TOKEN}"
+- openLink: "aira://verify?token=${VERIFY_TOKEN}"
 - assertVisible:
     text: "Welcome"
     timeout: 5000

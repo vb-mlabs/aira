@@ -311,7 +311,7 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
 
 /**
  * Resolve a Headers object for Server Action invocations. Implemented as a
- * dynamic import so the @mlabs/api package doesn't take a hard dep on
+ * dynamic import so the @aira/api package doesn't take a hard dep on
  * next/headers — tests + non-Next runtimes can override it via
  * setActionHeadersResolver().
  */

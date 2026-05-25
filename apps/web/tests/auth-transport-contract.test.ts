@@ -9,7 +9,7 @@
 //
 // Uses /api/v1/notifications/unread-count as the representative GET handler.
 // Phase 4 (Lane C) moved this route to call getSessionFromHeaders + the
-// @mlabs/services notifications domain directly; the transport chain still
+// @aira/services notifications domain directly; the transport chain still
 // lives inside src/lib/auth/server.ts::getSessionFromHeaders, so this test
 // continues to exercise it end-to-end by letting that function run real.
 
@@ -37,7 +37,7 @@ vi.mock("@/lib/auth", () => ({
 // getFreshness (sentinel value, irrelevant for the transport assertions
 // here) then getUnreadCount (the count value the route returns).
 const mockGetUnreadCount = vi.fn()
-vi.mock("@mlabs/services", () => ({
+vi.mock("@aira/services", () => ({
   notifications: {
     getFreshness: vi.fn(async () => ({ ts: new Date(0) })),
     getUnreadCount: (...args: unknown[]) => mockGetUnreadCount(...args),

@@ -35,7 +35,7 @@ across BetFrnd's wallet, bets, signals, purchases services.
 
 **2. Cross-platform pure helpers go under a `<helper>` subpath of the
 service package.**
-e.g. `@mlabs/services/billing` exports `getStripe`, `handleStripeEvent`.
+e.g. `@aira/services/billing` exports `getStripe`, `handleStripeEvent`.
 Forks-shared math (payout calculations, odds-product rounding) goes
 under a `<domain>/<helper>` subpath with **no server-only imports** and
 **no Drizzle imports**. Both server (write path) and client (display)

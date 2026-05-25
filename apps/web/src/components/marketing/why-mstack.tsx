@@ -20,8 +20,8 @@ const pillars = [
     lede: "Every feature looks like it was built by the same team — because it was.",
     bullets: [
       "Package boundaries enforced: api / auth / services / ui-web stay in their lanes.",
-      "Brand strings caught by ESLint — edit @mlabs/config, never a literal in JSX.",
-      "Design tokens centralised; components live in @mlabs/ui-web.",
+      "Brand strings caught by ESLint — edit @aira/config, never a literal in JSX.",
+      "Design tokens centralised; components live in @aira/ui-web.",
       "One atomic commit per task in /mlabs-code → bisectable history.",
     ],
     icon: <RulerIcon />,

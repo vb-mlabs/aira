@@ -5,42 +5,42 @@ import type { ReactNode } from "react"
 
 const packages = [
   {
-    name: "@mlabs/api",
+    name: "@aira/api",
     body: "tRPC routers that own the server ↔ client contract. Add a new endpoint here, get a typed hook on the web app for free.",
     icon: <PlugIcon />,
   },
   {
-    name: "@mlabs/auth",
+    name: "@aira/auth",
     body: "BetterAuth wired with email/password + magic link, session helpers for both server components and middleware. Admin role baked in.",
     icon: <LockIcon />,
   },
   {
-    name: "@mlabs/config",
+    name: "@aira/config",
     body: "Brand identity, design tokens, env validation. Edit brand.ts to rebrand — an ESLint rule keeps the brand name out of literal strings elsewhere.",
     icon: <PaletteIcon />,
   },
   {
-    name: "@mlabs/db",
+    name: "@aira/db",
     body: "Drizzle schema, migration scripts, and a single Postgres client. Add a table, run the migrate script, ship.",
     icon: <DatabaseIcon />,
   },
   {
-    name: "@mlabs/email",
-    body: "Postmark driver + typed sends for verify-email, password-reset, and notification. Templates are React Email components branded from @mlabs/config — preview them live at /dev/emails. Console driver for local dev.",
+    name: "@aira/email",
+    body: "Postmark driver + typed sends for verify-email, password-reset, and notification. Templates are React Email components branded from @aira/config — preview them live at /dev/emails. Console driver for local dev.",
     icon: <MailIcon />,
   },
   {
-    name: "@mlabs/services",
+    name: "@aira/services",
     body: "Domain logic — billing (Stripe + webhooks), messaging, admin, notifications. Routes and UI stay thin; business logic lives here.",
     icon: <CogIcon />,
   },
   {
-    name: "@mlabs/ui-web",
-    body: "shadcn-style component library on Tailwind v4. Buttons, dialogs, forms — all themed from @mlabs/config tokens.",
+    name: "@aira/ui-web",
+    body: "shadcn-style component library on Tailwind v4. Buttons, dialogs, forms — all themed from @aira/config tokens.",
     icon: <BrushIcon />,
   },
   {
-    name: "@mlabs/validators",
+    name: "@aira/validators",
     body: "Zod schemas shared between server routes, tRPC procedures, and client forms. One schema, one source of truth.",
     icon: <CheckShieldIcon />,
   },

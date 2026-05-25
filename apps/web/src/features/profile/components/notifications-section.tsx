@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Button } from "@mlabs/ui-web/button"
+import { Button } from "@aira/ui-web/button"
 import { SectionCard } from "./section-card"
 
 // Profile shortcut to the inbox. Preference toggles (email-on/off, per-type

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { cn } from "@mlabs/ui-web/utils"
+import { cn } from "@aira/ui-web/utils"
 import type { AdminUserRow } from "@/features/admin/types"
 
 interface UserRowProps {

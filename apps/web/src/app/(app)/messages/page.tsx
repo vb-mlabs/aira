@@ -1,7 +1,7 @@
 // /messages — inbox. Server-renders the first page of conversations, then
 // the client component polls every 10s for updates.
 
-import { messages } from "@mlabs/services"
+import { messages } from "@aira/services"
 import { db } from "@/lib/db"
 import { getCallerContext } from "@/lib/auth/server"
 import {

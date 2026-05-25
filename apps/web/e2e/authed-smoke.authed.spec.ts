@@ -9,7 +9,7 @@
 // immediately.
 
 import { test, expect } from "@playwright/test"
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 
 test("authed user lands on /notifications without redirect", async ({
   page,

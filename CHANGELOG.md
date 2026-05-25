@@ -10,7 +10,7 @@ Adds an Expo Router mobile app under `/mobile` covering sign-up, login, password
 
 **Lane A — auth (`481a48d`)**
 - Better Auth `bearer` plugin enabled — `Authorization: Bearer <session-token>` accepted on every `/api/*` route alongside cookies. Web behavior unchanged.
-- New `src/lib/auth/jwt.ts`: HS256 JWT signing/verification with 1h TTL, issuer-scoped (`mlabs-mobile`). Stateless verify (no DB hit per call).
+- New `src/lib/auth/jwt.ts`: HS256 JWT signing/verification with 1h TTL, issuer-scoped (`aira-mobile`). Stateless verify (no DB hit per call).
 - New `src/app/api/auth/refresh/route.ts`: issues a 1h access JWT in exchange for a valid Better Auth session. Returns 403 if user is banned (delete session row → block new refresh).
 - `getSession()` updated: tries JWT → Better Auth bearer → cookie, in that order. Falls through cleanly on invalid JWT.
 

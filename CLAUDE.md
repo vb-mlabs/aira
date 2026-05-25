@@ -34,7 +34,7 @@ tooling/        Shared tsconfig / eslint / prettier / tailwind config
 | Command | Purpose |
 |---|---|
 | `pnpm dev` | Web dev server (Next.js, port 3000) |
-| `pnpm --filter @mlabs/mobile start` | Mobile dev (Expo) |
+| `pnpm --filter @aira/mobile start` | Mobile dev (Expo) |
 | `pnpm typecheck` | `tsc --noEmit` across all packages |
 | `pnpm lint` | ESLint across all packages |
 | `pnpm test` | Vitest across all packages |
@@ -52,7 +52,7 @@ caching + workspace filters apply.
 - **Brand string literal rule.** The literal name "MLabs" / brand display name
   may only appear in `packages/config/src/brand.ts` (plus templates, legal,
   docs, tests). Enforced by the `no-brand-string-literal` ESLint rule. When
-  you need the brand in code, import from `@mlabs/config`.
+  you need the brand in code, import from `@aira/config`.
 - **Design tokens.** Light + dark colors live in OKLCH in
   `packages/config/src/design.ts` and are mirrored in
   `apps/web/src/app/globals.css`. After editing tokens, run `pnpm gen:mobile-tw`.

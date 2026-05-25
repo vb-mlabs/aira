@@ -1,10 +1,10 @@
-// Transitional shim — instantiates @mlabs/email/templates with the app's
+// Transitional shim — instantiates @aira/email/templates with the app's
 // brand config + singleton driver. Re-exports the typed send helpers and the
 // URL builders so existing imports from "@/lib/email" keep working.
 
 import "server-only"
-import { brand } from "@mlabs/config"
-import { createTemplates } from "@mlabs/email/templates"
+import { brand } from "@aira/config"
+import { createTemplates } from "@aira/email/templates"
 import { getEmailDriver } from "./driver"
 
 // Re-exported so call sites that compose CTA URLs do it through the helpers

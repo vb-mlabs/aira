@@ -66,7 +66,7 @@ In parallel:
 The mockups must use the actual brand tokens. No fake colours, no fake
 typefaces.
 
-**Missing design system?** If `brand.name` is still `"MLabs Template"`
+**Missing design system?** If `brand.name` is still `"AIRA"`
 AND no `DESIGN.md` exists, pause and suggest the user run
 `/mlabs-design-system` first. Generating mockups against the template
 defaults wastes a round.

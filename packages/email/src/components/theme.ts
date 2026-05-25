@@ -1,9 +1,9 @@
 // Flat theme tokens for React Email components. Re-exports brand.emailColors
-// from @mlabs/config plus spacing/radius constants tuned for email layout
+// from @aira/config plus spacing/radius constants tuned for email layout
 // (cards in inboxes read better with slightly more generous spacing than
 // on-screen UI).
 
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 
 export const theme = {
   colors: brand.emailColors,

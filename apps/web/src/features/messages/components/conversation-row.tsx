@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { cn } from "@mlabs/ui-web/utils"
+import { cn } from "@aira/ui-web/utils"
 import type { ConversationListItem } from "@/features/messages/types"
 
 interface ConversationRowProps {

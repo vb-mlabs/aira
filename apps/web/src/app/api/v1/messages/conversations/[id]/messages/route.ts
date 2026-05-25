@@ -7,9 +7,9 @@
 // operation handles validation + permission so the route stays trivial.
 
 import { NextResponse } from "next/server"
-import { ApiError, isApiError } from "@mlabs/api"
-import { buildContext } from "@mlabs/api/server"
-import { messages } from "@mlabs/services"
+import { ApiError, isApiError } from "@aira/api"
+import { buildContext } from "@aira/api/server"
+import { messages } from "@aira/services"
 import { db } from "@/lib/db"
 import { getSessionFromHeaders } from "@/lib/auth/server"
 import { sendMessageOp } from "@/server/operations/messages"

@@ -1,10 +1,10 @@
-// @mlabs/eslint-config/base — shared MLabs rules consumed by every app and
+// @aira/eslint-config/base — shared MLabs rules consumed by every app and
 // package. Bring in our 3 custom rules and forbid raw process.env reads.
 //
 // Consumed by:
-//   @mlabs/eslint-config/next      — web app (apps/web)
-//   @mlabs/eslint-config/expo      — mobile (apps/mobile, when it migrates off `expo lint`)
-//   @mlabs/eslint-config/library   — workspace packages
+//   @aira/eslint-config/next      — web app (apps/web)
+//   @aira/eslint-config/expo      — mobile (apps/mobile, when it migrates off `expo lint`)
+//   @aira/eslint-config/library   — workspace packages
 
 import noBrandStringLiteral from "./rules/no-brand-string-literal.mjs";
 import noDrizzleInSchemas from "./rules/no-drizzle-in-schemas.mjs";

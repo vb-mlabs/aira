@@ -47,7 +47,7 @@ const store = {
 
 // audit lives behind createAudit(db) → fn. We replace the factory so every
 // audit call lands in `store.audits` and assertions can inspect ordering.
-vi.mock("@mlabs/db/audit", () => ({
+vi.mock("@aira/db/audit", () => ({
   createAudit:
     () =>
     async (opts: {
@@ -65,7 +65,7 @@ vi.mock("@mlabs/db/audit", () => ({
     },
 }))
 
-// Cross-domain notification fan-out goes through @mlabs/services/notifications.
+// Cross-domain notification fan-out goes through @aira/services/notifications.
 // In the service test we replace it with a recorder; the real implementation
 // is tested in packages/services/src/notifications/__tests__.
 vi.mock("../../notifications", () => ({
@@ -87,7 +87,7 @@ vi.mock("../../notifications", () => ({
   ),
 }))
 
-vi.mock("@mlabs/db/schema", () => ({
+vi.mock("@aira/db/schema", () => ({
   user: {
     _name: "users",
     id: { _column: "id", _table: "users" },
@@ -121,7 +121,7 @@ vi.mock("drizzle-orm", () => {
   return { eq, and, sql }
 })
 
-// db lives behind the @mlabs/db/client export but the service takes it as
+// db lives behind the @aira/db/client export but the service takes it as
 // a parameter — no module mock needed. Build the fake db inside each test
 // (or just pass the same shared one constructed here).
 
@@ -235,8 +235,8 @@ function makeDb() {
   return db
 }
 
-import type { Database } from "@mlabs/db/client"
-import type { CallerContext } from "@mlabs/api/context"
+import type { Database } from "@aira/db/client"
+import type { CallerContext } from "@aira/api/context"
 import {
   banUser,
   changeRole,

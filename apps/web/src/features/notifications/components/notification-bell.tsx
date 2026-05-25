@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { cn } from "@mlabs/ui-web/utils"
+import { cn } from "@aira/ui-web/utils"
 import { usePolledFetch } from "@/lib/hooks/use-polled-fetch"
 
 const POLL_INTERVAL_MS = 5_000

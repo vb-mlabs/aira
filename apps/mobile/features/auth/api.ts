@@ -22,7 +22,7 @@ import type {
   LoginInput,
   ForgotPasswordInput,
   ResetPasswordInput,
-} from "@mlabs/validators";
+} from "@aira/validators";
 
 export interface User {
   id: string;

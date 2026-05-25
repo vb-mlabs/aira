@@ -12,7 +12,7 @@ import "server-only"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { bearer } from "better-auth/plugins/bearer"
-import type { Database } from "@mlabs/db/client"
+import type { Database } from "@aira/db/client"
 import { createAdminBootstrapHook } from "./hooks/admin-bootstrap"
 import { createBanCheckHook } from "./hooks/ban-check"
 

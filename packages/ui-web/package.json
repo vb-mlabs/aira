@@ -1,5 +1,5 @@
 {
-  "name": "@mlabs/ui-web",
+  "name": "@aira/ui-web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -34,7 +34,7 @@
     "react-dom": ">=19"
   },
   "devDependencies": {
-    "@mlabs/tsconfig": "workspace:*",
+    "@aira/tsconfig": "workspace:*",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "shadcn": "^4.7.0",

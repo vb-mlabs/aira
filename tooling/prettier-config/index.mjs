@@ -1,10 +1,10 @@
-// @mlabs/prettier-config — shared Prettier preset for every app and package.
+// @aira/prettier-config — shared Prettier preset for every app and package.
 //
 // Conservative defaults — matches what Next.js + Expo set out of the box,
 // plus the Tailwind plugin so class strings stay sorted automatically.
 //
 // Apps/packages opt in by adding to package.json:
-//   "prettier": "@mlabs/prettier-config"
+//   "prettier": "@aira/prettier-config"
 //
 // Prettier is NOT currently wired into a `pnpm format` script. The template
 // ships the config so forks can adopt formatting cleanly; existing code is

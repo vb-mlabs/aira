@@ -13,7 +13,7 @@ The Mlabs template's visual identity, in one document. Pair this with
 
 ## Brand identity
 
-**Name.** "MLabs Template" by default. Editable in
+**Name.** "AIRA" by default. Editable in
 `packages/config/src/brand.ts` — the ESLint rule
 `no-brand-string-literal` enforces that the literal `brand.name` value
 appears nowhere outside `config/`, `templates/`, `legal/`,
@@ -119,10 +119,10 @@ yet. To flip the default:
 
 **Do:**
 
-- Read tokens from `@mlabs/config` (TS) or CSS variables (`bg-primary`,
+- Read tokens from `@aira/config` (TS) or CSS variables (`bg-primary`,
   `text-foreground`, etc.) — never hardcode hex.
 - Reference brand strings via `brand.name`, `brand.tagline`, etc. —
-  never hardcode `"MLabs Template"`.
+  never hardcode `"AIRA"`.
 - Re-run `pnpm gen:mobile-tw` after touching `packages/config/src/
   design.ts`. The pre-commit hook `check-mobile-tailwind` catches you
   if you forget.
@@ -146,6 +146,6 @@ yet. To flip the default:
 ## Visual reference
 
 - **Live style guide:** `/design` route (auth-gated). The page reads
-  exclusively from `@mlabs/config` so it visually drifts the moment a
+  exclusively from `@aira/config` so it visually drifts the moment a
   token changes.
 - **WCAG AA verification:** `pnpm check-contrast` runs in pre-commit.

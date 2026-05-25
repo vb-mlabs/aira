@@ -1,14 +1,14 @@
-// Dev preview for @mlabs/email templates. Renders each React Email component
+// Dev preview for @aira/email templates. Renders each React Email component
 // in an isolated iframe (srcDoc) so the email styles don't leak into the
 // page chrome. Returns 404 in production so the dev affordance never ships.
 //
 // Delete src/app/dev/ before v1 ship.
 
 import { notFound } from "next/navigation"
-import { brand } from "@mlabs/config"
-import { NotificationEmail } from "@mlabs/email/templates/notification"
-import { PasswordResetEmail } from "@mlabs/email/templates/password-reset"
-import { VerifyEmail } from "@mlabs/email/templates/verify-email"
+import { brand } from "@aira/config"
+import { NotificationEmail } from "@aira/email/templates/notification"
+import { PasswordResetEmail } from "@aira/email/templates/password-reset"
+import { VerifyEmail } from "@aira/email/templates/verify-email"
 import { render } from "@react-email/render"
 import { env } from "@/config/env"
 
@@ -68,10 +68,10 @@ export default async function DevEmailsPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-12">
       <header className="mb-8">
-        <h1 className="text-xl font-semibold">@mlabs/email templates</h1>
+        <h1 className="text-xl font-semibold">@aira/email templates</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Live previews of every React Email template, branded from{" "}
-          <code>@mlabs/config</code>. Edit{" "}
+          <code>@aira/config</code>. Edit{" "}
           <code>packages/email/src/templates/*.tsx</code> and refresh.
         </p>
         <p className="mt-1 text-xs text-muted-foreground">

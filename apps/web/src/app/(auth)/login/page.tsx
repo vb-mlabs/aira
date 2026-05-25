@@ -3,12 +3,12 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Button } from "@mlabs/ui-web/button"
-import { Input } from "@mlabs/ui-web/input"
-import { Label } from "@mlabs/ui-web/label"
-import { PasswordInput } from "@mlabs/ui-web/password-input"
+import { Button } from "@aira/ui-web/button"
+import { Input } from "@aira/ui-web/input"
+import { Label } from "@aira/ui-web/label"
+import { PasswordInput } from "@aira/ui-web/password-input"
 import { signIn } from "@/lib/auth/client"
-import { LoginSchema } from "@mlabs/validators"
+import { LoginSchema } from "@aira/validators"
 
 export default function LoginPage() {
   const router = useRouter()

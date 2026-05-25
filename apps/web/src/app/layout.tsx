@@ -1,7 +1,7 @@
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { generateMetadata } from "@/config/seo"
 import { Providers } from "./providers"
-import { cn } from "@mlabs/ui-web/utils"
+import { cn } from "@aira/ui-web/utils"
 import "./globals.css"
 
 const inter = Inter({

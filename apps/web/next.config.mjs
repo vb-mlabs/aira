@@ -25,7 +25,7 @@ const nextConfig = {
   // pnpm workspace: scope the file tracer at the monorepo root so it
   // follows pnpm symlinks into packages/*. Without this, Next traces only
   // apps/web/ and ships a runtime that 500s on first request that imports
-  // @mlabs/db (or any other workspace dep) with `Cannot find module`.
+  // @aira/db (or any other workspace dep) with `Cannot find module`.
   outputFileTracingRoot: path.join(__dirname, "../.."),
 
   // Allow dev-time cross-origin requests from local + Replit preview hosts.
@@ -41,14 +41,14 @@ const nextConfig = {
   // Workspace packages ship TS source from packages/* — Next needs to run
   // them through its compiler instead of trying to load them as pre-built JS.
   transpilePackages: [
-    "@mlabs/api",
-    "@mlabs/auth",
-    "@mlabs/config",
-    "@mlabs/db",
-    "@mlabs/email",
-    "@mlabs/services",
-    "@mlabs/ui-web",
-    "@mlabs/validators",
+    "@aira/api",
+    "@aira/auth",
+    "@aira/config",
+    "@aira/db",
+    "@aira/email",
+    "@aira/services",
+    "@aira/ui-web",
+    "@aira/validators",
   ],
 }
 

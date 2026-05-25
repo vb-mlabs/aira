@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 
 const productLinks = [
   { href: "#why", label: "Why mstack" },

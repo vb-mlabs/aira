@@ -4,7 +4,7 @@
 // apps/web/src/server/operations/admin.ts. Each wrapper:
 //
 //   1. Calls `op.runFromAction(args)` — the op enforces admin permission,
-//      validates input, runs the @mlabs/services/admin handler, validates
+//      validates input, runs the @aira/services/admin handler, validates
 //      output.
 //   2. Revalidates the affected admin paths so the next navigation reflects
 //      the change.
@@ -12,11 +12,11 @@
 //      shape that the admin UI components expect.
 //
 // Business logic, audit, atomic batching, and cross-domain notification
-// fan-out live in @mlabs/services/admin — not here.
+// fan-out live in @aira/services/admin — not here.
 
 import "server-only"
 import { revalidatePath } from "next/cache"
-import { ApiError } from "@mlabs/api"
+import { ApiError } from "@aira/api"
 import {
   banUserOp,
   changeRoleOp,

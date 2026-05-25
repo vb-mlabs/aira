@@ -15,7 +15,7 @@
 
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
-import { ApiErrorResponse } from "@mlabs/validators";
+import { ApiErrorResponse } from "@aira/validators";
 
 // ---------------------------------------------------------------------------
 // Config

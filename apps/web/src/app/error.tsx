@@ -5,9 +5,9 @@
 
 import Link from "next/link"
 import { useEffect } from "react"
-import { brand } from "@mlabs/config"
-import { Button, buttonVariants } from "@mlabs/ui-web/button"
-import { cn } from "@mlabs/ui-web/utils"
+import { brand } from "@aira/config"
+import { Button, buttonVariants } from "@aira/ui-web/button"
+import { cn } from "@aira/ui-web/utils"
 
 export default function GlobalError({
   error,

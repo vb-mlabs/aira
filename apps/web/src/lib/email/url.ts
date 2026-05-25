@@ -1,4 +1,4 @@
-// Transitional shim — wires env into the @mlabs/email/url factory functions
+// Transitional shim — wires env into the @aira/email/url factory functions
 // so existing callers can keep importing buildAuthUrl/buildAppLinkUrl from
 // this path. Tests at tests/email-url.test.ts mock @/config/env and rely on
 // re-importing this module to pick up the new env shape.
@@ -8,7 +8,7 @@ import { env } from "@/config/env"
 import {
   buildAuthUrl as _buildAuthUrl,
   buildAppLinkUrl as _buildAppLinkUrl,
-} from "@mlabs/email/url"
+} from "@aira/email/url"
 
 type Params = Record<string, string | number | boolean | null | undefined>
 

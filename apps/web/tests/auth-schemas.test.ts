@@ -11,7 +11,7 @@ import {
   LoginSchema,
   ResetPasswordSchema,
   SignUpSchema,
-} from "@mlabs/validators"
+} from "@aira/validators"
 
 describe("SignUpSchema", () => {
   it("accepts a valid payload", () => {

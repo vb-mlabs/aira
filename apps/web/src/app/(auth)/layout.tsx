@@ -4,7 +4,7 @@
 // landing page hero treatment.
 
 import Link from "next/link"
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

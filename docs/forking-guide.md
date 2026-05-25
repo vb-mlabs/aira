@@ -7,7 +7,7 @@ change, scoped to risk. Read this BEFORE you start cloning files around.
 
 1. Clone the repo into a new directory.
 2. `pnpm install` (pnpm 10+, not npm or yarn — see `.npmrc` and `package.json#packageManager`).
-3. When Phase 10 lands: `pnpm rename` swaps `@mlabs/*` package names → `@<client>/*`,
+3. When Phase 10 lands: `pnpm rename` swaps `@aira/*` package names → `@<client>/*`,
    updates imports, and writes a `.fork-config.json` record for idempotency.
    For now (pre-Phase-10), use the manual rename map at the bottom of this guide.
 4. Work through `FORK_CHECKLIST.md.template` for the manual setup steps
@@ -39,7 +39,7 @@ Per-fork concerns. Edit freely; no review needed.
   CTA copy. The URL-builder helpers are Tier 2 (extend)
 - **`README.md`, `LICENSE`, brand strings** — anything referring to MLabs
   becomes the client's name. The `no-brand-string-literal` ESLint rule
-  enforces that all brand-name references go through `@mlabs/config`'s
+  enforces that all brand-name references go through `@aira/config`'s
   brand singleton instead of being hardcoded
 - **`.env`, `.env.local`** — never committed (gitignored). Per-environment
 - **`public/.well-known/apple-app-site-association`,
@@ -64,7 +64,7 @@ Add to these; don't rewrite existing logic.
   column without a versioning bump — mobile clients in the app store
   can't redeploy on your schedule. The Phase 8 advisory-lock policy is
   documented in `packages/db/scripts/migrate.ts`
-- **`@mlabs/validators`** — add new schemas. Existing exports
+- **`@aira/validators`** — add new schemas. Existing exports
   (`SignUpSchema`, `LoginSchema`, `ApiErrorResponse`, etc.) are PUBLIC
   API for both web and mobile. Renaming them breaks mobile builds in
   the field
@@ -113,11 +113,11 @@ Load-bearing. Breaking these breaks every fork.
 
 ## Anti-patterns to avoid
 
-- **Reading `process.env` directly** — use `@mlabs/config`'s validated
+- **Reading `process.env` directly** — use `@aira/config`'s validated
   env singleton. The `no-restricted-syntax` ESLint rule catches raw
   reads outside the env file itself
-- **Importing `@mlabs/db`, `@mlabs/services`, `@mlabs/auth/server`,
-  `@mlabs/email` from mobile** — three layers of defense catch this:
+- **Importing `@aira/db`, `@aira/services`, `@aira/auth/server`,
+  `@aira/email` from mobile** — three layers of defense catch this:
   package.json deps, ESLint `no-restricted-imports`, and the CI
   bundle-scan. Don't try to work around any of them
 - **Adding `'use server'` to a `packages/*` file** — Next.js's compiler
@@ -142,9 +142,9 @@ collisions with unrelated prose are impossible.
 |------|--------------|-------|
 | `@mlabs/<pkg>` (+ subpaths) | `@<namespace>/<pkg>` | All `package.json`, all source imports, path aliases |
 | `"mlabs-template"` | `"<slug>-template"` | Root `package.json`'s `name` field |
-| `MLabs Template` (phrase) | display name | `app.config.ts` `name`, README heading, DESIGN.md, photo permission strings — replaced as a single phrase so no "Template" word lingers |
-| `mlabs-mobile` | `<slug>-mobile` | `apps/mobile/app.config.ts` `slug`, `packages/auth/src/jwt.ts` `ISSUER`, Maestro IDs, CHANGELOG mentions |
-| `scheme: "mlabs"`, `mlabs://`, `mlabs.example.com` | client scheme + deep-link host | Mobile deep-link config + Maestro YAMLs |
+| `AIRA` (phrase) | display name | `app.config.ts` `name`, README heading, DESIGN.md, photo permission strings — replaced as a single phrase so no "Template" word lingers |
+| `aira-mobile` | `<slug>-mobile` | `apps/mobile/app.config.ts` `slug`, `packages/auth/src/jwt.ts` `ISSUER`, Maestro IDs, CHANGELOG mentions |
+| `scheme: "aira"`, `aira://`, `app.aira.com` | client scheme + deep-link host | Mobile deep-link config + Maestro YAMLs |
 | Bare `MLabs` (capital, word-bounded) | **stays** | Agency attribution preserved in HANDOVER.md.template, DESIGN.md, AGENTS.md, `.replit`, `tooling/eslint-config/**` |
 | Bare lowercase `mlabs` outside anchored contexts | **stays** | Same reason — preserved as code-level identifier in comments + docs |
 | Bundle IDs (`com.example.mlabs`) | **stays** | Manual per `FORK_CHECKLIST.md` — they need real Apple/Google reverse-domains |

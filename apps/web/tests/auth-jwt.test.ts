@@ -86,7 +86,7 @@ describe("signAccessToken / verifyAccessToken", () => {
     expect(payload?.sub).toBe(user.id)
     expect(payload?.email).toBe(user.email)
     expect(payload?.role).toBe(user.role)
-    expect(payload?.iss).toBe("mlabs-mobile")
+    expect(payload?.iss).toBe("aira-mobile")
   })
 
   it("preserves the admin role claim", async () => {
@@ -112,7 +112,7 @@ describe("signAccessToken / verifyAccessToken", () => {
     const foreignToken = await new SignJWT({ email: user.email, role: user.role })
       .setProtectedHeader({ alg: "HS256" })
       .setSubject(user.id)
-      .setIssuer("mlabs-mobile")
+      .setIssuer("aira-mobile")
       .setIssuedAt()
       .setExpirationTime("1h")
       .sign(wrongKey)
@@ -138,7 +138,7 @@ describe("signAccessToken / verifyAccessToken", () => {
     const expired = await new SignJWT({ email: user.email, role: user.role })
       .setProtectedHeader({ alg: "HS256" })
       .setSubject(user.id)
-      .setIssuer("mlabs-mobile")
+      .setIssuer("aira-mobile")
       .setIssuedAt(Math.floor(Date.now() / 1000) - 7200) // 2h ago
       .setExpirationTime(Math.floor(Date.now() / 1000) - 3600) // expired 1h ago
       .sign(secret)

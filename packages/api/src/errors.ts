@@ -1,12 +1,12 @@
 // ApiError — the server-side throwable that defineOperation maps to the
-// locked ApiErrorResponse wire shape (defined in @mlabs/validators). Services
+// locked ApiErrorResponse wire shape (defined in @aira/validators). Services
 // throw these; the operation adapter catches them and produces the Response.
 //
 // Universal module: no Next imports here. The Response we build uses the
 // standard Web fetch globals (Response, JSON serialization) so the package
 // works in any runtime (Next route handlers, Edge, mobile contract tests).
 
-import type { ApiErrorResponse } from "@mlabs/validators"
+import type { ApiErrorResponse } from "@aira/validators"
 
 export interface ApiErrorOptions {
   /** HTTP status code surfaced on the wire. */

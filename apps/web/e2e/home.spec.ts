@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test"
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 
 test("home renders brand wordmark and primary CTAs", async ({ page }) => {
   await page.goto("/")

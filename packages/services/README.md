@@ -1,4 +1,4 @@
-# @mlabs/services
+# @aira/services
 
 Domain-grouped business logic. The single rule: **every entry point takes
 `(db, ctx, args)`**.
@@ -16,7 +16,7 @@ async function name(
 - **`db`** — Drizzle handle. Accepts the base instance OR a transaction so a
   composing service can pass its own `tx` down (`messages.send(tx, ctx, ...)`
   → `audit.log(tx, ctx, ...)`).
-- **`ctx`** — `CallerContext` from `@mlabs/api`. Carries `userId`, `user`,
+- **`ctx`** — `CallerContext` from `@aira/api`. Carries `userId`, `user`,
   `requestId`, `source`. Built once per request by `defineOperation`.
 - **`args`** — Domain-typed input. The operation adapter validates against a
   Zod schema before the service ever runs, so the service can trust the
@@ -35,13 +35,13 @@ Reach for the **public** index of the other domain:
 
 ```ts
 // ✅ allowed
-import { audit } from "@mlabs/services/audit"
+import { audit } from "@aira/services/audit"
 
 // ❌ blocked by ESLint no-restricted-imports
-import { auditService } from "@mlabs/services/audit/service"
+import { auditService } from "@aira/services/audit/service"
 ```
 
-The `no-restricted-imports` rule in `@mlabs/eslint-config/library` enforces
+The `no-restricted-imports` rule in `@aira/eslint-config/library` enforces
 this. Cross-domain imports go through `index.ts` so the public surface stays
 explicit.
 

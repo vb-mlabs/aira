@@ -4,8 +4,8 @@
 import "server-only"
 import { headers } from "next/headers"
 import { notFound, redirect } from "next/navigation"
-import { ApiError } from "@mlabs/api"
-import type { CallerContext, CallerSource, Permission } from "@mlabs/api"
+import { ApiError } from "@aira/api"
+import type { CallerContext, CallerSource, Permission } from "@aira/api"
 import { auth } from "./index"
 import { extractBearerToken, verifyAccessToken } from "./jwt"
 
@@ -33,7 +33,7 @@ export async function getSession() {
 /**
  * Same three-transport resolution as getSession() but takes an explicit
  * Headers object instead of reading from next/headers. Used by the
- * @mlabs/api operation adapter which passes Request.headers in directly.
+ * @aira/api operation adapter which passes Request.headers in directly.
  */
 export async function getSessionFromHeaders(
   h: Headers,
@@ -84,7 +84,7 @@ export async function requireUser() {
 
 /**
  * Build a fully-formed CallerContext for server-component / Server-Action
- * callers that talk to @mlabs/services directly (i.e. outside the operation
+ * callers that talk to @aira/services directly (i.e. outside the operation
  * adapter, which builds its own ctx from the inbound Request).
  *
  * Wraps requireUser() — redirects to /login if unauthed. The requestId is

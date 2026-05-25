@@ -1,5 +1,5 @@
 {
-  "name": "@mlabs/validators",
+  "name": "@aira/validators",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@mlabs/tsconfig": "workspace:*",
+    "@aira/tsconfig": "workspace:*",
     "typescript": "^5.9.3"
   }
 }

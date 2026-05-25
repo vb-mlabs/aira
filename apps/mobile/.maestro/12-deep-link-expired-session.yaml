@@ -20,7 +20,7 @@ appId: ${MAESTRO_APP_ID}
 - launchApp:
     clearState: true
 - stopApp
-- openLink: "mlabs:///messages/test-id"
+- openLink: "aira:///messages/test-id"
 - assertVisible:
     text: "Create account"
     timeout: 8000

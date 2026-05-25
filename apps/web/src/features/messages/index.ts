@@ -1,6 +1,6 @@
 // Public surface of features/messages.
 //
-// Server logic now lives in @mlabs/services/messages — pages, dev seeds,
+// Server logic now lives in @aira/services/messages — pages, dev seeds,
 // and operations import from there. This barrel only re-exports the UI
 // components and the shared row types that the components need to talk
 // to API responses. No server modules to hide; the package boundary

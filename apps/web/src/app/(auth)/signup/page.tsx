@@ -2,12 +2,12 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Button } from "@mlabs/ui-web/button"
-import { Input } from "@mlabs/ui-web/input"
-import { Label } from "@mlabs/ui-web/label"
-import { PasswordInput } from "@mlabs/ui-web/password-input"
+import { Button } from "@aira/ui-web/button"
+import { Input } from "@aira/ui-web/input"
+import { Label } from "@aira/ui-web/label"
+import { PasswordInput } from "@aira/ui-web/password-input"
 import { signUp } from "@/lib/auth/client"
-import { SignUpSchema } from "@mlabs/validators"
+import { SignUpSchema } from "@aira/validators"
 
 export default function SignupPage() {
   const [name, setName] = useState("")

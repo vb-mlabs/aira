@@ -1,7 +1,7 @@
 // Custom ESLint rule: ban drizzle-orm imports inside the shared validator
 // schemas package and the legacy src/lib/schemas/ location.
 //
-// Phase 5.5 A4 — schemas in @mlabs/validators (packages/validators/src/) are
+// Phase 5.5 A4 — schemas in @aira/validators (packages/validators/src/) are
 // pure Zod and meant for import by both web and mobile. A drizzle-orm import
 // in there pulls the Node-only ORM into the mobile bundle, which then breaks
 // at runtime. Catch it at lint time.
@@ -18,7 +18,7 @@ export default {
     type: "problem",
     docs: {
       description:
-        "Disallow drizzle-orm imports inside @mlabs/validators (or legacy src/lib/schemas/). Schemas here are pure Zod, shared by web + mobile.",
+        "Disallow drizzle-orm imports inside @aira/validators (or legacy src/lib/schemas/). Schemas here are pure Zod, shared by web + mobile.",
     },
     schema: [],
     messages: {

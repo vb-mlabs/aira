@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config"
 import { fileURLToPath } from "node:url"
 
-// Local vitest config so `pnpm --filter @mlabs/api test` works in isolation
+// Local vitest config so `pnpm --filter @aira/api test` works in isolation
 // — the root config pulls in jsdom + React plugin which this package
 // doesn't need. Root `pnpm test` still picks these tests up via the
 // monorepo-wide include glob.

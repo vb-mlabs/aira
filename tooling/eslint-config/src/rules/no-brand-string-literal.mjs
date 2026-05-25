@@ -18,7 +18,7 @@ let cachedBrandName = null;
 function readBrandName(cwd) {
   if (cachedBrandName !== null) return cachedBrandName;
   // Walk up from the lint cwd looking for the brand source. Order:
-  //   1. The canonical @mlabs/config location (monorepo).
+  //   1. The canonical @aira/config location (monorepo).
   //   2. apps/web/src/config/brand.ts (transitional — pre-Task-3 forks).
   //   3. src/config/brand.ts (single-app fallback).
   const candidates = [
@@ -64,7 +64,7 @@ export default {
     schema: [],
     messages: {
       noLiteral:
-        "Don't hardcode the brand name '{{name}}'. Import { brand } from '@mlabs/config' and use brand.name.",
+        "Don't hardcode the brand name '{{name}}'. Import { brand } from '@aira/config' and use brand.name.",
     },
   },
   create(context) {

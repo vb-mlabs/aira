@@ -1,4 +1,4 @@
-// @mlabs/api/client — universal client entry point.
+// @aira/api/client — universal client entry point.
 //
 // Currently a stub: the mobile fetch client (token refresh, ApiError parsing)
 // moves here in Phase 6 alongside the apps/mobile rewire. Web consumers don't

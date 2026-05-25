@@ -50,7 +50,7 @@ something else, but they aren't. Treat them as hand-written:
 - `apps/web/postcss.config.mjs` — Tailwind 4 needs a real PostCSS config
 - `apps/web/next.config.ts` — Next.js config, including `transpilePackages`
   for workspace packages
-- Any `tsconfig.json` in `apps/*` — extends `@mlabs/tsconfig` but apps
+- Any `tsconfig.json` in `apps/*` — extends `@aira/tsconfig` but apps
   also add their own `paths` and `include` patches
 - `apps/mobile/app.config.ts` — Expo app metadata; substitute via the
   Phase 10 rename script when it lands, otherwise per-fork

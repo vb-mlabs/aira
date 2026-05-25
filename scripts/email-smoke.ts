@@ -9,7 +9,7 @@
  *   4. The `verify-email` template alias exists in Postmark.
  *   5. The message is accepted for delivery.
  *
- * Uses the Postmark SDK directly (not the @mlabs/email wrapper) because
+ * Uses the Postmark SDK directly (not the @aira/email wrapper) because
  * that wrapper is `server-only`-gated for Next.js and can't be imported from
  * a tsx script. The SDK call below mirrors what packages/email/src/drivers/
  * postmark.ts does at runtime.

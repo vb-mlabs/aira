@@ -15,8 +15,8 @@ import { Button } from "../../components/ui/Button";
 import { useLogin, useResendVerify } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
 import { ApiError } from "../../lib/api/client";
-import { LoginSchema } from "@mlabs/validators";
-import { brand } from "@mlabs/config";
+import { LoginSchema } from "@aira/validators";
+import { brand } from "@aira/config";
 
 export default function LoginScreen() {
   const [email, setEmail] = React.useState("");

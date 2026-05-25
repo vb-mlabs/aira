@@ -29,7 +29,7 @@
 // Phase 5.5 Lane B: refactored to the locked ApiErrorResponse shape.
 
 import { NextResponse } from "next/server"
-import { ApiError } from "@mlabs/api"
+import { ApiError } from "@aira/api"
 import { auth } from "@/lib/auth"
 import { signAccessToken } from "@/lib/auth/jwt"
 import { logger } from "@/lib/logger"

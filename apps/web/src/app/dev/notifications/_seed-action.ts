@@ -7,10 +7,10 @@
 // pairing — its comment is explicit: "Caller is responsible for
 // authorization". Dev-only callers that know they're notifying themselves
 // (or trusted system flows) are the intended consumers; the
-// admin-impersonation case will route through @mlabs/services/admin when
+// admin-impersonation case will route through @aira/services/admin when
 // that lands.
 
-import { notifications } from "@mlabs/services"
+import { notifications } from "@aira/services"
 import { db } from "@/lib/db"
 import { getCallerContext } from "@/lib/auth/server"
 

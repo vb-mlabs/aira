@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/Button";
-import { brand } from "@mlabs/config";
+import { brand } from "@aira/config";
 
 export default function WelcomeScreen() {
   return (

@@ -3,7 +3,7 @@
 // regressions here would force every client to special-case.
 
 import { describe, expect, it } from "vitest"
-import { ApiErrorResponse } from "@mlabs/validators"
+import { ApiErrorResponse } from "@aira/validators"
 import { ApiError } from "../errors"
 
 describe("ApiError.toResponse()", () => {

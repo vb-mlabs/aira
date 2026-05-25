@@ -1,5 +1,5 @@
 // POST /api/notifications/mark-all-read — marks every unread row for the
-// current user as read. Wired through the @mlabs/api operation adapter
+// current user as read. Wired through the @aira/api operation adapter
 // (Phase 4 vertical slice); the Server Action counterpart at
 // src/features/notifications/server-actions.ts shares the same service
 // function under the hood and revalidates the inbox page on success.

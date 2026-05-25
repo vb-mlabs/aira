@@ -11,8 +11,8 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { eq } from "drizzle-orm"
-import { user as userTable } from "@mlabs/db/schema"
-import { messages } from "@mlabs/services"
+import { user as userTable } from "@aira/db/schema"
+import { messages } from "@aira/services"
 import { getCallerContext } from "@/lib/auth/server"
 
 const PARTNER_EMAIL = "dev-partner@example.test"

@@ -15,14 +15,14 @@ import "server-only"
 //
 // audit() lives in this module (audit BEFORE the mutation,
 // keeps the log authoritative on partial failures). Cross-domain notification
-// fan-out goes through the public surface at @mlabs/services/notifications.
+// fan-out goes through the public surface at @aira/services/notifications.
 
 import { eq, sql } from "drizzle-orm"
-import { user as userTable, session as sessionTable } from "@mlabs/db/schema"
-import { createAudit } from "@mlabs/db/audit"
-import type { Database } from "@mlabs/db/client"
-import { ApiError } from "@mlabs/api"
-import type { CallerContext } from "@mlabs/api/context"
+import { user as userTable, session as sessionTable } from "@aira/db/schema"
+import { createAudit } from "@aira/db/audit"
+import type { Database } from "@aira/db/client"
+import { ApiError } from "@aira/api"
+import type { CallerContext } from "@aira/api/context"
 import { createNotification } from "../notifications"
 
 export type AdminResult = {

@@ -4,17 +4,17 @@ import "server-only"
 //
 // updateNameOp + changePasswordOp wrap Better Auth's request-context APIs
 // (auth.api.updateUser / changePassword take a live Headers object). They
-// live at the composition root — the @mlabs/services/users domain is pure
+// live at the composition root — the @aira/services/users domain is pure
 // (no auth.api dep), so the Better Auth call lives here, inside the op
 // handler, which runs inside the Next request scope (next/headers works).
 
 import { headers } from "next/headers"
 import { eq } from "drizzle-orm"
 import { z } from "zod"
-import { ApiError } from "@mlabs/api"
-import { user as userTable } from "@mlabs/db/schema"
-import { createAudit } from "@mlabs/db/audit"
-import { users } from "@mlabs/services"
+import { ApiError } from "@aira/api"
+import { user as userTable } from "@aira/db/schema"
+import { createAudit } from "@aira/db/audit"
+import { users } from "@aira/services"
 import { auth } from "@/lib/auth"
 import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"

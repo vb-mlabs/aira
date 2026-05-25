@@ -11,7 +11,7 @@
 The template has **two server-side surfaces** that consume business logic:
 
 1. `/api/v1/*` route handlers — consumed by mobile (via the typed
-   `@mlabs/api` fetch client) and by future admin/web/partner clients.
+   `@aira/api` fetch client) and by future admin/web/partner clients.
 2. Server Actions — consumed by `apps/web` UI for in-page mutations.
 
 Both surfaces share the same cross-cutting concerns: session auth checks,

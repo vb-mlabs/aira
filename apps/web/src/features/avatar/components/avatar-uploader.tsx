@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@mlabs/ui-web/button"
+import { Button } from "@aira/ui-web/button"
 
 interface AvatarUploaderProps {
   currentUrl: string | null

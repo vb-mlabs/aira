@@ -36,7 +36,7 @@
 // @neondatabase/serverless still needs the explicit assignment outside a
 // browser/edge runtime.
 //
-// Usage: pnpm --filter @mlabs/db migrate
+// Usage: pnpm --filter @aira/db migrate
 
 import { drizzle } from "drizzle-orm/neon-serverless"
 import { migrate } from "drizzle-orm/neon-serverless/migrator"

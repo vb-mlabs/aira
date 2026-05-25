@@ -1,5 +1,5 @@
 {
-  "name": "@mlabs/db",
+  "name": "@aira/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -27,7 +27,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@mlabs/tsconfig": "workspace:*",
+    "@aira/tsconfig": "workspace:*",
     "@types/ws": "^8.5.12",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",

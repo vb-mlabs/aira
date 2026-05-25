@@ -1,15 +1,15 @@
-import library from "@mlabs/eslint-config/library"
+import library from "@aira/eslint-config/library"
 
-// Cross-domain import boundary for @mlabs/services.
+// Cross-domain import boundary for @aira/services.
 //
 // Inside src/<domain>/* a file can import:
 //   - other files in the same domain (./*, ./service, ./index)
-//   - the public surface of another domain via @mlabs/services/<other>
-//   - external packages (@mlabs/db, drizzle-orm, etc.)
+//   - the public surface of another domain via @aira/services/<other>
+//   - external packages (@aira/db, drizzle-orm, etc.)
 //
 // It CANNOT reach into another domain's internals:
 //   ❌ import { x } from "../audit/service"
-//   ❌ import { x } from "@mlabs/services/audit/service" (no such export)
+//   ❌ import { x } from "@aira/services/audit/service" (no such export)
 //
 // The rule is scoped to src/notifications, src/messages, etc. as those land.
 
@@ -48,7 +48,7 @@ export default [
           patterns: forbidden.map((p) => ({
             group: [p],
             message:
-              "Cross-domain imports must go through @mlabs/services/<domain> (the public surface), not reach into another domain's files.",
+              "Cross-domain imports must go through @aira/services/<domain> (the public surface), not reach into another domain's files.",
           })),
         },
       ],

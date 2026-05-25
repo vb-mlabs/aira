@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { useTransition } from "react"
-import { cn } from "@mlabs/ui-web/utils"
-import type { NotificationRow } from "@mlabs/services/notifications"
+import { cn } from "@aira/ui-web/utils"
+import type { NotificationRow } from "@aira/services/notifications"
 import { markRead } from "@/features/notifications/server-actions"
 
 interface NotificationItemProps {

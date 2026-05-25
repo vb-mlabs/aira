@@ -1,5 +1,5 @@
 {
-  "name": "@mlabs/auth",
+  "name": "@aira/auth",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,14 +16,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mlabs/db": "workspace:*",
+    "@aira/db": "workspace:*",
     "better-auth": "^1.6.10",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.1.0",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
-    "@mlabs/tsconfig": "workspace:*",
+    "@aira/tsconfig": "workspace:*",
     "typescript": "^5.9.3"
   }
 }

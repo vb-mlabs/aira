@@ -4,7 +4,7 @@
 import "server-only"
 import { and, desc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { user as userTable, audit_log } from "@mlabs/db/schema"
+import { user as userTable, audit_log } from "@aira/db/schema"
 import { requireAdmin } from "@/lib/auth/server"
 import {
   ADMIN_PAGE_SIZE,

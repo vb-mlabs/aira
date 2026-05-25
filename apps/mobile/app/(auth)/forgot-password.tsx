@@ -12,8 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { useForgotPassword } from "../../features/auth/hooks";
-import { ForgotPasswordSchema } from "@mlabs/validators";
-import { brand } from "@mlabs/config";
+import { ForgotPasswordSchema } from "@aira/validators";
+import { brand } from "@aira/config";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = React.useState("");

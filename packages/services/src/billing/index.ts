@@ -1,4 +1,4 @@
-// @mlabs/services/billing — generic Stripe primitives.
+// @aira/services/billing — generic Stripe primitives.
 //
 // The template ships:
 //   - getStripe(secretKey): lazy SDK singleton, cached by key

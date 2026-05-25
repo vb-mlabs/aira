@@ -1,22 +1,22 @@
-// @mlabs/services — domain-grouped server-side business logic.
+// @aira/services — domain-grouped server-side business logic.
 //
 // Every function takes (db, ctx, args). Authorization checks live in the
 // service, not in the route. Cross-domain calls go through the named
 // subpath imports below — never reach into sibling ./<domain>/service.ts
-// files. The ESLint rule in @mlabs/eslint-config enforces this.
+// files. The ESLint rule in @aira/eslint-config enforces this.
 //
 // Subpath imports:
-//   - @mlabs/services/notifications  — getUnreadCount, listInbox,
+//   - @aira/services/notifications  — getUnreadCount, listInbox,
 //                                       markAllRead, markRead,
 //                                       createNotification
-//   - @mlabs/services/messages       — openOrCreate1to1, listConversations,
+//   - @aira/services/messages       — openOrCreate1to1, listConversations,
 //                                       listMessages, sendMessage,
 //                                       markConversationRead
-//   - @mlabs/services/users          — deleteAccount
-//   - @mlabs/services/admin          — changeRole, banUser, unbanUser,
+//   - @aira/services/users          — deleteAccount
+//   - @aira/services/admin          — changeRole, banUser, unbanUser,
 //                                       preparePasswordReset,
 //                                       sendAdminNotification
-//   - @mlabs/services/billing        — getStripe, handleStripeEvent
+//   - @aira/services/billing        — getStripe, handleStripeEvent
 //                                       (generic Stripe primitives; forks
 //                                       add handlers)
 

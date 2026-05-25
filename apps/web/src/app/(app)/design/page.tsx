@@ -1,14 +1,14 @@
-// Live design-system style guide. Reads exclusively from @mlabs/config
+// Live design-system style guide. Reads exclusively from @aira/config
 // so the page drifts the moment a token changes. Auth-gated by the
 // (app) route group (requireUser() in ../layout.tsx).
 //
 // No nav link — devs find this route via DESIGN.md. Intentional: this
 // is a maintenance surface, not a marketing surface.
 
-import { brand, design } from "@mlabs/config"
-import { Button } from "@mlabs/ui-web/button"
-import { Input } from "@mlabs/ui-web/input"
-import { Label } from "@mlabs/ui-web/label"
+import { brand, design } from "@aira/config"
+import { Button } from "@aira/ui-web/button"
+import { Input } from "@aira/ui-web/input"
+import { Label } from "@aira/ui-web/label"
 
 export const metadata = {
   title: "Design system",
@@ -20,7 +20,7 @@ export default function DesignSystemPage() {
     <div className="space-y-16 py-4">
       <header>
         <div className="text-[11px] uppercase tracking-[0.22em] text-primary">
-          Live · reads from @mlabs/config
+          Live · reads from @aira/config
         </div>
         <h1 className="mt-2 text-4xl font-extrabold tracking-tight">
           Design system

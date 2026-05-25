@@ -23,10 +23,10 @@ import {
   messages as messagesTable,
   notifications as notificationsTable,
   user,
-} from "@mlabs/db/schema"
-import type { Database } from "@mlabs/db/client"
-import { ApiError } from "@mlabs/api"
-import type { CallerContext } from "@mlabs/api/context"
+} from "@aira/db/schema"
+import type { Database } from "@aira/db/client"
+import { ApiError } from "@aira/api"
+import type { CallerContext } from "@aira/api/context"
 import { createNotification } from "../notifications"
 import { decodeCursor } from "./cursor"
 

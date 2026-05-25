@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/Button";
 import { useResendVerify } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
-import { brand } from "@mlabs/config";
+import { brand } from "@aira/config";
 
 const RESEND_COOLDOWN_SEC = 30;
 

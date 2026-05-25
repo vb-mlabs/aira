@@ -5,7 +5,7 @@ import "server-only"
 // Route handlers and Server Actions consume operations from this file.
 
 import { z } from "zod"
-import { notifications } from "@mlabs/services"
+import { notifications } from "@aira/services"
 import { defineOperation } from "./index"
 
 const MarkResultSchema = z.object({

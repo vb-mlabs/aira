@@ -6,8 +6,8 @@ import "server-only"
 // through the admin UI.
 
 import { eq } from "drizzle-orm"
-import type { Database } from "@mlabs/db/client"
-import { user as defaultUserTable } from "@mlabs/db/schema"
+import type { Database } from "@aira/db/client"
+import { user as defaultUserTable } from "@aira/db/schema"
 
 export interface AdminBootstrapLogger {
   info: (message: string, meta?: Record<string, unknown>) => void

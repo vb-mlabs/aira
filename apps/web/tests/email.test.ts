@@ -7,7 +7,7 @@ import {
   type EmailDriver,
   type SendArgs,
 } from "@/lib/email"
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 
 function recordingDriver(): { driver: EmailDriver; calls: SendArgs[] } {
   const calls: SendArgs[] = []

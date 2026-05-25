@@ -8,7 +8,7 @@
 // tooling/eslint-config/src/rules/no-brand-string-literal.mjs.
 
 export const brand = {
-  name: "MLabs Template",
+  name: "AIRA",
   tagline: "AI engineering with guardrails, conventions, and a paper trail",
   // Substring of `tagline` rendered in `text-primary` on the landing hero.
   // First-match split; case-sensitive. If the substring doesn't appear in

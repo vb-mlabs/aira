@@ -4,7 +4,7 @@
 
 import type { LucideIcon } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@mlabs/ui-web/button"
+import { Button } from "@aira/ui-web/button"
 
 interface Action {
   label: string

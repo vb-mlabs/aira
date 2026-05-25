@@ -2,11 +2,11 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Button } from "@mlabs/ui-web/button"
-import { Input } from "@mlabs/ui-web/input"
-import { Label } from "@mlabs/ui-web/label"
+import { Button } from "@aira/ui-web/button"
+import { Input } from "@aira/ui-web/input"
+import { Label } from "@aira/ui-web/label"
 import { authClient } from "@/lib/auth/client"
-import { ForgotPasswordSchema } from "@mlabs/validators"
+import { ForgotPasswordSchema } from "@aira/validators"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")

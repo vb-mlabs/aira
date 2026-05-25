@@ -4,7 +4,7 @@
 
 import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { user as userTable } from "@mlabs/db/schema"
+import { user as userTable } from "@aira/db/schema"
 import { requireUser } from "@/lib/auth/server"
 import {
   AccountSection,

@@ -1,4 +1,4 @@
-// @mlabs/ui-web — shadcn primitives + cn() utility.
+// @aira/ui-web — shadcn primitives + cn() utility.
 //
 // Primitives are also reachable via subpath imports (./button, ./field, etc.)
 // so consumers can tree-shake on a per-component basis. The barrel re-exports

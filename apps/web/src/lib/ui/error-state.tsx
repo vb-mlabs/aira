@@ -7,7 +7,7 @@
 
 import { AlertCircle } from "lucide-react"
 import { useState } from "react"
-import { Button } from "@mlabs/ui-web/button"
+import { Button } from "@aira/ui-web/button"
 
 interface ErrorStateProps {
   title?: string

@@ -1,5 +1,5 @@
 {
-  "name": "@mlabs/config",
+  "name": "@aira/config",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@mlabs/tsconfig": "workspace:*",
+    "@aira/tsconfig": "workspace:*",
     "typescript": "^5.9.3"
   }
 }

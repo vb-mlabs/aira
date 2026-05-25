@@ -1,10 +1,10 @@
-// @mlabs/eslint-config/library — preset for workspace packages under packages/*.
+// @aira/eslint-config/library — preset for workspace packages under packages/*.
 //
 // Base rules + TypeScript parsing for .ts/.tsx files so packages can be
 // linted standalone (root ESLint ignores packages/**).
 //
 // Consumed by packages via:
-//   import libraryConfig from "@mlabs/eslint-config/library";
+//   import libraryConfig from "@aira/eslint-config/library";
 //   export default libraryConfig;
 
 import baseConfig from "./base.mjs";

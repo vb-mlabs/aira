@@ -14,8 +14,8 @@ import {
   markRead,
   createNotification,
 } from "../service"
-import type { Database } from "@mlabs/db/client"
-import type { CallerContext } from "@mlabs/api/context"
+import type { Database } from "@aira/db/client"
+import type { CallerContext } from "@aira/api/context"
 
 function ctxFor(userId: string): CallerContext {
   return {

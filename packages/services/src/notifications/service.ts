@@ -7,14 +7,14 @@ import "server-only"
 //
 // Authorization rule: scoping by ctx.userId is the implicit ACL. There is no
 // notion of "read someone else's notification" — those queries don't exist
-// in this surface. Admin-side analytics live in @mlabs/services/audit (when
+// in this surface. Admin-side analytics live in @aira/services/audit (when
 // it exists), not here.
 
 import { and, desc, eq, isNull, sql } from "drizzle-orm"
-import { notifications, user } from "@mlabs/db/schema"
-import type { NotificationBody } from "@mlabs/db/types"
-import type { Database } from "@mlabs/db/client"
-import type { CallerContext } from "@mlabs/api/context"
+import { notifications, user } from "@aira/db/schema"
+import type { NotificationBody } from "@aira/db/types"
+import type { Database } from "@aira/db/client"
+import type { CallerContext } from "@aira/api/context"
 
 /** Public row shape — what services return to callers. Drizzle's row type
  *  carries column metadata we don't want to leak through the operation

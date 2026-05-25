@@ -52,7 +52,7 @@ tooling/
   tailwind-config/    Shared Tailwind preset (peer accepts Tailwind 3 and 4)
 ```
 
-Naming: every workspace package uses `@mlabs/*`. Phase 10's
+Naming: every workspace package uses `@aira/*`. Phase 10's
 `scripts/rename.ts` will swap to `@<client>/*` on fork.
 
 Package manager: `pnpm@10` (specified in `package.json#packageManager`).
@@ -63,7 +63,7 @@ Task runner: Turborepo. Local cache only — no Vercel Remote Cache.
 Workspace structure split:
 - Apps consume packages via `workspace:*` deps.
 - Packages depend on each other through their `exports` map; the
-  server/client split (e.g. `@mlabs/auth/server` vs `@mlabs/auth/client`)
+  server/client split (e.g. `@aira/auth/server` vs `@aira/auth/client`)
   is enforced via `exports` paths and `server-only` imports.
 
 UI split (asymmetric): `packages/ui-web` extracted (shadcn primitives,
@@ -106,7 +106,7 @@ but heavier than needed.
 
 ### Positive
 
-- **Single source of truth for schemas** — `@mlabs/validators` exports
+- **Single source of truth for schemas** — `@aira/validators` exports
   `SignUpSchema`, `LoginSchema`, `ApiErrorResponse`, etc. Web and mobile
   both consume them; drift impossible.
 - **Independent typecheck/lint/test per package** — Turbo's pipeline
@@ -116,8 +116,8 @@ but heavier than needed.
   touching `apps/web`.
 - **syncpack and bundle-scan enforce boundaries** — version drift caught
   at install time; server-code-in-mobile caught at build time.
-- **Tooling reuse** — every package extends `@mlabs/tsconfig`, every
-  app uses `@mlabs/eslint-config` and `@mlabs/prettier-config`. Bumping
+- **Tooling reuse** — every package extends `@aira/tsconfig`, every
+  app uses `@aira/eslint-config` and `@aira/prettier-config`. Bumping
   TypeScript, ESLint, or Tailwind is a single PR.
 
 ### Negative / load-bearing constraints
@@ -151,6 +151,6 @@ but heavier than needed.
   reason.
 - **Push notifications (APNs/FCM)** — per-fork concern, deferred.
   Listed in TODOS.md.
-- **Phase 10 rename script** — automates the safe `@mlabs/*` →
+- **Phase 10 rename script** — automates the safe `@aira/*` →
   `@<client>/*` replacement. Until it lands, forks rename manually
   per the map in `docs/forking-guide.md`.

@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/Button";
 import { useResendVerify, useVerifyEmail } from "../../features/auth/hooks";
-import { brand } from "@mlabs/config";
+import { brand } from "@aira/config";
 
 type Status = "pending" | "success" | "error";
 

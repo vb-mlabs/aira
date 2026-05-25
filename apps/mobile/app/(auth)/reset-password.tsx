@@ -12,12 +12,12 @@ import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
 import { useResetPassword } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
-import { ResetPasswordSchema } from "@mlabs/validators";
+import { ResetPasswordSchema } from "@aira/validators";
 import { ApiError } from "../../lib/api/client";
-import { brand } from "@mlabs/config";
+import { brand } from "@aira/config";
 
 /**
- * Reset password screen — deep-link target. URL: mlabs://reset-password?token=…
+ * Reset password screen — deep-link target. URL: aira://reset-password?token=…
  * Routed via Expo Router's `useLocalSearchParams`.
  */
 export default function ResetPasswordScreen() {

@@ -6,7 +6,7 @@
 // shape; the AvatarUploader surfaces err.error.message inline.
 
 import { NextResponse } from "next/server"
-import { ApiError } from "@mlabs/api"
+import { ApiError } from "@aira/api"
 import { requireUserJSON } from "@/lib/auth/server"
 import {
   AvatarError,

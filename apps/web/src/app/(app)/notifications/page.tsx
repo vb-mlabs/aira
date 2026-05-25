@@ -2,7 +2,7 @@
 // the polling side; this page is a snapshot at request time, refreshed when
 // the user marks rows read (revalidatePath in the actions).
 
-import { notifications } from "@mlabs/services"
+import { notifications } from "@aira/services"
 import { db } from "@/lib/db"
 import { getCallerContext } from "@/lib/auth/server"
 import { NotificationList } from "@/features/notifications"

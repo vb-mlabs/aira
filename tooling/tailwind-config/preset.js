@@ -1,4 +1,4 @@
-// @mlabs/tailwind-config — Tailwind preset built from @mlabs/config/design.
+// @aira/tailwind-config — Tailwind preset built from @aira/config/design.
 //
 // Shape is Tailwind v3 (`{ theme: { extend: { ... } } }`) because that's what
 // NativeWind requires on mobile. Tailwind v4 on web reads tokens via the
@@ -10,7 +10,7 @@
 // rewire). Until then it lives as a published-but-unconsumed module so forks
 // can opt in.
 
-import { design } from "@mlabs/config/design"
+import { design } from "@aira/config/design"
 
 function colors() {
   const out = {}

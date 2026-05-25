@@ -1,4 +1,4 @@
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 import { LegalPage, LegalSection } from "@/components/legal/legal-page"
 
 export const metadata = {

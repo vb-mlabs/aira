@@ -6,7 +6,7 @@
 // Delete src/app/dev/ before v1 ship.
 
 import Link from "next/link"
-import { Button } from "@mlabs/ui-web/button"
+import { Button } from "@aira/ui-web/button"
 import { requireUser } from "@/lib/auth/server"
 import { seedDM, seedPartner } from "./_seed-action"
 

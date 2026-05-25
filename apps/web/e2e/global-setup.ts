@@ -9,7 +9,7 @@
 //
 // IMPORTANT: this file imports @/lib/db and @/lib/auth, which both pull in
 // `server-only`. That package throws unless Node is launched with
-// `--conditions=react-server`. Use `pnpm --filter @mlabs/web e2e` (the
+// `--conditions=react-server`. Use `pnpm --filter @aira/web e2e` (the
 // "e2e" script sets NODE_OPTIONS for you) — running `pnpm exec playwright
 // test` directly will fail at this setup file.
 
@@ -35,7 +35,7 @@ import { auth } from "@/lib/auth"
 import {
   user as userTable,
   account as accountTable,
-} from "@mlabs/db/schema"
+} from "@aira/db/schema"
 import { E2E_TEST_USER, STORAGE_STATE_PATH } from "./support/auth"
 
 // BetterAuth prefixes the cookie name with `__Secure-` when the configured

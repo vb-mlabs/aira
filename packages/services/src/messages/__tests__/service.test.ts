@@ -18,9 +18,9 @@
 //     the service (it's a test-only export — see service.ts).
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { ApiError } from "@mlabs/api"
-import type { CallerContext } from "@mlabs/api/context"
-import type { Database } from "@mlabs/db/client"
+import { ApiError } from "@aira/api"
+import type { CallerContext } from "@aira/api/context"
+import type { Database } from "@aira/db/client"
 
 interface UserRow {
   id: string
@@ -265,7 +265,7 @@ const mockDb = {
 
 // Stub schema columns. Each has a _column name + a _table marker so the
 // db mock can route writes to the right in-memory store.
-vi.mock("@mlabs/db/schema", () => ({
+vi.mock("@aira/db/schema", () => ({
   user: {
     _name: "users",
     id: { _column: "id", _table: "users" },

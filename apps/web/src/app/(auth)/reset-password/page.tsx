@@ -3,11 +3,11 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
-import { Button } from "@mlabs/ui-web/button"
-import { Label } from "@mlabs/ui-web/label"
-import { PasswordInput } from "@mlabs/ui-web/password-input"
+import { Button } from "@aira/ui-web/button"
+import { Label } from "@aira/ui-web/label"
+import { PasswordInput } from "@aira/ui-web/password-input"
 import { authClient } from "@/lib/auth/client"
-import { passwordSchema } from "@mlabs/validators"
+import { passwordSchema } from "@aira/validators"
 
 function ResetPasswordForm() {
   const router = useRouter()

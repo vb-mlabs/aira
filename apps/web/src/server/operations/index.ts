@@ -1,4 +1,4 @@
-// Composition root for the web app's @mlabs/api operations.
+// Composition root for the web app's @aira/api operations.
 //
 // One createOperations() factory closes over the shared deps (db, session
 // resolver, logger). All domain-specific operation files import the
@@ -8,11 +8,11 @@
 // Phase 5 moves this to apps/web/src/server/operations/.
 
 import "server-only"
-import { createOperations } from "@mlabs/api/server"
+import { createOperations } from "@aira/api/server"
 import type {
   GetSession,
   OperationSession,
-} from "@mlabs/api/server"
+} from "@aira/api/server"
 import { db } from "@/lib/db"
 import { getSessionFromHeaders } from "@/lib/auth/server"
 import { logger } from "@/lib/logger"

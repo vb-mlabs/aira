@@ -5,8 +5,8 @@
 // Per Design Decision D3: skeleton for lists, spinner for actions.
 
 import { Loader2 } from "lucide-react"
-import { Skeleton } from "@mlabs/ui-web/skeleton"
-import { cn } from "@mlabs/ui-web/utils"
+import { Skeleton } from "@aira/ui-web/skeleton"
+import { cn } from "@aira/ui-web/utils"
 
 interface LoadingStateProps {
   variant?: "skeleton" | "spinner" | "shimmer"

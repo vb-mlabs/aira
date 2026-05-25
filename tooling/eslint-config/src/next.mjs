@@ -1,4 +1,4 @@
-// @mlabs/eslint-config/next — preset for the Next.js web app.
+// @aira/eslint-config/next — preset for the Next.js web app.
 //
 // Layers (in order):
 //   1. eslint-config-next/core-web-vitals — Next's recommended rules
@@ -6,7 +6,7 @@
 //   3. base (MLabs custom rules + no-raw-process-env)
 //
 // Apps consume this via:
-//   import nextConfig from "@mlabs/eslint-config/next";
+//   import nextConfig from "@aira/eslint-config/next";
 //   export default nextConfig;
 
 import nextVitals from "eslint-config-next/core-web-vitals";

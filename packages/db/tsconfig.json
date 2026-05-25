@@ -1,5 +1,5 @@
 {
-  "extends": "@mlabs/tsconfig/base.json",
+  "extends": "@aira/tsconfig/base.json",
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "dist"

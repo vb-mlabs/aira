@@ -1,7 +1,7 @@
 import Link from "next/link"
-import { brand } from "@mlabs/config"
-import { buttonVariants } from "@mlabs/ui-web/button"
-import { cn } from "@mlabs/ui-web/utils"
+import { brand } from "@aira/config"
+import { buttonVariants } from "@aira/ui-web/button"
+import { cn } from "@aira/ui-web/utils"
 import { Tagline } from "./tagline"
 
 export function Hero() {

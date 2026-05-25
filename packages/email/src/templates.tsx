@@ -5,7 +5,7 @@ import "server-only"
 // via @react-email/render, then hands the rendered bodies to the active
 // driver. The public EmailTemplates interface (sendVerifyEmail,
 // sendPasswordResetEmail, sendNotificationEmail) keeps stable shapes so
-// BetterAuth + @mlabs/services call sites never need to know which provider
+// BetterAuth + @aira/services call sites never need to know which provider
 // is wired up underneath.
 //
 // Adding a new template:
@@ -13,7 +13,7 @@ import "server-only"
 //   2. Add a typed wrapper here with a matching subject builder
 //   3. Export the component from index.ts so the dev preview can render it
 
-import { brand } from "@mlabs/config"
+import { brand } from "@aira/config"
 import { render } from "@react-email/render"
 import { NotificationEmail } from "./templates/notification"
 import { PasswordResetEmail } from "./templates/password-reset"

@@ -5,7 +5,7 @@ import "server-only"
 // short-circuit can run before the heavy aggregation queries.
 
 import { z } from "zod"
-import { messages } from "@mlabs/services"
+import { messages } from "@aira/services"
 import { defineOperation } from "./index"
 
 const ConversationIdSchema = z.object({ id: z.string().min(1) })

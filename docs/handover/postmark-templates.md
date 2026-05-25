@@ -37,7 +37,7 @@ palette, because email clients (Gmail, Outlook, Yahoo) don't support
 
 To change the wording, design, or layout of an email, edit the matching
 `.tsx` file and ship a normal PR. The dev preview at **`/dev/emails`** in
-`pnpm -F @mlabs/web dev` shows all three rendered live in iframes — refresh
+`pnpm -F @aira/web dev` shows all three rendered live in iframes — refresh
 to see edits. The preview route returns 404 in production.
 
 ## Driver swap (future)

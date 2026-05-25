@@ -10,9 +10,9 @@ import type { ExpoConfig, ConfigContext } from "expo/config";
  */
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "MLabs Template",
-  slug: "mlabs-mobile",
-  scheme: "mlabs",
+  name: "AIRA",
+  slug: "aira-mobile",
+  scheme: "aira",
   version: "0.1.0",
   orientation: "portrait",
   userInterfaceStyle: "automatic",
@@ -30,7 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: "com.example.mlabs",
-    associatedDomains: ["applinks:mlabs.example.com"],
+    associatedDomains: ["applinks:app.aira.com"],
   },
   android: {
     package: "com.example.mlabs",
@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         data: [
           {
             scheme: "https",
-            host: "mlabs.example.com",
+            host: "app.aira.com",
           },
         ],
         category: ["BROWSABLE", "DEFAULT"],
@@ -63,7 +63,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "expo-image-picker",
       {
         photosPermission:
-          "MLabs Template needs access to your photos to set your profile picture.",
+          "AIRA needs access to your photos to set your profile picture.",
       },
     ],
   ],

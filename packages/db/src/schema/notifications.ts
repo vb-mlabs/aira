@@ -21,7 +21,7 @@ export const notifications = pgTable(
     /** Discriminator that mirrors NotificationBody["kind"] — duplicated for
      *  SQL-side filtering (jsonb path queries are clumsy). */
     type: text("type").notNull(),
-    /** Typed payload — see NotificationBody in @mlabs/db/types. */
+    /** Typed payload — see NotificationBody in @aira/db/types. */
     body: jsonb("body").$type<NotificationBody>().notNull(),
     read_at: timestamp("read_at"),
     created_at: timestamp("created_at").defaultNow().notNull(),

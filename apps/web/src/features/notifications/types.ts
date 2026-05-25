@@ -21,7 +21,7 @@ export type NotificationBody =
   | {
       kind: "message"
       /** Conversation the message belongs to. Drives the cascade in
-       *  @mlabs/services/messages → markConversationRead, which marks
+       *  @aira/services/messages → markConversationRead, which marks
        *  every notification of this kind+conversation_id as read when
        *  the recipient opens the thread. */
       conversation_id: string

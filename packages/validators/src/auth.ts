@@ -1,10 +1,10 @@
 // Shared auth payload schemas — consumed by web + mobile clients and the
 // /api/* handlers that proxy them through Better Auth.
 //
-// Pure Zod; no Drizzle imports (enforced by @mlabs/eslint-config's
+// Pure Zod; no Drizzle imports (enforced by @aira/eslint-config's
 // no-drizzle-in-schemas rule — pattern covers packages/validators/).
 // Mirrors Better Auth's defaults (min password length 8 — see
-// @mlabs/auth's config).
+// @aira/auth's config).
 
 import { z } from "zod";
 

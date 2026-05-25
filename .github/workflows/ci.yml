@@ -110,7 +110,7 @@ jobs:
     # Exports the mobile JS bundle and greps for server-only env names and
     # workspace package paths. The mobile bundle should never reference the
     # Postgres URL, Better Auth secret, the Postmark SDK, or any of the
-    # server-only @mlabs/* packages — if a refactor accidentally pulls one
+    # server-only @aira/* packages — if a refactor accidentally pulls one
     # of those in through a shared module, this job fails the PR.
     name: bundle-scan (mobile)
     runs-on: ubuntu-latest
@@ -124,11 +124,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Export mobile JS bundle (iOS)
-        run: pnpm --filter @mlabs/mobile exec expo export --platform ios --output-dir /tmp/expo-bundle
+        run: pnpm --filter @aira/mobile exec expo export --platform ios --output-dir /tmp/expo-bundle
       - name: Scan bundle for forbidden server-only references
         run: |
           set -euo pipefail
-          PATTERN='DATABASE_URL|BETTER_AUTH_SECRET|postmark|@mlabs/db|@mlabs/services|@mlabs/auth/server'
+          PATTERN='DATABASE_URL|BETTER_AUTH_SECRET|postmark|@aira/db|@aira/services|@aira/auth/server'
           if grep -rlE "$PATTERN" /tmp/expo-bundle/_expo; then
             echo "::error::Forbidden server-only references found in mobile bundle output (see matched files above)."
             exit 1

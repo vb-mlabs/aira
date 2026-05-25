@@ -1,6 +1,6 @@
 // Metro configuration for Expo inside a pnpm monorepo.
 //
-// Default Metro can't find workspace packages (e.g. @mlabs/validators) because
+// Default Metro can't find workspace packages (e.g. @aira/validators) because
 // they live above the project root. We extend the default config to:
 //   1. watchFolders — tells Metro to watch the workspace root for changes.
 //   2. nodeModulesPaths — tells Metro's resolver to look in BOTH the local

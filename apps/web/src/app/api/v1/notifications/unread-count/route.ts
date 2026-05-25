@@ -14,13 +14,13 @@
 // HTTP-caching logic (304 + Last-Modified) sits outside the input/output
 // schema model and short-circuits the count query — wrapping that through
 // the operation adapter wouldn't avoid the duplication. The route still
-// uses the @mlabs/services notifications domain for both queries, so the
+// uses the @aira/services notifications domain for both queries, so the
 // service contract is consistent with operation-wrapped routes.
 
 import { NextResponse } from "next/server"
-import { ApiError } from "@mlabs/api"
-import { buildContext } from "@mlabs/api/server"
-import { notifications } from "@mlabs/services"
+import { ApiError } from "@aira/api"
+import { buildContext } from "@aira/api/server"
+import { notifications } from "@aira/services"
 import { db } from "@/lib/db"
 import { getSessionFromHeaders } from "@/lib/auth/server"
 

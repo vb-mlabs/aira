@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Button } from "@mlabs/ui-web/button"
-import { Input } from "@mlabs/ui-web/input"
-import { Label } from "@mlabs/ui-web/label"
+import { Button } from "@aira/ui-web/button"
+import { Input } from "@aira/ui-web/input"
+import { Label } from "@aira/ui-web/label"
 import { SectionCard } from "./section-card"
 import { changePassword } from "@/features/profile/server/actions"
 

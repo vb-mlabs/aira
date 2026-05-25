@@ -1,6 +1,6 @@
 import "server-only"
 
-// @mlabs/api/server — server-only entry point.
+// @aira/api/server — server-only entry point.
 //
 // Exports the operation adapter + helpers a composition root needs to wire
 // up its routes and Server Actions. Anything universal (types, ApiError)

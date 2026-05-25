@@ -11,7 +11,7 @@
 // code — safe to delete during the swap.
 
 import { NextRequest, NextResponse } from "next/server"
-import { ApiError } from "@mlabs/api"
+import { ApiError } from "@aira/api"
 import { storage } from "@/lib/storage"
 
 interface RouteContext {

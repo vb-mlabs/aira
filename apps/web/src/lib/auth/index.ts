@@ -1,4 +1,4 @@
-// Transitional shim — wires env + db + email into @mlabs/auth/server's
+// Transitional shim — wires env + db + email into @aira/auth/server's
 // createAuth factory. Phase 5 (apps/web rewire) replaces this with a per-app
 // composition root.
 
@@ -9,7 +9,7 @@ import {
   sendPasswordResetEmail,
   sendVerifyEmail,
 } from "@/lib/email"
-import { createAuth } from "@mlabs/auth/server"
+import { createAuth } from "@aira/auth/server"
 
 // baseUrl fallback chain (Replit-aware):
 //   1. BETTER_AUTH_URL (explicit override — production, CI, e2e)

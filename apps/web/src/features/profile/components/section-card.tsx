@@ -1,4 +1,4 @@
-import { cn } from "@mlabs/ui-web/utils"
+import { cn } from "@aira/ui-web/utils"
 
 interface SectionCardProps {
   title: string

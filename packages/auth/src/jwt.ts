@@ -15,7 +15,7 @@ import "server-only"
 
 import { SignJWT, jwtVerify, type JWTPayload } from "jose"
 
-const ISSUER = "mlabs-mobile"
+const ISSUER = "aira-mobile"
 const ALG = "HS256"
 const DEFAULT_ACCESS_TTL_SECONDS = 60 * 60 // 1h
 

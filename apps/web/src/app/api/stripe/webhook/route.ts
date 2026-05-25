@@ -19,7 +19,7 @@
 // for routes that look lightweight — pinning here is cheap insurance.
 export const runtime = "nodejs"
 
-import { getStripe, handleStripeEvent } from "@mlabs/services/billing"
+import { getStripe, handleStripeEvent } from "@aira/services/billing"
 import { db } from "@/lib/db"
 import { env } from "@/config/env"
 import { logger } from "@/lib/logger"

@@ -1,7 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config"
-import mlabsNext from "@mlabs/eslint-config/next"
+import mlabsNext from "@aira/eslint-config/next"
 
-// apps/web ESLint config. Extends @mlabs/eslint-config/next which bundles:
+// apps/web ESLint config. Extends @aira/eslint-config/next which bundles:
 //   - eslint-config-next (core-web-vitals + typescript)
 //   - The 3 MLabs custom rules (no-brand-string-literal, no-drizzle-in-schemas,
 //     no-raw-process-env)

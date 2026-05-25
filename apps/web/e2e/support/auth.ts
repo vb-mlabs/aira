@@ -17,7 +17,7 @@
 //
 // DB ACCESS FROM SPECS — IMPORTANT:
 // Spec files (`*.spec.ts`) should access the DB via raw `Pool`/SQL from
-// `@neondatabase/serverless`, NOT via `@mlabs/db/schema`. Playwright's
+// `@neondatabase/serverless`, NOT via `@aira/db/schema`. Playwright's
 // spec loader uses Node's runtime ESM resolution, which doesn't apply
 // the `moduleResolution: "Bundler"` setting to the IMPORTED package's
 // internal extensionless imports (e.g. `from "./auth"` inside

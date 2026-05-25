@@ -1,13 +1,13 @@
-// Transitional shim — binds @mlabs/email driver factories to the app's env
+// Transitional shim — binds @aira/email driver factories to the app's env
 // so existing callers can keep importing getEmailDriver / _setDriverForTesting
 // from this path. Phase 5 (apps/web rewire) replaces this with a per-app
 // composition root that owns the createEmailClient() call.
 
 import "server-only"
 import { env } from "@/config/env"
-import { consoleDriver } from "@mlabs/email/drivers/console"
-import { createPostmarkDriver } from "@mlabs/email/drivers/postmark"
-import type { EmailDriver } from "@mlabs/email/types"
+import { consoleDriver } from "@aira/email/drivers/console"
+import { createPostmarkDriver } from "@aira/email/drivers/postmark"
+import type { EmailDriver } from "@aira/email/types"
 
 let _driver: EmailDriver | null = null
 
