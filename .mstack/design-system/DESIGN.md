@@ -102,10 +102,11 @@ The brand is built on a paper-grain aesthetic. We implemented texture as **CSS-f
 
 ### Contrast notes
 
-All 36 token pairs pass `pnpm check-contrast`. Two exemptions documented:
+All 36 token pairs pass `pnpm check-contrast`. Three exemptions documented:
 
 1. **`tier2Foreground` (cream) on `tier2` (burnt orange)** — 3.18:1 light, 4.25:1 dark. Cream-on-burnt-orange is ~2.7:1 at the design intent, lifted to 3.18 by using the standard cream value. Tier headers are bold Lato ≥14px which qualifies as AA-Large (3:1) by WCAG. Severity in `scripts/check-contrast.ts` is `large`. Matches the Figma design exactly.
 2. **`infoForeground` (white) on `info` (blue)** — 4.34:1 in both themes. Verified badge is a small icon-on-pill, not body text; WCAG 1.4.11 non-text contrast (3:1) applies. Severity is `large`.
+3. **`brand-gold` "Reach" tagline on `background` (cream)** — ~2.5:1, below AA-Large's 3:1. The word appears once in the marketing hero ("Roots &amp; *Reach*") as ornamental italic Cormorant. The communicative weight of the tagline is carried by "Roots" in `foreground` (11.96:1). Darkening `brand-gold` to clear 3:1 would shift every ornament + nav underline + footer divider site-wide; deferred. Same rationale family as the tier2 exemption. Documented after `/mlabs-ux-audit` 2026-05-25-1140.
 
 The MLabs template's previous AA exemption (white-on-orange CTA) has been REMOVED — AIRA's olive-green primary clears AA body at 5.82:1, so `primaryForeground` vs `primary` is now in the strict body bar.
 
