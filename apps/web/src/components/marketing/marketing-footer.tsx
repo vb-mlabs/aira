@@ -57,7 +57,7 @@ export function MarketingFooter() {
 
         <div className="flex flex-col items-start justify-between gap-3 border-t border-border/25 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
           <span>
-            © {year} {brand.legalEntity}. All rights reserved.
+            © {year} {brand.name}
           </span>
           <span>Operated by {brand.legalEntity} ✦</span>
         </div>
