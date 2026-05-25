@@ -59,7 +59,11 @@ next-env.d.ts
 .claude/.credentials.json
 .fork-config.json
 
-# Dev-only symlinks for design system preview HTML (target .mstack/ which is
-# tracked separately; the symlinks themselves use absolute paths that only
-# resolve in this workspace).
-apps/web/public/design-preview/
+# Dev-only symlinks for design-system / marketing-page preview HTML
+# (target .mstack/ and attached_assets/ which are tracked separately;
+# the symlinks themselves use absolute paths that only resolve in this
+# workspace). No trailing slash so the pattern matches both dirs and
+# symlinks-to-dirs.
+apps/web/public/design-preview
+apps/web/public/marketing-mockups
+apps/web/public/marketing-assets

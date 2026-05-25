@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIRA marketing — side-by-side compare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: oklch(0.90 0.04 85);
+      --foreground: oklch(0.25 0.04 60);
+      --primary:    oklch(0.46 0.07 132);
+      --muted-fg:   oklch(0.45 0.04 60);
+      --brand-gold: oklch(0.66 0.10 80);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--background); color: var(--foreground); font-family: "Lato", sans-serif; }
+    header {
+      padding: 24px 32px;
+      border-bottom: 1px solid oklch(0.50 0.07 80 / 30%);
+      background: oklch(0.90 0.04 85 / 92%);
+      backdrop-filter: blur(8px);
+      position: sticky; top: 0; z-index: 10;
+    }
+    header h1 { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 24px; margin: 0; letter-spacing: 1px; }
+    header p { margin: 4px 0 0; color: var(--muted-fg); font-size: 13px; }
+    .controls { display: inline-flex; gap: 12px; margin-top: 16px; }
+    .controls button {
+      padding: 6px 14px; border-radius: 9999px; border: 1px solid oklch(0.50 0.07 80);
+      background: transparent; color: var(--foreground); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.3px; cursor: pointer;
+    }
+    .controls button.active { background: var(--primary); color: oklch(0.94 0.02 80); border-color: var(--primary); }
+
+    .grid {
+      display: grid; gap: 16px;
+      padding: 16px;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .grid.mobile { grid-template-columns: repeat(4, 1fr); max-width: 1700px; margin: 0 auto; }
+    .frame {
+      display: flex; flex-direction: column;
+      background: oklch(0.95 0.02 85);
+      border: 1px solid oklch(0.50 0.07 80 / 30%);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px oklch(0.25 0.04 60 / 8%);
+    }
+    .frame-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid oklch(0.50 0.07 80 / 30%);
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .frame-header h2 { font-family: "Cormorant Garamond", serif; font-weight: 700; margin: 0; font-size: 20px; }
+    .frame-header span { font-size: 11px; color: var(--muted-fg); letter-spacing: 0.5px; text-transform: uppercase; }
+    .frame-header a {
+      margin-left: auto; font-size: 11px; color: var(--brand-gold); text-decoration: none;
+      border-bottom: 1px solid var(--brand-gold); padding-bottom: 2px;
+    }
+    iframe {
+      width: 100%; height: 80vh;
+      border: none; display: block;
+    }
+
+    /* mobile-width preview mode */
+    .grid.mobile .frame-iframe-wrap {
+      display: flex; justify-content: center; padding: 16px;
+      background: oklch(0.88 0.03 85);
+    }
+    .grid.mobile iframe {
+      width: 375px; height: 80vh;
+      border: 1px solid oklch(0.50 0.07 80 / 30%);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px oklch(0.25 0.04 60 / 15%);
+    }
+
+    @media (max-width: 1400px) {
+      .grid, .grid.mobile { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 800px) {
+      .grid, .grid.mobile { grid-template-columns: 1fr; }
+      .grid.mobile iframe { width: 100%; max-width: 375px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>AIRA marketing-page — compare</h1>
+    <p>v1 Hybrid balanced · v2 Magazine-leaning · v3 Pure Magazine (contrast) · <strong>v4 User-composed hybrid (latest)</strong>. Open any frame directly via the link.</p>
+    <div class="controls">
+      <button id="desktopBtn" class="active" onclick="setMode('desktop')">Desktop view</button>
+      <button id="mobileBtn" onclick="setMode('mobile')">Mobile view (375px)</button>
+    </div>
+  </header>
+
+  <div id="grid" class="grid">
+    <div class="frame">
+      <div class="frame-header">
+        <h2>v1</h2>
+        <span>Hybrid balanced · recommended</span>
+        <a href="./v1/index.html" target="_blank">open ↗</a>
+      </div>
+      <div class="frame-iframe-wrap"><iframe src="./v1/index.html" title="v1"></iframe></div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <h2>v2</h2>
+        <span>Magazine-leaning</span>
+        <a href="./v2/index.html" target="_blank">open ↗</a>
+      </div>
+      <div class="frame-iframe-wrap"><iframe src="./v2/index.html" title="v2"></iframe></div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-header">
+        <h2>v3</h2>
+        <span>Pure Magazine · contrast</span>
+        <a href="./v3/index.html" target="_blank">open ↗</a>
+      </div>
+      <div class="frame-iframe-wrap"><iframe src="./v3/index.html" title="v3"></iframe></div>
+    </div>
+
+    <div class="frame" style="border-color: oklch(0.66 0.10 80);">
+      <div class="frame-header" style="background: oklch(0.66 0.10 80 / 12%);">
+        <h2>v4</h2>
+        <span>User-composed · latest</span>
+        <a href="./v4/index.html" target="_blank">open ↗</a>
+      </div>
+      <div class="frame-iframe-wrap"><iframe src="./v4/index.html" title="v4"></iframe></div>
+    </div>
+  </div>
+
+  <script>
+    function setMode(mode) {
+      const grid = document.getElementById('grid');
+      const dBtn = document.getElementById('desktopBtn');
+      const mBtn = document.getElementById('mobileBtn');
+      if (mode === 'mobile') {
+        grid.classList.add('mobile');
+        mBtn.classList.add('active');
+        dBtn.classList.remove('active');
+      } else {
+        grid.classList.remove('mobile');
+        dBtn.classList.add('active');
+        mBtn.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>

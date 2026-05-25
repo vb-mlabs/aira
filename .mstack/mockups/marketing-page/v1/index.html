@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIRA — Find your community in Atlanta</title>
+  <meta name="description" content="A hand-curated directory of trusted Indian-owned businesses across metro Atlanta. Operated by Nisarga Group LLC.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400;1,600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background:         oklch(0.90 0.04 85);
+      --foreground:         oklch(0.25 0.04 60);
+      --card:               oklch(0.95 0.02 85);
+      --card-foreground:    oklch(0.25 0.04 60);
+      --primary:            oklch(0.46 0.07 132);
+      --primary-foreground: oklch(0.94 0.02 80);
+      --muted:              oklch(0.88 0.03 85);
+      --muted-foreground:   oklch(0.45 0.04 60);
+      --border:             oklch(0.50 0.07 80);
+      --tier1:              oklch(0.46 0.07 132);
+      --tier2:              oklch(0.62 0.13 55);
+      --tier3:              oklch(0.43 0.09 55);
+      --brand-cream-bright: oklch(0.94 0.02 80);
+      --brand-cream-muted:  oklch(0.90 0.04 80);
+      --brand-gold:         oklch(0.66 0.10 80);
+      --info:               oklch(0.55 0.18 240);
+      --gradient-primary:   linear-gradient(145deg, oklch(0.52 0.08 132) 6%, oklch(0.46 0.07 132) 94%);
+      --gradient-tier2:     linear-gradient(145deg, oklch(0.72 0.10 65) 6%, oklch(0.62 0.13 55) 94%);
+      --gradient-tier3:     linear-gradient(145deg, oklch(0.49 0.09 55) 6%, oklch(0.43 0.09 55) 94%);
+      --shadow-primary-glow: 0 3px 5px oklch(0.46 0.07 132 / 35%);
+      --shadow-card:        0 1px 2px oklch(0.25 0.04 60 / 8%);
+      --shadow-card-lifted: 0 20px 40px -20px oklch(0.25 0.04 60 / 25%);
+      --radius:             0.875rem;
+      --texture-paper:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.16  0 0 0 0 0.08  0 0 0 0.12 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      --texture-paper-green:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+
+    * { box-sizing: border-box; }
+    html { font-family: "Lato", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body {
+      margin: 0;
+      background-color: var(--background);
+      background-image: var(--texture-paper);
+      background-repeat: repeat;
+      background-size: 320px 320px;
+      color: var(--foreground);
+      line-height: 1.55;
+    }
+
+    .serif { font-family: "Cormorant Garamond", Georgia, serif; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: oklch(0.90 0.04 85 / 88%);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid oklch(0.50 0.07 80 / 25%);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .nav-brand-mark { width: 40px; height: 40px; border-radius: 9999px; }
+    .nav-brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .nav-brand-text .name { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 20px; letter-spacing: 1px; color: var(--foreground); }
+    .nav-brand-text .by { font-size: 11px; color: var(--muted-foreground); letter-spacing: 0.5px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { color: var(--foreground); text-decoration: none; font-size: 14px; font-weight: 700; letter-spacing: 0.2px; }
+    .nav-links a:hover { color: var(--primary); }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px; border-radius: 9999px; border: none;
+      background: var(--gradient-primary); color: var(--primary-foreground);
+      font-family: "Lato", sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.3px;
+      box-shadow: var(--shadow-primary-glow);
+      cursor: pointer; text-decoration: none;
+      transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 18px; border-radius: 9999px;
+      color: var(--foreground); font-size: 14px; font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* Hero */
+    .hero { padding: 80px 0 100px; }
+    .hero-inner { display: grid; grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: center; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 9999px; background: oklch(0.94 0.02 80); border: 1px solid oklch(0.66 0.10 80 / 40%); font-size: 12px; color: var(--muted-foreground); font-weight: 700; letter-spacing: 0.5px; }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--primary); }
+    .hero h1 { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 76px; line-height: 1.02; letter-spacing: -0.5px; margin: 20px 0 16px; color: var(--foreground); }
+    .hero .tagline { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 22px; color: var(--muted-foreground); margin: 0 0 28px; }
+    .hero .tagline em { font-style: normal; color: var(--primary); font-weight: 700; }
+    .hero p.lead { font-size: 18px; line-height: 1.65; max-width: 540px; margin-bottom: 36px; color: var(--foreground); }
+    .gold-hairline { display: flex; align-items: center; gap: 12px; margin: 28px 0; }
+    .gold-hairline hr { flex: 1; border: none; height: 1px; background: linear-gradient(to right, transparent, oklch(0.66 0.10 80 / 50%), transparent); }
+    .gold-hairline span { font-family: "Cormorant Garamond", serif; color: var(--brand-gold); font-size: 18px; }
+
+    /* Email form (hero) */
+    .email-form { display: flex; gap: 8px; max-width: 480px; margin-bottom: 12px; }
+    .email-input {
+      flex: 1; padding: 14px 18px; border-radius: 9999px;
+      border: 1px solid var(--border); background: var(--card); color: var(--foreground);
+      font-family: "Lato", sans-serif; font-size: 15px; outline: none;
+      transition: border-color 150ms, box-shadow 150ms;
+    }
+    .email-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px oklch(0.46 0.07 132 / 20%); }
+    .email-input::placeholder { color: var(--muted-foreground); }
+    .form-fine { font-size: 12px; color: var(--muted-foreground); max-width: 480px; }
+
+    .hero-mark { display: flex; justify-content: center; }
+    .hero-mark img { width: 100%; max-width: 380px; height: auto; filter: drop-shadow(0 24px 48px oklch(0.25 0.04 60 / 25%)); }
+
+    /* Section template */
+    .section { padding: 96px 0; }
+    .section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--brand-gold); margin-bottom: 12px; }
+    .section h2 { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 48px; line-height: 1.1; margin: 0 0 16px; color: var(--foreground); }
+    .section h2 em { font-style: italic; color: var(--primary); font-weight: 700; }
+    .section .lede { font-size: 18px; line-height: 1.65; color: var(--muted-foreground); max-width: 640px; }
+
+    /* About — 2-col editorial */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .about-card {
+      background: var(--card); border-radius: var(--radius); padding: 40px;
+      border: 1px solid oklch(0.50 0.07 80 / 30%);
+      box-shadow: var(--shadow-card);
+    }
+    .about-card h3 { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 28px; margin: 0 0 18px; }
+    .trinity { display: flex; flex-direction: column; gap: 20px; }
+    .trinity-row { display: flex; gap: 14px; align-items: flex-start; }
+    .trinity-icon { width: 32px; height: 32px; border-radius: 9999px; background: var(--primary); color: var(--primary-foreground); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; font-size: 14px; }
+    .trinity-row h4 { font-size: 14px; margin: 4px 0 4px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+    .trinity-row p { font-size: 14px; color: var(--muted-foreground); margin: 0; }
+
+    /* Categories grid */
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+    .cat-tile {
+      background: var(--card); border-radius: var(--radius);
+      border: 1px solid oklch(0.50 0.07 80 / 25%);
+      box-shadow: var(--shadow-card);
+      overflow: hidden; position: relative;
+      transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cat-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-lifted); }
+    .cat-tile .bar { height: 6px; }
+    .cat-tile.t1 .bar { background: var(--gradient-primary); }
+    .cat-tile.t2 .bar { background: var(--gradient-tier2); }
+    .cat-tile.t3 .bar { background: var(--gradient-tier3); }
+    .cat-tile .body { padding: 20px 22px 22px; }
+    .cat-tile h4 { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 22px; margin: 0 0 8px; }
+    .cat-tile p { font-size: 13px; color: var(--muted-foreground); margin: 0; line-height: 1.5; }
+
+    /* Phone showcase */
+    .phone-showcase { display: grid; grid-template-columns: 1.1fr 1fr; gap: 80px; align-items: center; }
+    .phone-stack { position: relative; height: 580px; display: flex; justify-content: center; align-items: center; }
+    .phone {
+      position: absolute; width: 240px; height: auto;
+      border-radius: 28px; box-shadow: 0 40px 80px -20px oklch(0.25 0.04 60 / 40%), 0 0 0 1px oklch(0.50 0.07 80 / 30%);
+      background: oklch(0.90 0.04 85);
+    }
+    .phone.left  { transform: translate(-90px, 20px) rotate(-6deg); z-index: 1; }
+    .phone.right { transform: translate(90px, -20px) rotate(6deg); z-index: 2; }
+    .phone img { width: 100%; height: auto; display: block; border-radius: 28px; }
+
+    /* Trust 3-col */
+    .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 48px; }
+    .trust-col { text-align: center; padding: 32px 20px; }
+    .trust-icon { width: 56px; height: 56px; border-radius: 9999px; background: var(--card); border: 1px solid oklch(0.66 0.10 80 / 50%); display: flex; align-items: center; justify-content: center; color: var(--brand-gold); margin: 0 auto 20px; font-size: 22px; font-family: "Cormorant Garamond", serif; font-weight: 700; }
+    .trust-col h3 { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 24px; margin: 0 0 10px; }
+    .trust-col p { font-size: 14px; color: var(--muted-foreground); margin: 0; line-height: 1.6; }
+
+    /* Business panel */
+    .biz-section {
+      background-color: oklch(0.42 0.06 130);
+      background-image: var(--texture-paper-green);
+      background-repeat: repeat;
+      background-size: 320px 320px;
+      color: var(--brand-cream-bright);
+      padding: 96px 0;
+      margin-top: 48px;
+    }
+    .biz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .biz-section .section-eyebrow { color: var(--brand-gold); }
+    .biz-section h2 { color: var(--brand-cream-bright); }
+    .biz-section h2 em { color: var(--brand-gold); }
+    .biz-section .lede { color: var(--brand-cream-muted); }
+    .biz-perks { display: flex; flex-direction: column; gap: 16px; margin: 32px 0; }
+    .biz-perk { display: flex; gap: 12px; align-items: flex-start; }
+    .biz-perk .check { width: 20px; height: 20px; border-radius: 9999px; background: var(--brand-cream-bright); color: oklch(0.42 0.06 130); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+    .biz-perk p { margin: 0; color: var(--brand-cream-muted); font-size: 15px; }
+    .biz-perk strong { color: var(--brand-cream-bright); }
+    .btn-biz-cta { background: var(--brand-cream-bright); color: oklch(0.42 0.06 130); }
+
+    /* Listing card preview (right side of biz panel) */
+    .card-preview {
+      background: var(--card); color: var(--card-foreground);
+      border-radius: var(--radius); padding: 18px;
+      box-shadow: var(--shadow-card-lifted);
+      display: flex; gap: 14px; align-items: center;
+      max-width: 380px; margin: 0 auto;
+    }
+    .card-preview .logo {
+      width: 56px; height: 56px; border-radius: 10px; background: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      font-family: "Cormorant Garamond", serif; font-weight: 700; color: var(--muted-foreground); font-size: 22px;
+      flex-shrink: 0;
+    }
+    .card-preview .info { flex: 1; }
+    .card-preview .name-row { display: flex; align-items: center; gap: 6px; }
+    .card-preview .name { font-weight: 700; font-size: 16px; }
+    .card-preview .verified { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 9999px; background: var(--info); color: white; font-size: 11px; font-weight: 700; }
+    .card-preview .rating { font-size: 12px; color: var(--muted-foreground); margin-top: 2px; }
+    .card-preview .icons { display: flex; gap: 6px; margin-top: 8px; }
+    .card-preview .icons span { width: 24px; height: 24px; border-radius: 9999px; background: var(--muted); }
+    .card-preview .more {
+      background: var(--gradient-tier2); color: var(--brand-cream-bright);
+      padding: 6px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; border: none;
+      flex-shrink: 0;
+    }
+
+    /* Footer */
+    footer {
+      padding: 64px 0 32px; margin-top: 80px;
+      border-top: 1px solid oklch(0.50 0.07 80 / 30%);
+    }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+    .footer-brand { display: flex; gap: 14px; align-items: flex-start; }
+    .footer-brand img { width: 56px; height: 56px; border-radius: 9999px; }
+    .footer-brand .text .name { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 24px; letter-spacing: 1px; }
+    .footer-brand .text .tag { font-family: "Cormorant Garamond", serif; font-style: italic; color: var(--muted-foreground); margin-top: 4px; }
+    .footer-col h4 { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted-foreground); margin: 0 0 16px; }
+    .footer-col a { display: block; color: var(--foreground); text-decoration: none; font-size: 14px; padding: 4px 0; }
+    .footer-col a:hover { color: var(--primary); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid oklch(0.50 0.07 80 / 25%); font-size: 12px; color: var(--muted-foreground); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero-inner, .about-grid, .phone-showcase, .biz-grid, .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+      .hero h1 { font-size: 52px; }
+      .section h2 { font-size: 36px; }
+      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .trust-grid { grid-template-columns: 1fr; }
+      .phone-stack { height: 480px; }
+      .phone { width: 180px; }
+      .phone.left { transform: translate(-50px, 10px) rotate(-6deg); }
+      .phone.right { transform: translate(50px, -10px) rotate(6deg); }
+      .nav-links { gap: 16px; }
+      .nav-links a:not(.btn-primary) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="nav-brand">
+        <img class="nav-brand-mark" src="/marketing-assets/logo_1779693398049.png" alt="AIRA tree-of-life logo">
+        <div class="nav-brand-text">
+          <span class="name">AIRA</span>
+          <span class="by">by Nisarga</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#categories">Categories</a>
+        <a href="#businesses">For businesses</a>
+        <a href="#notify" class="btn-primary">Get notified</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <span class="hero-eyebrow"><span class="dot"></span>Launching in Atlanta · 2026</span>
+        <h1>Find your<br>community in <em style="font-style: italic; color: var(--primary);">Atlanta</em>.</h1>
+        <p class="tagline">Roots &amp; <em>Reach</em></p>
+        <p class="lead">
+          AIRA is a hand-curated directory of trusted Indian-owned businesses across metro Atlanta.
+          From the dosa place around the corner to the tabla teacher your friend swears by &mdash;
+          find it, save it, share it.
+        </p>
+
+        <form class="email-form" id="notify" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Thanks — we\\'ll be in touch';">
+          <input class="email-input" type="email" placeholder="your.email@example.com" required>
+          <button class="btn-primary" type="submit">Notify me at launch</button>
+        </form>
+        <p class="form-fine">We'll only email when AIRA opens in Atlanta. No spam, no resale. Operated by Nisarga Group LLC.</p>
+      </div>
+
+      <div class="hero-mark">
+        <img src="/marketing-assets/logo_1779693398049.png" alt="AIRA tree-of-life logo, full size">
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="container">
+      <span class="section-eyebrow">About AIRA</span>
+      <h2>A directory <em>curated with care</em>, not crawled by bots.</h2>
+      <div class="gold-hairline" style="margin-top: 12px;"><span>✦</span><hr></div>
+
+      <div class="about-grid" style="margin-top: 48px;">
+        <div>
+          <p style="font-size: 17px; line-height: 1.7; margin: 0 0 16px;">
+            Most directory apps are an algorithm and a pile of scraped data.
+            AIRA is the opposite. Every listing on AIRA is reviewed by our team
+            before it appears &mdash; real businesses, real people, sorted by who
+            the community actually trusts.
+          </p>
+          <p style="font-size: 17px; line-height: 1.7; margin: 0; color: var(--muted-foreground);">
+            We started in Atlanta because that's where Nisarga began. We're staying
+            small on purpose. Trusted neighborhoods take time to build.
+          </p>
+        </div>
+
+        <div class="about-card">
+          <h3>What you'll find</h3>
+          <div class="trinity">
+            <div class="trinity-row">
+              <span class="trinity-icon">✓</span>
+              <div>
+                <h4>Curated</h4>
+                <p>Reviewed by a person, not a scraper. No drift, no spam.</p>
+              </div>
+            </div>
+            <div class="trinity-row">
+              <span class="trinity-icon">✓</span>
+              <div>
+                <h4>Verified</h4>
+                <p>The blue tick means we've checked the business is real and active.</p>
+              </div>
+            </div>
+            <div class="trinity-row">
+              <span class="trinity-icon">✓</span>
+              <div>
+                <h4>Local-only</h4>
+                <p>Metro Atlanta first. We grow by community, not by zipcode.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="section" id="categories" style="padding-top: 0;">
+    <div class="container">
+      <span class="section-eyebrow">Browse</span>
+      <h2>From <em>dosa</em> to <em>doctors</em>.</h2>
+      <p class="lede">Seven top-level categories, nested into the specifics. The hierarchy color tells you where you are.</p>
+
+      <div class="cat-grid">
+        <div class="cat-tile t1">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Restaurants</h4>
+            <p>Vegetarian, Punjabi, South Indian, Chaat & street food, sweet shops</p>
+          </div>
+        </div>
+        <div class="cat-tile t1">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Education</h4>
+            <p>Tutoring, music & dance schools, language classes, test prep</p>
+          </div>
+        </div>
+        <div class="cat-tile t2">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Events &amp; Entertainment</h4>
+            <p>Wedding planning, mandap rental, DJs, photographers, decorators</p>
+          </div>
+        </div>
+        <div class="cat-tile t1">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Professional Services</h4>
+            <p>Lawyers, accountants, realtors, immigration, financial planners</p>
+          </div>
+        </div>
+        <div class="cat-tile t2">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Health &amp; Wellness</h4>
+            <p>Doctors, dentists, yoga &amp; ayurveda, salons &amp; spas, pediatrics</p>
+          </div>
+        </div>
+        <div class="cat-tile t3">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Real Estate</h4>
+            <p>Buying, renting, commercial, property management</p>
+          </div>
+        </div>
+        <div class="cat-tile t1">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>Shopping</h4>
+            <p>Grocery, apparel &amp; sarees, jewelry, electronics, books</p>
+          </div>
+        </div>
+        <div class="cat-tile t3">
+          <div class="bar"></div>
+          <div class="body">
+            <h4>+ more</h4>
+            <p>Religious &amp; cultural, beauty, automotive, home services &mdash; growing every month.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHONE SHOWCASE -->
+  <section class="section" style="padding-top: 0;">
+    <div class="container phone-showcase">
+      <div class="phone-stack">
+        <div class="phone left"><img src="/marketing-assets/Home_Screen_1779692546816.png" alt="AIRA home screen"></div>
+        <div class="phone right"><img src="/marketing-assets/BusinessListingScreen_1779692569944.png" alt="AIRA business listings"></div>
+      </div>
+      <div>
+        <span class="section-eyebrow">The app</span>
+        <h2>Built for the way you <em>actually</em> look for things.</h2>
+        <p class="lede" style="margin-bottom: 24px;">
+          Tap a category. See the businesses your neighbors trust, sorted by verification
+          and quality. Call, message on WhatsApp, or open directions &mdash; one tap each.
+        </p>
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+          <li style="display: flex; gap: 10px;"><span style="color: var(--primary); font-weight: 700;">›</span> Search inside a category &mdash; never an algorithm guessing</li>
+          <li style="display: flex; gap: 10px;"><span style="color: var(--primary); font-weight: 700;">›</span> Verified badge means we've checked &mdash; not user reports</li>
+          <li style="display: flex; gap: 10px;"><span style="color: var(--primary); font-weight: 700;">›</span> Save listings, share to WhatsApp, get directions in one tap</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST 3-COL -->
+  <section class="section" style="padding-top: 0;">
+    <div class="container" style="text-align: center;">
+      <span class="section-eyebrow">Why AIRA</span>
+      <h2 style="margin-bottom: 8px;">Three things that don't change.</h2>
+      <div class="trust-grid">
+        <div class="trust-col">
+          <div class="trust-icon">✿</div>
+          <h3>Curated by hand</h3>
+          <p>Every listing reviewed by the AIRA team before it appears. No bots, no scraped data, no random pins on a map.</p>
+        </div>
+        <div class="trust-col">
+          <div class="trust-icon">✓</div>
+          <h3>Verified by community</h3>
+          <p>Real businesses, vouched-for by the community they serve. The blue tick on a card means we've checked.</p>
+        </div>
+        <div class="trust-col">
+          <div class="trust-icon">⌂</div>
+          <h3>Operated by Nisarga</h3>
+          <p>Built and run by Nisarga Group LLC &mdash; community-rooted, here for the long term, not for an exit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUSINESS PANEL -->
+  <section class="biz-section" id="businesses">
+    <div class="container biz-grid">
+      <div>
+        <span class="section-eyebrow">For business owners</span>
+        <h2>List your business <em>where Atlanta's Indian community looks first.</em></h2>
+        <p class="lede" style="margin-bottom: 24px;">
+          Get in front of a curated, growing audience. Verified members get the blue
+          tick. Sponsored placement puts you at the top of your category.
+        </p>
+        <div class="biz-perks">
+          <div class="biz-perk">
+            <span class="check">✓</span>
+            <p><strong>Verified badge</strong> &mdash; the blue tick that tells customers we've checked you're real.</p>
+          </div>
+          <div class="biz-perk">
+            <span class="check">✓</span>
+            <p><strong>Sponsored placement</strong> &mdash; top of your category for a fixed monthly tier.</p>
+          </div>
+          <div class="biz-perk">
+            <span class="check">✓</span>
+            <p><strong>Multi-category listing</strong> &mdash; show up in every category that fits.</p>
+          </div>
+          <div class="biz-perk">
+            <span class="check">✓</span>
+            <p><strong>Broadcast to your audience</strong> &mdash; opt-in push notifications when there's news for your category.</p>
+          </div>
+        </div>
+        <a href="mailto:hello@aira.app?subject=Listing%20AIRA" class="btn-primary btn-biz-cta">Get in touch about being listed</a>
+      </div>
+
+      <div>
+        <div class="card-preview">
+          <div class="logo">U</div>
+          <div class="info">
+            <div class="name-row">
+              <span class="name">Urbanroots FL</span>
+              <span class="verified">✓</span>
+            </div>
+            <div class="rating">★ 4.6</div>
+            <div class="icons"><span></span><span></span><span></span><span></span></div>
+          </div>
+          <button class="more">More info</button>
+        </div>
+        <p style="text-align: center; color: var(--brand-cream-muted); font-size: 12px; margin-top: 12px;">
+          A listing on AIRA. Verified tick, quick actions, sponsored placement &mdash; if you choose it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="/marketing-assets/logo_1779693398049.png" alt="AIRA">
+          <div class="text">
+            <div class="name">AIRA</div>
+            <div class="tag">Roots &amp; Reach</div>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>For users</h4>
+          <a href="#categories">Browse categories</a>
+          <a href="#notify">Get notified at launch</a>
+          <a href="#about">About AIRA</a>
+        </div>
+        <div class="footer-col">
+          <h4>For businesses</h4>
+          <a href="#businesses">Get listed</a>
+          <a href="mailto:hello@aira.app">Contact us</a>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="mailto:hello@aira.app">Support</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Nisarga Group LLC. All rights reserved.</span>
+        <span>Operated by Nisarga Group LLC ✦</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
