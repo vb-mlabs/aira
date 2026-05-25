@@ -38,11 +38,26 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
+args = "Claude bootstrap"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
 args = "Start application"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Mobile (Expo Web)"
+
+# Recreates the Claude Code memory symlink so persistent memory survives
+# Replit restarts (~/.claude/ may be wiped, but the workspace persists).
+# Idempotent — safe to run on every boot. See .claude/memory/README.md.
+[[workflows.workflow]]
+name = "Claude bootstrap"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash .claude/scripts/setup-memory.sh"
 
 [[workflows.workflow]]
 name = "Start application"
