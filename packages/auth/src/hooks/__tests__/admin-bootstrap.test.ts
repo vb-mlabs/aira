@@ -83,7 +83,7 @@ describe("createAdminBootstrapHook", () => {
     updateSpy.mockImplementation(() => {
       events.push("update")
       return {
-        set: () => ({ where: () => Promise.resolve() }),
+        set: vi.fn(() => ({ where: vi.fn(() => Promise.resolve()) })),
       }
     })
     const hook = createAdminBootstrapHook({

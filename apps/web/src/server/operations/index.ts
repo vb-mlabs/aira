@@ -42,7 +42,8 @@ const getSession: GetSession = async (headers) => {
 async function enforceAdminFreshness(headers: Headers): Promise<void> {
   const session = await getSessionFromHeaders(headers)
   if (!session) return // unauthenticated — defineOperation handles separately
-  if (await adminSessionIsStale(session.session)) {
+  const sessionId = (session.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) {
     throw ApiError.unauthorized("Session expired due to inactivity.")
   }
 }

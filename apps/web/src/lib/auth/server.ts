@@ -159,27 +159,37 @@ export async function requireUserJSON(): Promise<
 /**
  * Returns true if the admin session is stale (idle > 30 min). Fresh sessions
  * are bumped (`last_activity_at = now()`) as a side effect — that's how the
- * sliding window slides. JWT-synthesized sessions (no `id` /
- * `last_activity_at`) always return false: their freshness is governed by
- * the short JWT expiry instead, and the cookie-session column doesn't
- * apply.
+ * sliding window slides. Pass `undefined` for JWT-synthesized sessions or
+ * any path where there's no session row id to look up; the function returns
+ * false in those cases (their freshness is governed by JWT expiry instead).
+ *
+ * Reads `last_activity_at` directly from the session table rather than off
+ * the Better Auth session shape, because Better Auth's session config
+ * `additionalFields` doesn't surface custom columns on the returned session
+ * object (verified by QA on 2026-05-26 — see
+ * .mstack/qa/2026-05-26-1020/report.md issue 1). One SELECT + (if fresh)
+ * one UPDATE per admin request — cheap.
  *
  * Exported so packages/api's defineOperation (T8) can reuse the same check
  * for cookie-authed admin operations. Don't call from end-user paths —
  * end-users get the 7d Better Auth default with no extra check.
  */
 export async function adminSessionIsStale(
-  session: AuthSession["session"],
+  sessionId: string | undefined,
 ): Promise<boolean> {
-  const s = session as { id?: string; last_activity_at?: Date | string }
-  if (!s.id || !s.last_activity_at) return false
-  const lastActivity = new Date(s.last_activity_at).getTime()
-  if (Date.now() - lastActivity > ADMIN_IDLE_MS) return true
-  // Fresh — bump. Single UPDATE per admin request; cheap.
+  if (!sessionId) return false
+  const [row] = await db
+    .select({ lastActivityAt: sessionTable.lastActivityAt })
+    .from(sessionTable)
+    .where(eq(sessionTable.id, sessionId))
+    .limit(1)
+  if (!row) return false // session row gone (e.g. logged out concurrently)
+  const idleMs = Date.now() - row.lastActivityAt.getTime()
+  if (idleMs > ADMIN_IDLE_MS) return true
   await db
     .update(sessionTable)
     .set({ lastActivityAt: new Date() })
-    .where(eq(sessionTable.id, s.id))
+    .where(eq(sessionTable.id, sessionId))
   return false
 }
 
@@ -217,7 +227,8 @@ export async function requireAdmin() {
   if (role !== "admin" && role !== "super_admin") {
     notFound()
   }
-  if (await adminSessionIsStale(authSession.session)) {
+  const sessionId = (authSession.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) {
     await bounceStaleAdmin(authSession)
   }
   return authSession.user
@@ -238,7 +249,8 @@ export async function requireSuperAdmin() {
   if (role !== "super_admin") {
     notFound()
   }
-  if (await adminSessionIsStale(authSession.session)) {
+  const sessionId = (authSession.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) {
     await bounceStaleAdmin(authSession)
   }
   return authSession.user
