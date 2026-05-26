@@ -29,6 +29,14 @@ export const env = createEnv({
     // after the first admin exists, subsequent promotions use the admin UI.
     INITIAL_ADMIN_EMAIL: z.string().email().optional(),
 
+    // Super-admin bootstrap — Sprint 1. Same pattern as INITIAL_ADMIN_EMAIL
+    // but promotes to "super_admin" instead. Must differ from
+    // INITIAL_ADMIN_EMAIL when both are set (refined at the schema top
+    // level). super_admin subsumes admin perms and can promote/demote other
+    // admins from the admin UI (super-admin-only screens added in a later
+    // sprint).
+    INITIAL_SUPER_ADMIN_EMAIL: z.string().email().optional(),
+
     // Phase 5.5 — Expo custom URL scheme for in-email deep links. When set,
     // emails surface `scheme://path` links so a tap from Mail opens the
     // installed Expo app directly. When unset (web-only fork), buildAppLinkUrl
@@ -63,6 +71,7 @@ export const env = createEnv({
     POSTMARK_FROM_EMAIL: process.env.POSTMARK_FROM_EMAIL,
     REPLIT_OBJECT_STORAGE_BUCKET_ID: process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID,
     INITIAL_ADMIN_EMAIL: process.env.INITIAL_ADMIN_EMAIL,
+    INITIAL_SUPER_ADMIN_EMAIL: process.env.INITIAL_SUPER_ADMIN_EMAIL,
     EXPO_SCHEME: process.env.EXPO_SCHEME,
     REPLIT_DEV_DOMAIN: process.env.REPLIT_DEV_DOMAIN,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
@@ -74,3 +83,24 @@ export const env = createEnv({
   skipValidation:
     !!process.env.SKIP_ENV_VALIDATION || process.env.npm_lifecycle_event === "lint",
 })
+
+// Cross-field validation. INITIAL_ADMIN_EMAIL and INITIAL_SUPER_ADMIN_EMAIL
+// must differ when both are set — if they were equal, both bootstrap hooks
+// would fire on the same signup and the resulting role would depend on hook
+// invocation order. Distinct emails make the promotion deterministic.
+const _skipEnvValidation =
+  !!process.env.SKIP_ENV_VALIDATION ||
+  process.env.npm_lifecycle_event === "lint"
+if (
+  !_skipEnvValidation &&
+  env.INITIAL_ADMIN_EMAIL &&
+  env.INITIAL_SUPER_ADMIN_EMAIL &&
+  env.INITIAL_ADMIN_EMAIL.toLowerCase() ===
+    env.INITIAL_SUPER_ADMIN_EMAIL.toLowerCase()
+) {
+  throw new Error(
+    "INITIAL_ADMIN_EMAIL and INITIAL_SUPER_ADMIN_EMAIL must be different. " +
+      "Setting them equal would race the two bootstrap hooks on the same " +
+      "signup — final role would depend on hook order. Use distinct emails.",
+  )
+}

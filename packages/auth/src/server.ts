@@ -15,6 +15,7 @@ import { bearer } from "better-auth/plugins/bearer"
 import type { Database } from "@aira/db/client"
 import { createAdminBootstrapHook } from "./hooks/admin-bootstrap"
 import { createBanCheckHook } from "./hooks/ban-check"
+import { createSuperAdminBootstrapHook } from "./hooks/super-admin-bootstrap"
 
 export interface AuthLogger {
   info: (message: string, meta?: Record<string, unknown>) => void
@@ -43,6 +44,10 @@ export interface CreateAuthOptions {
   baseUrl?: string
   /** Optional. Auto-promotes a user with this email to "admin" on signup. */
   initialAdminEmail?: string | undefined
+  /** Optional. Auto-promotes a user with this email to "super_admin" on
+   *  signup. Must differ from initialAdminEmail when both are set
+   *  (enforced at boot in apps/web/src/config/env.ts). */
+  initialSuperAdminEmail?: string | undefined
   /** Set true when NODE_ENV === "production" to surface the missing-admin warning. */
   isProduction?: boolean
   email: AuthEmailSender
@@ -55,6 +60,7 @@ export function createAuth({
   secret,
   baseUrl,
   initialAdminEmail,
+  initialSuperAdminEmail,
   isProduction = false,
   email,
   logger,
@@ -67,11 +73,24 @@ export function createAuth({
     } satisfies AuthLogger)
 
   const beforeSessionCreate = createBanCheckHook({ db })
-  const afterUserCreate = createAdminBootstrapHook({
+  // Two single-purpose bootstrap hooks composed into one after-create
+  // callback. Order is irrelevant: env validation guarantees the two emails
+  // differ when both are set, so at most one of the inner hooks does work
+  // per signup.
+  const promoteAdmin = createAdminBootstrapHook({
     db,
     initialAdminEmail,
     logger: log,
   })
+  const promoteSuperAdmin = createSuperAdminBootstrapHook({
+    db,
+    initialSuperAdminEmail,
+    logger: log,
+  })
+  const afterUserCreate = async (user: { id: string; email: string }) => {
+    await promoteAdmin(user)
+    await promoteSuperAdmin(user)
+  }
 
   const auth = betterAuth({
     database: drizzleAdapter(db, { provider: "pg" }),
