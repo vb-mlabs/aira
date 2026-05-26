@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { PasswordInput } from "@aira/ui-web/password-input"
 import { signIn } from "@/lib/auth/client"
 import { LoginSchema } from "@aira/validators"
+import { IdleBanner } from "./_components/idle-banner"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -46,6 +47,13 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-4">
+      {/* IdleBanner reads ?reason=idle from the URL; wrapped in Suspense
+          because useSearchParams() suspends until the search-params bailout
+          completes on first paint. Fallback is null — no banner is the
+          default state. */}
+      <Suspense fallback={null}>
+        <IdleBanner />
+      </Suspense>
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="mt-1 text-sm text-muted-foreground">
