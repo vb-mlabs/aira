@@ -22,11 +22,30 @@ export type AuditMeta =
   | { kind: "user.password_reset_sent" }
   | { kind: "user.email_changed"; from_email_hash: string }
   | { kind: "user.deleted_anonymized" }
-  | { kind: "session.revoked"; reason: "logout" | "admin" | "password_change" | "account_deleted" }
+  // session.revoked.reason values:
+  //   logout            — explicit user-initiated sign-out (T9).
+  //   admin             — admin-side session revocation.
+  //   password_change   — Better Auth invalidates sessions on password reset.
+  //   account_deleted   — anonymise-in-place flow cascades session deletion.
+  //   idle_timeout      — requireAdmin() forced sign-out after 30min idle (T7).
+  | { kind: "session.revoked"; reason: "logout" | "admin" | "password_change" | "account_deleted" | "idle_timeout" }
   | { kind: "user.avatar_changed" }
   | { kind: "user.avatar_removed" }
   | { kind: "user.name_changed" }
   | { kind: "user.admin_notified"; title: string }
+  // Sprint 1 — authentication-event audit trail.
+  //   user.signed_in       — successful sign-in (cookie or JWT).
+  //   user.signed_in_failed — sign-in attempt rejected. actor_id is null for
+  //                           user_not_found (we don't know who tried) and
+  //                           the user's id for bad_password / banned /
+  //                           email_unverified (the email matched a real
+  //                           account).
+  //   user.signed_up       — successful new-account creation. Bootstrap
+  //                           promotion (T6) writes a separate user.role_changed
+  //                           row alongside this one.
+  | { kind: "user.signed_in" }
+  | { kind: "user.signed_in_failed"; reason: "bad_password" | "user_not_found" | "banned" | "email_unverified" }
+  | { kind: "user.signed_up" }
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults

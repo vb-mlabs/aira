@@ -95,8 +95,14 @@ export async function getCallerContext(
   source: CallerSource = "web",
 ): Promise<CallerContext> {
   const u = await requireUser()
+  // DB role is user_role enum ("end_user" | "admin" | "super_admin"); collapse
+  // to the narrow Permission union ("user" | "admin"). super_admin gets the
+  // "admin" permission level since it subsumes all admin perms. Operations
+  // that need to enforce super_admin specifically use requireSuperAdmin() at
+  // the layout level instead of routing through Permission.
+  const dbRole = (u as { role?: string }).role
   const role: Permission =
-    (u as { role?: string }).role === "admin" ? "admin" : "user"
+    dbRole === "admin" || dbRole === "super_admin" ? "admin" : "user"
   return {
     userId: u.id,
     user: { id: u.id, email: u.email, role },
