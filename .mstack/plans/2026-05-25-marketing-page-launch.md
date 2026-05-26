@@ -2,9 +2,10 @@
 
 **Date:** 2026-05-25
 **Slug:** marketing-page-launch
-**Status:** reviewed
+**Status:** implemented
 **Author:** Claude (with framer@millionlabs.co.uk as project lead)
 **Reviewed:** [../reviews/2026-05-25-marketing-page-launch.md](../reviews/2026-05-25-marketing-page-launch.md) (UI-Significant: no)
+**Implemented:** [../code/marketing-page-launch/report.md](../code/marketing-page-launch/report.md) (12 commits 4fdfb21..2e8b935)
 
 ---
 

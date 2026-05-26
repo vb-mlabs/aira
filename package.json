@@ -22,7 +22,7 @@
     "gen:mobile-tw": "tsx scripts/gen-mobile-tailwind.ts",
     "gen:mobile-tw:check": "tsx scripts/gen-mobile-tailwind.ts --check",
     "rename": "tsx scripts/rename.ts",
-    "claude": "claude"
+    "claude": "HOME=$PWD CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN claude"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "^2.1.150",

@@ -72,5 +72,6 @@
       "Read(./.env.local)",
       "Read(./.env.*.local)"
     ]
-  }
+  },
+  "theme": "dark"
 }
