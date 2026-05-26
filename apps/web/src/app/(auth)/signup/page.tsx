@@ -48,7 +48,9 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="space-y-3">
-        <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Check your email
+        </h1>
         <p className="text-sm text-muted-foreground">
           We sent a verification link to <span className="text-foreground">{email}</span>.
           Click it to finish setting up your account.
@@ -60,7 +62,9 @@ export default function SignupPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Create your account
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           A few details and you&apos;re in.
         </p>
@@ -122,13 +126,13 @@ export default function SignupPage() {
           </p>
         )}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
-          {pending ? "Creating account…" : "Create account"}
+          {pending ? "Creating account…" : "Sign Up"}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link href="/login" className="text-foreground hover:underline">
-          Sign in
+          Sign In
         </Link>
       </p>
     </div>

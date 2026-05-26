@@ -7,6 +7,7 @@ import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { PasswordInput } from "@aira/ui-web/password-input"
+import { brand } from "@aira/config"
 import { signIn } from "@/lib/auth/client"
 import { LoginSchema } from "@aira/validators"
 import { IdleBanner } from "./_components/idle-banner"
@@ -55,9 +56,11 @@ export default function LoginPage() {
         <IdleBanner />
       </Suspense>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Welcome Back!
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Sign in to continue.
+          Sign in to continue to {brand.name}.
         </p>
       </div>
       <form onSubmit={onSubmit} noValidate className="space-y-5">
@@ -106,13 +109,13 @@ export default function LoginPage() {
           </p>
         )}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? "Signing in…" : "Sign In"}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-foreground hover:underline">
-          Create one
+          Sign Up
         </Link>
       </p>
     </div>
