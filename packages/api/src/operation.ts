@@ -60,6 +60,14 @@ export interface OperationDeps<DB> {
   /** Reads the caller's session from request headers. Returns null when
    *  unauthenticated; defineOperation maps that to a 401 ApiError. */
   getSession: GetSession
+  /** Optional. If provided AND the operation's permission is "admin" AND
+   *  the caller is web cookie-authed (ctx.source === "web"), invoked
+   *  immediately after the permission check passes. Throws ApiError when
+   *  the admin's cookie session has exceeded the idle-timeout window. JWT
+   *  / mobile paths skip this — JWTs are stateless and short-lived. The
+   *  composition root in apps/web wires this to the session.last_activity_at
+   *  freshness helper in lib/auth/server.ts. */
+  enforceAdminFreshness?: (headers: Headers) => Promise<void>
   /** Optional. Used for unhandled-error reporting; defaults to console. */
   logger?: OperationLogger
   /** Optional. Generates the request-id when X-Request-Id is absent.
@@ -147,11 +155,29 @@ function defaultRequestId(): string {
  * exports operations from it.
  */
 export function createOperations<DB>(deps: OperationDeps<DB>) {
-  const { db, getSession, logger, generateRequestId } = deps
+  const { db, getSession, enforceAdminFreshness, logger, generateRequestId } =
+    deps
   const log: OperationLogger = logger ?? {
     error: (m, meta) => console.error(m, meta),
   }
   const newRequestId = generateRequestId ?? defaultRequestId
+
+  /** Apply the optional admin freshness gate. Called from both
+   *  runFromRequest and runFromAction after permission passes. Cookie-only
+   *  by design — see OperationDeps.enforceAdminFreshness JSDoc. */
+  async function maybeEnforceFreshness(
+    spec: OperationSpec<DB, unknown, unknown>,
+    ctx: CallerContext,
+    h: Headers,
+  ): Promise<void> {
+    if (
+      spec.permission === "admin" &&
+      ctx.source === "web" &&
+      enforceAdminFreshness
+    ) {
+      await enforceAdminFreshness(h)
+    }
+  }
 
   function defineOperation<I, O>(
     spec: OperationSpec<DB, I, O>,
@@ -223,6 +249,13 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
             session,
             requestId,
           })
+
+          // Freshness gate (web cookie + admin only — see deps JSDoc).
+          await maybeEnforceFreshness(
+            spec as OperationSpec<DB, unknown, unknown>,
+            ctx,
+            request.headers,
+          )
 
           // Input source: prefer JSON body when present; otherwise the URL's
           // query string. The Zod schema decides what's valid; this just
@@ -301,6 +334,12 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
           session,
           requestId,
         })
+        // Freshness gate (web cookie + admin only — see deps JSDoc).
+        await maybeEnforceFreshness(
+          spec as OperationSpec<DB, unknown, unknown>,
+          ctx,
+          headersImpl,
+        )
         return runWithContext(ctx, input)
       },
     }
