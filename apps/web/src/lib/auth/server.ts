@@ -147,10 +147,28 @@ export async function requireUserJSON(): Promise<
  */
 export async function requireAdmin() {
   const user = await requireUser()
-  // role is set as a Better Auth additionalField with input: false; the
-  // session shape extends it implicitly. We narrow the type here.
-  const role = (user as { role?: string }).role ?? "user"
-  if (role !== "admin") {
+  // DB role is the user_role enum: end_user | admin | super_admin.
+  // super_admin subsumes admin perms — accept both. Non-admin = 404 (locked
+  // W8 decision: don't enumerate /admin/* via 403 vs 404 differentiation).
+  // Idle-timeout enforcement is layered on in T7.
+  const role = (user as { role?: string }).role ?? "end_user"
+  if (role !== "admin" && role !== "super_admin") {
+    notFound()
+  }
+  return user
+}
+
+/**
+ * Server-component helper: enforces auth + super_admin role only.
+ *
+ * Same 404 semantics as requireAdmin() — admins and end-users both get
+ * notFound(), to avoid leaking the existence of super-admin-only surfaces.
+ * Use for screens that promote/demote admins or manage other super_admins.
+ */
+export async function requireSuperAdmin() {
+  const user = await requireUser()
+  const role = (user as { role?: string }).role ?? "end_user"
+  if (role !== "super_admin") {
     notFound()
   }
   return user
