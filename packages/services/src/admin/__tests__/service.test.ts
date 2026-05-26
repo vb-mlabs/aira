@@ -374,6 +374,22 @@ describe("changeRole", () => {
       }),
     ).rejects.toThrow(/not found/i)
   })
+
+  it("rejects super_admin targets — this UI doesn't manage super_admins", async () => {
+    // Set up: user-1 is a super_admin in the fixture store. An admin caller
+    // attempting to demote them via the user-management screen should be
+    // blocked at the service layer (super_admin promotion/demotion lives in
+    // a separate flow added later).
+    store.users.find((u) => u.id === "user-1")!.role = "super_admin"
+    await expect(
+      changeRole(db, adminCtx("admin-1"), {
+        targetId: "user-1",
+        role: "end_user",
+      }),
+    ).rejects.toThrow(/super.admin/i)
+    // No audit row written — the reject happens before audit().
+    expect(store.audits).toHaveLength(0)
+  })
 })
 
 describe("banUser", () => {

@@ -97,4 +97,31 @@ describe("AuditMeta + AuditOpts type contract", () => {
     }
     void _bad
   })
+
+  it("Sprint 1 — user.signed_in_failed.reason is exactly the locked literals", () => {
+    type FailedReason = Extract<
+      AuditMeta,
+      { kind: "user.signed_in_failed" }
+    >["reason"]
+    expectTypeOf<FailedReason>().toEqualTypeOf<
+      "bad_password" | "user_not_found" | "banned" | "email_unverified"
+    >()
+  })
+
+  it("Sprint 1 — user.signed_in and user.signed_up are members (no extra props)", () => {
+    const _signedIn: AuditOpts = {
+      actorId: "u_1",
+      action: "user.signed_in",
+      meta: { kind: "user.signed_in" },
+    }
+    const _signedUp: AuditOpts = {
+      actorId: "u_2",
+      action: "user.signed_up",
+      meta: { kind: "user.signed_up" },
+    }
+    expectTypeOf<typeof _signedIn>().toMatchTypeOf<AuditOpts>()
+    expectTypeOf<typeof _signedUp>().toMatchTypeOf<AuditOpts>()
+    void _signedIn
+    void _signedUp
+  })
 })

@@ -88,19 +88,28 @@ export const env = createEnv({
 // must differ when both are set — if they were equal, both bootstrap hooks
 // would fire on the same signup and the resulting role would depend on hook
 // invocation order. Distinct emails make the promotion deterministic.
+//
+// `typeof window === "undefined"` guard so the check only runs server-side.
+// t3-env throws "Attempted to access a server-side environment variable on
+// the client" when server keys are read in a jsdom-style environment
+// (vitest's apps/web setup), and reaching the env.INITIAL_*_EMAIL access
+// is itself enough to trip that. The server guarantees we get here at boot
+// via the @/lib/db / @/lib/auth import chains.
 const _skipEnvValidation =
   !!process.env.SKIP_ENV_VALIDATION ||
   process.env.npm_lifecycle_event === "lint"
-if (
-  !_skipEnvValidation &&
-  env.INITIAL_ADMIN_EMAIL &&
-  env.INITIAL_SUPER_ADMIN_EMAIL &&
-  env.INITIAL_ADMIN_EMAIL.toLowerCase() ===
-    env.INITIAL_SUPER_ADMIN_EMAIL.toLowerCase()
-) {
-  throw new Error(
-    "INITIAL_ADMIN_EMAIL and INITIAL_SUPER_ADMIN_EMAIL must be different. " +
-      "Setting them equal would race the two bootstrap hooks on the same " +
-      "signup — final role would depend on hook order. Use distinct emails.",
-  )
+if (typeof window === "undefined" && !_skipEnvValidation) {
+  const adminEmail = env.INITIAL_ADMIN_EMAIL
+  const superAdminEmail = env.INITIAL_SUPER_ADMIN_EMAIL
+  if (
+    adminEmail &&
+    superAdminEmail &&
+    adminEmail.toLowerCase() === superAdminEmail.toLowerCase()
+  ) {
+    throw new Error(
+      "INITIAL_ADMIN_EMAIL and INITIAL_SUPER_ADMIN_EMAIL must be different. " +
+        "Setting them equal would race the two bootstrap hooks on the same " +
+        "signup — final role would depend on hook order. Use distinct emails.",
+    )
+  }
 }
