@@ -33,8 +33,7 @@ export function BusinessPanel() {
   return (
     <section
       id="businesses"
-      className="bg-[color:oklch(0.42_0.06_130)] bg-[image:var(--texture-paper-green)] bg-repeat py-[120px] text-brand-cream-bright"
-      style={{ backgroundSize: "320px 320px" }}
+      className="bg-[color:oklch(0.42_0.06_130)] bg-[url('/marketing-images/textures/paper-green.webp')] bg-cover bg-center py-[120px] text-brand-cream-bright"
     >
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[80px]">
         <div>

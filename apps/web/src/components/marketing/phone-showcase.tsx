@@ -12,9 +12,9 @@ import Image from "next/image"
 
 export function PhoneShowcase() {
   return (
-    <section className="px-6 pb-[120px] pt-[40px] md:pb-[120px]">
+    <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-[120px] pt-[40px] md:pb-[120px]">
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-[40px] md:grid-cols-[1.1fr_1fr] md:gap-[96px]">
-        <div className="relative mx-auto flex h-[480px] w-full max-w-[400px] items-center justify-center md:h-[600px]">
+        <div className="relative mx-auto flex h-[510px] w-full max-w-[400px] items-center justify-center md:h-[700px]">
           <PhoneFrame
             src="/marketing-images/home-screen.png"
             alt="AIRA mobile home screen — categories and featured businesses"
@@ -86,11 +86,10 @@ function PhoneFrame({
   return (
     <div
       className={
-        // aspect-[190/411] derives the phone's height from its width
-        // (190 / 411 ≈ 260 / 563 — same aspect, ints that Tailwind's
-        // arbitrary-value parser tolerates). Switching to `fill` mode on
-        // the Image keeps Next.js's aspect-ratio runtime check happy.
-        "absolute aspect-[190/411] w-[190px] overflow-hidden rounded-[30px] bg-background shadow-[0_50px_100px_-30px_oklch(0.25_0.04_60_/_45%),_0_0_0_1px_oklch(0.50_0.07_80_/_25%)] md:w-[260px] " +
+        // aspect-[9/22] matches the actual screenshot proportions more
+        // closely (home-screen ≈ 1:2.9, business-listing ≈ 1:3.6) so
+        // less content is clipped by the phone-frame mask.
+        "absolute aspect-[9/22] w-[190px] overflow-hidden rounded-[30px] bg-background shadow-[0_50px_100px_-30px_oklch(0.25_0.04_60_/_45%),_0_0_0_1px_oklch(0.50_0.07_80_/_25%)] md:w-[260px] " +
         tiltClasses
       }
     >
@@ -100,7 +99,7 @@ function PhoneFrame({
         fill
         sizes="(max-width: 900px) 190px, 260px"
         priority={priority}
-        className="object-cover"
+        className="object-cover object-top"
       />
     </div>
   )

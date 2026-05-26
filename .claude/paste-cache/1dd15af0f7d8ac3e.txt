@@ -1,0 +1,24 @@
+
+> @aira/web@0.1.0 dev /home/runner/workspace/apps/web
+> next dev -p 5000 -H 0.0.0.0
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:5000
+- Network:       http://0.0.0.0:5000
+✓ Ready in 382ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+ GET / 200 in 818ms (next.js: 359ms, application-code: 458ms)
+ GET /signup? 200 in 217ms (next.js: 29ms, application-code: 188ms)
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "9530c32d-ab5f-4ec0-a51f-9153843d1428-00-4yx7b0ti55e3.kirk.replit.dev".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['9530c32d-ab5f-4ec0-a51f-9153843d1428-00-4yx7b0ti55e3.kirk.replit.dev'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /signup? 200 in 81ms (next.js: 6ms, application-code: 76ms)

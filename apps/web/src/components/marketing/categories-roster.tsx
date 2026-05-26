@@ -71,7 +71,7 @@ export function CategoriesRoster() {
   return (
     <section
       id="categories"
-      className="px-6 pb-[120px] pt-[40px] md:pb-[120px] md:pt-[40px]"
+      className="bg-[url('/marketing-images/textures/paper-brown.webp')] bg-cover bg-center px-6 pb-[120px] pt-[40px] text-brand-cream-bright md:pb-[120px] md:pt-[40px]"
     >
       <div className="mx-auto max-w-[1180px]">
         <header className="mb-16 text-center">
@@ -79,11 +79,11 @@ export function CategoriesRoster() {
           <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
             What you&rsquo;ll find
           </span>
-          <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-5xl">
-            From <em className="font-bold italic text-primary">dosa</em> to{" "}
-            <em className="font-bold italic text-primary">doctors</em>.
+          <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-brand-cream-bright md:text-5xl">
+            From <em className="font-bold italic text-brand-gold">dosa</em> to{" "}
+            <em className="font-bold italic text-brand-gold">doctors</em>.
           </h2>
-          <p className="mx-auto mt-4 max-w-[620px] text-[17px] leading-[1.65] text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-[620px] text-[17px] leading-[1.65] text-brand-cream-muted">
             Seven categories, nested up to three levels deep. The color tells
             you where you are.
           </p>
@@ -94,9 +94,9 @@ export function CategoriesRoster() {
             <div
               key={cat.numeral}
               className={
-                "grid grid-cols-[40px_1fr_24px] items-baseline gap-4 border-t border-border/25 py-8 md:grid-cols-[64px_1fr_auto] md:gap-6 " +
+                "grid grid-cols-[40px_1fr_24px] items-baseline gap-4 border-t border-brand-cream-bright/20 py-8 md:grid-cols-[64px_1fr_auto] md:gap-6 " +
                 (i === categories.length - 1
-                  ? "border-b border-border/25"
+                  ? "border-b border-brand-cream-bright/20"
                   : "")
               }
             >
@@ -106,13 +106,13 @@ export function CategoriesRoster() {
               <div>
                 <h3
                   className={
-                    "inline-block pb-1 font-display text-[26px] font-semibold leading-[1.1] text-foreground md:text-[34px] " +
+                    "inline-block pb-1 font-display text-[26px] font-semibold leading-[1.1] text-brand-cream-bright md:text-[34px] " +
                     tierBorder(cat.tier)
                   }
                 >
                   {cat.name}
                 </h3>
-                <p className="mt-1 font-display text-[16px] italic leading-[1.5] text-muted-foreground">
+                <p className="mt-1 font-display text-[16px] italic leading-[1.5] text-brand-cream-muted">
                   {cat.examples}
                 </p>
               </div>

@@ -42,6 +42,8 @@ export interface CreateAuthOptions {
    *  so test/dev environments can boot without it). */
   secret?: string | undefined
   baseUrl?: string
+  /** Extra origins to trust in addition to baseUrl — e.g. localhost ports in dev. */
+  trustedOrigins?: string[]
   /** Optional. Auto-promotes a user with this email to "admin" on signup. */
   initialAdminEmail?: string | undefined
   /** Optional. Auto-promotes a user with this email to "super_admin" on
@@ -59,6 +61,7 @@ export function createAuth({
   db,
   secret,
   baseUrl,
+  trustedOrigins,
   initialAdminEmail,
   initialSuperAdminEmail,
   isProduction = false,
@@ -96,6 +99,7 @@ export function createAuth({
     database: drizzleAdapter(db, { provider: "pg" }),
     secret,
     baseURL: baseUrl,
+    trustedOrigins,
 
     // Phase 5.5: enable `Authorization: Bearer <session-token>` transport.
     // Mobile (Expo) cannot use cookies, so it sends the session token in the

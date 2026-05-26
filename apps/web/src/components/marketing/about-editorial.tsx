@@ -11,7 +11,10 @@ import "./about-editorial.css"
 
 export function AboutEditorial() {
   return (
-    <section id="about" className="px-6 py-[120px] md:py-[120px]">
+    <section
+      id="about"
+      className="bg-[url('/marketing-images/textures/paper-orange.webp')] bg-cover bg-center px-6 py-[120px] md:py-[120px]"
+    >
       <div className="mx-auto max-w-[1180px]">
         <header className="mb-16 text-center">
           <Ornament />

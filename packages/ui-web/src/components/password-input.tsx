@@ -38,7 +38,7 @@ function PasswordInput({ className, ...props }: PasswordInputProps) {
           right: 0,
           width: "2.5rem",
         }}
-        className="flex items-center justify-center rounded-r-lg text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        className="flex items-center justify-center rounded-r-2xl text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       >
         {visible ? <EyeOff /> : <Eye />}
       </button>

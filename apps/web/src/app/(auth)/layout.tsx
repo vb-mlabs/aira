@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             priority
           />
         </Link>
-        <div className="w-full rounded-2xl border border-border bg-card p-8 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.18)]">
+        <div className="w-full">
           {children}
         </div>
       </div>

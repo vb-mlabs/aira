@@ -61,7 +61,7 @@ export default function SignupPage() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="text-center">
         <h1 className="font-display text-3xl tracking-tight text-foreground">
           Create your account
         </h1>
@@ -76,6 +76,7 @@ export default function SignupPage() {
             id="name"
             type="text"
             autoComplete="name"
+            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-invalid={!!errors.name}
@@ -92,6 +93,7 @@ export default function SignupPage() {
             id="email"
             type="email"
             autoComplete="email"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             aria-invalid={!!errors.email}
@@ -107,6 +109,7 @@ export default function SignupPage() {
           <PasswordInput
             id="password"
             autoComplete="new-password"
+            placeholder="Enter your password"
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
