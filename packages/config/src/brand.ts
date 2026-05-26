@@ -20,6 +20,11 @@ export const brand = {
   supportEmail: "support@airabynisarga.com",
   socialHandle: "@airabynisarga",
   legalEntity: "Nisarga Group LLC",
+  // Shortened parent-entity display used in auth shell footer ("AIRA by
+  // Nisarga") and the marketing nav. Compose with brand.name as
+  // `${brand.name} by ${brand.parentName}` so the no-brand-string-literal
+  // ESLint rule keeps the brand.name literal contained to this file.
+  parentName: "Nisarga",
   url: "https://airabynisarga.com",
 
   // Email-client-safe sRGB hex palette. Gmail, Outlook, and Yahoo do not
