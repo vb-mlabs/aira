@@ -2,9 +2,10 @@
 
 **Date:** 2026-05-26
 **Slug:** auth-shell-redesign
-**Status:** reviewed
+**Status:** implemented
 **Author:** Claude (with framer@millionlabs.co.uk as project lead)
 **Reviewed:** [../reviews/2026-05-26-auth-shell-redesign.md](../reviews/2026-05-26-auth-shell-redesign.md) (UI-Significant: yes)
+**Implemented:** [../code/auth-shell-redesign/report.md](../code/auth-shell-redesign/report.md) (8 commits 2fbefda..ec70442 on `feat/auth-shell-redesign`)
 
 ---
 
