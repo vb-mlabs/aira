@@ -107,6 +107,27 @@ missing:
 The script is idempotent and migrates any pre-existing memories at the
 default location into the repo before linking.
 
+## Pushing to GitHub from Replit
+
+Two known gotchas — deeper notes in `.claude/memory/`:
+
+- **Credential precedence.** `gh auth login` alone isn't enough.
+  `replit-git-askpass` (wired via `GIT_ASKPASS`) silently overrides the gh
+  token and authenticates as the workspace-level GitHub integration account,
+  so pushes to private repos return `Repository not found` even when
+  `gh auth status` looks right. Run `gh auth setup-git`. If pushes start
+  failing again mid-session (Replit periodically rewrites its managed
+  `/run/replit/user/<uid>/.config/git/config`), pin the helper in **repo-local**
+  `.git/config` instead — Replit can't reach it there. See
+  [.claude/memory/replit-gh-push-auth.md](./.claude/memory/replit-gh-push-auth.md).
+- **Truncated history without `.git/shallow`.** A Replit workspace's `.git` can
+  end up with commits referencing parent objects that don't exist locally and
+  without a `.git/shallow` marker. The first push to a fresh GitHub repo then
+  fails with `remote: fatal: did not receive expected object <sha>`. Shallow
+  markers aren't honored by GitHub's receive-pack; fix is rewriting with
+  `git replace --graft <earliest-commit>` + `git filter-branch -- --all`. See
+  [.claude/memory/replit-truncated-history.md](./.claude/memory/replit-truncated-history.md).
+
 ## When in doubt
 
 - New feature → `/mlabs-plan`, not direct edits to `apps/` or `packages/`.
