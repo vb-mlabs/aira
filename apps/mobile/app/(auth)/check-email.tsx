@@ -1,11 +1,10 @@
 import * as React from "react";
 import { Linking, Pressable, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthShell } from "../../components/AuthShell";
 import { Button } from "../../components/ui/Button";
 import { useResendVerify } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
-import { brand } from "@aira/config";
 
 const RESEND_COOLDOWN_SEC = 30;
 
@@ -44,27 +43,21 @@ export default function CheckEmailScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-6 pt-6">
-        <View className="flex-row items-center" style={{ gap: 8 }}>
-          <View className="size-2 rounded-full bg-primary" />
-          <Text className="text-base font-extrabold tracking-tight text-foreground">{brand.name}</Text>
-        </View>
-        <View className="mt-16">
-          <Text
-            accessibilityRole="header"
-            className="text-4xl font-semibold text-foreground"
-          >
-            Check your email
-          </Text>
-          <Text className="mt-4 text-base text-mutedForeground">
-            We sent a link to{" "}
-            <Text className="font-medium text-foreground">{email}</Text>. Tap
-            it on this phone to continue.
-          </Text>
-        </View>
+    <AuthShell>
+      <View>
+        <Text
+          accessibilityRole="header"
+          className="font-display text-4xl text-foreground"
+        >
+          Check your email
+        </Text>
+        <Text className="mt-4 text-base text-mutedForeground">
+          We sent a link to{" "}
+          <Text className="font-medium text-foreground">{email}</Text>. Tap it
+          on this phone to continue.
+        </Text>
       </View>
-      <View className="px-6 pb-8 pt-4" style={{ gap: 12 }}>
+      <View className="mt-8" style={{ gap: 12 }}>
         <Button
           fullWidth
           size="lg"
@@ -98,6 +91,6 @@ export default function CheckEmailScreen() {
           <Text className="text-base text-foreground">Back to login</Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </AuthShell>
   );
 }

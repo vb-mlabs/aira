@@ -2,10 +2,9 @@ import * as React from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthShell } from "../../components/AuthShell";
 import { Button } from "../../components/ui/Button";
 import { useResendVerify, useVerifyEmail } from "../../features/auth/hooks";
-import { brand } from "@aira/config";
 
 type Status = "pending" | "success" | "error";
 
@@ -48,63 +47,58 @@ export default function VerifyScreen() {
   }, [token]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 px-6 pt-6">
-        <View className="flex-row items-center" style={{ gap: 8 }}>
-          <View className="size-2 rounded-full bg-primary" />
-          <Text className="text-base font-extrabold tracking-tight text-foreground">{brand.name}</Text>
-        </View>
-        <View className="mt-16 items-center" style={{ gap: 16 }}>
-          {status === "pending" ? (
-            <>
-              <ActivityIndicator size="large" />
-              <Text className="text-base text-mutedForeground">
-                Verifying your email…
-              </Text>
-            </>
-          ) : null}
-          {status === "success" ? (
-            <Text className="text-2xl font-semibold text-foreground">
-              You're verified.
+    <AuthShell>
+      <View className="mt-8 items-center" style={{ gap: 16 }}>
+        {status === "pending" ? (
+          <>
+            <ActivityIndicator size="large" />
+            <Text className="font-display text-3xl text-foreground">
+              Verifying your email…
             </Text>
-          ) : null}
-          {status === "error" ? (
-            <>
-              <Text
-                accessibilityRole="header"
-                className="text-2xl font-semibold text-foreground"
+            <Text className="text-base text-mutedForeground">Hang tight.</Text>
+          </>
+        ) : null}
+        {status === "success" ? (
+          <Text className="font-display text-3xl text-foreground">
+            You&apos;re verified.
+          </Text>
+        ) : null}
+        {status === "error" ? (
+          <>
+            <Text
+              accessibilityRole="header"
+              className="font-display text-3xl text-foreground"
+            >
+              Link expired
+            </Text>
+            <Text className="text-base text-mutedForeground">
+              The verification link is no longer valid.
+            </Text>
+            <View className="mt-4 w-full" style={{ gap: 16 }}>
+              <Button
+                fullWidth
+                size="lg"
+                loading={resend.isPending}
+                onPress={() => {
+                  if (email) resend.mutate(email);
+                }}
+                accessibilityLabel="Resend verification email"
               >
-                Link expired
-              </Text>
-              <Text className="text-base text-mutedForeground">
-                The verification link is no longer valid.
-              </Text>
-              <View className="mt-4 w-full">
-                <Button
-                  fullWidth
-                  size="lg"
-                  loading={resend.isPending}
-                  onPress={() => {
-                    if (email) resend.mutate(email);
-                  }}
-                  accessibilityLabel="Resend verification email"
-                >
-                  Resend verification email
-                </Button>
-                <Pressable
-                  accessibilityRole="link"
-                  onPress={() => router.replace("/(auth)/login")}
-                  className="mt-4 items-center"
-                >
-                  <Text className="text-base text-foreground">
-                    Back to login
-                  </Text>
-                </Pressable>
-              </View>
-            </>
-          ) : null}
-        </View>
+                Resend verification email
+              </Button>
+              <Pressable
+                accessibilityRole="link"
+                onPress={() => router.replace("/(auth)/login")}
+                className="items-center"
+              >
+                <Text className="text-base text-foreground">
+                  Back to login
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        ) : null}
       </View>
-    </SafeAreaView>
+    </AuthShell>
   );
 }
