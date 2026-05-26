@@ -2,12 +2,23 @@
 // route handlers. Never import this from client code.
 
 import "server-only"
+import { eq } from "drizzle-orm"
 import { headers } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 import { ApiError } from "@aira/api"
 import type { CallerContext, CallerSource, Permission } from "@aira/api"
+import { session as sessionTable } from "@aira/db/schema"
+import { db } from "@/lib/db"
+import { audit } from "@/lib/db/audit"
 import { auth } from "./index"
 import { extractBearerToken, verifyAccessToken } from "./jwt"
+
+// Sprint 1 — admin sliding idle-timeout. requireAdmin() and
+// requireSuperAdmin() enforce this window on every admin Server Component
+// render. End-users skip the check (they inherit the 7d Better Auth
+// expiresIn). The same helper is reused by defineOperation (T8) for
+// cookie-authed admin API/Server-Action calls.
+const ADMIN_IDLE_MS = 30 * 60 * 1000
 
 // Re-exported session shape so callers don't need to know whether the session
 // came from a cookie, a Better Auth bearer (session token), or a stateless JWT.
@@ -145,17 +156,71 @@ export async function requireUserJSON(): Promise<
  * Better Auth's additionalFields wiring in auth/index.ts. No extra DB
  * query per admin request.
  */
+/**
+ * Returns true if the admin session is stale (idle > 30 min). Fresh sessions
+ * are bumped (`last_activity_at = now()`) as a side effect — that's how the
+ * sliding window slides. JWT-synthesized sessions (no `id` /
+ * `last_activity_at`) always return false: their freshness is governed by
+ * the short JWT expiry instead, and the cookie-session column doesn't
+ * apply.
+ *
+ * Exported so packages/api's defineOperation (T8) can reuse the same check
+ * for cookie-authed admin operations. Don't call from end-user paths —
+ * end-users get the 7d Better Auth default with no extra check.
+ */
+export async function adminSessionIsStale(
+  session: AuthSession["session"],
+): Promise<boolean> {
+  const s = session as { id?: string; last_activity_at?: Date | string }
+  if (!s.id || !s.last_activity_at) return false
+  const lastActivity = new Date(s.last_activity_at).getTime()
+  if (Date.now() - lastActivity > ADMIN_IDLE_MS) return true
+  // Fresh — bump. Single UPDATE per admin request; cheap.
+  await db
+    .update(sessionTable)
+    .set({ lastActivityAt: new Date() })
+    .where(eq(sessionTable.id, s.id))
+  return false
+}
+
+/**
+ * Sign out the current session, write an idle_timeout audit row, and
+ * redirect to /login?reason=idle. Throws (via Next.js redirect). Only
+ * called when adminSessionIsStale() returned true.
+ *
+ * Audit order: revoke → audit → redirect (per the review's accepted-risk
+ * decision — fail closed on user state takes precedence over audit
+ * fidelity).
+ */
+async function bounceStaleAdmin(authSession: AuthSession): Promise<never> {
+  const userId = authSession.user.id
+  const sessionId = (authSession.session as { id?: string }).id
+  await auth.api.signOut({ headers: await headers() })
+  await audit({
+    actorId: userId,
+    action: "session.revoked",
+    target: sessionId ? { type: "session", id: sessionId } : undefined,
+    meta: { kind: "session.revoked", reason: "idle_timeout" },
+  })
+  redirect("/login?reason=idle")
+}
+
 export async function requireAdmin() {
-  const user = await requireUser()
+  // Inlined requireUser() because we need the full session below (not just
+  // the user) to check last_activity_at.
+  const authSession = await getSession()
+  if (!authSession?.user) redirect("/login")
   // DB role is the user_role enum: end_user | admin | super_admin.
   // super_admin subsumes admin perms — accept both. Non-admin = 404 (locked
   // W8 decision: don't enumerate /admin/* via 403 vs 404 differentiation).
-  // Idle-timeout enforcement is layered on in T7.
-  const role = (user as { role?: string }).role ?? "end_user"
+  const role = (authSession.user as { role?: string }).role ?? "end_user"
   if (role !== "admin" && role !== "super_admin") {
     notFound()
   }
-  return user
+  if (await adminSessionIsStale(authSession.session)) {
+    await bounceStaleAdmin(authSession)
+  }
+  return authSession.user
 }
 
 /**
@@ -164,12 +229,17 @@ export async function requireAdmin() {
  * Same 404 semantics as requireAdmin() — admins and end-users both get
  * notFound(), to avoid leaking the existence of super-admin-only surfaces.
  * Use for screens that promote/demote admins or manage other super_admins.
+ * Inherits the same 30-min idle-timeout as requireAdmin().
  */
 export async function requireSuperAdmin() {
-  const user = await requireUser()
-  const role = (user as { role?: string }).role ?? "end_user"
+  const authSession = await getSession()
+  if (!authSession?.user) redirect("/login")
+  const role = (authSession.user as { role?: string }).role ?? "end_user"
   if (role !== "super_admin") {
     notFound()
   }
-  return user
+  if (await adminSessionIsStale(authSession.session)) {
+    await bounceStaleAdmin(authSession)
+  }
+  return authSession.user
 }
