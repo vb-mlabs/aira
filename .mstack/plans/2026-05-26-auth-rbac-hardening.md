@@ -2,9 +2,10 @@
 
 **Date:** 2026-05-26
 **Slug:** auth-rbac-hardening
-**Status:** reviewed
+**Status:** implemented
 **Author:** Claude (with framer@millionlabs.co.uk as project lead)
 **Reviewed:** [../reviews/2026-05-26-auth-rbac-hardening.md](../reviews/2026-05-26-auth-rbac-hardening.md) (UI-Significant: no)
+**Implemented:** [../code/auth-rbac-hardening/report.md](../code/auth-rbac-hardening/report.md) (12 commits 072b5e2..bfb025f on `feat/auth-rbac-hardening`)
 
 ---
 
