@@ -110,9 +110,22 @@ export function createAuth({
 
     // Sessions live ~7 days, refresh on every request within the cookie's
     // lifetime.
+    //
+    // additionalFields.last_activity_at is the sliding idle-timeout signal
+    // for admin sessions — Better Auth's updateAge is write-coalescing so
+    // session.updatedAt isn't a reliable last-activity timestamp. The
+    // requireAdmin() guard reads + bumps this column directly. input:false
+    // so clients can't game it via the update-user API.
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
+      additionalFields: {
+        last_activity_at: {
+          type: "date",
+          required: false,
+          input: false,
+        },
+      },
     },
 
     user: {

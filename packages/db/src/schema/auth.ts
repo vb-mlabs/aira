@@ -51,6 +51,13 @@ export const session = pgTable(
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
+    // Sprint 1 — sliding admin idle-timeout. requireAdmin() reads this and
+    // signs the admin out if (now - last_activity_at) > 30 min, then UPDATEs
+    // it to now() on every successful admin request. Better Auth's
+    // updateAge write-coalesces session.updatedAt, so we can't reuse it for
+    // last-activity tracking (would yield up to 60min worst-case idle window).
+    // See .mstack/reviews/2026-05-26-auth-rbac-hardening.md.
+    lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id")
