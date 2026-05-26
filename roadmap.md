@@ -70,26 +70,51 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ## Sprint 1 — Auth, RBAC, sessions (2 weeks)
 
-**Status:** ⬜ Not started
+**Status:** 🟦 In flight — RBAC + idle-timeout + audit shipped on `feat/auth-rbac-hardening`; **MFA deferred to Sprint 1.5** (see plan `.mstack/plans/2026-05-26-auth-rbac-hardening.md` + review).
 
-**Goal:** A new user signs up with email + verifies via Postmark + reaches an empty home screen. An admin logs in at `/admin` with email + password + TOTP MFA + reaches an empty admin dashboard. Role-based route guards work.
+**Goal:** A new user signs up with email + verifies via Postmark + reaches an empty home screen. An admin logs in at `/admin` with email + password + reaches an empty admin dashboard, with 30-min idle-timeout and an audit trail. Role-based route guards work. (TOTP MFA on top of password lands in **Sprint 1.5** before any external admin sign-in.)
 
 **Features (PRD refs):**
-- ⬜ F1 (amended) — **Email/password auth + email verification** (not phone OTP). Better Auth handles out-of-box.
-- ⬜ F2 — Admin MFA (TOTP) + RBAC (`role` enum: end_user, admin, super_admin; super_admin manual bootstrap)
-- ⬜ F3 — Session management + logout + inactivity timeout (admin 30min, user 7d background)
+- ⬜ F1 (amended) — **Email/password auth + email verification** (not phone OTP). Better Auth handles out-of-box. (Template-shipped pre-S1; no new work in this sprint.)
+- 🟦 F2 (partial) — RBAC with the user_role pgEnum (`end_user`, `admin`, `super_admin`) + `super_admin` env-bootstrap landed in `feat/auth-rbac-hardening`. **MFA component split out to S1.5** — see below.
+- 🟦 F3 (partial) — Sliding 30-min admin idle-timeout via `session.last_activity_at` + signed audit on stale-bounce; 7d Better Auth default for end-users; logout flow audits as `session.revoked.reason = "logout"`. Done on the feature branch.
 
-**Schema additions:** extend `user` table (role, mfa_enabled, is_business_contact); add `user_device` (for push registration later).
+**Schema additions:** `user_role` Postgres enum migration (0009); `session.last_activity_at` column (0008). `mfa_enabled` + `user_device` deferred (MFA in S1.5, push registration in S5).
 
 **Libs to add:**
-- Better Auth `two-factor` plugin (TOTP)
-- `qrcode` (for TOTP QR rendering in admin setup flow)
+- (Deferred to S1.5) Better Auth `two-factor` plugin (TOTP)
+- (Deferred to S1.5) `qrcode` (for TOTP QR rendering in admin setup flow)
 
 **Cron jobs:** none yet.
 
-**Risk gate:** End-to-end signup → verify email → login → access role-gated route works on the deployed Replit URL (not just localhost).
+**Risk gate:** End-to-end signup → verify email → login → access role-gated route works on the deployed Replit URL (not just localhost). Admin idle-timeout verified via `/mlabs-qa`.
 
 **Decision deferred for client:** Sprint 1.5 — should phone OTP replace email/password, or live alongside as an alternative login method?
+
+---
+
+## Sprint 1.5 — Admin MFA (1 week)
+
+**Status:** ⬜ Not started
+
+**Goal:** Admin login at `/admin` requires TOTP after password. New admins set MFA up via `/admin/setup-mfa` (QR code + secret + recovery codes) before reaching any other admin screen. Locked-in before any external (non-Million-Labs-staff) admin account is enrolled in production.
+
+**Why split from S1:** The S1 plan (auth-rbac-hardening) deferred MFA explicitly — it ships role hardening + idle-timeout + audit trail first, since those are the gaps that bite even for internal-only staff. MFA is the next layer; pulling it into the same sprint as the enum migration + idle-timeout would have made the diff much larger than needed.
+
+**Features (PRD refs):**
+- ⬜ F2 (remaining) — Admin MFA (TOTP) setup screen + login challenge + recovery codes. `admin` and `super_admin` roles MUST have MFA before reaching `/admin/*` (existing roles get a one-time setup wall).
+
+**Schema additions:** Better Auth's two-factor tables (auto-managed by the plugin); add `mfa_enabled` flag if the plugin doesn't surface one on `user`.
+
+**Libs to add:**
+- Better Auth `two-factor` plugin (TOTP)
+- `qrcode` (for the setup-flow QR rendering)
+
+**Cron jobs:** none.
+
+**Risk gate:** A new admin cannot reach `/admin/users` without first completing MFA enrollment; an existing admin without MFA is force-redirected to `/admin/setup-mfa` on next login. Verified end-to-end on the deployed Replit URL.
+
+**Decision deferred for client:** Recovery code policy — show once on setup vs. allow regenerate-on-demand; tie-in with phone-OTP plan (above) if that lands first.
 
 ---
 
