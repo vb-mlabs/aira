@@ -45,3 +45,13 @@ Source: `.mstack/reviews/2026-05-26-auth-rbac-hardening.md`, T11/T12 follow-ups.
 ### conversations/notifications API routes — super_admin narrowing
 - **Item:** Three route handlers (`apps/web/src/app/api/v1/messages/conversations/route.ts:25`, `.../conversations/[id]/messages/route.ts:29`, `.../notifications/unread-count/route.ts:35`) and `apps/web/src/app/api/auth/refresh/route.ts:64` do ad-hoc role narrowing — `u.role === "admin" ? "admin" : "user"` — without including super_admin. Same bug T3 fixed in `getCallerContext` and the operation composition root, but missed in these sibling sites. Currently a no-op because there are no super_admin users in the DB yet; manifests once T5's `INITIAL_SUPER_ADMIN_EMAIL` bootstrap is wired in a real deployment.
 - **Trigger:** Before the first deployment that sets `INITIAL_SUPER_ADMIN_EMAIL`. Fold into the next pass that touches these routes.
+
+---
+
+## 2026-05-26 — Auth shell redesign (`/mlabs-code`)
+
+Source: `.mstack/reviews/2026-05-26-auth-shell-redesign.md` follow-ups.
+
+### Upgrade tree-of-life logo asset (2x PNG or SVG)
+- **Item:** `apps/web/public/marketing-images/logo.png` and `apps/mobile/assets/logo.png` are 112×112 PNGs. The new AuthShell renders at 80×80 (crisp at 1x and 2x), but welcome's hero renders at 140×140 — soft-renders on 2x retina screens (iPhones / MacBooks at 13"+ scaling). Marketing nav also scales the logo; same constraint applies elsewhere. Export a 2x PNG (224×224) or an SVG from the Figma source and replace both copies. Mobile build picks up the new file via `require("../assets/logo.png")`; web's next/image hash invalidates automatically.
+- **Trigger:** Pre-TestFlight or first client design review where someone notices, whichever comes first.

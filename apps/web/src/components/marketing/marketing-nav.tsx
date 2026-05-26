@@ -8,6 +8,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { brand } from "@aira/config"
 
 export function MarketingNav() {
   return (
@@ -27,7 +28,7 @@ export function MarketingNav() {
               AIRA
             </span>
             <span className="block text-[11px] tracking-[0.5px] text-muted-foreground">
-              by Nisarga
+              by {brand.parentName}
             </span>
           </span>
         </Link>
