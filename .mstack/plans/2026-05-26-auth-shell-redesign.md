@@ -2,8 +2,9 @@
 
 **Date:** 2026-05-26
 **Slug:** auth-shell-redesign
-**Status:** draft
+**Status:** reviewed
 **Author:** Claude (with framer@millionlabs.co.uk as project lead)
+**Reviewed:** [../reviews/2026-05-26-auth-shell-redesign.md](../reviews/2026-05-26-auth-shell-redesign.md) (UI-Significant: yes)
 
 ---
 
