@@ -14,7 +14,7 @@ interface UserRow {
   name: string
   emailVerified: boolean
   image: string | null
-  role: "user" | "admin"
+  role: "end_user" | "admin" | "super_admin"
   banned_at: Date | null
   banned_reason: string | null
 }
@@ -274,7 +274,7 @@ beforeEach(() => {
       name: "Alice",
       emailVerified: true,
       image: null,
-      role: "user",
+      role: "end_user",
       banned_at: null,
       banned_reason: null,
     },
@@ -284,7 +284,7 @@ beforeEach(() => {
       name: "Bob",
       emailVerified: true,
       image: null,
-      role: "user",
+      role: "end_user",
       banned_at: null,
       banned_reason: null,
     },
@@ -318,7 +318,7 @@ describe("changeRole", () => {
     await expect(
       changeRole(db, adminCtx("admin-1"), {
         targetId: "admin-1",
-        role: "user",
+        role: "end_user",
       }),
     ).rejects.toThrow(/own role/i)
   })
@@ -335,7 +335,7 @@ describe("changeRole", () => {
     // Now demote admin-1 — count=2 going in, allowed.
     await changeRole(db, adminCtx("user-1"), {
       targetId: "admin-1",
-      role: "user",
+      role: "end_user",
     })
 
     // Only user-1 is admin now. Try to demote user-1 (self-check fires first
@@ -347,12 +347,12 @@ describe("changeRole", () => {
       role: "admin",
     })
     // Drop user-1's admin so user-2 is the only admin going in.
-    store.users.find((u) => u.id === "user-1")!.role = "user"
+    store.users.find((u) => u.id === "user-1")!.role = "end_user"
 
     await expect(
       changeRole(db, adminCtx("user-1"), {
         targetId: "user-2",
-        role: "user",
+        role: "end_user",
       }),
     ).rejects.toThrow(/last admin/i)
   })
@@ -360,7 +360,7 @@ describe("changeRole", () => {
   it("no-op when role unchanged (no audit row written)", async () => {
     const res = await changeRole(db, adminCtx("admin-1"), {
       targetId: "user-1",
-      role: "user",
+      role: "end_user",
     })
     expect(res.ok).toBe(true)
     expect(store.audits).toHaveLength(0)

@@ -1,6 +1,13 @@
 // Shared types for features/admin — used by server queries + UI.
 
-export type UserRole = "user" | "admin"
+// UserRole is the admin-UI toggle surface — what the admin staff see and
+// flip between in the user-management screen. The full DB role enum
+// (packages/db/src/schema/auth.ts) also includes "super_admin", which is
+// not exposed via this UI (super_admin promotion is bootstrap-env-only
+// today). queries.ts buckets super_admin rows under "admin" for display
+// purposes; the actual changeRole service rejects targets whose DB role is
+// super_admin (see T5+ once super_admin exists).
+export type UserRole = "end_user" | "admin"
 
 export interface AdminUserRow {
   id: string

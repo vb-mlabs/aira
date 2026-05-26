@@ -152,7 +152,10 @@ export function createAuth({
         role: {
           type: "string",
           required: false,
-          defaultValue: "user",
+          // Must match the user.role pgEnum default. Sprint 1 migrated from
+          // "user" -> "end_user"; Better Auth uses this defaultValue when
+          // inserting new users via the sign-up handler.
+          defaultValue: "end_user",
           input: false,
         },
         banned_at: {
