@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V4 Sidebar Refined — AIRA End-User App Shell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background:  '#EAE0CB',
+            foreground:  '#3D2814',
+            card:        '#F5EFE3',
+            primary:     '#4F653B',
+            'primary-dark':'#3A4A2B',
+            'primary-fg':'#F3EBDD',
+            cream:       '#F3EBDD',
+            'cream-dim': 'rgba(243,235,221,0.7)',
+            muted:       '#C5B99A',
+            'muted-fg':  '#7A5C3A',
+            border:      '#D4C5A8',
+            tier1:       '#4F653B',
+            tier2:       '#C97A2A',
+            tier3:       '#7A4A26',
+            info:        '#1A7AC7',
+            gold:        '#B8904A',
+          },
+          fontFamily: {
+            display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            body:    ['Lato', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { font-family: 'Lato', sans-serif; background: #EAE0CB; color: #3D2814; }
+    h1,h2,h3,h4 { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+    .verified-tick {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 999px; background: #1A7AC7;
+      color: #fff; font-size: 11px; font-weight: 700;
+    }
+
+    .viewport-label {
+      background: #3D2814; color: #F3EBDD;
+      font-family: 'Lato', sans-serif; font-size: 11px;
+      padding: 4px 12px; letter-spacing: 0.08em;
+    }
+    .screen-frame {
+      border: 2px solid #C5B99A; border-radius: 8px; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(61,40,20,0.12);
+    }
+
+    /* Sidebar with green texture */
+    .sidebar-green {
+      background: url('paper-green.webp'), #4F653B;
+      background-size: cover;
+      background-position: center;
+      color: #F3EBDD;
+    }
+    .sidebar-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 22px;
+      border-bottom: 1px solid rgba(243,235,221,0.10);
+      color: #F3EBDD;
+      font-family: 'Lato', sans-serif; font-size: 14px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .sidebar-row:hover { background: rgba(243,235,221,0.06); }
+    .sidebar-row .icon {
+      width: 20px; flex-shrink: 0; opacity: 0.9; font-size: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .sidebar-row .chev {
+      margin-left: auto; opacity: 0.55; font-size: 16px;
+    }
+    .sidebar-row.active {
+      background: rgba(243,235,221,0.10);
+      font-weight: 700;
+    }
+
+    /* Cream texture page bg */
+    .cream-tex {
+      background: url('paper-cream.webp'), #EAE0CB;
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Logo mark — simplified tree-of-life style */
+    .logo-mark {
+      width: 64px; height: 64px;
+      background: #4F653B;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #F3EBDD;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 700;
+    }
+    .logo-mark-sm {
+      width: 36px; height: 36px;
+      background: #4F653B;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #F3EBDD;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 700;
+    }
+
+    .call-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #4F653B; color: #F3EBDD;
+      border-radius: 999px; padding: 5px 12px;
+      font-size: 12px; font-weight: 700;
+      font-family: 'Lato', sans-serif;
+      flex-shrink: 0;
+    }
+    .biz-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: #F3EBDD;
+      border: 2px solid #D4C5A8;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .stat-card {
+      background: rgba(245,239,227,0.85);
+      border: 1px solid #D4C5A8;
+      border-radius: 12px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 600; color: #4F653B; line-height: 1;
+    }
+    .stat-label {
+      font-family: 'Lato', sans-serif;
+      font-size: 12px; color: #7A5C3A;
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .tab-bar-item {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 0 6px;
+      font-family: 'Lato', sans-serif;
+      font-size: 11px;
+      color: #7A5C3A;
+    }
+    .tab-bar-item.active { color: #4F653B; font-weight: 700; }
+    .tab-bar-item .ic { font-size: 18px; }
+
+    .contact-icon {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(243,235,221,0.15);
+      border: 1px solid rgba(243,235,221,0.30);
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #F3EBDD; font-size: 14px;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+
+  <!-- ===== VARIANT HEADER ===== -->
+  <div class="max-w-7xl mx-auto mb-10">
+    <div class="flex items-center gap-4 mb-2">
+      <span class="text-xs font-body font-bold px-3 py-1 rounded-full tracking-widest uppercase" style="background:#4F653B; color:#F3EBDD;">V4</span>
+      <h1 class="font-display text-3xl text-foreground">Sidebar Refined</h1>
+    </div>
+    <p class="font-body text-muted-fg text-sm">Green-texture sidebar matching inspiration; mobile uses 3-tab bottom nav (Home / Categories / Account) with the sidebar accessible from a hamburger drawer.</p>
+  </div>
+
+  <!-- ===== DESKTOP — WEB ===== -->
+  <div class="max-w-7xl mx-auto mb-16">
+    <div class="viewport-label mb-2 inline-block rounded">WEB · DESKTOP — 1280px</div>
+
+    <!-- SCREEN 1: Home (desktop) -->
+    <div class="screen-frame mb-8">
+      <div class="flex" style="min-height:720px;">
+        <!-- Sidebar (persistent) -->
+        <aside class="sidebar-green flex flex-col" style="width:280px; min-width:280px;">
+          <!-- Header -->
+          <div class="px-5 pt-6 pb-5 border-b border-white/10 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-cream/90 flex items-center justify-center font-display text-primary text-xl font-bold flex-shrink-0">A</div>
+            <div>
+              <div class="font-display text-cream text-2xl leading-none">AIRA</div>
+              <div class="font-body text-cream-dim text-xs italic mt-1">by Nisarga</div>
+            </div>
+          </div>
+          <!-- Menu -->
+          <nav class="flex-1 flex flex-col">
+            <a href="#" class="sidebar-row active">
+              <span class="icon">🏠</span> Home <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">🍛</span> Restaurants <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">📚</span> Education <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">🎉</span> Events &amp; Entertainment <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">💼</span> Professional Services <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">🌿</span> Health &amp; Wellness <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">🏘️</span> Real Estate <span class="chev">›</span>
+            </a>
+            <a href="#" class="sidebar-row">
+              <span class="icon">🛍️</span> Shopping <span class="chev">›</span>
+            </a>
+          </nav>
+          <!-- Footer -->
+          <div class="px-5 pt-6 pb-5 border-t border-white/10 text-center">
+            <div class="font-display text-cream text-base mb-3">Contact Us</div>
+            <div class="flex items-center justify-center gap-3 mb-4">
+              <a href="#" class="contact-icon">✉</a>
+              <a href="#" class="contact-icon">🌐</a>
+              <a href="#" class="contact-icon">☎</a>
+            </div>
+            <div class="font-body text-cream-dim text-[11px] tracking-wide">Operated by Nisarga Group LLC</div>
+          </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 cream-tex overflow-auto">
+          <!-- Top utility bar -->
+          <div class="flex items-center justify-end gap-4 px-8 py-4 border-b border-border/50 bg-cream/40">
+            <button class="relative">
+              <span class="text-foreground/70 text-lg">🔔</span>
+              <span class="absolute -top-1 -right-1 bg-tier2 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+            </button>
+            <div class="w-px h-5 bg-border"></div>
+            <a href="#" class="font-body text-sm text-foreground hover:text-primary">My Account</a>
+            <a href="#" class="font-body text-sm text-muted-fg hover:text-foreground">Sign out</a>
+          </div>
+
+          <!-- Hero / About -->
+          <div class="px-12 pt-12 pb-8 text-center">
+            <div class="logo-mark mx-auto mb-4">A</div>
+            <h1 class="font-display text-5xl text-foreground mb-1">AIRA</h1>
+            <div class="font-body text-xs tracking-[0.3em] text-primary mb-8">ROOTS · REACH</div>
+            <h2 class="font-display text-3xl text-foreground mb-4">About AIRA</h2>
+            <p class="font-body text-foreground/80 max-w-2xl mx-auto leading-relaxed">
+              AIRA is Atlanta's premier community directory connecting the Indian community with local
+              businesses, services, and resources. We celebrate our roots and build the reach of every
+              trusted business in our city.
+            </p>
+          </div>
+
+          <!-- Stats -->
+          <div class="px-12 mb-10">
+            <div class="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <div class="stat-card">
+                <div class="stat-num">500+</div>
+                <div class="stat-label uppercase">Verified Businesses</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num">10K+</div>
+                <div class="stat-label uppercase">Community Members</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Featured -->
+          <div class="px-12 pb-12">
+            <div class="flex items-center justify-between max-w-2xl mx-auto mb-4">
+              <h3 class="font-display text-2xl text-foreground">Featured Businesses</h3>
+              <a href="#" class="font-body text-sm text-primary hover:underline">View All →</a>
+            </div>
+            <div class="max-w-2xl mx-auto space-y-3">
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary transition-colors group">
+                <div class="biz-avatar">🍛</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">South Indian Kitchen</span>
+                    <span class="verified-tick">✓</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Restaurants · Buckhead, Atlanta</div>
+                </div>
+                <span class="call-btn">☎ Call</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary transition-colors group">
+                <div class="biz-avatar">💼</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">Patel &amp; Associates CPA</span>
+                    <span class="verified-tick">✓</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Professional Services · Midtown</div>
+                </div>
+                <span class="call-btn">☎ Call</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary transition-colors group">
+                <div class="biz-avatar">🌿</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">Ayurveda Wellness Center</span>
+                    <span class="verified-tick">✓</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Health &amp; Wellness · Decatur</div>
+                </div>
+                <span class="call-btn">☎ Call</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary transition-colors group">
+                <div class="biz-avatar">🍜</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">Spice Garden</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Restaurants · Smyrna</div>
+                </div>
+                <span class="call-btn">☎ Call</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary transition-colors group">
+                <div class="biz-avatar">🏘️</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">Bharat Real Estate</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Real Estate · Alpharetta</div>
+                </div>
+                <span class="call-btn">☎ Call</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Category Listings (Restaurants selected) -->
+    <div class="screen-frame mb-8">
+      <div class="flex" style="min-height:600px;">
+        <aside class="sidebar-green flex flex-col" style="width:280px; min-width:280px;">
+          <div class="px-5 pt-6 pb-5 border-b border-white/10 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-cream/90 flex items-center justify-center font-display text-primary text-xl font-bold">A</div>
+            <div>
+              <div class="font-display text-cream text-2xl leading-none">AIRA</div>
+              <div class="font-body text-cream-dim text-xs italic mt-1">by Nisarga</div>
+            </div>
+          </div>
+          <nav class="flex-1 flex flex-col">
+            <a href="#" class="sidebar-row"><span class="icon">🏠</span> Home <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row active"><span class="icon">🍛</span> Restaurants <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">📚</span> Education <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🎉</span> Events &amp; Entertainment <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">💼</span> Professional Services <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🌿</span> Health &amp; Wellness <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🏘️</span> Real Estate <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🛍️</span> Shopping <span class="chev">›</span></a>
+          </nav>
+          <div class="px-5 pt-6 pb-5 border-t border-white/10 text-center">
+            <div class="font-display text-cream text-base mb-3">Contact Us</div>
+            <div class="flex items-center justify-center gap-3 mb-4">
+              <a href="#" class="contact-icon">✉</a>
+              <a href="#" class="contact-icon">🌐</a>
+              <a href="#" class="contact-icon">☎</a>
+            </div>
+            <div class="font-body text-cream-dim text-[11px]">Operated by Nisarga Group LLC</div>
+          </div>
+        </aside>
+        <div class="flex-1 cream-tex">
+          <div class="flex items-center justify-end gap-4 px-8 py-4 border-b border-border/50 bg-cream/40">
+            <button><span class="text-foreground/70 text-lg">🔔</span></button>
+            <a href="#" class="font-body text-sm text-foreground">My Account</a>
+            <a href="#" class="font-body text-sm text-muted-fg">Sign out</a>
+          </div>
+          <div class="px-12 py-10 max-w-3xl mx-auto">
+            <h2 class="font-display text-4xl text-foreground mb-1">Restaurants</h2>
+            <p class="font-body text-muted-fg text-sm mb-6">3 listings · sorted by tier</p>
+            <div class="space-y-3">
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary group">
+                <div class="biz-avatar">🍛</div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">South Indian Kitchen</span>
+                    <span class="verified-tick">✓</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Authentic South Indian · Buckhead</div>
+                </div>
+                <span class="text-xs font-bold text-white px-2 py-0.5 rounded-full" style="background:#4F653B">Tier 1</span>
+                <span class="call-btn">☎ Call</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary group">
+                <div class="biz-avatar">🍜</div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">Spice Garden</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">North Indian curries · Smyrna</div>
+                </div>
+                <span class="text-xs font-bold text-white px-2 py-0.5 rounded-full" style="background:#C97A2A">Tier 2</span>
+                <span class="call-btn">☎ Call</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary group">
+                <div class="biz-avatar">🥘</div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-lg text-foreground group-hover:text-primary">Mumbai Bites</span>
+                  </div>
+                  <div class="font-body text-xs text-muted-fg">Street-food casual dining · Tucker</div>
+                </div>
+                <span class="text-xs font-bold text-white px-2 py-0.5 rounded-full" style="background:#7A4A26">Tier 3</span>
+                <span class="call-btn">☎ Call</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: Business Detail -->
+    <div class="screen-frame">
+      <div class="flex" style="min-height:600px;">
+        <aside class="sidebar-green flex flex-col" style="width:280px; min-width:280px;">
+          <div class="px-5 pt-6 pb-5 border-b border-white/10 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-cream/90 flex items-center justify-center font-display text-primary text-xl font-bold">A</div>
+            <div>
+              <div class="font-display text-cream text-2xl leading-none">AIRA</div>
+              <div class="font-body text-cream-dim text-xs italic mt-1">by Nisarga</div>
+            </div>
+          </div>
+          <nav class="flex-1 flex flex-col">
+            <a href="#" class="sidebar-row"><span class="icon">🏠</span> Home <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row active"><span class="icon">🍛</span> Restaurants <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">📚</span> Education <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🎉</span> Events &amp; Entertainment <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">💼</span> Professional Services <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🌿</span> Health &amp; Wellness <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🏘️</span> Real Estate <span class="chev">›</span></a>
+            <a href="#" class="sidebar-row"><span class="icon">🛍️</span> Shopping <span class="chev">›</span></a>
+          </nav>
+          <div class="px-5 pt-6 pb-5 border-t border-white/10 text-center">
+            <div class="font-display text-cream text-base mb-3">Contact Us</div>
+            <div class="flex items-center justify-center gap-3 mb-4">
+              <a href="#" class="contact-icon">✉</a>
+              <a href="#" class="contact-icon">🌐</a>
+              <a href="#" class="contact-icon">☎</a>
+            </div>
+            <div class="font-body text-cream-dim text-[11px]">Operated by Nisarga Group LLC</div>
+          </div>
+        </aside>
+        <div class="flex-1 cream-tex">
+          <div class="flex items-center justify-end gap-4 px-8 py-4 border-b border-border/50 bg-cream/40">
+            <button><span class="text-foreground/70 text-lg">🔔</span></button>
+            <a href="#" class="font-body text-sm text-foreground">My Account</a>
+            <a href="#" class="font-body text-sm text-muted-fg">Sign out</a>
+          </div>
+          <div class="px-12 py-8 max-w-3xl mx-auto">
+            <a href="#" class="flex items-center gap-1 text-sm font-body text-primary hover:underline mb-6">← Back to Restaurants</a>
+            <div class="bg-cream/80 border border-border rounded-xl overflow-hidden">
+              <div class="h-48 bg-muted/30 flex items-center justify-center text-6xl">🍛</div>
+              <div class="p-8">
+                <div class="flex items-start gap-4 mb-4">
+                  <div class="biz-avatar" style="width:64px; height:64px; font-size:28px;">🍛</div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h2 class="font-display text-3xl text-foreground">South Indian Kitchen</h2>
+                      <span class="verified-tick">✓</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="text-xs font-bold text-white px-2 py-0.5 rounded-full" style="background:#4F653B">Tier 1</span>
+                      <span class="font-body text-xs text-muted-fg">Restaurants · Buckhead, Atlanta</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="font-body text-foreground mb-6">Authentic South Indian cuisine — dosas, idlis, sambar, and more. Family-owned and operated since 2015, serving the Atlanta Indian community with love and tradition.</p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-1">Phone</div>
+                    <a href="tel:+14045551234" class="font-body text-primary hover:underline">(404) 555-1234</a>
+                  </div>
+                  <div>
+                    <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-1">Website</div>
+                    <a href="#" class="font-body text-primary hover:underline">southindiankitchen.com ↗</a>
+                  </div>
+                  <div class="col-span-2">
+                    <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-1">Address</div>
+                    <div class="font-body text-foreground">1234 Peachtree Rd NE, Atlanta, GA 30309</div>
+                  </div>
+                </div>
+                <div class="mt-6 flex gap-3">
+                  <a href="tel:+14045551234" class="bg-primary text-cream px-5 py-2.5 rounded-full font-body text-sm font-bold inline-flex items-center gap-2">☎ Call Now</a>
+                  <a href="#" class="border border-primary text-primary px-5 py-2.5 rounded-full font-body text-sm font-bold inline-flex items-center gap-2">🌐 Visit Website</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MOBILE — END USER APP (3 TABS) ===== -->
+  <div class="max-w-7xl mx-auto mb-16">
+    <div class="viewport-label mb-2 inline-block rounded">MOBILE END-USER APP — 375px · 3 main screens via bottom tab bar</div>
+    <div class="flex gap-6 flex-wrap">
+
+      <!-- Mobile Home -->
+      <div class="screen-frame" style="width:375px; flex-shrink:0;">
+        <!-- Top bar -->
+        <div class="cream-tex">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-cream/40">
+            <button class="text-foreground text-xl">☰</button>
+            <span class="font-display text-lg font-bold text-foreground">AIRA</span>
+            <button class="relative"><span class="text-foreground text-lg">🔔</span><span class="absolute -top-1 -right-1 bg-tier2 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span></button>
+          </div>
+          <!-- Body -->
+          <div class="px-5 pt-6 pb-3 text-center">
+            <div class="logo-mark mx-auto mb-3">A</div>
+            <h1 class="font-display text-3xl text-foreground leading-none">AIRA</h1>
+            <div class="font-body text-[10px] tracking-[0.3em] text-primary mt-1">ROOTS · REACH</div>
+          </div>
+          <div class="px-5 pb-5 text-center">
+            <h2 class="font-display text-xl text-foreground mb-2">About AIRA</h2>
+            <p class="font-body text-xs text-foreground/80 leading-relaxed">AIRA is Atlanta's premier community directory connecting local businesses, services, and resources.</p>
+          </div>
+          <!-- Stats -->
+          <div class="px-5 pb-5">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="stat-card">
+                <div class="stat-num" style="font-size:24px;">500+</div>
+                <div class="stat-label uppercase text-[10px]">Businesses</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-num" style="font-size:24px;">10K+</div>
+                <div class="stat-label uppercase text-[10px]">Members</div>
+              </div>
+            </div>
+          </div>
+          <!-- Featured -->
+          <div class="px-5 pb-4">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-display text-lg text-foreground">Featured Businesses</h3>
+              <a href="#" class="font-body text-xs text-primary">View All →</a>
+            </div>
+            <div class="space-y-2">
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-3 flex items-center gap-2">
+                <div class="biz-avatar" style="width:36px; height:36px; font-size:14px;">🍛</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-display text-sm text-foreground truncate">Sth Indian Kitchen</span>
+                    <span class="verified-tick" style="width:14px;height:14px;font-size:9px;">✓</span>
+                  </div>
+                  <div class="font-body text-[10px] text-muted-fg">Restaurants · Buckhead</div>
+                </div>
+                <span class="call-btn" style="padding:4px 10px; font-size:11px;">☎</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-3 flex items-center gap-2">
+                <div class="biz-avatar" style="width:36px; height:36px; font-size:14px;">💼</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-display text-sm text-foreground truncate">Patel &amp; Associates</span>
+                    <span class="verified-tick" style="width:14px;height:14px;font-size:9px;">✓</span>
+                  </div>
+                  <div class="font-body text-[10px] text-muted-fg">Professional · Midtown</div>
+                </div>
+                <span class="call-btn" style="padding:4px 10px; font-size:11px;">☎</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-3 flex items-center gap-2">
+                <div class="biz-avatar" style="width:36px; height:36px; font-size:14px;">🌿</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-display text-sm text-foreground truncate">Ayurveda Wellness</span>
+                    <span class="verified-tick" style="width:14px;height:14px;font-size:9px;">✓</span>
+                  </div>
+                  <div class="font-body text-[10px] text-muted-fg">Health · Decatur</div>
+                </div>
+                <span class="call-btn" style="padding:4px 10px; font-size:11px;">☎</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl p-3 flex items-center gap-2">
+                <div class="biz-avatar" style="width:36px; height:36px; font-size:14px;">🍜</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-display text-sm text-foreground truncate">Spice Garden</div>
+                  <div class="font-body text-[10px] text-muted-fg">Restaurants · Smyrna</div>
+                </div>
+                <span class="call-btn" style="padding:4px 10px; font-size:11px;">☎</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Bottom tab bar -->
+        <div class="flex border-t border-border bg-cream">
+          <a href="#" class="tab-bar-item active">
+            <span class="ic">🏠</span>
+            Home
+          </a>
+          <a href="#" class="tab-bar-item">
+            <span class="ic">📋</span>
+            Categories
+          </a>
+          <a href="#" class="tab-bar-item">
+            <span class="ic">👤</span>
+            Account
+          </a>
+        </div>
+      </div>
+
+      <!-- Mobile Categories screen -->
+      <div class="screen-frame" style="width:375px; flex-shrink:0;">
+        <div class="cream-tex">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-cream/40">
+            <button class="text-foreground text-xl">☰</button>
+            <span class="font-display text-lg font-bold text-foreground">Categories</span>
+            <button><span class="text-foreground text-lg">🔔</span></button>
+          </div>
+          <div class="p-4">
+            <p class="font-body text-xs text-muted-fg mb-4 px-1">Browse trusted Indian businesses by category</p>
+            <div class="space-y-2">
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">🍛</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Restaurants</div>
+                  <div class="font-body text-[11px] text-muted-fg">12 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">📚</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Education</div>
+                  <div class="font-body text-[11px] text-muted-fg">8 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">🎉</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Events &amp; Entertainment</div>
+                  <div class="font-body text-[11px] text-muted-fg">5 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">💼</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Professional Services</div>
+                  <div class="font-body text-[11px] text-muted-fg">15 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">🌿</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Health &amp; Wellness</div>
+                  <div class="font-body text-[11px] text-muted-fg">9 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">🏘️</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Real Estate</div>
+                  <div class="font-body text-[11px] text-muted-fg">6 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="bg-cream/80 border border-border rounded-xl px-4 py-3.5 flex items-center gap-3 hover:border-primary">
+                <span class="text-2xl">🛍️</span>
+                <div class="flex-1">
+                  <div class="font-display text-base text-foreground">Shopping</div>
+                  <div class="font-body text-[11px] text-muted-fg">11 businesses</div>
+                </div>
+                <span class="text-muted text-sm">›</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="flex border-t border-border bg-cream">
+          <a href="#" class="tab-bar-item"><span class="ic">🏠</span> Home</a>
+          <a href="#" class="tab-bar-item active"><span class="ic">📋</span> Categories</a>
+          <a href="#" class="tab-bar-item"><span class="ic">👤</span> Account</a>
+        </div>
+      </div>
+
+      <!-- Mobile Account screen -->
+      <div class="screen-frame" style="width:375px; flex-shrink:0;">
+        <div class="cream-tex">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-cream/40">
+            <button class="text-foreground text-xl">☰</button>
+            <span class="font-display text-lg font-bold text-foreground">My Account</span>
+            <button><span class="text-foreground text-lg">🔔</span></button>
+          </div>
+          <div class="p-5">
+            <!-- Profile header -->
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center font-display text-cream text-2xl font-bold">V</div>
+              <div>
+                <div class="font-display text-xl text-foreground">Vinod B.</div>
+                <div class="font-body text-xs text-muted-fg">vinod@example.com</div>
+              </div>
+            </div>
+            <!-- Menu groups -->
+            <div class="font-body text-[10px] font-bold text-muted-fg uppercase tracking-widest mb-2 px-1">Account</div>
+            <div class="bg-cream/80 border border-border rounded-xl mb-5 overflow-hidden">
+              <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-border">
+                <span class="text-base">👤</span>
+                <span class="font-body text-sm flex-1 text-foreground">Edit profile</span>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-border">
+                <span class="text-base">🔔</span>
+                <span class="font-body text-sm flex-1 text-foreground">Notifications</span>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="flex items-center gap-3 px-4 py-3">
+                <span class="text-base">🔒</span>
+                <span class="font-body text-sm flex-1 text-foreground">Privacy &amp; security</span>
+                <span class="text-muted text-sm">›</span>
+              </a>
+            </div>
+            <div class="font-body text-[10px] font-bold text-muted-fg uppercase tracking-widest mb-2 px-1">Support</div>
+            <div class="bg-cream/80 border border-border rounded-xl mb-5 overflow-hidden">
+              <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-border">
+                <span class="text-base">💬</span>
+                <span class="font-body text-sm flex-1 text-foreground">Contact us</span>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-border">
+                <span class="text-base">📄</span>
+                <span class="font-body text-sm flex-1 text-foreground">Terms &amp; privacy</span>
+                <span class="text-muted text-sm">›</span>
+              </a>
+              <a href="#" class="flex items-center gap-3 px-4 py-3">
+                <span class="text-base">ℹ️</span>
+                <span class="font-body text-sm flex-1 text-foreground">About AIRA</span>
+                <span class="text-muted text-sm">›</span>
+              </a>
+            </div>
+            <button class="w-full border border-primary text-primary py-3 rounded-xl font-body text-sm font-bold">Sign out</button>
+            <p class="text-center font-body text-[10px] text-muted-fg mt-4">Operated by Nisarga Group LLC</p>
+          </div>
+        </div>
+        <div class="flex border-t border-border bg-cream">
+          <a href="#" class="tab-bar-item"><span class="ic">🏠</span> Home</a>
+          <a href="#" class="tab-bar-item"><span class="ic">📋</span> Categories</a>
+          <a href="#" class="tab-bar-item active"><span class="ic">👤</span> Account</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== MOBILE — SIDEBAR DRAWER OPEN ===== -->
+  <div class="max-w-7xl mx-auto mb-16">
+    <div class="viewport-label mb-2 inline-block rounded">MOBILE — Sidebar drawer open (tap hamburger from any screen)</div>
+    <div class="screen-frame" style="width:375px;">
+      <!-- Sidebar fills screen -->
+      <div class="sidebar-green flex flex-col" style="height:720px;">
+        <div class="px-5 pt-5 pb-5 border-b border-white/10 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-cream/90 flex items-center justify-center font-display text-primary text-xl font-bold">A</div>
+          <div class="flex-1">
+            <div class="font-display text-cream text-2xl leading-none">AIRA</div>
+            <div class="font-body text-cream-dim text-xs italic mt-1">by Nisarga</div>
+          </div>
+          <button class="text-cream text-2xl">✕</button>
+        </div>
+        <nav class="flex-1 flex flex-col">
+          <a href="#" class="sidebar-row"><span class="icon">🍛</span> Restaurants <span class="chev">›</span></a>
+          <a href="#" class="sidebar-row"><span class="icon">📚</span> Education <span class="chev">›</span></a>
+          <a href="#" class="sidebar-row"><span class="icon">🎉</span> Events &amp; Entertainment <span class="chev">›</span></a>
+          <a href="#" class="sidebar-row"><span class="icon">💼</span> Professional Services <span class="chev">›</span></a>
+          <a href="#" class="sidebar-row"><span class="icon">🌿</span> Health &amp; Wellness <span class="chev">›</span></a>
+          <a href="#" class="sidebar-row"><span class="icon">🏘️</span> Real Estate <span class="chev">›</span></a>
+          <a href="#" class="sidebar-row"><span class="icon">🛍️</span> Shopping <span class="chev">›</span></a>
+        </nav>
+        <div class="px-5 pt-6 pb-6 border-t border-white/10 text-center">
+          <div class="font-display text-cream text-base mb-3">Contact Us</div>
+          <div class="flex items-center justify-center gap-3 mb-4">
+            <a href="#" class="contact-icon">✉</a>
+            <a href="#" class="contact-icon">🌐</a>
+            <a href="#" class="contact-icon">☎</a>
+          </div>
+          <div class="font-body text-cream-dim text-[11px]">Operated by Nisarga Group LLC</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN NOTE ===== -->
+  <div class="max-w-7xl mx-auto mb-8">
+    <div class="bg-foreground/5 border border-border rounded-xl p-5 text-sm font-body text-foreground/80">
+      <strong>Admin (web only):</strong> Admin screens are not shown here. They live under <code class="bg-foreground/10 px-1 py-0.5 rounded">/admin/*</code> with their own layout (already implemented), and are unaffected by this end-user shell redesign. End-user mobile app keeps the 3-tab structure (Home · Categories · Account); admin functionality is desktop-web exclusive per the sprint plan.
+    </div>
+  </div>
+
+</body>
+</html>

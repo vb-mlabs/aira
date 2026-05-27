@@ -1,8 +1,9 @@
 # Review: End-User App Shell — Home, Listings, Account
 
-**Date:** 2026-05-26
+**Date:** 2026-05-26 (revised 2026-05-27 after V4 mockup approval)
 **Slug:** end-user-app-shell
 **Plan reviewed:** [2026-05-26-end-user-app-shell.md](../plans/2026-05-26-end-user-app-shell.md)
+**Mockup reference:** [.mstack/mockups/end-user-app-shell/](../mockups/end-user-app-shell/) — winner **V4 Sidebar Refined** (see `FEEDBACK.md`)
 **Status:** approved
 **UI-Significant:** yes
 **Reviewer:** mlabs-review
@@ -12,12 +13,28 @@
 ## Summary
 
 The plan is sound and ready to implement with adjustments. Three blockers were
-resolved during review: (1) mobile nav overflow — hamburger drawer on < md
-breakpoint; (2) DB tier/category columns stay as `text` with Zod validation
-rather than pgEnum; (3) both login AND signup post-auth redirects updated to
-`/home`. Two plan simplifications accepted: `/account` redirect page dropped
-(nav link text renamed "Account", href stays `/profile`); `/listings` root
-renders a category overview grid rather than redirecting.
+resolved during initial review: (1) mobile nav overflow; (2) DB tier/category
+columns stay as `text` with Zod validation rather than pgEnum; (3) both login
+AND signup post-auth redirects updated to `/home`.
+
+**Revised 2026-05-27 after mockup approval.** V4 (Sidebar Refined) replaces
+the original top-nav approach with a sidebar-led app shell:
+
+- **Desktop nav** = persistent green-textured left sidebar (~280px wide) with
+  avatar + "AIRA / by Nisarga" header, menu rows with leading icon + chevron,
+  "Contact Us" footer with 3 icon buttons + "Operated by Nisarga Group LLC".
+  Utility actions (notifications, account, sign out) move to a thin top
+  utility bar in the main content area.
+- **Mobile nav** = 3-tab bottom bar (**Home** · **Categories** · **Account**)
+  + hamburger in top bar opens the full green sidebar as a drawer.
+- **`/account` decision flips:** Account is now its own full screen (not a
+  redirect), so the bottom tab has a real destination. Contains profile
+  header + Account group + Support group + Sign-out button.
+- **New mobile route `/categories`** — full-screen category list mirroring
+  the sidebar contents.
+- **Brand assets:** Reuses existing `paper-green.webp` and `paper-cream.webp`
+  textures already in `apps/web/public/marketing-images/textures/`. No new
+  image assets needed.
 
 ---
 
@@ -74,20 +91,58 @@ renders a category overview grid rather than redirecting.
 
 ## Decisions locked
 
-1. Mobile nav: hamburger drawer on `< md`, full text links on `≥ md`.
-2. `tier` and `category`: `text` columns, Zod-validated in query layer with
+**Original (still valid):**
+1. `tier` and `category`: `text` columns, Zod-validated in query layer with
    exported constants (`VALID_TIERS`, `VALID_CATEGORIES`).
-3. Post-auth redirects: both `login/page.tsx` and `signup/page.tsx` → `/home`.
-4. `/account` page: dropped. Nav "Account" link → `/profile`.
-5. `/listings` root: category overview grid (no featured section).
-6. `image_url`: text column; Replit Object Storage URLs, admin-populated via
+2. Post-auth redirects: both `login/page.tsx` and `signup/page.tsx` → `/home`.
+3. `image_url`: text column; Replit Object Storage URLs, admin-populated via
    Drizzle Studio for MVP.
-7. Business slug: admin-supplied, Zod validates kebab-case.
-8. `updated_at`: Drizzle `.$onUpdate(() => new Date())`.
+4. Business slug: admin-supplied, Zod validates kebab-case.
+5. `updated_at`: Drizzle `.$onUpdate(() => new Date())`.
+
+**Updated 2026-05-27 from V4 mockup:**
+6. **App shell on desktop (≥ md)** = persistent left sidebar (~280px) with
+   `paper-green.webp` texture background. Replaces the original top nav.
+7. **App shell on mobile (< md)** = top bar (hamburger + "AIRA" wordmark +
+   notification bell) + 3-tab bottom bar (Home / Categories / Account). The
+   hamburger opens the full sidebar as a drawer.
+8. **`/account` page (REVERSED from prior decision):** now a full standalone
+   page at `apps/web/src/app/(app)/account/page.tsx`. Profile header (avatar
+   + name + email), Account group (Edit profile, Notifications, Privacy &
+   security), Support group (Contact us, Terms & privacy, About AIRA),
+   Sign-out button, "Operated by Nisarga Group LLC" footer. Edit profile +
+   notifications + privacy still resolve to existing `/profile` screens or
+   "coming soon" placeholders — the page is a real account hub, not a
+   redirect.
+9. **New mobile route `/categories`** — full-width category list (icon +
+   name + count + chevron). Mirrors the desktop sidebar's category section.
+10. **Sidebar contents** = Home, then 7 categories in display order
+    (Restaurants, Education, Events & Entertainment, Professional Services,
+    Health & Wellness, Real Estate, Shopping). Contact Us footer with 3
+    icon buttons (`Mail`, `Globe`, `Phone` from lucide-react) plus
+    "Operated by Nisarga Group LLC" small text.
+11. **Featured business card pattern** (used on home + featured grids):
+    circular avatar (cream bg, cream border) + name + verified blue tick
+    + small body-font category·location subtitle + olive "Call" pill
+    button (anchor with `tel:` href).
+12. **Stat cards on home** — two side-by-side: "500+ Verified Businesses",
+    "10K+ Community Members". Numbers are hardcoded placeholders for MVP
+    (no query); display only.
+13. **Brand textures** — reuse existing `paper-green.webp` (sidebar) and
+    `paper-cream.webp` (main content) from
+    `apps/web/public/marketing-images/textures/`. No new assets.
+14. **Icons** — use lucide-react throughout (already in deps from Sprint 0).
+    Mockup uses emoji as placeholders; production uses lucide.
 
 ---
 
 ## Implementation plan
+
+> **Revised 2026-05-27** to match V4 mockup. Tasks 1–3 + the final redirect
+> task are unchanged from the original review; UI/shell tasks are rebuilt
+> around the sidebar architecture. Reference
+> [.mstack/mockups/end-user-app-shell/v4/index.html](../mockups/end-user-app-shell/v4/index.html)
+> for the visual target.
 
 ### Task 1: DB schema — businesses table
 
@@ -136,74 +191,194 @@ renders a category overview grid rather than redirecting.
 ### Task 4: Listings feature — UI components
 
 - **Files:**
-  - `apps/web/src/features/listings/components/CategoryGrid.tsx` (new)
   - `apps/web/src/features/listings/components/BusinessCard.tsx` (new)
   - `apps/web/src/features/listings/components/BusinessDetail.tsx` (new)
+  - `apps/web/src/features/listings/components/CategoryRow.tsx` (new)
+  - `apps/web/src/features/listings/components/StatCard.tsx` (new)
   - `apps/web/src/features/listings/components/EmptyState.tsx` (new)
+  - `apps/web/src/features/listings/components/category-meta.ts` (new) — exports
+    the 7 categories with `slug`, `displayName`, `description`, `lucideIcon`
+    (e.g. `UtensilsCrossed`, `GraduationCap`, etc.). Single source so the
+    sidebar, categories screen, and validators all agree.
   - `apps/web/src/features/listings/index.ts` (edit — add component exports)
-- **What:** `CategoryGrid` — renders 7 hardcoded category tiles using
-  tier-colour design tokens from `globals.css` (`var(--tier1)` etc); each
-  tile links to `/listings/[category-slug]`. `BusinessCard` — name, tier
-  indicator pill, verified badge (olive tick); links to
-  `/listings/[category]/[id]`. `BusinessDetail` — full fields: name,
-  description, phone (tel: link), website (external link), address, verified
-  badge, tier indicator, back chevron. `EmptyState` — generic "No listings
-  yet" message. All components: no brand string literals (import from
-  `@aira/config` if needed), design tokens only, mobile-responsive.
-- **Acceptance:** Components render without runtime errors, use
-  `var(--tier1/2/3)` tokens for colour, no hardcoded "#hexes" or brand
-  strings, `pnpm typecheck` passes.
+- **What:**
+  - `BusinessCard` — circular avatar (cream bg, lucide icon based on category)
+    + name + verified blue tick (`BadgeCheck` lucide icon, `text-info`) +
+    category·location subtitle + olive "Call" pill (anchor with `tel:` href).
+    Optional `tier` prop renders a tier pill (`var(--tier1/2/3)`). Clicking
+    anywhere except the call button routes to detail page.
+  - `BusinessDetail` — full fields (name, tier pill, verified tick, description,
+    phone, website, address) + two prominent CTAs at the bottom: filled olive
+    "Call Now" + outline olive "Visit Website". Back chevron at top.
+  - `CategoryRow` — icon (lucide) + name + count subtitle + chevron right.
+    Used in the mobile `/categories` screen and rendered inside the sidebar
+    as the menu rows.
+  - `StatCard` — display-font number + uppercase caption. Used on home.
+  - `EmptyState` — body-font "No listings yet" message + optional icon.
+- **Acceptance:** Components render without runtime errors; use `var(--tier1/2/3)`
+  / `var(--primary)` / `var(--info)` tokens; no hardcoded hex; no brand string
+  literals; lucide-react icons throughout; `pnpm typecheck` passes.
 
-### Task 5: App routes — /home
-
-- **Files:** `apps/web/src/app/(app)/home/page.tsx` (new)
-- **What:** Server Component. `export const metadata = { title: "Home" }`.
-  Calls `getFeaturedBusinesses()`. Renders `CategoryGrid` always. Renders a
-  "Featured" section only when the query returns ≥ 1 result (hidden otherwise,
-  no empty block). Layout: category grid below page title, featured cards in a
-  responsive grid beneath.
-- **Acceptance:** `/home` renders at 375px without overflow; featured section
-  absent when no businesses; category grid always present; page title "Home"
-  in `<head>`.
-
-### Task 6: App routes — /listings
+### Task 5: App shell — Sidebar component
 
 - **Files:**
-  - `apps/web/src/app/(app)/listings/page.tsx` (new)
+  - `apps/web/src/app/(app)/_components/app-sidebar.tsx` (new)
+  - `apps/web/src/app/(app)/_components/app-sidebar-drawer.tsx` (new)
+- **What:**
+  - `AppSidebar` — Server Component, renders the persistent sidebar:
+    - 280px wide; background `url('/marketing-images/textures/paper-green.webp')`
+      with `--primary` as fallback colour
+    - Header: 48px circular avatar (cream bg, "A" in display font, primary
+      colour) + stacked "AIRA" (display) and "by Nisarga" (italic body-sm,
+      cream/70) — pull text from `brand` import in `@aira/config`
+    - Menu: one row per item via shared row primitive — leading lucide icon
+      + label + trailing `ChevronRight`. Items: Home (`Home`), then 7
+      categories from `category-meta.ts`. Active state = subtle
+      `bg-cream/10` + `font-bold`. Use `usePathname` (Client Component variant
+      or pass `currentPath` as prop) to set active.
+    - Footer: "Contact Us" small display heading + 3 round icon buttons
+      (`Mail` → `mailto:`, `Globe` → website, `Phone` → `tel:`) sourced from
+      `brand.supportEmail` / `brand.url` (no hardcoded URLs) + small
+      body-text "Operated by `{brand.legalEntity}`"
+  - `AppSidebarDrawer` — Client Component wrapping `AppSidebar` in a slide-in
+    overlay for mobile. Local `useState` for open/close; close X in header.
+    Listens to route changes via `usePathname` and auto-closes on navigation.
+- **Acceptance:** Sidebar renders with green texture and cream text; brand
+  text is pulled from `@aira/config` (no string literals); active row
+  highlights on the current route; drawer opens/closes smoothly on mobile;
+  `pnpm lint` (including `no-brand-string-literal`) passes.
+
+### Task 6: App shell — Bottom tab bar
+
+- **Files:**
+  - `apps/web/src/app/(app)/_components/bottom-tab-bar.tsx` (new)
+- **What:** Client Component, mobile-only (`md:hidden`). 3 tabs equal-width:
+  Home (`/home`, `Home` icon), Categories (`/categories`, `LayoutGrid` icon),
+  Account (`/account`, `User` icon). Each tab is a `Link` with vertical
+  layout (icon above label). Active state via `usePathname` — active tab
+  gets `text-primary` + `font-bold`; inactive `text-muted-foreground`.
+  Fixed to viewport bottom with `border-t border-border bg-card`. Safe-area
+  inset padding (`pb-[env(safe-area-inset-bottom)]`) for notched devices.
+- **Acceptance:** Bar appears only at `< md`; active tab highlights based on
+  route; navigating between tabs works; respects iOS safe area; `pnpm
+  typecheck` passes.
+
+### Task 7: App shell — Layout restructure
+
+- **Files:**
+  - `apps/web/src/app/(app)/layout.tsx` (edit — rewrite)
+  - `apps/web/src/app/(app)/_components/top-utility-bar.tsx` (new — small
+    thin bar in main content area: `NotificationBell` + `Account` link
+    + `SignOutButton`)
+- **What:** Replace the existing nav shell. New layout structure:
+  - `requireUser()` at the top (unchanged)
+  - Desktop (`≥ md`) grid: sidebar (`AppSidebar`, 280px fixed) +
+    main column (flex-1, `paper-cream.webp` background). Main column has
+    `TopUtilityBar` then `{children}` then no bottom bar.
+  - Mobile (`< md`): top header (hamburger button opening
+    `AppSidebarDrawer` + AIRA wordmark + `NotificationBell`), then
+    `{children}` (with bottom padding to clear the tab bar), then
+    `BottomTabBar` at the viewport bottom.
+  - Use Tailwind responsive classes to switch — no separate layouts. Account
+    link in top utility bar → `/account`. Sign-out continues to use the
+    existing `SignOutButton`.
+- **Acceptance:** Desktop shows persistent sidebar + main area; mobile shows
+  hamburger + bottom tab bar; resizing the browser switches between modes
+  without page reload; no overflow at 375px; `pnpm typecheck` passes.
+- **Pause if:** The existing `NotificationBell` component has a baked-in
+  layout assumption that doesn't fit the new utility bar — flag for
+  refactor rather than rewriting in place.
+
+### Task 8: App route — /home
+
+- **Files:**
+  - `apps/web/src/app/(app)/home/page.tsx` (new)
+- **What:** Server Component. `export const metadata = { title: "Home" }`.
+  Calls `getFeaturedBusinesses()`. Renders, in order:
+  1. Centred AIRA logo mark (olive circle with cream "A" in display font —
+     reuse the welcome-hero tree-of-life mark if it exists; otherwise inline
+     a simple SVG circle)
+  2. "AIRA" display-font heading + "ROOTS · REACH" caps body-xs caption.
+     Pull tagline from `brand.tagline` and dot-separate the words
+     programmatically (`brand.tagline.split(" & ").join(" · ")`).
+  3. "About AIRA" h2 + 2–3 sentence paragraph from a constant in this file
+     (description is brand copy; OK to inline)
+  4. Two `StatCard`s in a 2-column grid: "500+ Verified Businesses" and
+     "10K+ Community Members" (hardcoded numbers for MVP — flag inline as
+     `// TODO(post-MVP): replace with real counts`)
+  5. "Featured Businesses" section with "View All →" link to `/listings`
+     and a vertical list of `BusinessCard`s (max 6). Section hidden if no
+     results.
+- **Acceptance:** `/home` renders at 375px without overflow; featured section
+  hidden when no businesses; tagline pulls from `brand.tagline`; AIRA name
+  pulls from `brand.name`; `pnpm lint` passes (no brand-string-literal
+  violations).
+
+### Task 9: App route — /categories
+
+- **Files:**
+  - `apps/web/src/app/(app)/categories/page.tsx` (new)
+- **What:** Server Component. `export const metadata = { title: "Categories" }`.
+  Imports `category-meta.ts` and renders a vertical list of `CategoryRow`s,
+  one per category, linking to `/listings/[slug]`. Optionally calls a new
+  `getBusinessCountByCategory()` query to populate the count subtitle (or
+  inline a placeholder "View all →" if adding the query expands scope —
+  reviewer's call below). Page is mobile-prominent but renders the same on
+  desktop.
+- **Acceptance:** All 7 categories appear; each row links to the correct
+  category slug; renders cleanly at 375px and on desktop; `pnpm typecheck`
+  passes.
+- **Pause if:** Adding `getBusinessCountByCategory()` requires a more
+  complex GROUP BY query than 4 lines — skip the count subtitle for MVP
+  and render "View all →" placeholder instead.
+
+### Task 10: App routes — /listings/[category] and /listings/[category]/[id]
+
+- **Files:**
   - `apps/web/src/app/(app)/listings/[category]/page.tsx` (new)
   - `apps/web/src/app/(app)/listings/[category]/[id]/page.tsx` (new)
 - **What:**
-  - `listings/page.tsx` — Server Component; renders same `CategoryGrid` (no
-    featured section). Title: "Browse".
-  - `listings/[category]/page.tsx` — validates `params.category` against
-    `VALID_CATEGORIES`; calls `notFound()` if invalid. Calls
-    `getBusinessesByCategory()`. Renders list of `BusinessCard` components or
+  - `[category]/page.tsx` — validates `params.category` against
+    `VALID_CATEGORIES`; `notFound()` on miss. Calls
+    `getBusinessesByCategory()`. Renders heading (category display name + N
+    listings) + vertical list of `BusinessCard`s (with tier pill) or
     `EmptyState`. Title: category display name.
-  - `listings/[category]/[id]/page.tsx` — calls `getBusinessById(params.id)`;
-    calls `notFound()` if null. Renders `BusinessDetail`. Back link →
+  - `[category]/[id]/page.tsx` — calls `getBusinessById(params.id)`;
+    `notFound()` if null. Renders `BusinessDetail` with back chevron →
     `/listings/[category]`. Title: business name.
-- **Acceptance:** `/listings` renders category grid; invalid category slug →
-  404; valid category with no businesses → EmptyState; valid business →
-  detail renders; unknown id → 404; back link works; `pnpm typecheck` passes.
+  - Note: the original `/listings` root is **not** built in this revision —
+    `/categories` covers that role for mobile, and desktop users navigate
+    via the sidebar.
+- **Acceptance:** Invalid category slug → 404; valid category with no
+  businesses → EmptyState; valid business → detail renders; unknown id →
+  404; back link works; phone link has `tel:` href; `pnpm typecheck` passes.
 
-### Task 7: Nav shell — desktop + mobile hamburger
+### Task 11: App route — /account
 
 - **Files:**
-  - `apps/web/src/app/(app)/layout.tsx` (edit)
-  - `apps/web/src/app/(app)/_components/mobile-nav.tsx` (new)
-- **What:** Update `(app)/layout.tsx` nav links: add **Home** (`/home`), add
-  **Browse** (`/listings`), rename "Profile" label → **Account** (href stays
-  `/profile`), keep **Messages** and **NotificationBell** and **SignOutButton**.
-  Logo `href` changes from `/` → `/home`. On `< md` breakpoint, show a
-  hamburger icon button (lucide-react `Menu` icon, already available) that
-  opens `MobileNav` — a slide-out drawer listing all nav links. On `≥ md`,
-  show the full inline text-link row as now. `MobileNav` is a Client Component
-  with local `useState` for open/close.
-- **Acceptance:** Desktop nav (≥ md) shows all links inline without overflow;
-  mobile (375px) shows hamburger only; tapping hamburger opens drawer with all
-  links; all links navigate correctly; `pnpm typecheck` passes.
+  - `apps/web/src/app/(app)/account/page.tsx` (new)
+- **What:** Server Component. `requireUser()` (provides current user for
+  profile header). `export const metadata = { title: "My Account" }`.
+  Layout (vertical):
+  1. Profile header: 64px circular avatar with initial of user's name
+     (fallback: email's first char), display-font name, body-font email.
+  2. "Account" group (label + card with 3 rows): Edit profile (→ `/profile`),
+     Notifications (→ `#`, placeholder), Privacy & security (→ `#`,
+     placeholder). Each row: lucide icon + label + chevron.
+  3. "Support" group (3 rows): Contact us (→ `mailto:${brand.supportEmail}`),
+     Terms & privacy (→ `/legal/terms`, if exists; else `#` placeholder),
+     About AIRA (→ `/about`, if exists; else `#` placeholder).
+  4. "Sign out" — outline olive button using existing `SignOutButton`
+     component (style override if needed via wrapper).
+  5. "Operated by `{brand.legalEntity}`" small footer text.
+- **Acceptance:** `/account` renders for any signed-in user; placeholders
+  use `#` href and are visually distinguished (e.g. slightly dimmer); brand
+  text pulled from `@aira/config`; `pnpm lint` passes
+  (`no-brand-string-literal`).
+- **Pause if:** `SignOutButton` can't be visually adjusted to the outline
+  style without prop changes — flag for a small component prop addition.
 
-### Task 8: Post-auth redirects → /home
+### Task 12: Post-auth redirects → /home
 
 - **Files:**
   - `apps/web/src/app/(auth)/login/page.tsx` (edit)
@@ -220,4 +395,5 @@ renders a category overview grid rather than redirecting.
 
 ## Open questions
 
-None remaining — all open questions from the plan were resolved during review.
+None remaining — V4 mockup resolved the nav-architecture questions from the
+prior review revision.

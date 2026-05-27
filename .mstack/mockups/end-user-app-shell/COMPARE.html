@@ -53,7 +53,7 @@
     }
     .compare-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
       gap: 0;
       height: calc(100vh - 100px);
     }
@@ -85,6 +85,7 @@
     .v1-badge { background: #4F653B; color: #F5EFE3; }
     .v2-badge { background: #B8904A; color: #2A1E14; }
     .v3-badge { background: #C97A2A; color: #F5EFE3; }
+    .v4-badge { background: #4F653B; color: #F3EBDD; border: 2px solid #B8904A; }
     .variant-title {
       font-size: 14px;
       font-weight: 700;
@@ -131,7 +132,7 @@
 <header>
   <div>
     <h1>AIRA — End-User App Shell Mockups</h1>
-    <p>3 variants · Layout structure axis · Home + Listings + Detail + Nav</p>
+    <p>4 variants · Layout structure axis · V4 = refined winner with green-texture sidebar + mobile 3-tab nav</p>
   </div>
   <div style="font-size:12px; color:#C5B99A; text-align:right;">
     Axis: <strong style="color:#F5EFE3;">Layout structure</strong><br>
@@ -144,6 +145,7 @@
   <div class="tab" onclick="showSingle('v1')">V1 Full</div>
   <div class="tab" onclick="showSingle('v2')">V2 Full</div>
   <div class="tab" onclick="showSingle('v3')">V3 Full</div>
+  <div class="tab" onclick="showSingle('v4')">V4 Full ★</div>
 </div>
 
 <!-- Compare view -->
@@ -178,6 +180,16 @@
     </div>
     <iframe src="v3/index.html" title="V3 List-Led"></iframe>
   </div>
+  <div class="variant-col">
+    <div class="variant-header">
+      <span class="variant-badge v4-badge">V4 ★</span>
+      <div>
+        <div class="variant-title">Sidebar Refined</div>
+        <div class="variant-desc">Refined V2 — green-texture sidebar matching inspiration; mobile uses 3-tab bottom nav (Home / Categories / Account) with drawer for full menu.</div>
+      </div>
+    </div>
+    <iframe src="v4/index.html" title="V4 Sidebar Refined"></iframe>
+  </div>
 </div>
 
 <!-- Single variant views (hidden by default) -->
@@ -193,6 +205,10 @@
   <div class="single-header">Viewing <strong style="color:#F5EFE3;">V3 — List-Led</strong> in full &nbsp;·&nbsp; <a href="#" onclick="showCompare(); return false;">← Back to compare</a></div>
   <iframe src="v3/index.html"></iframe>
 </div>
+<div class="single-view" id="v4-view">
+  <div class="single-header">Viewing <strong style="color:#F5EFE3;">V4 — Sidebar Refined ★</strong> in full &nbsp;·&nbsp; <a href="#" onclick="showCompare(); return false;">← Back to compare</a></div>
+  <iframe src="v4/index.html"></iframe>
+</div>
 
 <script>
   function showCompare() {
@@ -206,7 +222,7 @@
     document.getElementById(v + '-view').style.display = 'flex';
     document.getElementById(v + '-view').style.flexDirection = 'column';
     const tabs = document.querySelectorAll('.tab');
-    const idx = v === 'v1' ? 1 : v === 'v2' ? 2 : 3;
+    const idx = v === 'v1' ? 1 : v === 'v2' ? 2 : v === 'v3' ? 3 : 4;
     tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
   }
 </script>
