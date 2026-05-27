@@ -71,6 +71,13 @@
       "when": 1779789052607,
       "tag": "0009_chemical_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779885306291,
+      "tag": "0010_early_omega_red",
+      "breakpoints": true
     }
   ]
 }
