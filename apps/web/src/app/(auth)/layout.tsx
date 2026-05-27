@@ -2,10 +2,9 @@
 // /verify-email. Renders the tree-of-life logo header above the card and the
 // "AIRA by Nisarga" attribution footer below it.
 //
-// The cream paper-grain background paints on <body> via --texture-paper in
-// globals.css; we deliberately do NOT add a background-image here to avoid
-// double-stacking the texture. The radial top-glow from the previous
-// MLabs-template shell is removed — the paper grain is the atmosphere.
+// Background is the cream paper PNG (same asset used on the landing page's
+// cream sections) so auth visually matches the marketing surface. It paints
+// on <main>, layered over the body's --texture-paper fallback.
 
 import Image from "next/image"
 import Link from "next/link"
@@ -13,7 +12,7 @@ import { brand } from "@aira/config"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="relative flex flex-1 flex-col items-center px-6 py-12">
+    <main className="relative flex flex-1 flex-col items-center bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 py-12">
       <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-8">
         <Link
           href="/"

@@ -47,7 +47,7 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 text-center">
         <h1 className="font-display text-3xl tracking-tight text-foreground">
           Check your email
         </h1>

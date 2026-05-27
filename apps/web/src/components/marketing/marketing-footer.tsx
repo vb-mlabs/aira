@@ -15,7 +15,6 @@ const NISARGA_LINKEDIN_URL = "#"
 const NISARGA_WEBSITE_URL = "https://nisargagroup.com"
 
 const forUsersLinks = [
-  { href: "#categories", label: "Browse categories" },
   { href: "#notify", label: "Get notified at launch" },
   { href: "#about", label: "About AIRA" },
 ]
