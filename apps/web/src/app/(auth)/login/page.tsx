@@ -43,7 +43,7 @@ export default function LoginPage() {
       setErrors({ form: res.error.message ?? "Sign in failed" })
       return
     }
-    router.push("/messages")
+    router.push("/home")
   }
 
   return (
