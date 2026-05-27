@@ -15,7 +15,6 @@ const NISARGA_LINKEDIN_URL = "#"
 const NISARGA_WEBSITE_URL = "https://nisargagroup.com"
 
 const forUsersLinks = [
-  { href: "#categories", label: "Browse categories" },
   { href: "#notify", label: "Get notified at launch" },
   { href: "#about", label: "About AIRA" },
 ]
@@ -33,7 +32,7 @@ const legalLinks = [
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-[color:oklch(0.50_0.07_80_/_30%)] px-6 pb-10 pt-20">
+    <footer className="border-t border-[color:oklch(0.50_0.07_80_/_30%)] bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-10 pt-20">
       <div className="mx-auto max-w-[1180px]">
         <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="flex items-start gap-[14px]">

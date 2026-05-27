@@ -45,7 +45,7 @@ function auditClient(ctx: CallerContext): "web" | "mobile" {
 export async function changeRole(
   db: Database,
   ctx: CallerContext,
-  args: { targetId: string; role: "user" | "admin" },
+  args: { targetId: string; role: "end_user" | "admin" },
 ): Promise<AdminResult> {
   const { targetId, role } = args
 
@@ -63,12 +63,23 @@ export async function changeRole(
     .limit(1)
   if (!target) throw ApiError.notFound("admin.user_not_found", "User not found.")
 
-  const currentRole = target.role === "admin" ? "admin" : "user"
+  // super_admin is an unsupported target for this UI — admins cannot demote
+  // super_admins via the user-management screen. Bootstrap is the only path
+  // to super_admin (T5), and demotions out of super_admin go through a
+  // separate flow added in a later sprint.
+  if (target.role === "super_admin") {
+    throw ApiError.badRequest(
+      "admin.super_admin_target",
+      "Super-admin role cannot be changed from this screen.",
+    )
+  }
+  const currentRole: "end_user" | "admin" =
+    target.role === "admin" ? "admin" : "end_user"
   if (currentRole === role) {
     return { ok: true, message: "No change." }
   }
 
-  if (currentRole === "admin" && role === "user") {
+  if (currentRole === "admin" && role === "end_user") {
     // Demote — refuse if this is the last admin. Race window with a
     // concurrent demote is theoretical (admins coordinate); flagged as
     // v1.1 hardening (FOR UPDATE) in /plan-eng-review.

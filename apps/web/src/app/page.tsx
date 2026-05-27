@@ -4,7 +4,6 @@
 import { brand } from "@aira/config"
 import { AboutEditorial } from "@/components/marketing/about-editorial"
 import { BusinessPanel } from "@/components/marketing/business-panel"
-import { CategoriesRoster } from "@/components/marketing/categories-roster"
 import { Hero } from "@/components/marketing/hero"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingNav } from "@/components/marketing/marketing-nav"
@@ -45,7 +44,6 @@ export default function Home() {
       <main className="flex flex-1 flex-col">
         <Hero />
         <AboutEditorial />
-        <CategoriesRoster />
         <PhoneShowcase />
         <BusinessPanel />
       </main>

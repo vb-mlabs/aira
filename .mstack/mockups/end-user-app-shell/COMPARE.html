@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compare — AIRA End-User App Shell</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: #2A1E14;
+      color: #F5EFE3;
+      min-height: 100vh;
+    }
+    header {
+      padding: 20px 32px;
+      border-bottom: 1px solid rgba(245,239,227,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    header p {
+      font-size: 12px;
+      color: #C5B99A;
+      margin-top: 2px;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      border-bottom: 1px solid rgba(245,239,227,0.15);
+      background: #1E160E;
+    }
+    .tab {
+      padding: 12px 24px;
+      font-size: 13px;
+      color: #C5B99A;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .tab:hover { color: #F5EFE3; }
+    .tab.active {
+      color: #F5EFE3;
+      border-bottom-color: #4F653B;
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 0;
+      height: calc(100vh - 100px);
+    }
+    .variant-col {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(245,239,227,0.1);
+      overflow: hidden;
+    }
+    .variant-col:last-child { border-right: none; }
+    .variant-header {
+      padding: 12px 16px;
+      background: #1E160E;
+      border-bottom: 1px solid rgba(245,239,227,0.1);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .variant-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .v1-badge { background: #4F653B; color: #F5EFE3; }
+    .v2-badge { background: #B8904A; color: #2A1E14; }
+    .v3-badge { background: #C97A2A; color: #F5EFE3; }
+    .v4-badge { background: #4F653B; color: #F3EBDD; border: 2px solid #B8904A; }
+    .variant-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #F5EFE3;
+      line-height: 1.3;
+    }
+    .variant-desc {
+      font-size: 11px;
+      color: #C5B99A;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #EAE0CB;
+    }
+
+    /* Single-variant full view */
+    .single-view {
+      display: none;
+      height: calc(100vh - 100px);
+    }
+    .single-view iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .single-header {
+      padding: 12px 32px;
+      background: #1E160E;
+      border-bottom: 1px solid rgba(245,239,227,0.1);
+      font-size: 13px;
+      color: #C5B99A;
+      flex-shrink: 0;
+    }
+    .single-header a { color: #4F653B; text-decoration: none; }
+    .single-header a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>AIRA — End-User App Shell Mockups</h1>
+    <p>4 variants · Layout structure axis · V4 = refined winner with green-texture sidebar + mobile 3-tab nav</p>
+  </div>
+  <div style="font-size:12px; color:#C5B99A; text-align:right;">
+    Axis: <strong style="color:#F5EFE3;">Layout structure</strong><br>
+    Generated: 2026-05-26
+  </div>
+</header>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showCompare()">Side by Side</div>
+  <div class="tab" onclick="showSingle('v1')">V1 Full</div>
+  <div class="tab" onclick="showSingle('v2')">V2 Full</div>
+  <div class="tab" onclick="showSingle('v3')">V3 Full</div>
+  <div class="tab" onclick="showSingle('v4')">V4 Full ★</div>
+</div>
+
+<!-- Compare view -->
+<div class="compare-grid" id="compare-view">
+  <div class="variant-col">
+    <div class="variant-header">
+      <span class="variant-badge v1-badge">V1</span>
+      <div>
+        <div class="variant-title">Grid-Led</div>
+        <div class="variant-desc">7 large category tiles front-and-centre. Featured businesses below the fold. Portal-style, familiar directory feel.</div>
+      </div>
+    </div>
+    <iframe src="v1/index.html" title="V1 Grid-Led"></iframe>
+  </div>
+  <div class="variant-col">
+    <div class="variant-header">
+      <span class="variant-badge v2-badge">V2</span>
+      <div>
+        <div class="variant-title">Editorial Sidebar Split</div>
+        <div class="variant-desc">Fixed left sidebar with all categories always visible. Right column shows businesses + featured. Magazine/newspaper directory feel.</div>
+      </div>
+    </div>
+    <iframe src="v2/index.html" title="V2 Editorial Sidebar"></iframe>
+  </div>
+  <div class="variant-col">
+    <div class="variant-header">
+      <span class="variant-badge v3-badge">V3</span>
+      <div>
+        <div class="variant-title">List-Led</div>
+        <div class="variant-desc">Horizontal pill categories at top, businesses in a full-width compact list immediately below. Zero-click-to-browse, app-like feel.</div>
+      </div>
+    </div>
+    <iframe src="v3/index.html" title="V3 List-Led"></iframe>
+  </div>
+  <div class="variant-col">
+    <div class="variant-header">
+      <span class="variant-badge v4-badge">V4 ★</span>
+      <div>
+        <div class="variant-title">Sidebar Refined</div>
+        <div class="variant-desc">Refined V2 — green-texture sidebar matching inspiration; mobile uses 3-tab bottom nav (Home / Categories / Account) with drawer for full menu.</div>
+      </div>
+    </div>
+    <iframe src="v4/index.html" title="V4 Sidebar Refined"></iframe>
+  </div>
+</div>
+
+<!-- Single variant views (hidden by default) -->
+<div class="single-view" id="v1-view">
+  <div class="single-header">Viewing <strong style="color:#F5EFE3;">V1 — Grid-Led</strong> in full &nbsp;·&nbsp; <a href="#" onclick="showCompare(); return false;">← Back to compare</a></div>
+  <iframe src="v1/index.html"></iframe>
+</div>
+<div class="single-view" id="v2-view">
+  <div class="single-header">Viewing <strong style="color:#F5EFE3;">V2 — Editorial Sidebar Split</strong> in full &nbsp;·&nbsp; <a href="#" onclick="showCompare(); return false;">← Back to compare</a></div>
+  <iframe src="v2/index.html"></iframe>
+</div>
+<div class="single-view" id="v3-view">
+  <div class="single-header">Viewing <strong style="color:#F5EFE3;">V3 — List-Led</strong> in full &nbsp;·&nbsp; <a href="#" onclick="showCompare(); return false;">← Back to compare</a></div>
+  <iframe src="v3/index.html"></iframe>
+</div>
+<div class="single-view" id="v4-view">
+  <div class="single-header">Viewing <strong style="color:#F5EFE3;">V4 — Sidebar Refined ★</strong> in full &nbsp;·&nbsp; <a href="#" onclick="showCompare(); return false;">← Back to compare</a></div>
+  <iframe src="v4/index.html"></iframe>
+</div>
+
+<script>
+  function showCompare() {
+    document.getElementById('compare-view').style.display = 'grid';
+    document.querySelectorAll('.single-view').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  }
+  function showSingle(v) {
+    document.getElementById('compare-view').style.display = 'none';
+    document.querySelectorAll('.single-view').forEach(el => el.style.display = 'none');
+    document.getElementById(v + '-view').style.display = 'flex';
+    document.getElementById(v + '-view').style.flexDirection = 'column';
+    const tabs = document.querySelectorAll('.tab');
+    const idx = v === 'v1' ? 1 : v === 'v2' ? 2 : v === 'v3' ? 3 : 4;
+    tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+  }
+</script>
+
+</body>
+</html>

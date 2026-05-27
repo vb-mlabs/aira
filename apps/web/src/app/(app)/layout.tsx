@@ -1,14 +1,23 @@
-// Authed-area layout. Wraps all (app)/* routes — anything that requires a
-// signed-in user. Unauthenticated requests redirect to /login via requireUser.
+// Authed-area layout. Wraps all (app)/* routes — anything that requires
+// a signed-in user. Unauthenticated requests redirect to /login via
+// requireUser.
 //
-// Keep the shell deliberately thin: header with brand + sign out, full-width
-// content. Features mount inside without competing for chrome.
+// Shell composition (locked by the V4 mockup approved 2026-05-27):
+//   - Desktop (md+): persistent green-textured sidebar fixed on the left
+//     at 280px; main column has matching pl-[280px] and renders a thin
+//     top utility bar above the page content.
+//   - Mobile (< md): top bar (hamburger + AIRA wordmark + bell) + the
+//     same sidebar accessible as a slide-in drawer; 3-tab bottom bar
+//     (Home/Categories/Account) fixed to the viewport bottom.
 
 import Link from "next/link"
 import { brand } from "@aira/config"
 import { requireUser } from "@/lib/auth/server"
 import { NotificationBell } from "@/features/notifications"
-import { SignOutButton } from "./_components/sign-out-button"
+import { AppSidebar } from "./_components/app-sidebar"
+import { BottomTabBar } from "./_components/bottom-tab-bar"
+import { MobileSidebar } from "./_components/mobile-sidebar"
+import { TopUtilityBar } from "./_components/top-utility-bar"
 
 export default async function AppLayout({
   children,
@@ -18,33 +27,35 @@ export default async function AppLayout({
   const user = await requireUser()
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-sm font-semibold tracking-tight">
+    <div className="min-h-full">
+      {/* Desktop sidebar — fixed full-height on the left. */}
+      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[280px] md:flex-col">
+        <AppSidebar />
+      </aside>
+
+      <div className="flex min-h-full flex-col md:pl-[280px]">
+        {/* Mobile top header. */}
+        <header className="flex h-14 items-center justify-between border-b border-border bg-card/40 px-4 backdrop-blur-sm md:hidden">
+          <MobileSidebar />
+          <Link
+            href="/home"
+            className="font-display text-lg font-semibold text-foreground"
+          >
             {brand.name}
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            <NotificationBell />
-            <Link
-              href="/messages"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Messages
-            </Link>
-            <Link
-              href="/profile"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Profile
-            </Link>
-            <SignOutButton />
-          </nav>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
-        {children}
-      </main>
+          <NotificationBell />
+        </header>
+
+        {/* Desktop top utility bar (Account / Notifications / Sign out). */}
+        <TopUtilityBar />
+
+        {/* Page content. Bottom padding clears the mobile tab bar; the
+            sidebar already pushes width on desktop via md:pl-[280px]. */}
+        <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      </div>
+
+      <BottomTabBar />
+
       <p className="sr-only">Signed in as {user.email}</p>
     </div>
   )

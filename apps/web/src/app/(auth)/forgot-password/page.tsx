@@ -38,7 +38,9 @@ export default function ForgotPasswordPage() {
   if (submitted) {
     return (
       <div className="space-y-3">
-        <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Check your email
+        </h1>
         <p className="text-sm text-muted-foreground">
           If an account exists for <span className="text-foreground">{email}</span>,
           we&apos;ve sent a password reset link.
@@ -50,7 +52,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Forgot your password?</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Forgot your password?
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Enter your email and we&apos;ll send you a reset link.
         </p>
@@ -79,7 +83,7 @@ export default function ForgotPasswordPage() {
       <p className="text-center text-sm text-muted-foreground">
         Remembered it?{" "}
         <Link href="/login" className="text-foreground hover:underline">
-          Sign in
+          Sign In
         </Link>
       </p>
     </div>

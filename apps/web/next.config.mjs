@@ -31,11 +31,15 @@ const nextConfig = {
   // Allow dev-time cross-origin requests from local + Replit preview hosts.
   // Next.js 16 blocks cross-origin dev requests by default; without these
   // the *.replit.dev preview iframe shows CORS warnings on every HMR ping.
+  // Replit domains are two levels deep (e.g. <id>.kirk.replit.dev) so we
+  // include the exact REPLIT_DEV_DOMAIN alongside broad wildcard patterns.
   allowedDevOrigins: [
     "127.0.0.1",
     "*.replit.dev",
     "*.repl.co",
     "*.worf.replit.dev",
+    "*.kirk.replit.dev",
+    ...(process.env.REPLIT_DEV_DOMAIN ? [process.env.REPLIT_DEV_DOMAIN] : []),
   ],
 
   // Workspace packages ship TS source from packages/* — Next needs to run

@@ -47,8 +47,10 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="space-y-3">
-        <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
+      <div className="space-y-3 text-center">
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Check your email
+        </h1>
         <p className="text-sm text-muted-foreground">
           We sent a verification link to <span className="text-foreground">{email}</span>.
           Click it to finish setting up your account.
@@ -59,8 +61,10 @@ export default function SignupPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+      <div className="text-center">
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Create your account
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           A few details and you&apos;re in.
         </p>
@@ -72,6 +76,7 @@ export default function SignupPage() {
             id="name"
             type="text"
             autoComplete="name"
+            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-invalid={!!errors.name}
@@ -88,6 +93,7 @@ export default function SignupPage() {
             id="email"
             type="email"
             autoComplete="email"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             aria-invalid={!!errors.email}
@@ -103,6 +109,7 @@ export default function SignupPage() {
           <PasswordInput
             id="password"
             autoComplete="new-password"
+            placeholder="Enter your password"
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -122,13 +129,13 @@ export default function SignupPage() {
           </p>
         )}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
-          {pending ? "Creating account…" : "Create account"}
+          {pending ? "Creating account…" : "Sign Up"}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link href="/login" className="text-foreground hover:underline">
-          Sign in
+          Sign In
         </Link>
       </p>
     </div>

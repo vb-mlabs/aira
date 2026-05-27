@@ -1,20 +1,13 @@
 import * as React from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthShell } from "../../components/AuthShell";
 import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
 import { useResetPassword } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
 import { ResetPasswordSchema } from "@aira/validators";
 import { ApiError } from "../../lib/api/client";
-import { brand } from "@aira/config";
 
 /**
  * Reset password screen — deep-link target. URL: aira://reset-password?token=…
@@ -62,68 +55,50 @@ export default function ResetPasswordScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
+    <AuthShell>
+      <View>
+        <Text
+          accessibilityRole="header"
+          className="font-display text-4xl text-foreground"
         >
-          <View className="flex-1 px-6 pt-6">
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-              <View className="size-2 rounded-full bg-primary" />
-              <Text className="text-base font-extrabold tracking-tight text-foreground">
-                {brand.name}
-              </Text>
-            </View>
-            <View className="mt-8">
-              <Text
-                accessibilityRole="header"
-                className="text-4xl font-semibold text-foreground"
-              >
-                Set a new password
-              </Text>
-              <Text className="mt-2 text-base text-mutedForeground">
-                Choose something you'll remember.
-              </Text>
-            </View>
-            <View className="mt-8" style={{ gap: 24 }}>
-              <PasswordInput
-                label="New password"
-                value={password}
-                onChangeText={setPassword}
-                returnKeyType="next"
-                error={errors.password}
-                hint="At least 8 characters."
-              />
-              <PasswordInput
-                label="Confirm password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                returnKeyType="go"
-                onSubmitEditing={submit}
-                error={errors.confirmPassword}
-              />
-              {errors.form ? (
-                <Text className="text-sm text-destructive">{errors.form}</Text>
-              ) : null}
-            </View>
-          </View>
-          <View className="px-6 pb-8 pt-4">
-            <Button
-              fullWidth
-              size="lg"
-              loading={reset.isPending}
-              onPress={submit}
-              accessibilityLabel="Update password"
-            >
-              Update password
-            </Button>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          Set a new password
+        </Text>
+        <Text className="mt-2 text-base text-mutedForeground">
+          Choose something you&apos;ll remember.
+        </Text>
+      </View>
+      <View className="mt-8" style={{ gap: 24 }}>
+        <PasswordInput
+          label="New password"
+          value={password}
+          onChangeText={setPassword}
+          returnKeyType="next"
+          error={errors.password}
+          hint="At least 8 characters."
+        />
+        <PasswordInput
+          label="Confirm password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          returnKeyType="go"
+          onSubmitEditing={submit}
+          error={errors.confirmPassword}
+        />
+        {errors.form ? (
+          <Text className="text-sm text-destructive">{errors.form}</Text>
+        ) : null}
+      </View>
+      <View className="mt-8">
+        <Button
+          fullWidth
+          size="lg"
+          loading={reset.isPending}
+          onPress={submit}
+          accessibilityLabel="Update password"
+        >
+          Update password
+        </Button>
+      </View>
+    </AuthShell>
   );
 }

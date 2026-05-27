@@ -41,7 +41,7 @@ function revalidateUser(targetId: string) {
 
 export async function changeRole(args: {
   targetId: string
-  role: "user" | "admin"
+  role: "end_user" | "admin"
 }): Promise<ActionResult> {
   try {
     const result = await changeRoleOp.runFromAction(args)

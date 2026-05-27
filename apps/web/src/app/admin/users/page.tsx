@@ -22,7 +22,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   const params = await searchParams
 
   const role: UserRole | "all" =
-    params.role === "admin" || params.role === "user" ? params.role : "all"
+    params.role === "admin" || params.role === "end_user" ? params.role : "all"
   const banned =
     params.banned === "banned" || params.banned === "active"
       ? params.banned

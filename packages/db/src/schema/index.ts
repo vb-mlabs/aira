@@ -4,6 +4,7 @@
 //   W6: notifications
 //   W7: conversations, conversation_participants, messages
 //   Template hardening (2026-05-23): webhook_event
+//   End-user app shell (2026-05-26): businesses
 //
 // Note: Better Auth uses singular table names (user, session, etc.) — that's
 // their convention; our own tables follow our convention (plural: audit_log,
@@ -16,3 +17,4 @@ export * from "./notifications"
 export * from "./messages"
 export * from "./webhook_event"
 export * from "./waitlist"
+export * from "./businesses"

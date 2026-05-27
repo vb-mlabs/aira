@@ -11,7 +11,7 @@ import { WaitlistCard } from "./waitlist-card"
 
 export function Hero() {
   return (
-    <section className="flex min-h-[calc(100svh-80px)] flex-col items-center justify-center px-6 pb-20 pt-15 text-center">
+    <section className="flex min-h-[calc(100svh-80px)] flex-col items-center justify-center bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-20 pt-15 text-center">
       <Image
         src="/marketing-images/logo.png"
         alt="AIRA tree-of-life"

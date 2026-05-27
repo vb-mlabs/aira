@@ -10,10 +10,12 @@
     "./server": "./src/server.ts",
     "./jwt": "./src/jwt.ts",
     "./hooks/admin-bootstrap": "./src/hooks/admin-bootstrap.ts",
+    "./hooks/super-admin-bootstrap": "./src/hooks/super-admin-bootstrap.ts",
     "./hooks/ban-check": "./src/hooks/ban-check.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@aira/db": "workspace:*",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@aira/tsconfig": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }

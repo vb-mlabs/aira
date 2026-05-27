@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { PasswordInput } from "@aira/ui-web/password-input"
+import { brand } from "@aira/config"
 import { signIn } from "@/lib/auth/client"
 import { LoginSchema } from "@aira/validators"
+import { IdleBanner } from "./_components/idle-banner"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -41,15 +43,24 @@ export default function LoginPage() {
       setErrors({ form: res.error.message ?? "Sign in failed" })
       return
     }
-    router.push("/")
+    router.push("/home")
   }
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+      {/* IdleBanner reads ?reason=idle from the URL; wrapped in Suspense
+          because useSearchParams() suspends until the search-params bailout
+          completes on first paint. Fallback is null — no banner is the
+          default state. */}
+      <Suspense fallback={null}>
+        <IdleBanner />
+      </Suspense>
+      <div className="text-center">
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Welcome Back!
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Sign in to continue.
+          Sign in to continue to {brand.name}
         </p>
       </div>
       <form onSubmit={onSubmit} noValidate className="space-y-5">
@@ -59,6 +70,7 @@ export default function LoginPage() {
             id="email"
             type="email"
             autoComplete="email"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             aria-invalid={!!errors.email}
@@ -70,18 +82,11 @@ export default function LoginPage() {
           ) : null}
         </div>
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            <Link
-              href="/forgot-password"
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Forgot password?
-            </Link>
-          </div>
+          <Label htmlFor="password">Password</Label>
           <PasswordInput
             id="password"
             autoComplete="current-password"
+            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             aria-invalid={!!errors.password}
@@ -91,6 +96,14 @@ export default function LoginPage() {
               {errors.password}
             </p>
           ) : null}
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Forgot Password?
+            </Link>
+          </div>
         </div>
         {errors.form && (
           <p className="text-sm text-destructive" role="alert">
@@ -98,13 +111,13 @@ export default function LoginPage() {
           </p>
         )}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? "Signing in…" : "Sign In"}
         </Button>
       </form>
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-foreground hover:underline">
-          Create one
+          Sign Up
         </Link>
       </p>
     </div>

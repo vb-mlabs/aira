@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V1 Grid-Led — AIRA End-User App Shell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background:  '#EAE0CB',
+            foreground:  '#3D2814',
+            card:        '#F5EFE3',
+            primary:     '#4F653B',
+            'primary-fg':'#F5EFE3',
+            muted:       '#C5B99A',
+            'muted-fg':  '#7A5C3A',
+            border:      '#D4C5A8',
+            tier1:       '#4F653B',
+            tier2:       '#C97A2A',
+            tier3:       '#7A4A26',
+            info:        '#1A7AC7',
+            gold:        '#B8904A',
+          },
+          fontFamily: {
+            display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            body:    ['Lato', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    :root {
+      --background: oklch(0.90 0.04 85);
+      --foreground: oklch(0.25 0.04 60);
+      --card: oklch(0.95 0.02 85);
+      --primary: oklch(0.46 0.07 132);
+      --muted: oklch(0.72 0.06 85);
+    }
+    body { font-family: 'Lato', sans-serif; background: #EAE0CB; color: #3D2814; }
+    h1,h2,h3,h4 { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .verified-badge { color: #1A7AC7; font-size: 0.75rem; font-weight: 700; }
+
+    /* Viewport showcase */
+    .viewport-label {
+      background: #3D2814; color: #F5EFE3;
+      font-family: 'Lato', sans-serif; font-size: 11px;
+      padding: 4px 12px; letter-spacing: 0.08em;
+    }
+    .screen-frame {
+      border: 2px solid #C5B99A; border-radius: 8px; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(61,40,20,0.12);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+
+  <!-- ===== VARIANT HEADER ===== -->
+  <div class="max-w-7xl mx-auto mb-10">
+    <div class="flex items-center gap-4 mb-2">
+      <span class="bg-primary text-primary-fg text-xs font-body font-bold px-3 py-1 rounded-full tracking-widest uppercase">V1</span>
+      <h1 class="font-display text-3xl text-foreground">Grid-Led Layout</h1>
+    </div>
+    <p class="font-body text-muted-fg text-sm">7 large category tiles dominate the home screen. Featured businesses scroll below. Clean portal feel.</p>
+  </div>
+
+  <!-- ===== DESKTOP (1280px) ===== -->
+  <div class="max-w-7xl mx-auto mb-16">
+    <div class="viewport-label mb-2 inline-block rounded">DESKTOP — 1280px</div>
+
+    <!-- SCREEN 1: Home -->
+    <div class="screen-frame mb-8" style="width:100%;">
+      <!-- Nav -->
+      <nav class="bg-card border-b border-border px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+          <span class="font-display text-xl font-semibold text-foreground">AIRA</span>
+          <div class="flex items-center gap-6 text-sm font-body">
+            <a href="#" class="text-primary font-bold border-b-2 border-primary pb-0.5">Home</a>
+            <a href="#" class="text-muted-fg hover:text-foreground">Browse</a>
+            <a href="#" class="text-muted-fg hover:text-foreground">Messages</a>
+            <a href="#" class="text-muted-fg hover:text-foreground">Account</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <button class="relative"><span class="font-body text-muted-fg text-sm">🔔</span><span class="absolute -top-1 -right-1 bg-tier2 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center text-[10px]">2</span></button>
+          <button class="font-body text-sm text-muted-fg hover:text-foreground">Sign out</button>
+        </div>
+      </nav>
+
+      <!-- Home body -->
+      <div class="bg-background p-8">
+        <h2 class="font-display text-4xl text-foreground mb-1">Welcome back</h2>
+        <p class="font-body text-muted-fg text-sm mb-8">Discover trusted Indian businesses in Atlanta</p>
+
+        <!-- Category grid 3-2-2 -->
+        <h3 class="font-display text-2xl text-foreground mb-4">Browse categories</h3>
+        <div class="grid grid-cols-3 gap-4 mb-10">
+          <!-- Row 1 -->
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group">
+            <span class="text-3xl">🍛</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Restaurants</div>
+              <div class="font-body text-xs text-muted-fg">12 listings</div>
+            </div>
+          </a>
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group">
+            <span class="text-3xl">📚</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Education</div>
+              <div class="font-body text-xs text-muted-fg">8 listings</div>
+            </div>
+          </a>
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group">
+            <span class="text-3xl">🎉</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Events &amp; Entertainment</div>
+              <div class="font-body text-xs text-muted-fg">5 listings</div>
+            </div>
+          </a>
+          <!-- Row 2 -->
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group">
+            <span class="text-3xl">💼</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Professional Services</div>
+              <div class="font-body text-xs text-muted-fg">15 listings</div>
+            </div>
+          </a>
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group">
+            <span class="text-3xl">🌿</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Health &amp; Wellness</div>
+              <div class="font-body text-xs text-muted-fg">9 listings</div>
+            </div>
+          </a>
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group">
+            <span class="text-3xl">🏠</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Real Estate</div>
+              <div class="font-body text-xs text-muted-fg">6 listings</div>
+            </div>
+          </a>
+          <!-- Row 3 — spans full 3 cols with 1 tile + spacer approach -->
+          <a href="#" class="bg-card border border-border rounded-xl p-6 flex flex-col items-start gap-3 hover:border-primary transition-colors group col-span-1">
+            <span class="text-3xl">🛍️</span>
+            <div>
+              <div class="font-display text-xl text-foreground group-hover:text-primary">Shopping</div>
+              <div class="font-body text-xs text-muted-fg">11 listings</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Featured section -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-display text-2xl text-foreground">Featured businesses</h3>
+          <a href="#" class="font-body text-sm text-primary hover:underline">View all →</a>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <!-- Business card 1 -->
+          <a href="#" class="bg-card border border-border rounded-xl overflow-hidden hover:border-primary transition-colors group">
+            <div class="h-32 bg-muted/30 flex items-center justify-center text-4xl">🍛</div>
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-display text-lg text-foreground group-hover:text-primary">South Indian Kitchen</span>
+              </div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-body font-bold text-white bg-tier1 px-2 py-0.5 rounded-full">Tier 1</span>
+                <span class="verified-badge">✓ Verified</span>
+              </div>
+              <p class="font-body text-xs text-muted-fg line-clamp-2">Authentic South Indian cuisine — dosas, idlis, and more in the heart of Atlanta.</p>
+            </div>
+          </a>
+          <!-- Business card 2 -->
+          <a href="#" class="bg-card border border-border rounded-xl overflow-hidden hover:border-primary transition-colors group">
+            <div class="h-32 bg-muted/30 flex items-center justify-center text-4xl">💼</div>
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-display text-lg text-foreground group-hover:text-primary">Patel &amp; Associates CPA</span>
+              </div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-body font-bold text-white bg-tier1 px-2 py-0.5 rounded-full">Tier 1</span>
+                <span class="verified-badge">✓ Verified</span>
+              </div>
+              <p class="font-body text-xs text-muted-fg line-clamp-2">Tax preparation, bookkeeping, and financial advisory for individuals and businesses.</p>
+            </div>
+          </a>
+          <!-- Business card 3 -->
+          <a href="#" class="bg-card border border-border rounded-xl overflow-hidden hover:border-primary transition-colors group">
+            <div class="h-32 bg-muted/30 flex items-center justify-center text-4xl">🌿</div>
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-display text-lg text-foreground group-hover:text-primary">Ayurveda Wellness Center</span>
+              </div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-body font-bold text-white bg-tier2 px-2 py-0.5 rounded-full" style="background:#C97A2A">Tier 2</span>
+              </div>
+              <p class="font-body text-xs text-muted-fg line-clamp-2">Traditional Ayurvedic treatments, yoga classes, and herbal consultations.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Listings [category] -->
+    <div class="screen-frame mb-8" style="width:100%;">
+      <nav class="bg-card border-b border-border px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+          <span class="font-display text-xl font-semibold text-foreground">AIRA</span>
+          <div class="flex items-center gap-6 text-sm font-body">
+            <a href="#" class="text-muted-fg hover:text-foreground">Home</a>
+            <a href="#" class="text-primary font-bold border-b-2 border-primary pb-0.5">Browse</a>
+            <a href="#" class="text-muted-fg hover:text-foreground">Messages</a>
+            <a href="#" class="text-muted-fg hover:text-foreground">Account</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <button class="relative"><span class="font-body text-muted-fg text-sm">🔔</span></button>
+          <button class="font-body text-sm text-muted-fg">Sign out</button>
+        </div>
+      </nav>
+      <div class="bg-background p-8">
+        <div class="flex items-center gap-2 mb-1 text-sm font-body text-muted-fg">
+          <a href="#" class="hover:text-primary">Home</a> <span>/</span>
+          <a href="#" class="hover:text-primary">Browse</a> <span>/</span>
+          <span class="text-foreground">Restaurants</span>
+        </div>
+        <h2 class="font-display text-4xl text-foreground mb-6">Restaurants</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <!-- Cards -->
+          <a href="#" class="bg-card border border-border rounded-xl overflow-hidden hover:border-primary transition-colors group">
+            <div class="h-28 bg-muted/30 flex items-center justify-center text-3xl">🍛</div>
+            <div class="p-4">
+              <div class="font-display text-lg text-foreground group-hover:text-primary mb-1">South Indian Kitchen</div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-body font-bold text-white bg-tier1 px-2 py-0.5 rounded-full">Tier 1</span>
+                <span class="verified-badge">✓ Verified</span>
+              </div>
+              <p class="font-body text-xs text-muted-fg">Authentic South Indian cuisine in Atlanta.</p>
+            </div>
+          </a>
+          <a href="#" class="bg-card border border-border rounded-xl overflow-hidden hover:border-primary transition-colors group">
+            <div class="h-28 bg-muted/30 flex items-center justify-center text-3xl">🍜</div>
+            <div class="p-4">
+              <div class="font-display text-lg text-foreground group-hover:text-primary mb-1">Spice Garden</div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-body font-bold text-white bg-tier2 px-2 py-0.5 rounded-full" style="background:#C97A2A">Tier 2</span>
+              </div>
+              <p class="font-body text-xs text-muted-fg">North Indian curries, breads, and street food.</p>
+            </div>
+          </a>
+          <a href="#" class="bg-card border border-border rounded-xl overflow-hidden hover:border-primary transition-colors group">
+            <div class="h-28 bg-muted/30 flex items-center justify-center text-3xl">🥘</div>
+            <div class="p-4">
+              <div class="font-display text-lg text-foreground group-hover:text-primary mb-1">Mumbai Bites</div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-body font-bold text-white px-2 py-0.5 rounded-full" style="background:#7A4A26">Tier 3</span>
+              </div>
+              <p class="font-body text-xs text-muted-fg">Street-food inspired casual dining.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: Business Detail -->
+    <div class="screen-frame" style="width:100%;">
+      <nav class="bg-card border-b border-border px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+          <span class="font-display text-xl font-semibold text-foreground">AIRA</span>
+          <div class="flex items-center gap-6 text-sm font-body">
+            <a href="#" class="text-muted-fg">Home</a>
+            <a href="#" class="text-primary font-bold border-b-2 border-primary pb-0.5">Browse</a>
+            <a href="#" class="text-muted-fg">Messages</a>
+            <a href="#" class="text-muted-fg">Account</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <button class="relative"><span class="font-body text-muted-fg text-sm">🔔</span></button>
+          <button class="font-body text-sm text-muted-fg">Sign out</button>
+        </div>
+      </nav>
+      <div class="bg-background p-8 max-w-3xl">
+        <a href="#" class="flex items-center gap-1 text-sm font-body text-primary hover:underline mb-6">← Back to Restaurants</a>
+        <div class="bg-card border border-border rounded-xl overflow-hidden">
+          <div class="h-48 bg-muted/30 flex items-center justify-center text-6xl">🍛</div>
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h2 class="font-display text-3xl text-foreground mb-2">South Indian Kitchen</h2>
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-body font-bold text-white bg-tier1 px-3 py-1 rounded-full">Tier 1</span>
+                  <span class="verified-badge text-sm">✓ Verified Business</span>
+                </div>
+              </div>
+            </div>
+            <p class="font-body text-foreground mb-6">Authentic South Indian cuisine — dosas, idlis, sambar, and more. Family-owned and operated since 2015, serving the Atlanta Indian community with love and tradition.</p>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-1">Phone</div>
+                <a href="tel:+14045551234" class="font-body text-primary hover:underline">(404) 555-1234</a>
+              </div>
+              <div>
+                <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-1">Website</div>
+                <a href="#" class="font-body text-primary hover:underline">southindiankitchen.com ↗</a>
+              </div>
+              <div class="col-span-2">
+                <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-1">Address</div>
+                <div class="font-body text-foreground">1234 Peachtree Rd NE, Atlanta, GA 30309</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MOBILE (375px) ===== -->
+  <div class="max-w-7xl mx-auto mb-16">
+    <div class="viewport-label mb-2 inline-block rounded">MOBILE — 375px</div>
+    <div class="flex gap-6 flex-wrap">
+
+      <!-- Mobile Home -->
+      <div class="screen-frame" style="width:375px; flex-shrink:0;">
+        <!-- Mobile nav -->
+        <nav class="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+          <span class="font-display text-lg font-semibold text-foreground">AIRA</span>
+          <div class="flex items-center gap-3">
+            <button class="relative"><span class="text-muted-fg text-sm">🔔</span></button>
+            <button class="text-muted-fg font-body text-sm p-1">☰</button>
+          </div>
+        </nav>
+        <div class="bg-background p-4">
+          <h2 class="font-display text-2xl text-foreground mb-1">Welcome back</h2>
+          <p class="font-body text-muted-fg text-xs mb-5">Discover trusted Indian businesses</p>
+          <h3 class="font-display text-xl text-foreground mb-3">Browse categories</h3>
+          <div class="grid grid-cols-2 gap-3 mb-6">
+            <a href="#" class="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+              <span class="text-2xl">🍛</span>
+              <div class="font-display text-base text-foreground">Restaurants</div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+              <span class="text-2xl">📚</span>
+              <div class="font-display text-base text-foreground">Education</div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+              <span class="text-2xl">🎉</span>
+              <div class="font-display text-base text-foreground">Events</div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+              <span class="text-2xl">💼</span>
+              <div class="font-display text-base text-foreground">Professional</div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+              <span class="text-2xl">🌿</span>
+              <div class="font-display text-base text-foreground">Health</div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+              <span class="text-2xl">🏠</span>
+              <div class="font-display text-base text-foreground">Real Estate</div>
+            </a>
+          </div>
+          <h3 class="font-display text-xl text-foreground mb-3">Featured</h3>
+          <!-- Horizontal scroll -->
+          <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:none;">
+            <a href="#" class="bg-card border border-border rounded-lg overflow-hidden flex-shrink-0" style="width:200px;">
+              <div class="h-24 bg-muted/30 flex items-center justify-center text-3xl">🍛</div>
+              <div class="p-3">
+                <div class="font-display text-base text-foreground">South Indian Kitchen</div>
+                <div class="flex items-center gap-1 mt-1">
+                  <span class="text-xs font-body text-white bg-tier1 px-1.5 py-0.5 rounded-full">T1</span>
+                  <span class="text-info text-xs font-body font-bold">✓ Verified</span>
+                </div>
+              </div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg overflow-hidden flex-shrink-0" style="width:200px;">
+              <div class="h-24 bg-muted/30 flex items-center justify-center text-3xl">💼</div>
+              <div class="p-3">
+                <div class="font-display text-base text-foreground">Patel &amp; Associates</div>
+                <div class="flex items-center gap-1 mt-1">
+                  <span class="text-xs font-body text-white bg-tier1 px-1.5 py-0.5 rounded-full">T1</span>
+                  <span class="text-info text-xs font-body font-bold">✓ Verified</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Category listing -->
+      <div class="screen-frame" style="width:375px; flex-shrink:0;">
+        <nav class="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+          <span class="font-display text-lg font-semibold text-foreground">AIRA</span>
+          <div class="flex items-center gap-3">
+            <button class="relative"><span class="text-muted-fg text-sm">🔔</span></button>
+            <button class="text-muted-fg text-sm p-1">☰</button>
+          </div>
+        </nav>
+        <div class="bg-background p-4">
+          <a href="#" class="text-sm font-body text-primary mb-3 block">← Browse</a>
+          <h2 class="font-display text-2xl text-foreground mb-4">Restaurants</h2>
+          <div class="flex flex-col gap-3">
+            <a href="#" class="bg-card border border-border rounded-lg overflow-hidden flex gap-3 p-3">
+              <div class="w-14 h-14 bg-muted/30 rounded flex items-center justify-center text-2xl flex-shrink-0">🍛</div>
+              <div>
+                <div class="font-display text-base text-foreground">South Indian Kitchen</div>
+                <div class="flex items-center gap-1 mt-1">
+                  <span class="text-xs font-body text-white bg-tier1 px-1.5 py-0.5 rounded-full">Tier 1</span>
+                  <span class="text-info text-xs font-body font-bold">✓</span>
+                </div>
+              </div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg overflow-hidden flex gap-3 p-3">
+              <div class="w-14 h-14 bg-muted/30 rounded flex items-center justify-center text-2xl flex-shrink-0">🍜</div>
+              <div>
+                <div class="font-display text-base text-foreground">Spice Garden</div>
+                <div class="flex items-center gap-1 mt-1">
+                  <span class="text-xs font-body text-white px-1.5 py-0.5 rounded-full" style="background:#C97A2A">Tier 2</span>
+                </div>
+              </div>
+            </a>
+            <a href="#" class="bg-card border border-border rounded-lg overflow-hidden flex gap-3 p-3">
+              <div class="w-14 h-14 bg-muted/30 rounded flex items-center justify-center text-2xl flex-shrink-0">🥘</div>
+              <div>
+                <div class="font-display text-base text-foreground">Mumbai Bites</div>
+                <div class="flex items-center gap-1 mt-1">
+                  <span class="text-xs font-body text-white px-1.5 py-0.5 rounded-full" style="background:#7A4A26">Tier 3</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Detail -->
+      <div class="screen-frame" style="width:375px; flex-shrink:0;">
+        <nav class="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+          <span class="font-display text-lg font-semibold text-foreground">AIRA</span>
+          <div class="flex items-center gap-3">
+            <button><span class="text-muted-fg text-sm">🔔</span></button>
+            <button class="text-muted-fg text-sm p-1">☰</button>
+          </div>
+        </nav>
+        <div class="bg-background">
+          <div class="h-40 bg-muted/30 flex items-center justify-center text-5xl">🍛</div>
+          <div class="p-4">
+            <a href="#" class="text-sm font-body text-primary mb-3 block">← Restaurants</a>
+            <h2 class="font-display text-2xl text-foreground mb-2">South Indian Kitchen</h2>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xs font-body text-white bg-tier1 px-2 py-0.5 rounded-full">Tier 1</span>
+              <span class="text-info text-xs font-body font-bold">✓ Verified</span>
+            </div>
+            <p class="font-body text-sm text-foreground mb-5">Authentic South Indian cuisine — dosas, idlis, sambar. Family-owned since 2015.</p>
+            <div class="flex flex-col gap-3">
+              <div>
+                <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-0.5">Phone</div>
+                <a href="tel:+14045551234" class="font-body text-primary text-sm">(404) 555-1234</a>
+              </div>
+              <div>
+                <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-0.5">Website</div>
+                <a href="#" class="font-body text-primary text-sm">southindiankitchen.com ↗</a>
+              </div>
+              <div>
+                <div class="text-xs font-body font-bold text-muted-fg uppercase tracking-wider mb-0.5">Address</div>
+                <div class="font-body text-foreground text-sm">1234 Peachtree Rd NE, Atlanta, GA 30309</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile nav drawer overlay example -->
+  <div class="max-w-7xl mx-auto mb-16">
+    <div class="viewport-label mb-2 inline-block rounded">MOBILE — Nav Drawer (open state)</div>
+    <div class="screen-frame" style="width:375px;">
+      <nav class="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+        <span class="font-display text-lg font-semibold text-foreground">AIRA</span>
+        <div class="flex items-center gap-3">
+          <button><span class="text-muted-fg text-sm">🔔</span></button>
+          <button class="text-foreground text-sm p-1 font-bold">✕</button>
+        </div>
+      </nav>
+      <div class="relative">
+        <!-- Dimmed background -->
+        <div class="bg-background p-4 opacity-30 h-32"></div>
+        <!-- Drawer -->
+        <div class="absolute inset-0 flex">
+          <div class="bg-card w-64 h-full border-r border-border p-6 flex flex-col gap-1">
+            <div class="font-display text-2xl text-foreground mb-6">AIRA</div>
+            <a href="#" class="font-body text-foreground font-bold py-3 border-b border-border flex items-center gap-3"><span>🏠</span> Home</a>
+            <a href="#" class="font-body text-muted-fg py-3 border-b border-border flex items-center gap-3"><span>📋</span> Browse</a>
+            <a href="#" class="font-body text-muted-fg py-3 border-b border-border flex items-center gap-3"><span>💬</span> Messages</a>
+            <a href="#" class="font-body text-muted-fg py-3 border-b border-border flex items-center gap-3"><span>👤</span> Account</a>
+            <a href="#" class="font-body text-muted-fg py-3 flex items-center gap-3 mt-2"><span>↩</span> Sign out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

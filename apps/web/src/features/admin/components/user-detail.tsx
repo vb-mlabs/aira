@@ -134,7 +134,7 @@ function RoleControls({
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [pending, startTransition] = useTransition()
 
-  function setRole(role: "user" | "admin") {
+  function setRole(role: "end_user" | "admin") {
     startTransition(async () => {
       const res = await changeRole({ targetId: user.id, role })
       setFeedback(
@@ -154,9 +154,9 @@ function RoleControls({
       <div className="flex gap-2">
         <Button
           type="button"
-          variant={user.role === "user" ? "default" : "outline"}
-          onClick={() => setRole("user")}
-          disabled={pending || disabled || user.role === "user"}
+          variant={user.role === "end_user" ? "default" : "outline"}
+          onClick={() => setRole("end_user")}
+          disabled={pending || disabled || user.role === "end_user"}
         >
           Set as user
         </Button>

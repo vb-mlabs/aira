@@ -1,17 +1,15 @@
 // Sticky nav for the marketing landing page. Cream backdrop-blur, AIRA
-// tree-of-life logo + wordmark left, three CTAs on the right:
-//   1. "Get notified at launch" — quiet brass-gold anchor → waitlist card
-//      (kept for low-commit visitors; hidden on small screens)
-//   2. "Sign in" — quiet text link → /login (for returning users)
-//   3. "Get Started" — primary olive pill → /signup (the real auth route,
-//      available now that Better Auth ships in the template)
+// tree-of-life logo + wordmark left, two CTAs on the right:
+//   1. "Sign in" — quiet text link → /login (for returning users)
+//   2. "Get Started" — primary olive pill → /signup
 
 import Image from "next/image"
 import Link from "next/link"
+import { brand } from "@aira/config"
 
 export function MarketingNav() {
   return (
-    <nav className="sticky top-0 z-50 bg-[color:oklch(0.90_0.04_85_/_85%)] backdrop-blur-[10px]">
+    <nav className="sticky top-0 z-50 bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center">
       <div className="mx-auto flex h-20 max-w-[1180px] items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-[14px]">
           <Image
@@ -27,18 +25,12 @@ export function MarketingNav() {
               AIRA
             </span>
             <span className="block text-[11px] tracking-[0.5px] text-muted-foreground">
-              by Nisarga
+              by {brand.parentName}
             </span>
           </span>
         </Link>
 
         <div className="flex items-center gap-5 sm:gap-6">
-          <Link
-            href="#notify"
-            className="hidden border-b border-brand-gold/60 pb-[3px] text-[13px] font-bold uppercase tracking-[0.5px] text-foreground transition-colors hover:border-primary hover:text-primary sm:inline-block"
-          >
-            Get notified at launch
-          </Link>
           <Link
             href="/login"
             className="text-[13px] font-bold uppercase tracking-[0.5px] text-muted-foreground no-underline transition-colors hover:text-primary"

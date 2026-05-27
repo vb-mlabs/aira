@@ -2,12 +2,23 @@
 // route handlers. Never import this from client code.
 
 import "server-only"
+import { eq } from "drizzle-orm"
 import { headers } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 import { ApiError } from "@aira/api"
 import type { CallerContext, CallerSource, Permission } from "@aira/api"
+import { session as sessionTable } from "@aira/db/schema"
+import { db } from "@/lib/db"
+import { audit } from "@/lib/db/audit"
 import { auth } from "./index"
 import { extractBearerToken, verifyAccessToken } from "./jwt"
+
+// Sprint 1 — admin sliding idle-timeout. requireAdmin() and
+// requireSuperAdmin() enforce this window on every admin Server Component
+// render. End-users skip the check (they inherit the 7d Better Auth
+// expiresIn). The same helper is reused by defineOperation (T8) for
+// cookie-authed admin API/Server-Action calls.
+const ADMIN_IDLE_MS = 30 * 60 * 1000
 
 // Re-exported session shape so callers don't need to know whether the session
 // came from a cookie, a Better Auth bearer (session token), or a stateless JWT.
@@ -95,8 +106,14 @@ export async function getCallerContext(
   source: CallerSource = "web",
 ): Promise<CallerContext> {
   const u = await requireUser()
+  // DB role is user_role enum ("end_user" | "admin" | "super_admin"); collapse
+  // to the narrow Permission union ("user" | "admin"). super_admin gets the
+  // "admin" permission level since it subsumes all admin perms. Operations
+  // that need to enforce super_admin specifically use requireSuperAdmin() at
+  // the layout level instead of routing through Permission.
+  const dbRole = (u as { role?: string }).role
   const role: Permission =
-    (u as { role?: string }).role === "admin" ? "admin" : "user"
+    dbRole === "admin" || dbRole === "super_admin" ? "admin" : "user"
   return {
     userId: u.id,
     user: { id: u.id, email: u.email, role },
@@ -139,13 +156,102 @@ export async function requireUserJSON(): Promise<
  * Better Auth's additionalFields wiring in auth/index.ts. No extra DB
  * query per admin request.
  */
+/**
+ * Returns true if the admin session is stale (idle > 30 min). Fresh sessions
+ * are bumped (`last_activity_at = now()`) as a side effect — that's how the
+ * sliding window slides. Pass `undefined` for JWT-synthesized sessions or
+ * any path where there's no session row id to look up; the function returns
+ * false in those cases (their freshness is governed by JWT expiry instead).
+ *
+ * Reads `last_activity_at` directly from the session table rather than off
+ * the Better Auth session shape, because Better Auth's session config
+ * `additionalFields` doesn't surface custom columns on the returned session
+ * object (verified by QA on 2026-05-26 — see
+ * .mstack/qa/2026-05-26-1020/report.md issue 1). One SELECT + (if fresh)
+ * one UPDATE per admin request — cheap.
+ *
+ * Exported so packages/api's defineOperation (T8) can reuse the same check
+ * for cookie-authed admin operations. Don't call from end-user paths —
+ * end-users get the 7d Better Auth default with no extra check.
+ */
+export async function adminSessionIsStale(
+  sessionId: string | undefined,
+): Promise<boolean> {
+  if (!sessionId) return false
+  const [row] = await db
+    .select({ lastActivityAt: sessionTable.lastActivityAt })
+    .from(sessionTable)
+    .where(eq(sessionTable.id, sessionId))
+    .limit(1)
+  if (!row) return false // session row gone (e.g. logged out concurrently)
+  const idleMs = Date.now() - row.lastActivityAt.getTime()
+  if (idleMs > ADMIN_IDLE_MS) return true
+  await db
+    .update(sessionTable)
+    .set({ lastActivityAt: new Date() })
+    .where(eq(sessionTable.id, sessionId))
+  return false
+}
+
+/**
+ * Sign out the current session, write an idle_timeout audit row, and
+ * redirect to /login?reason=idle. Throws (via Next.js redirect). Only
+ * called when adminSessionIsStale() returned true.
+ *
+ * Audit order: revoke → audit → redirect (per the review's accepted-risk
+ * decision — fail closed on user state takes precedence over audit
+ * fidelity).
+ */
+async function bounceStaleAdmin(authSession: AuthSession): Promise<never> {
+  const userId = authSession.user.id
+  const sessionId = (authSession.session as { id?: string }).id
+  await auth.api.signOut({ headers: await headers() })
+  await audit({
+    actorId: userId,
+    action: "session.revoked",
+    target: sessionId ? { type: "session", id: sessionId } : undefined,
+    meta: { kind: "session.revoked", reason: "idle_timeout" },
+  })
+  redirect("/login?reason=idle")
+}
+
 export async function requireAdmin() {
-  const user = await requireUser()
-  // role is set as a Better Auth additionalField with input: false; the
-  // session shape extends it implicitly. We narrow the type here.
-  const role = (user as { role?: string }).role ?? "user"
-  if (role !== "admin") {
+  // Inlined requireUser() because we need the full session below (not just
+  // the user) to check last_activity_at.
+  const authSession = await getSession()
+  if (!authSession?.user) redirect("/login")
+  // DB role is the user_role enum: end_user | admin | super_admin.
+  // super_admin subsumes admin perms — accept both. Non-admin = 404 (locked
+  // W8 decision: don't enumerate /admin/* via 403 vs 404 differentiation).
+  const role = (authSession.user as { role?: string }).role ?? "end_user"
+  if (role !== "admin" && role !== "super_admin") {
     notFound()
   }
-  return user
+  const sessionId = (authSession.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) {
+    await bounceStaleAdmin(authSession)
+  }
+  return authSession.user
+}
+
+/**
+ * Server-component helper: enforces auth + super_admin role only.
+ *
+ * Same 404 semantics as requireAdmin() — admins and end-users both get
+ * notFound(), to avoid leaking the existence of super-admin-only surfaces.
+ * Use for screens that promote/demote admins or manage other super_admins.
+ * Inherits the same 30-min idle-timeout as requireAdmin().
+ */
+export async function requireSuperAdmin() {
+  const authSession = await getSession()
+  if (!authSession?.user) redirect("/login")
+  const role = (authSession.user as { role?: string }).role ?? "end_user"
+  if (role !== "super_admin") {
+    notFound()
+  }
+  const sessionId = (authSession.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) {
+    await bounceStaleAdmin(authSession)
+  }
+  return authSession.user
 }

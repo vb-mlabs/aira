@@ -49,7 +49,9 @@ function VerifyEmailFlow() {
   if (status === "verifying") {
     return (
       <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Verifying your email…</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Verifying your email…
+        </h1>
         <p className="text-sm text-muted-foreground">Hang tight.</p>
       </div>
     )
@@ -58,7 +60,9 @@ function VerifyEmailFlow() {
   if (status === "success") {
     return (
       <div className="space-y-3 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Email verified</h1>
+        <h1 className="font-display text-3xl tracking-tight text-foreground">
+          Email verified
+        </h1>
         <p className="text-sm text-muted-foreground">Taking you in…</p>
       </div>
     )
@@ -66,7 +70,9 @@ function VerifyEmailFlow() {
 
   return (
     <div className="space-y-3">
-      <h1 className="text-2xl font-bold tracking-tight">Couldn&apos;t verify</h1>
+      <h1 className="font-display text-3xl tracking-tight text-foreground">
+        Couldn&apos;t verify
+      </h1>
       <p className="text-sm text-muted-foreground">{error}</p>
       <Link href="/login" className="text-sm hover:underline">
         Back to sign in

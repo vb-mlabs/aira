@@ -15,6 +15,7 @@ import { bearer } from "better-auth/plugins/bearer"
 import type { Database } from "@aira/db/client"
 import { createAdminBootstrapHook } from "./hooks/admin-bootstrap"
 import { createBanCheckHook } from "./hooks/ban-check"
+import { createSuperAdminBootstrapHook } from "./hooks/super-admin-bootstrap"
 
 export interface AuthLogger {
   info: (message: string, meta?: Record<string, unknown>) => void
@@ -41,8 +42,14 @@ export interface CreateAuthOptions {
    *  so test/dev environments can boot without it). */
   secret?: string | undefined
   baseUrl?: string
+  /** Extra origins to trust in addition to baseUrl — e.g. localhost ports in dev. */
+  trustedOrigins?: string[]
   /** Optional. Auto-promotes a user with this email to "admin" on signup. */
   initialAdminEmail?: string | undefined
+  /** Optional. Auto-promotes a user with this email to "super_admin" on
+   *  signup. Must differ from initialAdminEmail when both are set
+   *  (enforced at boot in apps/web/src/config/env.ts). */
+  initialSuperAdminEmail?: string | undefined
   /** Set true when NODE_ENV === "production" to surface the missing-admin warning. */
   isProduction?: boolean
   email: AuthEmailSender
@@ -54,7 +61,9 @@ export function createAuth({
   db,
   secret,
   baseUrl,
+  trustedOrigins,
   initialAdminEmail,
+  initialSuperAdminEmail,
   isProduction = false,
   email,
   logger,
@@ -67,16 +76,30 @@ export function createAuth({
     } satisfies AuthLogger)
 
   const beforeSessionCreate = createBanCheckHook({ db })
-  const afterUserCreate = createAdminBootstrapHook({
+  // Two single-purpose bootstrap hooks composed into one after-create
+  // callback. Order is irrelevant: env validation guarantees the two emails
+  // differ when both are set, so at most one of the inner hooks does work
+  // per signup.
+  const promoteAdmin = createAdminBootstrapHook({
     db,
     initialAdminEmail,
     logger: log,
   })
+  const promoteSuperAdmin = createSuperAdminBootstrapHook({
+    db,
+    initialSuperAdminEmail,
+    logger: log,
+  })
+  const afterUserCreate = async (user: { id: string; email: string }) => {
+    await promoteAdmin(user)
+    await promoteSuperAdmin(user)
+  }
 
   const auth = betterAuth({
     database: drizzleAdapter(db, { provider: "pg" }),
     secret,
     baseURL: baseUrl,
+    trustedOrigins,
 
     // Phase 5.5: enable `Authorization: Bearer <session-token>` transport.
     // Mobile (Expo) cannot use cookies, so it sends the session token in the
@@ -110,9 +133,22 @@ export function createAuth({
 
     // Sessions live ~7 days, refresh on every request within the cookie's
     // lifetime.
+    //
+    // additionalFields.last_activity_at is the sliding idle-timeout signal
+    // for admin sessions — Better Auth's updateAge is write-coalescing so
+    // session.updatedAt isn't a reliable last-activity timestamp. The
+    // requireAdmin() guard reads + bumps this column directly. input:false
+    // so clients can't game it via the update-user API.
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
+      additionalFields: {
+        last_activity_at: {
+          type: "date",
+          required: false,
+          input: false,
+        },
+      },
     },
 
     user: {
@@ -139,7 +175,10 @@ export function createAuth({
         role: {
           type: "string",
           required: false,
-          defaultValue: "user",
+          // Must match the user.role pgEnum default. Sprint 1 migrated from
+          // "user" -> "end_user"; Better Auth uses this defaultValue when
+          // inserting new users via the sign-up handler.
+          defaultValue: "end_user",
           input: false,
         },
         banned_at: {

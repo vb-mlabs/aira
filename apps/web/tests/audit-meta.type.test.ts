@@ -64,10 +64,13 @@ describe("AuditMeta + AuditOpts type contract", () => {
     }
   })
 
-  it("session.revoked.reason is exactly the 4 locked literals", () => {
+  it("session.revoked.reason is exactly the locked literals", () => {
+    // Sprint 1 added "idle_timeout" alongside the original four. Update this
+    // assertion (and the AuditMeta union in packages/db/src/audit.ts) when
+    // adding new revoke reasons.
     type RevokedReason = Extract<AuditMeta, { kind: "session.revoked" }>["reason"]
     expectTypeOf<RevokedReason>().toEqualTypeOf<
-      "logout" | "admin" | "password_change" | "account_deleted"
+      "logout" | "admin" | "password_change" | "account_deleted" | "idle_timeout"
     >()
   })
 
@@ -93,5 +96,32 @@ describe("AuditMeta + AuditOpts type contract", () => {
       meta: { kind: "arbitrary", freeform: "leak PII here" },
     }
     void _bad
+  })
+
+  it("Sprint 1 — user.signed_in_failed.reason is exactly the locked literals", () => {
+    type FailedReason = Extract<
+      AuditMeta,
+      { kind: "user.signed_in_failed" }
+    >["reason"]
+    expectTypeOf<FailedReason>().toEqualTypeOf<
+      "bad_password" | "user_not_found" | "banned" | "email_unverified"
+    >()
+  })
+
+  it("Sprint 1 — user.signed_in and user.signed_up are members (no extra props)", () => {
+    const _signedIn: AuditOpts = {
+      actorId: "u_1",
+      action: "user.signed_in",
+      meta: { kind: "user.signed_in" },
+    }
+    const _signedUp: AuditOpts = {
+      actorId: "u_2",
+      action: "user.signed_up",
+      meta: { kind: "user.signed_up" },
+    }
+    expectTypeOf<typeof _signedIn>().toMatchTypeOf<AuditOpts>()
+    expectTypeOf<typeof _signedUp>().toMatchTypeOf<AuditOpts>()
+    void _signedIn
+    void _signedUp
   })
 })

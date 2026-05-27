@@ -1,10 +1,24 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+
+// Sprint 1 — role becomes a Postgres enum (was free-form text). Three values:
+//   end_user    — default for new signups; can access (app)/* routes only.
+//   admin       — internal staff; can access /admin/*.
+//   super_admin — can promote/demote other admins. Subsumes admin perms.
+// requireAdmin() accepts both admin and super_admin (super covers admin);
+// requireSuperAdmin() accepts only super_admin. Permission union at the API
+// boundary stays "user" | "admin" — super_admin maps to "admin" in
+// getCallerContext(). DB enum is the source of truth.
+export const userRoleEnum = pgEnum("user_role", [
+  "end_user",
+  "admin",
+  "super_admin",
+]);
 
 // W8 additions:
 //   role         — Better Auth additionalField (declared in auth/index.ts with
 //                  input: false so clients cannot self-promote via the
-//                  update-user endpoint). Discriminator: "user" | "admin".
+//                  update-user endpoint). pgEnum-backed since Sprint 1.
 //   banned_at    — Null = not banned. Set by features/admin banUser action;
 //                  databaseHooks.session.create.before rejects new sessions
 //                  for banned users, and the ban transaction also DELETEs
@@ -18,7 +32,7 @@ export const user = pgTable(
     email: text("email").notNull().unique(),
     emailVerified: boolean("email_verified").default(false).notNull(),
     image: text("image"),
-    role: text("role").default("user").notNull(),
+    role: userRoleEnum("role").default("end_user").notNull(),
     banned_at: timestamp("banned_at"),
     banned_reason: text("banned_reason"),
     // Phase 5.5 P1 — DB-trigger-maintained freshness signals for conditional
@@ -51,6 +65,13 @@ export const session = pgTable(
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
+    // Sprint 1 — sliding admin idle-timeout. requireAdmin() reads this and
+    // signs the admin out if (now - last_activity_at) > 30 min, then UPDATEs
+    // it to now() on every successful admin request. Better Auth's
+    // updateAge write-coalesces session.updatedAt, so we can't reuse it for
+    // last-activity tracking (would yield up to 60min worst-case idle window).
+    // See .mstack/reviews/2026-05-26-auth-rbac-hardening.md.
+    lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id")

@@ -28,7 +28,7 @@ export const changeRoleOp = defineOperation({
   name: "admin.changeRole",
   input: z.object({
     targetId: z.string().min(1),
-    role: z.enum(["user", "admin"]),
+    role: z.enum(["end_user", "admin"]),
   }),
   output: AdminResultSchema,
   permission: "admin",
