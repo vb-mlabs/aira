@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-26
 **Slug:** end-user-app-shell
-**Status:** reviewed
+**Status:** implemented
 **Author:** mlabs-plan
 
 ---
