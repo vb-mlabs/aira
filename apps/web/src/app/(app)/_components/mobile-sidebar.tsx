@@ -7,13 +7,20 @@
 
 import { Menu } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { AppSidebar } from "./app-sidebar"
 
 export function MobileSidebar() {
   const [open, setOpen] = useState(false)
+  // Defer portal mount to client to avoid SSR/hydration mismatch.
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const lastPathname = useRef(pathname)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Close after navigation. The ref guard means setOpen runs exactly once
   // per pathname change instead of on every render — the react-hooks rule
@@ -51,23 +58,26 @@ export function MobileSidebar() {
         <Menu className="size-5" />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
-            aria-hidden
-          />
-          <div
-            className="absolute inset-y-0 left-0 w-[85vw] max-w-[320px] shadow-[var(--shadow-drawer)]"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Main menu"
-          >
-            <AppSidebar onClose={() => setOpen(false)} />
-          </div>
-        </div>
-      )}
+      {mounted &&
+        open &&
+        createPortal(
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div
+              className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+              onClick={() => setOpen(false)}
+              aria-hidden
+            />
+            <div
+              className="absolute inset-y-0 left-0 w-[85vw] max-w-[320px] shadow-[var(--shadow-drawer)]"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Main menu"
+            >
+              <AppSidebar onClose={() => setOpen(false)} />
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }

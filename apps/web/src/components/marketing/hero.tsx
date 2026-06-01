@@ -15,12 +15,12 @@ export function Hero() {
       <Image
         src="/marketing-images/logo.png"
         alt="AIRA tree-of-life"
-        width={140}
-        height={140}
+        width={160}
+        height={160}
         priority
-        className="mb-9 size-[140px] drop-shadow-[0_16px_32px_oklch(0.25_0.04_60_/_25%)]"
+        className="mb-9 size-[160px] drop-shadow-[0_16px_32px_oklch(0.25_0.04_60_/_25%)]"
       />
-      <h1 className="m-0 max-w-[900px] font-display text-[40px] font-semibold leading-[1.02] tracking-tight text-foreground md:text-[6.8vw] md:[font-size:clamp(40px,6.8vw,80px)]">
+      <h1 className="m-0 max-w-[760px] font-display text-[36px] font-semibold leading-[1.05] tracking-tight text-foreground md:text-[5.4vw] md:[font-size:clamp(36px,5.4vw,64px)]">
         A directory of Atlanta&rsquo;s Indian community,
         <br />
         <em className="font-bold italic text-primary">curated with care.</em>

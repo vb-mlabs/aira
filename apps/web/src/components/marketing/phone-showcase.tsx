@@ -12,8 +12,8 @@ import Image from "next/image"
 
 export function PhoneShowcase() {
   return (
-    <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-[120px] pt-[40px] md:pb-[120px]">
-      <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-[40px] md:grid-cols-[1.1fr_1fr] md:gap-[96px]">
+    <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center pb-[120px] pt-[40px] md:pb-[120px]">
+      <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[96px]">
         <div className="relative mx-auto flex h-[510px] w-full max-w-[400px] items-center justify-center md:h-[700px]">
           <PhoneFrame
             src="/marketing-images/home-screen.png"

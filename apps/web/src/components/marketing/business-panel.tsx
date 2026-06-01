@@ -1,13 +1,13 @@
 // "For business owners" — olive bg + green paper-grain texture, 2-col
-// section with copy + 4 checkmark perks + cream mailto CTA on the left,
+// section with copy + 4 checkmark perks + dual CTA on the left,
 // listing-card preview on the right.
 //
-// mailto uses brand.supportEmail (airabynisarga.com via T9 swap) so the
-// linked address stays consistent if it ever changes.
+// CTAs are a client island (see business-cta-pair.tsx) so this section
+// can stay SSR; the popup uses @base-ui/react Dialog.
 //
 // No pricing copy — admin-configurable, finalized Sprint 4+ per roadmap.
 
-import { brand } from "@aira/config"
+import { BusinessCtaPair } from "./business-cta-pair"
 
 const perks = [
   {
@@ -29,24 +29,23 @@ const perks = [
 ]
 
 export function BusinessPanel() {
-  const mailto = `mailto:${brand.supportEmail}?subject=Listing%20AIRA`
   return (
     <section
       id="businesses"
       className="bg-[color:oklch(0.42_0.06_130)] bg-[url('/marketing-images/textures/paper-green.webp')] bg-cover bg-center py-[120px] text-brand-cream-bright"
     >
-      <div className="mx-auto grid max-w-[1100px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[80px]">
+      <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[80px]">
         <div>
-          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
+          <span className="block text-[13px] font-bold uppercase tracking-[3.5px] text-brand-gold">
             For business owners
           </span>
-          <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] text-brand-cream-bright md:text-5xl">
+          <h2 className="mt-3.5 font-display text-5xl font-bold leading-[1.05] text-brand-cream-bright md:text-[64px]">
             List your business{" "}
             <em className="font-bold italic text-brand-gold">
               where Atlanta&rsquo;s Indian community looks first.
             </em>
           </h2>
-          <p className="mt-4 text-[17px] leading-[1.7] text-brand-cream-muted">
+          <p className="mt-5 text-[19px] leading-[1.65] text-brand-cream-muted">
             Get in front of a curated, growing audience. Verified members get
             the blue tick. Sponsored placement puts you at the top of your
             category.
@@ -71,12 +70,7 @@ export function BusinessPanel() {
             ))}
           </ul>
 
-          <a
-            href={mailto}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-cream-bright px-7 py-[14px] font-sans text-sm font-bold tracking-[0.3px] text-[color:oklch(0.42_0.06_130)] no-underline transition-transform hover:-translate-y-px"
-          >
-            Get in touch about being listed →
-          </a>
+          <BusinessCtaPair />
         </div>
 
         <ListingCardPreview />

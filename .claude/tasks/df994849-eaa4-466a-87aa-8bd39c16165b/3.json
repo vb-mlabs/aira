@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "3. Increase hero logo size +10–18%",
+  "description": "Increase hero logo by ~10–18%. Currently 140×140 (apps/web/src/components/marketing/hero.tsx). Bump to ~155–165px so it feels more anchored.",
+  "activeForm": "Resizing hero logo",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -13,9 +13,9 @@ export function AboutEditorial() {
   return (
     <section
       id="about"
-      className="bg-[url('/marketing-images/textures/paper-ochre.webp')] bg-cover bg-center px-6 py-[120px] md:py-[120px]"
+      className="bg-[url('/marketing-images/textures/paper-ochre.webp')] bg-cover bg-center py-[120px] md:py-[120px]"
     >
-      <div className="mx-auto max-w-[1180px]">
+      <div className="mx-auto max-w-[1180px] px-6">
         <header className="mb-16 text-center">
           <Ornament />
           <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
@@ -31,9 +31,8 @@ export function AboutEditorial() {
           <div>
             <p className="about-drop-cap text-lg leading-[1.75] text-foreground">
               Most directory apps are an algorithm. AIRA isn&rsquo;t. Every
-              listing on AIRA is reviewed by a person before it appears
-              &mdash; real businesses, run by real people, sorted by who the
-              community actually trusts.
+              listing is reviewed by a person before it appears. Real
+              businesses. Real people. Not a random data dump.
             </p>
           </div>
           <div className="space-y-[22px]">

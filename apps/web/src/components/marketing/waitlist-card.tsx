@@ -82,7 +82,7 @@ export function WaitlistCard({
           <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
             Be among the first{" "}
             <em className="font-bold not-italic italic text-primary">
-              100 neighbors
+              100 users
             </em>{" "}
             to know.
           </h3>
@@ -145,7 +145,7 @@ export function WaitlistCard({
               disabled={status.kind === "submitting"}
               className="whitespace-nowrap rounded-full bg-[image:var(--gradient-primary)] px-6 py-[14px] font-sans text-sm font-bold tracking-[0.3px] text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-transform hover:-translate-y-px disabled:opacity-60 disabled:hover:translate-y-0"
             >
-              {status.kind === "submitting" ? "Sending…" : "Notify me"}
+              {status.kind === "submitting" ? "Sending…" : "Notify me at launch"}
             </button>
           </form>
 

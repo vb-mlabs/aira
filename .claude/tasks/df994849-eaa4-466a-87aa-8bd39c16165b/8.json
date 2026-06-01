@@ -1,0 +1,9 @@
+{
+  "id": "8",
+  "subject": "10. New feature: save-listing (heart) on business detail + listing card",
+  "description": "Add a save/heart button to the business detail / \"More info\" page (apps/web/src/app/(app)/listings/[category]/[id]/page.tsx). The user already has a \"My Listings\" area in their profile but no way to save a listing today. Decide: heart icon in the listing card AND on the detail page, or detail page only. Also requires backend (services + DB) — non-trivial; probably needs /mlabs-plan.",
+  "activeForm": "Planning save-listing feature",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

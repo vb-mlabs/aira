@@ -30,7 +30,7 @@ export function MarketingNav() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-5 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link
             href="/login"
             className="text-[13px] font-bold uppercase tracking-[0.5px] text-muted-foreground no-underline transition-colors hover:text-primary"
