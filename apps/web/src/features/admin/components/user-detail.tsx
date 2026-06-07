@@ -2,18 +2,13 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
+import { apiClient } from "@/lib/api-client"
 import type { AdminUserRow, AdminAuditRow } from "@/features/admin/types"
-import {
-  banUser,
-  changeRole,
-  sendAdminNotification,
-  sendPasswordResetTo,
-  unbanUser,
-} from "@/features/admin/server/actions"
 import { AuditTable } from "./audit-table"
 
 interface UserDetailProps {
@@ -24,6 +19,29 @@ interface UserDetailProps {
 }
 
 type Feedback = { kind: "ok" | "error"; message: string } | null
+
+interface AdminResult {
+  ok: true
+  message: string
+}
+
+// Single chokepoint for every admin mutation call. Wraps the apiClient call
+// + ApiError catch + feedback shape so the per-control handlers can stay
+// declarative.
+async function runAdminCall(
+  call: () => Promise<AdminResult>,
+  fallback: string,
+): Promise<Feedback> {
+  try {
+    const result = await call()
+    return { kind: "ok", message: result.message ?? "Done." }
+  } catch (err) {
+    return {
+      kind: "error",
+      message: err instanceof ApiError ? err.message : fallback,
+    }
+  }
+}
 
 export function UserDetail({ user, audit, selfId }: UserDetailProps) {
   const isSelf = user.id === selfId
@@ -136,13 +154,16 @@ function RoleControls({
 
   function setRole(role: "end_user" | "admin") {
     startTransition(async () => {
-      const res = await changeRole({ targetId: user.id, role })
-      setFeedback(
-        res.ok
-          ? { kind: "ok", message: res.message ?? "Saved." }
-          : { kind: "error", message: res.error },
+      const result = await runAdminCall(
+        () =>
+          apiClient.post<AdminResult>(
+            `/api/v1/admin/users/${user.id}/role`,
+            { role },
+          ),
+        "Could not change role.",
       )
-      if (res.ok) router.refresh()
+      setFeedback(result)
+      if (result?.kind === "ok") router.refresh()
     })
   }
 
@@ -189,16 +210,16 @@ function BanControls({
 
   function ban() {
     startTransition(async () => {
-      const res = await banUser({
-        targetId: user.id,
-        reason: reason.trim() || undefined,
-      })
-      setFeedback(
-        res.ok
-          ? { kind: "ok", message: res.message ?? "Banned." }
-          : { kind: "error", message: res.error },
+      const result = await runAdminCall(
+        () =>
+          apiClient.post<AdminResult>(
+            `/api/v1/admin/users/${user.id}/ban`,
+            { reason: reason.trim() || undefined },
+          ),
+        "Could not ban user.",
       )
-      if (res.ok) {
+      setFeedback(result)
+      if (result?.kind === "ok") {
         setReason("")
         router.refresh()
       }
@@ -207,13 +228,16 @@ function BanControls({
 
   function unban() {
     startTransition(async () => {
-      const res = await unbanUser({ targetId: user.id })
-      setFeedback(
-        res.ok
-          ? { kind: "ok", message: res.message ?? "Unbanned." }
-          : { kind: "error", message: res.error },
+      const result = await runAdminCall(
+        () =>
+          apiClient.post<AdminResult>(
+            `/api/v1/admin/users/${user.id}/unban`,
+            {},
+          ),
+        "Could not unban user.",
       )
-      if (res.ok) router.refresh()
+      setFeedback(result)
+      if (result?.kind === "ok") router.refresh()
     })
   }
 
@@ -281,12 +305,15 @@ function ResetControls({ user }: { user: AdminUserRow }) {
         variant="outline"
         onClick={() =>
           startTransition(async () => {
-            const res = await sendPasswordResetTo({ targetId: user.id })
-            setFeedback(
-              res.ok
-                ? { kind: "ok", message: res.message ?? "Sent." }
-                : { kind: "error", message: res.error },
+            const result = await runAdminCall(
+              () =>
+                apiClient.post<AdminResult>(
+                  `/api/v1/admin/users/${user.id}/reset-password`,
+                  {},
+                ),
+              "Could not send reset email.",
             )
+            setFeedback(result)
           })
         }
         disabled={pending}
@@ -311,18 +338,20 @@ function NotifyForm({ user }: { user: AdminUserRow }) {
       onSubmit={(e) => {
         e.preventDefault()
         startTransition(async () => {
-          const res = await sendAdminNotification({
-            targetId: user.id,
-            title: title.trim(),
-            message: message.trim(),
-            href: href.trim() || undefined,
-          })
-          setFeedback(
-            res.ok
-              ? { kind: "ok", message: res.message ?? "Sent." }
-              : { kind: "error", message: res.error },
+          const result = await runAdminCall(
+            () =>
+              apiClient.post<AdminResult>(
+                `/api/v1/admin/users/${user.id}/notify`,
+                {
+                  title: title.trim(),
+                  message: message.trim(),
+                  href: href.trim() || undefined,
+                },
+              ),
+            "Could not send notification.",
           )
-          if (res.ok) {
+          setFeedback(result)
+          if (result?.kind === "ok") {
             setTitle("")
             setMessage("")
             setHref("")

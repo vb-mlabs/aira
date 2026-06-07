@@ -1,8 +1,7 @@
 // /admin/audit — global audit log with date filter + pagination.
 
-import { admin as adminService } from "@aira/services"
-import { db } from "@/lib/db"
-import { requireAdmin } from "@/lib/auth/server"
+import { apiServerFetch } from "@aira/api/server"
+import { listAuditOp } from "@/server/operations/admin"
 import { AuditTable } from "@/features/admin"
 import { ADMIN_AUDIT_PAGE_SIZE } from "@/features/admin/types"
 
@@ -30,13 +29,14 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
   const pageNum = Number.parseInt(params.page ?? "1", 10)
   const page = Number.isFinite(pageNum) && pageNum > 0 ? pageNum : 1
 
-  // Bridge state T9 → T12. T12 swaps for apiServerFetch.
-  await requireAdmin()
-  const result = await adminService.listAudit(db, {
-    since: since?.toISOString(),
-    until: until?.toISOString(),
-    page,
+  const res = await apiServerFetch(listAuditOp, {
+    input: {
+      since: since?.toISOString(),
+      until: until?.toISOString(),
+      page,
+    },
   })
+  const result = res.data!
   const totalPages = Math.max(1, Math.ceil(result.total / ADMIN_AUDIT_PAGE_SIZE))
 
   return (

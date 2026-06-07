@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { admin as adminService } from "@aira/services"
-import { db } from "@/lib/db"
+import { apiServerFetch } from "@aira/api/server"
 import { requireAdmin } from "@/lib/auth/server"
+import { getUserDetailOp } from "@/server/operations/admin"
 import { UserDetail } from "@/features/admin"
 
 export const dynamic = "force-dynamic"
@@ -14,10 +14,16 @@ interface PageProps {
 }
 
 export default async function AdminUserDetailPage({ params }: PageProps) {
+  // requireAdmin() runs at the layout level too, but we need the admin's id
+  // here for the self-action gate. apiServerFetch enforces the same gate
+  // independently via the op's permission: "admin" + freshness check.
   const adminUser = await requireAdmin()
   const { id } = await params
-  // Bridge state T9 → T12. T12 swaps for apiServerFetch.
-  const detail = await adminService.getUserDetail(db, id)
+  const res = await apiServerFetch(getUserDetailOp, {
+    input: { id },
+    pathParams: { id },
+  })
+  const detail = res.data!
   if (!detail.user) notFound()
 
   return (
