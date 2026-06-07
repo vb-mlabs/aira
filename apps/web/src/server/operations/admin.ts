@@ -15,6 +15,14 @@ import { headers } from "next/headers"
 import { z } from "zod"
 import { ApiError } from "@aira/api"
 import { admin } from "@aira/services"
+import {
+  AdminUsersFiltersSchema,
+  ListUsersOutputSchema,
+  UserDetailInputSchema,
+  UserDetailOutputSchema,
+  ListAuditInputSchema,
+  ListAuditOutputSchema,
+} from "@aira/validators/admin"
 import { auth } from "@/lib/auth"
 import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
@@ -23,6 +31,38 @@ const AdminResultSchema = z.object({
   ok: z.literal(true),
   message: z.string(),
 })
+
+// ---------------------------------------------------------------------------
+// Reads — RSC pages call these via apiServerFetch; admin tooling can curl
+// them too. permission: "admin" picks up the 30-min idle-timeout gate
+// automatically via enforceAdminFreshness at the composition root.
+
+export const listUsersOp = defineOperation({
+  name: "admin.listUsers",
+  input: AdminUsersFiltersSchema,
+  output: ListUsersOutputSchema,
+  permission: "admin",
+  handler: (db, _ctx, filters) => admin.listUsers(db, filters),
+})
+
+export const getUserDetailOp = defineOperation({
+  name: "admin.getUserDetail",
+  input: UserDetailInputSchema,
+  output: UserDetailOutputSchema,
+  permission: "admin",
+  handler: (db, _ctx, { id }) => admin.getUserDetail(db, id),
+})
+
+export const listAuditOp = defineOperation({
+  name: "admin.listAudit",
+  input: ListAuditInputSchema,
+  output: ListAuditOutputSchema,
+  permission: "admin",
+  handler: (db, _ctx, input) => admin.listAudit(db, input),
+})
+
+// ---------------------------------------------------------------------------
+// Mutations
 
 export const changeRoleOp = defineOperation({
   name: "admin.changeRole",

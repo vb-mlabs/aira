@@ -29,6 +29,9 @@ by design:
 | GET | `/api/v1/businesses` | required | op | `listBusinessesOp` — `?featured=`, `?category=`, `?limit=` |
 | GET | `/api/v1/businesses/[id]` | required | op | `getBusinessByIdOp` — returns `{ business: null }` on 404 |
 | GET | `/api/v1/categories` | required | op | `listCategoriesWithCountsOp` — `?withCounts=true` (reserved) |
+| GET | `/api/v1/admin/users` | admin | op | `listUsersOp` — `?q=`, `?role=`, `?banned=`, `?page=` |
+| GET | `/api/v1/admin/users/[id]` | admin | op | `getUserDetailOp` — returns `{ user: null, audit: [] }` when id misses |
+| GET | `/api/v1/admin/audit` | admin | op | `listAuditOp` — `?since=`, `?until=` (ISO 8601), `?page=` |
 | POST | `/api/v1/waitlist` | **public** | route-direct | Honeypot anti-spam; sync welcome email; defineOperation can't host public routes (auth-only) |
 
 ## Compatibility policy
