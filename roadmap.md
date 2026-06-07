@@ -46,7 +46,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ## Sprint 0 — Foundation & accounts (~1 week)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started — **biggest unaddressed timeline risk.** S1 features have already landed on `main` while none of the Sprint 0 account/setup work has moved. Per the risk gate below, blockers here cascade into S6 mobile shipping; start in parallel with S1.5 planning or explicitly defer with a dated decision.
 
 **Goal:** Everything with external lead time or one-time config is in motion before we start building features.
 
@@ -70,14 +70,14 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ## Sprint 1 — Auth, RBAC, sessions (2 weeks)
 
-**Status:** 🟦 In flight — RBAC + idle-timeout + audit shipped on `feat/auth-rbac-hardening`; **MFA deferred to Sprint 1.5** (see plan `.mstack/plans/2026-05-26-auth-rbac-hardening.md` + review).
+**Status:** ✅ Done — RBAC + idle-timeout + audit shipped via `feat/auth-rbac-hardening` (now on `main`); admin idle-timeout verified end-to-end on the deployed Replit URL (`/mlabs-qa` run 2026-05-26-1020). **MFA split into Sprint 1.5** (see plan `.mstack/plans/2026-05-26-auth-rbac-hardening.md` + review).
 
 **Goal:** A new user signs up with email + verifies via Postmark + reaches an empty home screen. An admin logs in at `/admin` with email + password + reaches an empty admin dashboard, with 30-min idle-timeout and an audit trail. Role-based route guards work. (TOTP MFA on top of password lands in **Sprint 1.5** before any external admin sign-in.)
 
 **Features (PRD refs):**
-- ⬜ F1 (amended) — **Email/password auth + email verification** (not phone OTP). Better Auth handles out-of-box. (Template-shipped pre-S1; no new work in this sprint.)
-- 🟦 F2 (partial) — RBAC with the user_role pgEnum (`end_user`, `admin`, `super_admin`) + `super_admin` env-bootstrap landed in `feat/auth-rbac-hardening`. **MFA component split out to S1.5** — see below.
-- 🟦 F3 (partial) — Sliding 30-min admin idle-timeout via `session.last_activity_at` + signed audit on stale-bounce; 7d Better Auth default for end-users; logout flow audits as `session.revoked.reason = "logout"`. Done on the feature branch.
+- ✅ F1 (amended) — **Email/password auth + email verification** (not phone OTP). Better Auth handles out-of-box. (Template-shipped pre-S1; no new work in this sprint.)
+- ✅ F2 (RBAC half) — `user_role` pgEnum (`end_user`, `admin`, `super_admin`) + `super_admin` env-bootstrap on `main`. **MFA component split out to S1.5** — see below.
+- ✅ F3 — Sliding 30-min admin idle-timeout via `session.last_activity_at` + signed audit on stale-bounce; 7d Better Auth default for end-users; logout flow audits as `session.revoked.reason = "logout"`. Verified end-to-end on Replit.
 
 **Schema additions:** `user_role` Postgres enum migration (0009); `session.last_activity_at` column (0008). `mfa_enabled` + `user_device` deferred (MFA in S1.5, push registration in S5).
 
@@ -144,7 +144,9 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ## Sprint 3 — Listings: admin CRUD + end-user browse (2 weeks)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started (browse shell landed early — see note)
+
+**Shell already on `main`:** The end-user browse skeleton shipped off-roadmap as the `end-user-app-shell` slice — `/home`, `/categories`, `/listings/[category]`, business detail route, plus a `businesses` Drizzle table, server queries, and card/detail/category-row UI components. Remaining S3 scope: admin Business CRUD (F13), Google Places Autocomplete (F27), multi-category join + soft-delete/restore, sponsored sort (F12), verified badge + admin rating (F11), city-aware slug wiring (F25 web half), gallery upload (≤3 images), and replacing sample data with real queries.
 
 **Goal:** Admin creates a Business with full details (Google Places address, multi-category, ≤3 gallery images, verify tick, rating). End-user opens the matching category page and sees the listing card with tap-to-call, WhatsApp, social, More Info modal.
 
