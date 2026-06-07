@@ -8,14 +8,16 @@ import {
   CATEGORIES_ORDERED,
   CategoryRow,
 } from "@/features/listings"
-import { getBusinessCountsByCategory } from "@/features/listings/server/queries"
+// Direct service import — temporary bridge between T5/T7 (see T7 commit).
+import { categories } from "@aira/services"
+import { db } from "@/lib/db"
 
 export const metadata: Metadata = {
   title: "Categories",
 }
 
 export default async function CategoriesPage() {
-  const counts = await getBusinessCountsByCategory()
+  const counts = await categories.getBusinessCountsByCategory(db)
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">

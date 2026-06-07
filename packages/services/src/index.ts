@@ -19,9 +19,15 @@
 //   - @aira/services/billing        — getStripe, handleStripeEvent
 //                                       (generic Stripe primitives; forks
 //                                       add handlers)
+//   - @aira/services/businesses     — getFeaturedBusinesses,
+//                                       getBusinessesByCategory,
+//                                       getBusinessById
+//   - @aira/services/categories     — getBusinessCountsByCategory
 
 export * as notifications from "./notifications"
 export * as messages from "./messages"
 export * as users from "./users"
 export * as admin from "./admin"
 export * as billing from "./billing"
+export * as businesses from "./businesses"
+export * as categories from "./categories"

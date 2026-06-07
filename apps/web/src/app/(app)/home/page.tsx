@@ -9,7 +9,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { brand } from "@aira/config"
 import { BusinessCard, StatCard } from "@/features/listings"
-import { getFeaturedBusinesses } from "@/features/listings/server/queries"
+// Direct service import — temporary bridge state between T5 (services
+// promotion) and T7 (apiServerFetch switch). T7 replaces this with
+// apiServerFetch against /api/v1/businesses?featured=true.
+import { businesses } from "@aira/services"
+import { db } from "@/lib/db"
 
 export const metadata: Metadata = {
   title: "Home",
@@ -22,7 +26,7 @@ const TAGLINE_CAPTION = brand.tagline.split(" & ").join(" · ")
 const ABOUT_COPY = `${brand.name} is Atlanta's community directory connecting local Indian businesses, services, and resources with the people who care about them. We celebrate our roots and help every trusted business grow its reach in our city.`
 
 export default async function HomePage() {
-  const featured = await getFeaturedBusinesses(6)
+  const featured = await businesses.getFeaturedBusinesses(db, 6)
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">

@@ -11,7 +11,9 @@
     "./messages": "./src/messages/index.ts",
     "./users": "./src/users/index.ts",
     "./admin": "./src/admin/index.ts",
-    "./billing": "./src/billing/index.ts"
+    "./billing": "./src/billing/index.ts",
+    "./businesses": "./src/businesses/index.ts",
+    "./categories": "./src/categories/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -21,6 +23,7 @@
   "dependencies": {
     "@aira/api": "workspace:*",
     "@aira/db": "workspace:*",
+    "@aira/validators": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "server-only": "^0.0.1",
     "stripe": "^22.1.1",

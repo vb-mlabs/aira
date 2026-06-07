@@ -8,7 +8,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth.ts",
-    "./api-error": "./src/api-error.ts"
+    "./api-error": "./src/api-error.ts",
+    "./businesses": "./src/businesses.ts",
+    "./categories": "./src/categories.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
