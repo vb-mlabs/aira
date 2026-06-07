@@ -1,9 +1,9 @@
 import "server-only"
 
 // defineOperation — the single adapter that bridges service functions to
-// HTTP routes AND Server Actions. Each operation declares its input/output
-// schemas + required permission; the adapter handles auth, validation, error
-// mapping uniformly so route handlers and action wrappers stay trivial.
+// /api/v1/* HTTP routes. Each operation declares its input/output schemas +
+// required permission; the adapter handles auth, validation, and error
+// mapping uniformly so route handlers stay trivial.
 //
 // Usage:
 //   const { defineOperation } = createOperations({ db, getSession })
@@ -19,11 +19,10 @@ import "server-only"
 //   // In a Next route file:
 //   export const POST = markAllReadOp.runFromRequest
 //
-//   // In a Server Action:
-//   "use server"
-//   export async function markAllRead() {
-//     return markAllReadOp.runFromAction({})
-//   }
+// Server Components: invoke via `apiServerFetch(op, init?)` from
+// @aira/api/server — same auth + validation pipeline, no socket. There is
+// no Server Action adapter (deleted 2026-06-07; web + mobile must consume
+// /api/v1/* via apiClient or apiServerFetch).
 
 import type { ZodType, ZodTypeAny } from "zod"
 import { ApiError, isApiError } from "./errors"
@@ -110,15 +109,13 @@ export interface Operation<I, O> {
   /** Adapter for Next route files: `export const POST = op.runFromRequest`.
    *  Both arguments are typed to match Next 16's `RouteHandlerConfig`
    *  contract (NextRequest is a Request subtype; the ctx shape is
-   *  contravariantly compatible with `{ params: Promise<...> }`). */
+   *  contravariantly compatible with `{ params: Promise<...> }`).
+   *  RSCs call this in-process via `apiServerFetch(op, init?)` from
+   *  @aira/api/server. */
   runFromRequest: (
     request: Request,
     context?: OperationRouteContext,
   ) => Promise<Response>
-  /** Adapter for Server Actions: callers pass parsed input directly. Throws
-   *  ApiError on auth/validation/permission failure so the action surface
-   *  can map it to whatever its callers expect. */
-  runFromAction: (input: I) => Promise<O>
   schema: OperationSchema<I, O>
 }
 
@@ -162,9 +159,9 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
   }
   const newRequestId = generateRequestId ?? defaultRequestId
 
-  /** Apply the optional admin freshness gate. Called from both
-   *  runFromRequest and runFromAction after permission passes. Cookie-only
-   *  by design — see OperationDeps.enforceAdminFreshness JSDoc. */
+  /** Apply the optional admin freshness gate. Called from runFromRequest
+   *  after permission passes. Cookie-only by design — see
+   *  OperationDeps.enforceAdminFreshness JSDoc. */
   async function maybeEnforceFreshness(
     spec: OperationSpec<DB, unknown, unknown>,
     ctx: CallerContext,
@@ -315,59 +312,8 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
           return fallback
         }
       },
-
-      async runFromAction(input) {
-        // Server Action path: no Request, no Response. Caller supplies the
-        // headers env via getSession() under the hood (Next exposes the
-        // current request's headers to "use server" code via next/headers).
-        // We still need the same auth + validation guards; on failure we
-        // throw ApiError so the action surface can map it to its callers.
-        const headersImpl = await loadActionHeaders()
-        const requestId =
-          headersImpl.get("x-request-id") ?? newRequestId()
-        const session = await getSession(headersImpl)
-        if (!session) {
-          throw ApiError.unauthorized()
-        }
-        const ctx = buildContext({
-          headers: headersImpl,
-          session,
-          requestId,
-        })
-        // Freshness gate (web cookie + admin only — see deps JSDoc).
-        await maybeEnforceFreshness(
-          spec as OperationSpec<DB, unknown, unknown>,
-          ctx,
-          headersImpl,
-        )
-        return runWithContext(ctx, input)
-      },
     }
   }
 
   return { defineOperation, buildContext }
-}
-
-/**
- * Resolve a Headers object for Server Action invocations. Implemented as a
- * dynamic import so the @aira/api package doesn't take a hard dep on
- * next/headers — tests + non-Next runtimes can override it via
- * setActionHeadersResolver().
- */
-let actionHeadersResolver: () => Promise<Headers> = async () => {
-  const mod = (await import("next/headers")) as {
-    headers: () => Promise<Headers>
-  }
-  return mod.headers()
-}
-
-async function loadActionHeaders(): Promise<Headers> {
-  return actionHeadersResolver()
-}
-
-/** Test/runtime hook to override how runFromAction reads incoming headers. */
-export function setActionHeadersResolver(
-  resolver: () => Promise<Headers>,
-): void {
-  actionHeadersResolver = resolver
 }

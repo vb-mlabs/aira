@@ -9,7 +9,6 @@ import "server-only"
 export {
   createOperations,
   buildContext,
-  setActionHeadersResolver,
 } from "./operation"
 
 export type {

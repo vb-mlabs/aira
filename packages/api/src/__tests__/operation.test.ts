@@ -1,20 +1,16 @@
 // @vitest-environment node
 //
 // Contract tests for createOperations + defineOperation. Lock the behaviour
-// every route handler and Server Action depends on:
+// every route handler depends on:
 //   - unauthenticated → 401 ApiErrorResponse
 //   - permission denied → 403
 //   - input validation failure → 400 with field hint
 //   - output contract mismatch → 500 (logged, not leaked)
 //   - happy path → 200 JSON with X-Request-Id echo
-//   - runFromAction throws ApiError (no Response wrapping)
 
-import { describe, expect, it, vi, beforeEach } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { z } from "zod"
-import {
-  createOperations,
-  setActionHeadersResolver,
-} from "../operation"
+import { createOperations } from "../operation"
 import { ApiError } from "../errors"
 import type { OperationSession } from "../operation"
 
@@ -255,61 +251,6 @@ describe("defineOperation.runFromRequest", () => {
     expect(observed).toHaveBeenCalledWith("mobile")
     await op.runFromRequest(mkRequest({}))
     expect(observed).toHaveBeenCalledWith("web")
-  })
-})
-
-describe("defineOperation.runFromAction", () => {
-  beforeEach(() => {
-    setActionHeadersResolver(async () => new Headers())
-  })
-
-  it("throws ApiError on unauthed call (no Response)", async () => {
-    const { defineOperation } = makeFactory(async () => null)
-    const op = defineOperation({
-      name: "test.action",
-      input: z.object({}),
-      output: z.object({}),
-      permission: "user",
-      handler: async () => ({}),
-    })
-    await expect(op.runFromAction({})).rejects.toMatchObject({
-      name: "ApiError",
-      status: 401,
-      code: "auth.unauthenticated",
-    })
-  })
-
-  it("returns parsed output on happy path", async () => {
-    const { defineOperation } = makeFactory(async () => userSession)
-    const op = defineOperation({
-      name: "test.action.ok",
-      input: z.object({ n: z.number() }),
-      output: z.object({ doubled: z.number() }),
-      permission: "user",
-      handler: async (_db, _ctx, input) => ({ doubled: input.n * 2 }),
-    })
-    await expect(op.runFromAction({ n: 21 })).resolves.toEqual({
-      doubled: 42,
-    })
-  })
-
-  it("throws on input validation failure (no Response)", async () => {
-    const { defineOperation } = makeFactory(async () => userSession)
-    const op = defineOperation({
-      name: "test.action.invalid",
-      input: z.object({ name: z.string().min(1) }),
-      output: z.object({}),
-      permission: "user",
-      handler: async () => ({}),
-    })
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      op.runFromAction({ name: "" } as any),
-    ).rejects.toMatchObject({
-      status: 400,
-      code: "validation.input",
-      field: "name",
-    })
   })
 })
 

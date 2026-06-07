@@ -29,11 +29,6 @@ function makeOp<I, O>(handler: (req: Request) => Promise<Response>): Operation<I
   return {
     schema: fakeSchema<I, O>("test.op"),
     runFromRequest: vi.fn(handler),
-    // runFromAction is part of the Operation interface today; Task 16 deletes
-    // it. Until then we satisfy the type with a throwing stub.
-    runFromAction: vi.fn(async () => {
-      throw new Error("runFromAction not used by apiServerFetch")
-    }),
   } as unknown as Operation<I, O>
 }
 

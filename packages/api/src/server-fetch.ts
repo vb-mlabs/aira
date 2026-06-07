@@ -42,9 +42,8 @@ export interface ApiServerFetchResult<O> {
 // ---------------------------------------------------------------------------
 // Test seam
 //
-// Mirrors operation.ts's setActionHeadersResolver pattern. Tests can swap the
-// next/headers + next/navigation lookups for stubs so the helper is exercised
-// in vitest without spinning up a Next request scope.
+// Tests can swap the next/headers + next/navigation lookups for stubs so the
+// helper is exercised in vitest without spinning up a Next request scope.
 
 let resolveOuterHeaders: () => Promise<Headers> = async () => {
   const mod = (await import("next/headers")) as {
