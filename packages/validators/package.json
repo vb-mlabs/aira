@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./auth": "./src/auth.ts",
     "./api-error": "./src/api-error.ts",
+    "./admin": "./src/admin.ts",
     "./businesses": "./src/businesses.ts",
     "./categories": "./src/categories.ts"
   },

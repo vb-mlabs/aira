@@ -2,7 +2,9 @@
 // page from the URL search params; the UserList client component pushes new
 // params to navigate.
 
-import { listUsers } from "@/features/admin/server/queries"
+import { admin as adminService } from "@aira/services"
+import { db } from "@/lib/db"
+import { requireAdmin } from "@/lib/auth/server"
 import { UserList } from "@/features/admin"
 import type { UserRole } from "@/features/admin/types"
 
@@ -31,7 +33,11 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   const pageNum = Number.parseInt(params.page ?? "1", 10)
   const page = Number.isFinite(pageNum) && pageNum > 0 ? pageNum : 1
 
-  const result = await listUsers({
+  // Bridge state T9 → T12. Service is now pure (no requireAdmin) so the
+  // RSC re-enforces. T12 swaps this for apiServerFetch where the op's
+  // permission gate + freshness check handle both.
+  await requireAdmin()
+  const result = await adminService.listUsers(db, {
     q: params.q,
     role,
     banned,

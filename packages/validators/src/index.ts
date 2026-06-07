@@ -4,6 +4,7 @@
 // ESLint rule enforces this (drizzle-orm is Node-only and would break the
 // mobile bundle).
 
+export * from "./admin";
 export * from "./api-error";
 export * from "./auth";
 export * from "./businesses";

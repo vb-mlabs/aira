@@ -11,3 +11,9 @@ export {
 } from "./service"
 
 export type { AdminResult, PasswordResetTarget } from "./service"
+
+export {
+  listUsers,
+  getUserDetail,
+  listAudit,
+} from "./queries"
