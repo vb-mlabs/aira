@@ -17,14 +17,13 @@
 set -euo pipefail
 
 # Only inspect staged additions/modifications under the guarded paths.
+# (Pathspec `**` isn't a standard git glob — filter with grep instead.)
 mapfile -t staged < <(
   git diff --cached --name-only --diff-filter=AM \
-    -- 'apps/web/src/features/**/*.ts' \
-       'apps/web/src/features/**/*.tsx' \
-       'apps/web/src/server/**/*.ts' \
-       'apps/web/src/server/**/*.tsx' \
-       'apps/web/src/app/**/*.ts' \
-       'apps/web/src/app/**/*.tsx'
+    -- 'apps/web/src/features' \
+       'apps/web/src/server' \
+       'apps/web/src/app' \
+    | grep -E '\.(ts|tsx)$' || true
 )
 
 if [ ${#staged[@]} -eq 0 ]; then
