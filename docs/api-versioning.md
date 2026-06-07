@@ -26,6 +26,9 @@ by design:
 | POST | `/api/v1/profile/password` | required | op | `changePasswordOp` |
 | POST | `/api/v1/avatar` | required | route-direct | multipart/form-data |
 | DELETE | `/api/v1/avatar` | required | route-direct | |
+| GET | `/api/v1/businesses` | required | op | `listBusinessesOp` — `?featured=`, `?category=`, `?limit=` |
+| GET | `/api/v1/businesses/[id]` | required | op | `getBusinessByIdOp` — returns `{ business: null }` on 404 |
+| GET | `/api/v1/categories` | required | op | `listCategoriesWithCountsOp` — `?withCounts=true` (reserved) |
 | POST | `/api/v1/waitlist` | **public** | route-direct | Honeypot anti-spam; sync welcome email; defineOperation can't host public routes (auth-only) |
 
 ## Compatibility policy
