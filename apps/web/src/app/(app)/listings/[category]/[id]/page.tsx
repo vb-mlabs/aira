@@ -7,9 +7,8 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { BusinessDetail } from "@/features/listings"
-// Direct service import — temporary bridge between T5/T7 (see T7 commit).
-import { businesses } from "@aira/services"
-import { db } from "@/lib/db"
+import { apiServerFetch } from "@aira/api/server"
+import { getBusinessByIdOp } from "@/server/operations/businesses"
 
 interface PageProps {
   params: Promise<{ category: string; id: string }>
@@ -19,13 +18,21 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params
-  const business = await businesses.getBusinessById(db, id)
+  const res = await apiServerFetch(getBusinessByIdOp, {
+    input: { id },
+    pathParams: { id },
+  })
+  const business = res.data?.business ?? null
   return { title: business?.name ?? "Not found" }
 }
 
 export default async function BusinessDetailPage({ params }: PageProps) {
   const { id } = await params
-  const business = await businesses.getBusinessById(db, id)
+  const res = await apiServerFetch(getBusinessByIdOp, {
+    input: { id },
+    pathParams: { id },
+  })
+  const business = res.data?.business ?? null
   if (!business) notFound()
 
   return (

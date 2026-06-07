@@ -11,9 +11,8 @@ import {
   VALID_CATEGORIES,
   type BusinessCategory,
 } from "@/features/listings"
-// Direct service import — temporary bridge between T5/T7 (see T7 commit).
-import { businesses as businessesService } from "@aira/services"
-import { db } from "@/lib/db"
+import { apiServerFetch } from "@aira/api/server"
+import { listBusinessesOp } from "@/server/operations/businesses"
 
 interface PageProps {
   params: Promise<{ category: string }>
@@ -36,7 +35,10 @@ export default async function CategoryListingPage({ params }: PageProps) {
   if (!isValidCategory(category)) notFound()
 
   const meta = CATEGORY_META[category]
-  const businesses = await businessesService.getBusinessesByCategory(db, category)
+  const res = await apiServerFetch(listBusinessesOp, {
+    input: { category },
+  })
+  const businesses = res.data?.items ?? []
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
