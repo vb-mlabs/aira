@@ -62,6 +62,19 @@ export class ApiError extends Error {
     })
   }
 
+  /** Distinct from unauthorized() so callers can branch (specifically:
+   *  apiServerFetch auto-redirects cookie-authed admin RSCs to
+   *  /login?reason=idle when the freshness gate fires). */
+  static idleTimeout(
+    message = "Session expired due to inactivity.",
+  ): ApiError {
+    return new ApiError({
+      status: 401,
+      code: "auth.idle_timeout",
+      message,
+    })
+  }
+
   static forbidden(message = "Permission denied"): ApiError {
     return new ApiError({
       status: 403,

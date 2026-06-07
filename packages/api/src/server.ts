@@ -21,3 +21,13 @@ export type {
   OperationSchema,
   GetSession,
 } from "./operation"
+
+export {
+  apiServerFetch,
+  setApiServerFetchInternals,
+} from "./server-fetch"
+
+export type {
+  ApiServerFetchInit,
+  ApiServerFetchResult,
+} from "./server-fetch"

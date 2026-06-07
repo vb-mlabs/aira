@@ -44,7 +44,9 @@ async function enforceAdminFreshness(headers: Headers): Promise<void> {
   if (!session) return // unauthenticated — defineOperation handles separately
   const sessionId = (session.session as { id?: string }).id
   if (await adminSessionIsStale(sessionId)) {
-    throw ApiError.unauthorized("Session expired due to inactivity.")
+    // Distinct code from auth.unauthenticated so apiServerFetch can branch
+    // and auto-redirect cookie-authed admin RSCs to /login?reason=idle.
+    throw ApiError.idleTimeout()
   }
 }
 
