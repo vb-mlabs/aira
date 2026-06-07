@@ -88,11 +88,11 @@ export async function loginRequest(
   });
   if (!res.ok) {
     await clearTokens();
-    throw new ApiError(
-      res.status,
-      "auth.refresh_failed",
-      "Could not establish session",
-    );
+    throw new ApiError({
+      status: res.status,
+      code: "auth.refresh_failed",
+      message: "Could not establish session",
+    });
   }
   const refresh = (await res.json()) as RefreshResponse;
   await setTokens({ access: refresh.accessToken, refresh: signIn.token });
@@ -166,11 +166,19 @@ export async function meRequest(): Promise<User> {
     headers,
   });
   if (!res.ok) {
-    throw new ApiError(res.status, "auth.no_session", "No active session");
+    throw new ApiError({
+      status: res.status,
+      code: "auth.no_session",
+      message: "No active session",
+    });
   }
   const data = (await res.json()) as { user: User } | null;
   if (!data?.user) {
-    throw new ApiError(401, "auth.no_session", "No active session");
+    throw new ApiError({
+      status: 401,
+      code: "auth.no_session",
+      message: "No active session",
+    });
   }
   return data.user;
 }

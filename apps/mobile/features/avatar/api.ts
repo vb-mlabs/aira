@@ -8,11 +8,11 @@ export async function pickAvatarFromLibrary(): Promise<
 > {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    throw new ApiError(
-      403,
-      "permission_denied",
-      "Photo library permission denied. Enable it in Settings."
-    );
+    throw new ApiError({
+      status: 403,
+      code: "permission_denied",
+      message: "Photo library permission denied. Enable it in Settings.",
+    });
   }
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -24,11 +24,11 @@ export async function pickAvatarFromLibrary(): Promise<
   const asset = result.assets[0];
   if (!asset) return null;
   if (asset.fileSize !== undefined && asset.fileSize > MAX_BYTES) {
-    throw new ApiError(
-      413,
-      "file_too_large",
-      "That image is larger than 5MB. Pick a smaller one."
-    );
+    throw new ApiError({
+      status: 413,
+      code: "file_too_large",
+      message: "That image is larger than 5MB. Pick a smaller one.",
+    });
   }
   return asset;
 }
@@ -51,7 +51,11 @@ export async function uploadAvatar(
     body: form,
   });
   if (!res.data) {
-    throw new ApiError(res.status, "empty_response", "No avatar URL returned");
+    throw new ApiError({
+      status: res.status,
+      code: "empty_response",
+      message: "No avatar URL returned",
+    });
   }
   return res.data;
 }

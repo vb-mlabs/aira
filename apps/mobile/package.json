@@ -18,6 +18,7 @@
     "@better-auth/expo": "^1.6.10",
     "@expo/metro-runtime": "~55.0.11",
     "@expo/vector-icons": "^15.1.1",
+    "@aira/api": "workspace:*",
     "@aira/config": "workspace:*",
     "@aira/validators": "workspace:*",
     "@react-native-async-storage/async-storage": "2.2.0",

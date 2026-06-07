@@ -16,6 +16,13 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { ApiErrorResponse } from "@aira/validators";
+import { ApiError } from "@aira/api";
+
+// Re-export so existing mobile importers (features/*/api.ts, screens) keep
+// pointing at "../../lib/api/client" without having to chase the package
+// path. Identity is preserved — `instanceof ApiError` works regardless of
+// which import path the thrower used.
+export { ApiError };
 
 // ---------------------------------------------------------------------------
 // Config
@@ -77,23 +84,6 @@ const tokenStore = {
     await SecureStore.deleteItemAsync(key);
   },
 };
-
-// ---------------------------------------------------------------------------
-// Error type
-
-export class ApiError extends Error {
-  readonly status: number;
-  readonly code: string;
-  readonly field: string | undefined;
-
-  constructor(status: number, code: string, message: string, field?: string) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
-    this.field = field;
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Token helpers (exported for auth feature use)
@@ -222,14 +212,22 @@ async function parseError(res: Response): Promise<ApiError> {
   try {
     payload = await res.json();
   } catch {
-    return new ApiError(res.status, "unknown", res.statusText || "Request failed");
+    return new ApiError({
+      status: res.status,
+      code: "unknown",
+      message: res.statusText || "Request failed",
+    });
   }
   const parsed = ApiErrorResponse.safeParse(payload);
   if (parsed.success) {
     const { code, message, field } = parsed.data.error;
-    return new ApiError(res.status, code, message, field);
+    return new ApiError({ status: res.status, code, message, field });
   }
-  return new ApiError(res.status, "unknown", res.statusText || "Request failed");
+  return new ApiError({
+    status: res.status,
+    code: "unknown",
+    message: res.statusText || "Request failed",
+  });
 }
 
 export async function apiRequest<T>(
@@ -303,7 +301,11 @@ export async function apiPost<T>(
 ): Promise<T> {
   const res = await apiRequest<T>(path, { ...init, method: "POST", body });
   if (res.data === null) {
-    throw new ApiError(res.status, "empty_response", "Server returned no body");
+    throw new ApiError({
+      status: res.status,
+      code: "empty_response",
+      message: "Server returned no body",
+    });
   }
   return res.data;
 }
@@ -315,7 +317,11 @@ export async function apiPatch<T>(
 ): Promise<T> {
   const res = await apiRequest<T>(path, { ...init, method: "PATCH", body });
   if (res.data === null) {
-    throw new ApiError(res.status, "empty_response", "Server returned no body");
+    throw new ApiError({
+      status: res.status,
+      code: "empty_response",
+      message: "Server returned no body",
+    });
   }
   return res.data;
 }
