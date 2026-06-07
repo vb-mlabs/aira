@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-07
 **Slug:** 2026-06-07-rest-api-migration
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
