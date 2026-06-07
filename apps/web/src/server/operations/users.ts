@@ -2,14 +2,16 @@ import "server-only"
 
 // Users operations.
 //
-// updateNameOp + changePasswordOp wrap Better Auth's request-context APIs
-// (auth.api.updateUser / changePassword take a live Headers object). They
-// live at the composition root — the @aira/services/users domain is pure
-// (no auth.api dep), so the Better Auth call lives here, inside the op
-// handler, which runs inside the Next request scope (next/headers works).
+// updateNameOp + requestEmailChangeOp + changePasswordOp wrap Better Auth's
+// request-context APIs (auth.api.updateUser / changeEmail / changePassword
+// take a live Headers object). They live at the composition root — the
+// @aira/services/users domain is pure (no auth.api dep), so the Better
+// Auth call lives here, inside the op handler, which runs inside the Next
+// request scope (next/headers works).
 
 import { headers } from "next/headers"
 import { eq } from "drizzle-orm"
+import { createHash } from "node:crypto"
 import { z } from "zod"
 import { ApiError } from "@aira/api"
 import { user as userTable } from "@aira/db/schema"
@@ -86,6 +88,98 @@ export const updateNameOp = defineOperation({
       user: { id: ctx.userId, email: ctx.user.email, name },
       changed: true,
     }
+  },
+})
+
+export const getProfileOp = defineOperation({
+  name: "users.getProfile",
+  input: z.object({}).strict(),
+  output: z.object({
+    user: z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+      emailVerified: z.boolean(),
+      image: z.string().nullable(),
+    }),
+  }),
+  permission: "user",
+  handler: async (db, ctx) => {
+    // Read the latest row — the session-cached user may lag a freshly
+    // committed name/email/avatar change, and /profile renders right
+    // after those mutations.
+    const [fresh] = await db
+      .select({
+        id: userTable.id,
+        name: userTable.name,
+        email: userTable.email,
+        emailVerified: userTable.emailVerified,
+        image: userTable.image,
+      })
+      .from(userTable)
+      .where(eq(userTable.id, ctx.userId))
+      .limit(1)
+    if (!fresh) {
+      // Session referenced a user that no longer exists — surface as auth
+      // failure so the layout redirects to /login.
+      throw ApiError.unauthorized()
+    }
+    return { user: fresh }
+  },
+})
+
+export const requestEmailChangeOp = defineOperation({
+  name: "users.requestEmailChange",
+  input: z.object({
+    email: z.email("Enter a valid email"),
+  }),
+  output: z.object({
+    ok: z.literal(true),
+    /** True when the requested email differs from the current one. False
+     *  means the no-op short-circuited — the UI surfaces a "that's already
+     *  your email" message rather than acting like a confirmation was sent. */
+    changed: z.boolean(),
+  }),
+  permission: "user",
+  handler: async (db, ctx, { email }) => {
+    const newEmail = email.toLowerCase()
+    if (newEmail === ctx.user.email.toLowerCase()) {
+      return { ok: true as const, changed: false }
+    }
+
+    // Audit BEFORE the action. from_email_hash lets us trace email-rotation
+    // history without storing the previous PII once it rotates out.
+    const audit = createAudit(db)
+    await audit({
+      actorId: ctx.userId,
+      action: "user.email_changed",
+      target: { type: "user", id: ctx.userId },
+      meta: {
+        kind: "user.email_changed",
+        from_email_hash: createHash("sha256")
+          .update(ctx.user.email)
+          .digest("hex"),
+      },
+      client: ctx.source === "mobile" ? "mobile" : "web",
+    })
+
+    try {
+      await auth.api.changeEmail({
+        body: { newEmail },
+        headers: await headers(),
+      })
+    } catch (err) {
+      logger.error("changeEmail failed", {
+        userId: ctx.userId,
+        message: String(err),
+      })
+      throw ApiError.badRequest(
+        "profile.email_change_failed",
+        "Could not start email change. Try again in a moment.",
+      )
+    }
+
+    return { ok: true as const, changed: true }
   },
 })
 

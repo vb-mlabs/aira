@@ -1,19 +1,26 @@
-// /api/v1/profile — mobile REST mirror of features/profile/server/actions.ts.
+// /api/v1/profile — single REST surface for web + mobile.
 //
-// PATCH /api/v1/profile  { name }    → updates display name
+// GET    /api/v1/profile             → fresh user snapshot for /profile page
+// PATCH  /api/v1/profile  { name }   → updates display name
 // DELETE /api/v1/profile             → anonymizes account (irreversible)
 //
-// Both endpoints flow through ops at @/server/operations/users. Web pages
-// use Server Actions in features/profile/server/actions.ts; mobile reaches
-// these routes. Logic stays in sync because both layers ultimately call
-// the same operation handlers (or service functions).
+// Web RSC reads via apiServerFetch(getProfileOp); web Client Components
+// mutate via apiClient.patch / .delete; mobile via @aira/api/client. Both
+// clients hit the same routes; there are no Server Actions in
+// features/profile anymore.
 
 import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 import { storage } from "@/lib/storage"
-import { deleteAccountOp, updateNameOp } from "@/server/operations/users"
+import {
+  deleteAccountOp,
+  getProfileOp,
+  updateNameOp,
+} from "@/server/operations/users"
 
 export const runtime = "nodejs"
+
+export const GET = getProfileOp.runFromRequest
 
 export const PATCH = updateNameOp.runFromRequest
 

@@ -1,15 +1,14 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
+import { apiClient } from "@/lib/api-client"
 import { SectionCard } from "./section-card"
 import { AvatarUploader } from "@/features/avatar/components/avatar-uploader"
-import {
-  updateName,
-  requestEmailChange,
-} from "@/features/profile/server/actions"
 
 interface AccountSectionProps {
   user: {
@@ -37,6 +36,7 @@ export function AccountSection({ user }: AccountSectionProps) {
 }
 
 function NameForm({ currentName }: { currentName: string }) {
+  const router = useRouter()
   const [name, setName] = useState(currentName)
   const [feedback, setFeedback] = useState<
     { kind: "ok" | "error"; message: string } | null
@@ -48,12 +48,26 @@ function NameForm({ currentName }: { currentName: string }) {
     <form
       action={(formData) => {
         startTransition(async () => {
-          const res = await updateName(formData)
-          setFeedback(
-            res.ok
-              ? { kind: "ok", message: res.message ?? "Saved." }
-              : { kind: "error", message: res.error },
-          )
+          const next = String(formData.get("name") ?? "").trim()
+          try {
+            const result = await apiClient.patch<{
+              user: { id: string; email: string; name: string }
+              changed: boolean
+            }>("/api/v1/profile", { name: next })
+            setFeedback({
+              kind: "ok",
+              message: result.changed ? "Saved." : "No changes.",
+            })
+            if (result.changed) router.refresh()
+          } catch (err) {
+            setFeedback({
+              kind: "error",
+              message:
+                err instanceof ApiError
+                  ? err.message
+                  : "Could not save. Try again.",
+            })
+          }
         })
       }}
       className="space-y-2"
@@ -107,12 +121,27 @@ function EmailForm({
     <form
       action={(formData) => {
         startTransition(async () => {
-          const res = await requestEmailChange(formData)
-          setFeedback(
-            res.ok
-              ? { kind: "ok", message: res.message ?? "Confirmation sent." }
-              : { kind: "error", message: res.error },
-          )
+          const next = String(formData.get("email") ?? "").trim()
+          try {
+            const result = await apiClient.post<{
+              ok: true
+              changed: boolean
+            }>("/api/v1/profile/email", { email: next })
+            setFeedback({
+              kind: "ok",
+              message: result.changed
+                ? `Check ${currentEmail} — we sent a confirmation link to your current address.`
+                : "That's already your email.",
+            })
+          } catch (err) {
+            setFeedback({
+              kind: "error",
+              message:
+                err instanceof ApiError
+                  ? err.message
+                  : "Could not start email change. Try again in a moment.",
+            })
+          }
         })
       }}
       className="space-y-2"

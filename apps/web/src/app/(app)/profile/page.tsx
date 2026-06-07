@@ -1,11 +1,11 @@
 // /profile — sectioned-card layout per design decision D5.
 // Server component; composes feature modules and passes only the trusted
-// session user fields to the client sections.
+// user fields to the client sections. Reads via apiServerFetch so the
+// in-process call goes through the same auth + Zod validation pipeline
+// that mobile uses for GET /api/v1/profile.
 
-import { eq } from "drizzle-orm"
-import { db } from "@/lib/db"
-import { user as userTable } from "@aira/db/schema"
-import { requireUser } from "@/lib/auth/server"
+import { apiServerFetch } from "@aira/api/server"
+import { getProfileOp } from "@/server/operations/users"
 import {
   AccountSection,
   DangerZoneSection,
@@ -16,30 +16,10 @@ import {
 export const metadata = { title: "Profile" }
 
 export default async function ProfilePage() {
-  const me = await requireUser()
-
-  // Fetch the latest row directly — the session-cached user may lag a freshly
-  // committed name/email/avatar change, and we render this page right after
-  // those mutations.
-  const [fresh] = await db
-    .select({
-      id: userTable.id,
-      name: userTable.name,
-      email: userTable.email,
-      emailVerified: userTable.emailVerified,
-      image: userTable.image,
-    })
-    .from(userTable)
-    .where(eq(userTable.id, me.id))
-    .limit(1)
-
-  const user = fresh ?? {
-    id: me.id,
-    name: me.name,
-    email: me.email,
-    emailVerified: me.emailVerified,
-    image: me.image ?? null,
-  }
+  const res = await apiServerFetch(getProfileOp, { input: {} })
+  // apiServerFetch redirects on auth.idle_timeout and throws ApiError on
+  // other failures — by the time we reach this line, res.data is set.
+  const user = res.data!.user
 
   return (
     <div className="space-y-6">

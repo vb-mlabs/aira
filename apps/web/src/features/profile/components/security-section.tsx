@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
+import { apiClient } from "@/lib/api-client"
 import { SectionCard } from "./section-card"
-import { changePassword } from "@/features/profile/server/actions"
 
 export function SecuritySection() {
   const [feedback, setFeedback] = useState<
@@ -21,17 +22,29 @@ export function SecuritySection() {
       <form
         action={(formData) => {
           startTransition(async () => {
-            const res = await changePassword(formData)
-            setFeedback(
-              res.ok
-                ? { kind: "ok", message: res.message ?? "Password changed." }
-                : { kind: "error", message: res.error },
-            )
-            if (res.ok) {
+            const currentPassword = String(formData.get("currentPassword") ?? "")
+            const newPassword = String(formData.get("newPassword") ?? "")
+            try {
+              await apiClient.post<{ ok: true }>(
+                "/api/v1/profile/password",
+                { currentPassword, newPassword },
+              )
+              setFeedback({
+                kind: "ok",
+                message: "Password changed. Other sessions signed out.",
+              })
               const form = document.querySelector<HTMLFormElement>(
                 "form[data-form='change-password']",
               )
               form?.reset()
+            } catch (err) {
+              setFeedback({
+                kind: "error",
+                message:
+                  err instanceof ApiError
+                    ? err.message
+                    : "Could not change password. Try again.",
+              })
             }
           })
         }}

@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
+import { apiClient } from "@/lib/api-client"
 import { SectionCard } from "./section-card"
-import { deleteAccount } from "@/features/profile/server/actions"
 
 interface DangerZoneSectionProps {
   user: { email: string }
@@ -13,7 +15,12 @@ interface DangerZoneSectionProps {
 
 // Two-step: collapsed CTA → expanded confirm form. Mirrors GitHub / Stripe
 // destructive-action UX. Typing the email exactly is the safety latch.
+// Confirmation is enforced client-side here; the DELETE /api/v1/profile
+// op trusts the caller (mobile sends no body). Worst case of bypass is a
+// user deleting their own account without a typed confirm — fine, that's
+// their right, and the route already requires auth.
 export function DangerZoneSection({ user }: DangerZoneSectionProps) {
+  const router = useRouter()
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -45,10 +52,21 @@ export function DangerZoneSection({ user }: DangerZoneSectionProps) {
         <form
           action={(formData) => {
             startTransition(async () => {
-              const res = await deleteAccount(formData)
-              if (!res.ok) setError(res.error)
-              // On success the server action redirects — no client-side
-              // navigation needed.
+              const typed = String(formData.get("confirmEmail") ?? "").trim()
+              if (typed.toLowerCase() !== user.email.toLowerCase()) {
+                setError("Type your email exactly to confirm.")
+                return
+              }
+              try {
+                await apiClient.delete("/api/v1/profile")
+                router.push("/")
+              } catch (err) {
+                setError(
+                  err instanceof ApiError
+                    ? err.message
+                    : "Could not delete your account. Try again.",
+                )
+              }
             })
           }}
           className="space-y-3"
