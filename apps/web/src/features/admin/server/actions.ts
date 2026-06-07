@@ -39,12 +39,18 @@ function revalidateUser(targetId: string) {
   revalidatePath("/admin/users")
 }
 
+// targetId → id at the op boundary (renamed for path-param alignment in T11);
+// service signatures untouched. T12 deletes this entire file.
+
 export async function changeRole(args: {
   targetId: string
   role: "end_user" | "admin"
 }): Promise<ActionResult> {
   try {
-    const result = await changeRoleOp.runFromAction(args)
+    const result = await changeRoleOp.runFromAction({
+      id: args.targetId,
+      role: args.role,
+    })
     revalidateUser(args.targetId)
     return { ok: true, message: result.message }
   } catch (err) {
@@ -57,7 +63,10 @@ export async function banUser(args: {
   reason?: string
 }): Promise<ActionResult> {
   try {
-    const result = await banUserOp.runFromAction(args)
+    const result = await banUserOp.runFromAction({
+      id: args.targetId,
+      reason: args.reason,
+    })
     revalidateUser(args.targetId)
     return { ok: true, message: result.message }
   } catch (err) {
@@ -69,7 +78,7 @@ export async function unbanUser(args: {
   targetId: string
 }): Promise<ActionResult> {
   try {
-    const result = await unbanUserOp.runFromAction(args)
+    const result = await unbanUserOp.runFromAction({ id: args.targetId })
     revalidateUser(args.targetId)
     return { ok: true, message: result.message }
   } catch (err) {
@@ -81,7 +90,9 @@ export async function sendPasswordResetTo(args: {
   targetId: string
 }): Promise<ActionResult> {
   try {
-    const result = await sendPasswordResetToOp.runFromAction(args)
+    const result = await sendPasswordResetToOp.runFromAction({
+      id: args.targetId,
+    })
     return { ok: true, message: result.message }
   } catch (err) {
     return asActionError(err)
@@ -95,7 +106,12 @@ export async function sendAdminNotification(args: {
   href?: string
 }): Promise<ActionResult> {
   try {
-    const result = await sendAdminNotificationOp.runFromAction(args)
+    const result = await sendAdminNotificationOp.runFromAction({
+      id: args.targetId,
+      title: args.title,
+      message: args.message,
+      href: args.href,
+    })
     revalidatePath(`/admin/users/${args.targetId}`)
     return { ok: true, message: result.message }
   } catch (err) {

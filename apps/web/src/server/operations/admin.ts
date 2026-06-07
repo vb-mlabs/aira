@@ -64,43 +64,52 @@ export const listAuditOp = defineOperation({
 // ---------------------------------------------------------------------------
 // Mutations
 
+// Mutations accept `id` (matching the [id] route segment) and translate to
+// the service layer's `targetId` field at the boundary. This lets each
+// route be a one-liner — defineOperation auto-merges path params onto raw
+// input, so `[id]/ban` flows straight through with no per-route wrapper.
+
 export const changeRoleOp = defineOperation({
   name: "admin.changeRole",
   input: z.object({
-    targetId: z.string().min(1),
+    id: z.string().min(1),
     role: z.enum(["end_user", "admin"]),
   }),
   output: AdminResultSchema,
   permission: "admin",
-  handler: (db, ctx, args) => admin.changeRole(db, ctx, args),
+  handler: (db, ctx, { id, role }) =>
+    admin.changeRole(db, ctx, { targetId: id, role }),
 })
 
 export const banUserOp = defineOperation({
   name: "admin.banUser",
   input: z.object({
-    targetId: z.string().min(1),
+    id: z.string().min(1),
     reason: z.string().trim().max(500).optional(),
   }),
   output: AdminResultSchema,
   permission: "admin",
-  handler: (db, ctx, args) => admin.banUser(db, ctx, args),
+  handler: (db, ctx, { id, reason }) =>
+    admin.banUser(db, ctx, { targetId: id, reason }),
 })
 
 export const unbanUserOp = defineOperation({
   name: "admin.unbanUser",
-  input: z.object({ targetId: z.string().min(1) }),
+  input: z.object({ id: z.string().min(1) }),
   output: AdminResultSchema,
   permission: "admin",
-  handler: (db, ctx, args) => admin.unbanUser(db, ctx, args),
+  handler: (db, ctx, { id }) => admin.unbanUser(db, ctx, { targetId: id }),
 })
 
 export const sendPasswordResetToOp = defineOperation({
   name: "admin.sendPasswordResetTo",
-  input: z.object({ targetId: z.string().min(1) }),
+  input: z.object({ id: z.string().min(1) }),
   output: AdminResultSchema,
   permission: "admin",
-  handler: async (db, ctx, args) => {
-    const { email } = await admin.preparePasswordReset(db, ctx, args)
+  handler: async (db, ctx, { id }) => {
+    const { email } = await admin.preparePasswordReset(db, ctx, {
+      targetId: id,
+    })
     try {
       await auth.api.requestPasswordReset({
         body: { email },
@@ -109,7 +118,7 @@ export const sendPasswordResetToOp = defineOperation({
     } catch (err) {
       logger.error("admin sendPasswordResetTo failed", {
         adminId: ctx.userId,
-        targetId: args.targetId,
+        targetId: id,
         message: String(err),
       })
       throw ApiError.internal(
@@ -124,12 +133,18 @@ export const sendPasswordResetToOp = defineOperation({
 export const sendAdminNotificationOp = defineOperation({
   name: "admin.sendNotification",
   input: z.object({
-    targetId: z.string().min(1),
+    id: z.string().min(1),
     title: z.string().trim().min(1, "Title required").max(120),
     message: z.string().trim().min(1, "Message required").max(2000),
     href: z.string().trim().max(500).optional(),
   }),
   output: AdminResultSchema,
   permission: "admin",
-  handler: (db, ctx, args) => admin.sendAdminNotification(db, ctx, args),
+  handler: (db, ctx, { id, title, message, href }) =>
+    admin.sendAdminNotification(db, ctx, {
+      targetId: id,
+      title,
+      message,
+      href,
+    }),
 })

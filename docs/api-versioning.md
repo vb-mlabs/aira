@@ -31,6 +31,11 @@ by design:
 | GET | `/api/v1/categories` | required | op | `listCategoriesWithCountsOp` — `?withCounts=true` (reserved) |
 | GET | `/api/v1/admin/users` | admin | op | `listUsersOp` — `?q=`, `?role=`, `?banned=`, `?page=` |
 | GET | `/api/v1/admin/users/[id]` | admin | op | `getUserDetailOp` — returns `{ user: null, audit: [] }` when id misses |
+| POST | `/api/v1/admin/users/[id]/ban` | admin | op | `banUserOp` — body: `{ reason? }` |
+| POST | `/api/v1/admin/users/[id]/unban` | admin | op | `unbanUserOp` |
+| POST | `/api/v1/admin/users/[id]/role` | admin | op | `changeRoleOp` — body: `{ role: "end_user" \| "admin" }`; rejects super_admin targets |
+| POST | `/api/v1/admin/users/[id]/reset-password` | admin | op | `sendPasswordResetToOp` |
+| POST | `/api/v1/admin/users/[id]/notify` | admin | op | `sendAdminNotificationOp` — body: `{ title, message, href? }` |
 | GET | `/api/v1/admin/audit` | admin | op | `listAuditOp` — `?since=`, `?until=` (ISO 8601), `?page=` |
 | POST | `/api/v1/waitlist` | **public** | route-direct | Honeypot anti-spam; sync welcome email; defineOperation can't host public routes (auth-only) |
 
