@@ -13,6 +13,12 @@ pre-commit:
   jobs:
     - name: check-migrations
       run: bash .lefthook/pre-commit/check-migrations.sh
+    # "use server" guard. Companion to packages/api/src/operation.ts (where
+    # defineOperation.runFromAction was deleted) — catches a direct-DB Server
+    # Action that doesn't reach for the op layer. See CLAUDE.md "API surface".
+    - name: check-no-server-actions
+      glob: "apps/web/src/{features,server,app}/**/*.{ts,tsx}"
+      run: bash .lefthook/pre-commit/check-no-server-actions.sh
     # WCAG-AA contrast guard. Reads packages/config/src/design.ts and fails
     # if any foreground/background pair falls below 4.5:1 (body) or 3:1
     # (large / interactive). Fast — runs every commit rather than as a
