@@ -204,3 +204,24 @@ flag etc.). Functions are simpler.
 - **Service function signature** `(db | tx, ctx, args)` — every
   service is consistent; every operation expects this shape. Drift
   here propagates through dozens of call sites.
+
+## 2026-06-07 addendum — RSC consumption via `apiServerFetch`
+
+Original ADR shipped with `defineOperation` exposing two adapters: `runFromRequest` (HTTP routes) and `runFromAction` (Server Actions). The 2026-06-07 REST API migration ([review](../../.mstack/reviews/2026-06-07-rest-api-migration.md)) eliminated Server Actions as the web app's data path and removed `runFromAction` from the operation surface entirely.
+
+The supported consumers of an operation are now:
+
+1. **HTTP routes** — `export const POST = op.runFromRequest`. Same as before. Used by `apps/mobile` (via `@aira/api/client`) and by web Client Components (via the `apiClient` singleton at `apps/web/src/lib/api-client.ts`).
+2. **React Server Components** — `apiServerFetch(op, init?)` from `@aira/api/server`. Builds a synthetic `Request` against the in-process op (forwarding cookies + `X-Request-Id` + `If-Modified-Since` from the outer Next request scope), invokes `op.runFromRequest` directly, and returns the parsed output. No socket, no HTTP round-trip — same auth pipeline, same admin freshness gate, same Zod input/output validation, same `ApiError` mapping. Auto-redirects to `/login?reason=idle` when `ApiError.idleTimeout()` fires for a cookie-authed admin RSC.
+
+`apiServerFetch` exists so RSC pages don't have to import `@aira/services` directly. The CLAUDE.md "API surface" rule ("web and mobile both consume one `/api/v1/*` contract") is now honored by every page in the codebase except the documented Stripe webhook carve-out ([ADR 0009](./0009-stripe-webhook-carve-out.md)).
+
+### Pattern by file location
+
+| Location | Adapter | Notes |
+|---|---|---|
+| `apps/web/src/app/api/v1/*/route.ts` | `op.runFromRequest` | Mobile + web Client Components hit this. |
+| `apps/web/src/app/(app)/**/page.tsx` | `apiServerFetch(op, init?)` | Server Components. |
+| `apps/web/src/app/admin/**/page.tsx` | `apiServerFetch(op, init?)` | Server Components. |
+| `apps/web/src/features/*/components/*.tsx` | `apiClient.{post,patch,delete}` | Client Components — same routes mobile uses. |
+| `apps/web/src/app/api/stripe/webhook/route.ts` | Carve-out | See [ADR 0009](./0009-stripe-webhook-carve-out.md). |

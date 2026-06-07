@@ -61,6 +61,9 @@ caching + workspace filters apply.
   env var in `.env.example`.
 - **API surface.** All HTTP endpoints live under `/api/v1/*` and are versioned.
   See [docs/api-versioning.md](./docs/api-versioning.md) before adding a route.
+  One exception: the Stripe webhook lives at `/api/stripe/webhook` because
+  Stripe pins the URL inside the vendor dashboard — see
+  [ADR 0009](./docs/decisions/0009-stripe-webhook-carve-out.md).
 - **One REST API for both clients.** This is a monorepo with `apps/web` AND
   `apps/mobile`. Every feature must be reachable over `/api/v1/*` so the Expo
   app can use the same contract as the Next.js app. Build the REST endpoint
@@ -69,11 +72,18 @@ caching + workspace filters apply.
   not write Server Actions that import `packages/services` to bypass the HTTP
   boundary** — that would split web and mobile onto two parallel code paths and
   defeat the point of the shared validators / `defineOperation` plumbing.
-  Server Components are still fine for layout, composition, and SSR
-  orchestration; they just call the API instead of the service layer directly.
+  Server Components stay RSC; they consume the same ops via
+  `apiServerFetch(op, init?)` from `@aira/api/server` — an in-process invoker
+  that runs through the same auth, freshness, and Zod pipeline as the HTTP
+  path, without paying for a same-origin round-trip. Client Components mutate
+  via the `apiClient` singleton at `apps/web/src/lib/api-client.ts`. See
+  [ADR 0007](./docs/decisions/0007-service-layer.md) for the full pattern.
 - **Service layer.** Business logic goes in `packages/services` as pure
   functions. Only `/api/v1/*` route handlers import them — they're the thin
-  adapters that turn HTTP requests into service calls. See
+  adapters that turn HTTP requests into service calls. The lefthook
+  `check-no-server-actions` gate rejects new `"use server"` directives under
+  `apps/web/src/{features,server,app}`; the type system rejects any code
+  reaching for the deleted `defineOperation.runFromAction`. See
   [docs/decisions/0007-service-layer.md](./docs/decisions/0007-service-layer.md).
 - **Migrations.** Generated via `pnpm db:generate`; applied with
   `pnpm db:migrate` (uses a Postgres advisory lock so parallel instances are
@@ -154,9 +164,11 @@ Two known gotchas — deeper notes in `.claude/memory/`:
   Tailwind are the picks. Bring proposals to a plan doc, not a PR.
 - Don't import `packages/services` (or any business-logic module) directly into
   `apps/web` Server Components, client components, or Server Actions. Go
-  through `/api/v1/*` via the `@aira/api` fetch client so web and mobile share
-  one contract. The only consumers of `packages/services` are the route
-  handlers under `apps/web/src/app/api/v1/`.
+  through `/api/v1/*` via the `@aira/api` fetch client (Client Components) or
+  `apiServerFetch` (RSCs) so web and mobile share one contract. The only
+  consumers of `packages/services` are the route handlers under
+  `apps/web/src/app/api/v1/` and the documented Stripe webhook at
+  `apps/web/src/app/api/stripe/webhook/route.ts`.
 - Don't commit `.env.local` or any file matching `.env*` except `.env.example`.
 - Don't rename a workspace package — use `pnpm rename` so every reference moves
   together.

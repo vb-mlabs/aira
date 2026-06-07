@@ -9,6 +9,7 @@ by design:
 |------|----------------------|
 | `/api/auth/*` (including `/api/auth/refresh`) | Better Auth's own handler reads from `/api/auth/[...all]`; the mobile JWT refresh endpoint sits alongside it. Better Auth has its own versioning model — we don't impose a second one on top. |
 | `/api/storage/[...key]` | Avatar URLs are persisted in the user table as `/api/storage/<key>`. Changing this path is a data migration, not a route refactor. Treat the storage proxy as a static asset surface, not a versioned API. |
+| `/api/stripe/webhook` | Stripe's dashboard pins the URL inside the Stripe account. Moving it under `/api/v1/*` would break every existing integration on every fork the moment a deploy ships. See [ADR 0009](./decisions/0009-stripe-webhook-carve-out.md). |
 
 ## Current routes (v1)
 
