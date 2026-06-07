@@ -1,18 +1,18 @@
-// /notifications — full inbox. Server-rendered (latest 50). The bell handles
-// the polling side; this page is a snapshot at request time, refreshed when
-// the user marks rows read (revalidatePath in the actions).
+// /notifications — full inbox. Server-rendered (latest INBOX_LIMIT). The
+// bell handles the polling side; this page is a snapshot at request time,
+// refreshed by router.refresh() in the Client Components when mark-read
+// fires.
 
-import { notifications } from "@aira/services"
-import { db } from "@/lib/db"
-import { getCallerContext } from "@/lib/auth/server"
+import { apiServerFetch } from "@aira/api/server"
+import { listInboxOp } from "@/server/operations/notifications"
 import { NotificationList } from "@/features/notifications"
 
 export const metadata = { title: "Notifications" }
 export const dynamic = "force-dynamic"
 
 export default async function NotificationsPage() {
-  const ctx = await getCallerContext()
-  const { rows } = await notifications.listInbox(db, ctx)
+  const res = await apiServerFetch(listInboxOp, { input: {} })
+  const rows = res.data?.items ?? []
 
   return (
     <div className="space-y-6">

@@ -9,4 +9,5 @@ export * from "./api-error";
 export * from "./auth";
 export * from "./businesses";
 export * from "./categories";
+export * from "./notifications";
 export * from "./waitlist";

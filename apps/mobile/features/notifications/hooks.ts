@@ -5,14 +5,14 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { listNotifications, getUnreadCount, markAllRead } from "./api";
-import type { Notification } from "./api";
+import type { NotificationRow } from "./api";
 import { usePollingInterval } from "../messages/hooks";
 
 export function useNotifications() {
   const interval = usePollingInterval();
   const cacheRef = React.useRef<{
     lastModified: string | null;
-    data: Notification[];
+    data: NotificationRow[];
   }>({ lastModified: null, data: [] });
 
   return useQuery({

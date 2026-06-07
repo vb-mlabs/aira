@@ -2,15 +2,18 @@
 
 import Link from "next/link"
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { ApiError } from "@aira/api"
 import { cn } from "@aira/ui-web/utils"
-import type { NotificationRow } from "@aira/services/notifications"
-import { markRead } from "@/features/notifications/server-actions"
+import type { NotificationRow } from "@aira/validators/notifications"
+import { apiClient } from "@/lib/api-client"
 
 interface NotificationItemProps {
   row: NotificationRow
 }
 
 export function NotificationItem({ row }: NotificationItemProps) {
+  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const unread = row.read_at === null
   const { body } = row
@@ -20,7 +23,15 @@ export function NotificationItem({ row }: NotificationItemProps) {
     e.preventDefault()
     e.stopPropagation()
     startTransition(async () => {
-      await markRead(row.id)
+      try {
+        await apiClient.post<{ ok: true; changed: number }>(
+          `/api/v1/notifications/${encodeURIComponent(row.id)}/read`,
+          {},
+        )
+        router.refresh()
+      } catch (err) {
+        if (!(err instanceof ApiError)) throw err
+      }
     })
   }
 
@@ -90,8 +101,8 @@ function renderBody(body: NotificationRow["body"]): RenderedBody {
   }
 }
 
-function formatRelative(d: Date): string {
-  const ms = Date.now() - new Date(d).getTime()
+function formatRelative(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime()
   const m = Math.floor(ms / 60_000)
   if (m < 1) return "just now"
   if (m < 60) return `${m}m ago`
@@ -99,5 +110,5 @@ function formatRelative(d: Date): string {
   if (h < 24) return `${h}h ago`
   const days = Math.floor(h / 24)
   if (days < 7) return `${days}d ago`
-  return new Date(d).toLocaleDateString()
+  return new Date(iso).toLocaleDateString()
 }

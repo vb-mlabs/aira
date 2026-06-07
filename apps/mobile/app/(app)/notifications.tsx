@@ -9,7 +9,19 @@ import {
   useNotifications,
   useMarkAllRead,
 } from "../../features/notifications/hooks";
-import type { Notification } from "../../features/notifications/api";
+import type { NotificationRow } from "../../features/notifications/api";
+
+/** Resolve the row's body to a short display string. The wire shape is a
+ *  discriminated union (generic | message); both kinds carry enough copy
+ *  to fit in the list-row preview slot. */
+function renderPreview(body: NotificationRow["body"]): string {
+  switch (body.kind) {
+    case "generic":
+      return body.title;
+    case "message":
+      return `${body.sender_name}: ${body.preview}`;
+  }
+}
 
 function formatDay(date: Date): string {
   const today = new Date();
@@ -29,21 +41,21 @@ interface Row {
   kind: "header" | "item";
   key: string;
   label?: string;
-  notification?: Notification;
+  notification?: NotificationRow;
 }
 
-function groupByDay(items: Notification[]): Row[] {
+function groupByDay(items: NotificationRow[]): Row[] {
   const rows: Row[] = [];
   // unread first, then grouped by day
-  const unread = items.filter((n) => !n.read);
-  const read = items.filter((n) => n.read);
+  const unread = items.filter((n) => n.read_at === null);
+  const read = items.filter((n) => n.read_at !== null);
   if (unread.length) {
     rows.push({ kind: "header", key: "h-unread", label: "Unread" });
     for (const n of unread) rows.push({ kind: "item", key: n.id, notification: n });
   }
   let currentDay = "";
   for (const n of read) {
-    const label = formatDay(new Date(n.createdAt));
+    const label = formatDay(new Date(n.created_at));
     if (label !== currentDay) {
       currentDay = label;
       rows.push({ kind: "header", key: `h-${label}-${n.id}`, label });
@@ -115,6 +127,7 @@ export default function NotificationsScreen() {
               );
             }
             const n = item.notification!;
+            const isRead = n.read_at !== null;
             return (
               <View
                 className="flex-row items-center border-b border-border px-4"
@@ -125,20 +138,20 @@ export default function NotificationsScreen() {
                     width: 8,
                     height: 8,
                     borderRadius: 4,
-                    backgroundColor: n.read ? "transparent" : "#3b82f6",
+                    backgroundColor: isRead ? "transparent" : "#3b82f6",
                     marginRight: 12,
                   }}
                 />
                 <View className="flex-1">
                   <Text
                     className={
-                      n.read
+                      isRead
                         ? "text-base text-foreground"
                         : "text-base font-semibold text-foreground"
                     }
                     numberOfLines={2}
                   >
-                    {n.body}
+                    {renderPreview(n.body)}
                   </Text>
                 </View>
               </View>

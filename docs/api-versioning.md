@@ -14,8 +14,10 @@ by design:
 
 | Method | Path | Auth | Adapter | Notes |
 |--------|------|------|---------|-------|
+| GET | `/api/v1/notifications` | required | op | `listInboxOp` — latest inbox rows, scoped by ctx.userId |
 | GET | `/api/v1/notifications/unread-count` | required | service-direct | Conditional GET with `If-Modified-Since` 304 short-circuit |
 | POST | `/api/v1/notifications/mark-all-read` | required | op | `markAllReadOp` |
+| POST | `/api/v1/notifications/[id]/read` | required | op | `markReadOp` — no-enumeration: 0 rows changed when id is bogus or belongs to another user |
 | GET | `/api/v1/messages/conversations` | required | service-direct | Conditional GET + inbox list |
 | POST | `/api/v1/messages/conversations` | required | op | `openOrCreate1to1Op` |
 | GET | `/api/v1/messages/conversations/[id]/messages` | required | service-direct | Cursor paging |

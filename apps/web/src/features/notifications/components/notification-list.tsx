@@ -1,10 +1,12 @@
 "use client"
 
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
+import type { NotificationRow } from "@aira/validators/notifications"
+import { apiClient } from "@/lib/api-client"
 import { DataList, EmptyState } from "@/lib/ui"
-import type { NotificationRow } from "@aira/services/notifications"
-import { markAllRead } from "@/features/notifications/server-actions"
 import { NotificationItem } from "./notification-item"
 
 interface NotificationListProps {
@@ -12,6 +14,7 @@ interface NotificationListProps {
 }
 
 export function NotificationList({ rows }: NotificationListProps) {
+  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const anyUnread = rows.some((r) => r.read_at === null)
 
@@ -25,7 +28,17 @@ export function NotificationList({ rows }: NotificationListProps) {
           disabled={!anyUnread || pending}
           onClick={() => {
             startTransition(async () => {
-              await markAllRead()
+              try {
+                await apiClient.post<{ ok: true; changed: number }>(
+                  "/api/v1/notifications/mark-all-read",
+                  {},
+                )
+                router.refresh()
+              } catch (err) {
+                // Swallow ApiError — the bell will reflect actual state on
+                // the next poll; nothing useful to surface inline here.
+                if (!(err instanceof ApiError)) throw err
+              }
             })
           }}
         >
