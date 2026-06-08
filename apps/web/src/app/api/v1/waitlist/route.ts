@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   const inserted = await db
     .insert(waitlist)
     .values({ email: email.toLowerCase(), source })
-    .onConflictDoNothing({ target: waitlist.email })
+    .onConflictDoNothing({ target: [waitlist.email, waitlist.type] })
     .returning({ id: waitlist.id })
 
   // Send welcome email only on first insert. Failure here doesn't fail the
