@@ -9,6 +9,7 @@ import {
 import { buttonVariants } from "@aira/ui-web/button"
 import { cn } from "@aira/ui-web/utils"
 import { CATEGORY_META } from "../category-meta"
+import { SocialLinks } from "./social-icons"
 import type { Business } from "../types"
 
 interface BusinessDetailProps {
@@ -118,6 +119,12 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
               </Field>
             )}
           </dl>
+
+          <SocialLinks
+            facebook_url={business.facebook_url}
+            instagram_url={business.instagram_url}
+            whatsapp_number={business.whatsapp_number}
+          />
 
           <div className="flex flex-wrap gap-3 pt-2">
             {business.phone && (
