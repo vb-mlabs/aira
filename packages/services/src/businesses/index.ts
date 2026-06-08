@@ -10,3 +10,5 @@ export {
   getBusinessesByCategory,
   getBusinessById,
 } from "./queries";
+
+export { updateBusiness } from "./service";
