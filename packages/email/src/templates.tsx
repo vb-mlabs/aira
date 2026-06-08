@@ -19,6 +19,7 @@ import { NotificationEmail } from "./templates/notification"
 import { PasswordResetEmail } from "./templates/password-reset"
 import { VerifyEmail } from "./templates/verify-email"
 import { WaitlistWelcomeEmail } from "./templates/waitlist-welcome"
+import { BusinessWaitlistWelcomeEmail } from "./templates/business-waitlist-welcome"
 import type { EmailDriver } from "./types"
 
 interface BaseSendOpts {
@@ -51,6 +52,7 @@ export interface EmailTemplates {
     },
   ) => Promise<void>
   sendWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
+  sendBusinessWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
 }
 
 export function createTemplates({
@@ -140,6 +142,21 @@ export function createTemplates({
       await getDriver().send({
         to: opts.to,
         subject: `You're on the ${brandName} waitlist — see you in Atlanta soon`,
+        html,
+        text,
+        fromName: brandName,
+      })
+    },
+
+    async sendBusinessWaitlistWelcomeEmail(opts) {
+      const tree = <BusinessWaitlistWelcomeEmail {...layoutChrome} />
+      const [html, text] = await Promise.all([
+        render(tree),
+        render(tree, { plainText: true }),
+      ])
+      await getDriver().send({
+        to: opts.to,
+        subject: `Your ${brandName} business listing request — we'll be in touch`,
         html,
         text,
         fromName: brandName,

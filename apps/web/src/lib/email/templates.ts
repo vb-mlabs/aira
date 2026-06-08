@@ -20,3 +20,5 @@ export const sendVerifyEmail = templates.sendVerifyEmail
 export const sendPasswordResetEmail = templates.sendPasswordResetEmail
 export const sendNotificationEmail = templates.sendNotificationEmail
 export const sendWaitlistWelcomeEmail = templates.sendWaitlistWelcomeEmail
+export const sendBusinessWaitlistWelcomeEmail =
+  templates.sendBusinessWaitlistWelcomeEmail
