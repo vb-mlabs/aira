@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BadgeCheck, Phone } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { CATEGORY_META } from "../category-meta"
+import { SocialLinks } from "./social-icons"
 import type { Business } from "../types"
 
 interface BusinessCardProps {
@@ -50,6 +51,12 @@ export function BusinessCard({ business, showTier = false }: BusinessCardProps) 
           {category.displayName}
           {location && <> · {location}</>}
         </p>
+        <SocialLinks
+          facebook_url={business.facebook_url}
+          instagram_url={business.instagram_url}
+          whatsapp_number={business.whatsapp_number}
+          className="mt-1.5"
+        />
       </div>
 
       {showTier && <TierPill tier={business.tier} />}
