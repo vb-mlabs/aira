@@ -49,6 +49,9 @@ export const businesses = pgTable(
     website: text("website"),
     address: text("address"),
     image_url: text("image_url"),
+    facebook_url: text("facebook_url"),
+    instagram_url: text("instagram_url"),
+    whatsapp_number: text("whatsapp_number"),
     /** One of VALID_TIERS — validated in query layer. Defaults to bottom tier. */
     tier: text("tier").notNull().default("tier3"),
     verified: boolean("verified").notNull().default(false),
