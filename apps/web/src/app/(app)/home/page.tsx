@@ -58,7 +58,7 @@ export default async function HomePage() {
 
       {/* TODO(post-MVP): replace with real counts from the businesses + user tables. */}
       <section className="mx-auto mt-8 grid max-w-md grid-cols-2 gap-4">
-        <StatCard value="500+" label="Verified Businesses" />
+        <StatCard value="500+" label="Business Listed" />
         <StatCard value="10K+" label="Community Members" />
       </section>
 

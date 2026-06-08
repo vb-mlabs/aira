@@ -57,11 +57,10 @@ export function BusinessCard({ business, showTier = false }: BusinessCardProps) 
       {business.phone && (
         <a
           href={`tel:${business.phone}`}
-          className="relative z-10 inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-opacity hover:opacity-90"
+          className="relative z-10 inline-flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-opacity hover:opacity-90"
           aria-label={`Call ${business.name}`}
         >
-          <Phone className="size-3.5" aria-hidden />
-          <span>Call</span>
+          <Phone className="size-5" aria-hidden />
         </a>
       )}
     </article>

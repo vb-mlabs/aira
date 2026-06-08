@@ -21,9 +21,9 @@
   /* Warm cream paper aesthetic — no white surfaces. */
   --background:            oklch(0.90 0.04 85);
   --foreground:            oklch(0.25 0.04 60);
-  --card:                  oklch(0.95 0.02 85);
+  --card:                  #F8F2E4; /* Figma spec — warm parchment card surface */
   --card-foreground:       oklch(0.25 0.04 60);
-  --popover:               oklch(0.95 0.02 85);
+  --popover:               #F8F2E4;
   --popover-foreground:    oklch(0.25 0.04 60);
   /* AIRA olive green (~#4F653B). Cream-on-green passes AA body (~4.65:1). */
   --primary:               oklch(0.46 0.07 132);
@@ -90,11 +90,11 @@
   --shadow-drawer:         4px 0 12px rgb(0 0 0 / 15%);
   --shadow-card:           0 1px 2px oklch(0.25 0.04 60 / 8%);
 
-  /* SVG paper-grain texture — applied to body for page cream surface.
-     Low-frequency turbulence at 12% opacity reads as hand-made paper without
-     fighting form inputs. Tune baseFrequency for finer/coarser grain. */
-  --texture-paper:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.16  0 0 0 0 0.08  0 0 0 0.12 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  /* Photographic cream/parchment texture — applied to body for page surface.
+     Source: Figma design assets — Texurebackground_1_1780921893702.png
+     File:   /public/textures/page-cream.webp
+     Tiled at 400px so the grain reads as paper without being too coarse. */
+  --texture-paper: url("/textures/page-cream.webp");
 
   /* Charts — using the AIRA earth palette so dashboards inherit the brand. */
   --chart-1: oklch(0.46 0.07 132);  /* olive green */
@@ -114,10 +114,11 @@
   --sidebar-border:                oklch(0.94 0.02 80 / 15%);
   --sidebar-ring:                  oklch(0.66 0.10 80);
 
-  /* SVG green-paper texture for the sidebar — same fractal noise tinted
-     toward the olive palette. Apply via background-image on sidebar surface. */
-  --texture-paper-green:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  /* Photographic green leather/suede texture for the sidebar.
+     Source: Figma design assets — Green_Texture_1_1779811234725.png
+     File:   /public/textures/sidebar-green.webp
+     Applied via background-image + bg-sidebar colour token on <aside>. */
+  --texture-paper-green: url("/textures/sidebar-green.webp");
 }
 
 .dark {
@@ -297,7 +298,7 @@
        is encoded inline above as --texture-paper. */
     background-image: var(--texture-paper);
     background-repeat: repeat;
-    background-size: 320px 320px;
+    background-size: 400px 400px;
   }
   html {
     @apply font-sans;

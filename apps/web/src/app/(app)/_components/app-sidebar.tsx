@@ -6,6 +6,7 @@
 //   - As a fixed 280px column on >= md (rendered by (app)/layout.tsx)
 //   - Slid in as a drawer on < md (wrapped by MobileSidebar)
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ChevronRight, Globe, Home, Mail } from "lucide-react"
@@ -32,12 +33,14 @@ export function AppSidebar({ onClose }: AppSidebarProps) {
       className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground"
     >
       <header className="flex items-center gap-3 border-b border-sidebar-border px-5 pb-5 pt-6">
-        <span
-          aria-hidden
-          className="flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-sidebar-foreground/95 font-display text-xl font-bold text-sidebar"
-        >
-          {brand.name.charAt(0)}
-        </span>
+        <Image
+          src="/marketing-images/logo.png"
+          alt={`${brand.name} logo`}
+          width={48}
+          height={48}
+          priority
+          className="size-12 flex-shrink-0"
+        />
         <div className="min-w-0 flex-1">
           <p className="font-display text-2xl leading-none">{brand.name}</p>
           <p className="mt-1 text-xs italic text-sidebar-foreground/70">

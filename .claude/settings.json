@@ -73,5 +73,6 @@
       "Read(./.env.*.local)"
     ]
   },
-  "theme": "dark"
+  "theme": "dark",
+  "skipAutoPermissionPrompt": true
 }

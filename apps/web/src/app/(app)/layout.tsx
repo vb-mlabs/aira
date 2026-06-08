@@ -35,7 +35,7 @@ export default async function AppLayout({
 
       <div className="flex min-h-full flex-col md:pl-[280px]">
         {/* Mobile top header. */}
-        <header className="flex h-14 items-center justify-between border-b border-border bg-card/40 px-4 backdrop-blur-sm md:hidden">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
           <MobileSidebar />
           <Link
             href="/home"
