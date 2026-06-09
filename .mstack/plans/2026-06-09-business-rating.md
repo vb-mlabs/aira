@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Slug:** 2026-06-09-business-rating
-**Status:** reviewed
+**Status:** implemented
 **Author:** /mlabs-plan
 
 ---
