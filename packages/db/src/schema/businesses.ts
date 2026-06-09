@@ -32,7 +32,16 @@
 //   - businesses_tier_idx (tier) — getFeaturedBusinesses pulls tier1+tier2
 //     across all categories.
 
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core"
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  numeric,
+  check,
+} from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
 
 export const businesses = pgTable(
   "businesses",
@@ -59,6 +68,9 @@ export const businesses = pgTable(
     /** One of VALID_TIERS — validated in query layer. Defaults to bottom tier. */
     tier: text("tier").notNull().default("tier3"),
     verified: boolean("verified").notNull().default(false),
+    /** Editorial rating 0–5 in 0.5 steps. NULL = unrated. CHECK constraint
+     *  enforces the range at the DB level; the admin UI enforces the step. */
+    rating: numeric("rating", { precision: 2, scale: 1, mode: "number" }),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at")
       .defaultNow()
@@ -68,5 +80,9 @@ export const businesses = pgTable(
   (table) => [
     index("businesses_category_tier_idx").on(table.category, table.tier),
     index("businesses_tier_idx").on(table.tier),
+    check(
+      "businesses_rating_check",
+      sql`${table.rating} IS NULL OR (${table.rating} >= 0 AND ${table.rating} <= 5)`,
+    ),
   ],
 )

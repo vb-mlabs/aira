@@ -1,0 +1,2 @@
+ALTER TABLE "businesses" ADD COLUMN "rating" numeric(2, 1);--> statement-breakpoint
+ALTER TABLE "businesses" ADD CONSTRAINT "businesses_rating_check" CHECK ("businesses"."rating" IS NULL OR ("businesses"."rating" >= 0 AND "businesses"."rating" <= 5));
