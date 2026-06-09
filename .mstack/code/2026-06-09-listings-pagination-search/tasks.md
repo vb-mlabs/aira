@@ -1,9 +1,10 @@
 # Implementation: Listings pagination + scoped search (F7 + F8)
 
 **Started:** 2026-06-09 18:00
+**Finished:** 2026-06-09 18:50
 **Review:** [2026-06-09-listings-pagination-search](../../reviews/2026-06-09-listings-pagination-search.md)
 **Branch:** feat/rest-api-migration
-**Status:** in_progress
+**Status:** complete
 
 ---
 
@@ -13,32 +14,32 @@
 
 ## Tasks
 
-- [ ] **Task 1:** Extend BusinessListInputSchema + BusinessListOutputSchema
+- [x] **Task 1:** Extend BusinessListInputSchema
   - Files: `packages/validators/src/businesses.ts`
-  - Commit: —
-  - Notes: —
+  - Commit: `d702bfc`
+  - Notes: Output schema widening pushed into T3 (coupled with handler update)
 
-- [ ] **Task 2:** Add getBusinessesByCategoryPaged service function
-  - Files: `packages/services/src/businesses/queries.ts`, `packages/services/src/businesses/index.ts`
-  - Commit: —
-  - Notes: —
+- [x] **Task 2:** Add getBusinessesByCategoryPaged service fn
+  - Files: `packages/services/src/businesses/queries.ts`, `index.ts`
+  - Commit: `e9d0ea3`
+  - Notes: Promise.all on items + COUNT; ILIKE %q% over name/description/address
 
-- [ ] **Task 3:** Widen listBusinessesOp handler
-  - Files: `apps/web/src/server/operations/businesses.ts`
-  - Commit: —
-  - Notes: All branches synthesize total/page/pageSize so strict schema validates
+- [x] **Task 3:** Widen listBusinessesOp handler + output schema
+  - Files: `packages/validators/src/businesses.ts`, `apps/web/src/server/operations/businesses.ts`
+  - Commit: `7213ad0`
+  - Notes: withFullPageMeta() synthesizes total/page/pageSize on existing branches so the strict output schema validates uniformly
 
-- [ ] **Task 4:** Add Pagination component
-  - Files: `apps/web/src/features/listings/components/pagination.tsx` (new)
-  - Commit: —
-  - Notes: First/last/current±1 truncation; hides when total <= pageSize
+- [x] **Task 4:** Pagination component
+  - Files: `apps/web/src/features/listings/components/pagination.tsx`
+  - Commit: `76dd490`
+  - Notes: First/last/current±1 truncation; hides when totalPages ≤ 1
 
-- [ ] **Task 5:** Lift filter state from ListingView to URL searchParams
+- [x] **Task 5:** Lift filter state to URL searchParams
   - Files: `apps/web/src/app/(app)/listings/[category]/page.tsx`, `apps/web/src/features/listings/components/listing-view.tsx`
-  - Commit: —
-  - Notes: 300ms debounce, conditional TierSection, clear ✕ button
+  - Commit: `5570246`
+  - Notes: 300ms debounce, conditional TierSection (already), clear ✕ button, useTransition fade; React 19 derived-state pattern for prop sync
 
-- [ ] **Task 6:** Smoke test + manual verification
-  - Files: (verification only)
-  - Commit: —
-  - Notes: Capture screenshot to .mstack/code/2026-06-09-listings-pagination-search/
+- [x] **Task 6:** Smoke test + run report
+  - Files: `.mstack/code/2026-06-09-listings-pagination-search/`
+  - Commit: `3099560`
+  - Notes: API-level smoke (curl with session cookie) covered all 6 paths cleanly; browser screenshot skipped due to Replit-domain cookie/localhost mismatch
