@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { apiServerFetch } from "@aira/api/server"
 import { listCitiesAdminOp } from "@/server/operations/cities-admin"
+import { AdminFormModal } from "@/features/admin/components/admin-form-modal"
 import { CityForm } from "@/features/admin/components/city-form"
 
 export const metadata = { title: "Admin · Edit City" }
@@ -17,11 +18,8 @@ export default async function EditCityPage({ params }: PageProps) {
   if (!city) notFound()
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Edit {city.name}</h1>
-      </header>
+    <AdminFormModal title={`Edit ${city.name}`} backHref="/admin/cities">
       <CityForm city={city} />
-    </div>
+    </AdminFormModal>
   )
 }

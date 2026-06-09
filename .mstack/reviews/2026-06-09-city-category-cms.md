@@ -3,7 +3,7 @@
 **Date:** 2026-06-09
 **Slug:** 2026-06-09-city-category-cms
 **Plan reviewed:** [2026-06-09-city-category-cms.md](../plans/2026-06-09-city-category-cms.md)
-**Status:** approved
+**Status:** implemented
 **UI-Significant:** yes
 **Reviewer:** /mlabs-review
 

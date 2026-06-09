@@ -1,5 +1,6 @@
 import { apiServerFetch } from "@aira/api/server"
 import { listCategoriesAdminOp } from "@/server/operations/categories-admin"
+import { AdminFormModal } from "@/features/admin/components/admin-form-modal"
 import { CategoryForm } from "@/features/admin/components/category-form"
 
 export const metadata = { title: "Admin · New Category" }
@@ -10,11 +11,8 @@ export default async function NewCategoryPage() {
   const roots = res.data?.tree.map((n) => n.root) ?? []
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">New category</h1>
-      </header>
+    <AdminFormModal title="New category" backHref="/admin/categories">
       <CategoryForm roots={roots} />
-    </div>
+    </AdminFormModal>
   )
 }

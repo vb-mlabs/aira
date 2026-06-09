@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { apiServerFetch } from "@aira/api/server"
 import { listCategoriesAdminOp } from "@/server/operations/categories-admin"
+import { AdminFormModal } from "@/features/admin/components/admin-form-modal"
 import { CategoryForm } from "@/features/admin/components/category-form"
 
 export const metadata = { title: "Admin · Edit Category" }
@@ -22,13 +23,8 @@ export default async function EditCategoryPage({ params }: PageProps) {
   const roots = tree.map((n) => n.root)
 
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Edit {category.name}
-        </h1>
-      </header>
+    <AdminFormModal title={`Edit ${category.name}`} backHref="/admin/categories">
       <CategoryForm category={category} roots={roots} />
-    </div>
+    </AdminFormModal>
   )
 }

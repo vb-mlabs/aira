@@ -1,6 +1,6 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-09 (evening)
+**Last updated:** 2026-06-09 (night)
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
@@ -92,8 +92,12 @@ Plan: `.mstack/plans/2026-06-09-admin-star-rating.md`. `rating` numeric(2,1) col
 ### ✅ S3 — Business soft-delete + restore (F13 partial) (2026-06-09)
 Plan: `.mstack/plans/2026-06-09-business-soft-delete.md`. `deleted_at timestamp` column + partial active-subset index (migration `0015`). All public reads filter `WHERE deleted_at IS NULL`. Admin archive/restore service mutations with audit log entries (`business.archived` / `business.restored`). `POST /api/v1/admin/businesses/[id]/archive` + `/restore` routes. `/admin/businesses` gains Status column (Active/Archived chip) + `?archived=1` toggle; uses new `listAllBusinessesAdminOp` (also fixes pre-existing "admin list only showed tier1+tier2" bug). `<ArchiveControl>` component in admin detail header — AlertDialog confirmation. QA: 9/9 scenarios pass.
 
+### ✅ S2 — City scoping + Category tree + Homepage CMS (2026-06-09)
+Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/reviews/2026-06-09-city-category-cms.md`. `city`, `category` (self-FK + level 1–3 check), `app_setting` tables via migration `0016`. Admin pages: `/admin/cities` (CRUD), `/admin/categories` (tree manager + drag-reorder via `@dnd-kit/sortable` + deactivate dialog), `/admin/settings/homepage` (CMS). Public `(app)` sidebar + `/listings/[slug]` switched to DB-driven categories. Homepage reads `AppSetting` for About title/body and stat count overrides. QA: 15/15 Playwright scenarios pass.
+
 ### Other notable items
-- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), plus waitlist extensions.
+- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), plus waitlist extensions.
+- Businesses stat `COUNT` bigint-as-string fix (commit `233f144`): `@neondatabase/serverless` returns `COUNT(*)` as a string; wrapped in `Number()` in `packages/services/src/businesses/queries.ts`.
 - React-email templates groundwork (`.mstack/plans/2026-05-24-react-email-templates.md`)
 - Brand consolidation, primary-color darken, template hardening (May 23–24 cluster) — all merged
 - Mobile welcome + session gate
@@ -164,25 +168,23 @@ Plan: `.mstack/plans/2026-06-09-business-soft-delete.md`. `deleted_at timestamp`
 
 ## Sprint 2 — Data model + Categories admin (2 weeks)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Done — F4 (city scoping), F6 (categories CRUD + drag-reorder), F24 (homepage CMS) shipped on `feat/rest-api-migration` (2026-06-09). `/mlabs-qa` smoke pass 15/15 verified same day. F5 web sidebar is DB-driven; native mobile category tree pending.
 
 **Goal:** Admin creates City "Atlanta", builds a Category > Subcategory > Sub-subcategory tree, reorders by drag, activates/deactivates. Mobile shows the tree (empty listings page). Homepage About text and counts editable.
 
 **Features (PRD refs):**
-- ⬜ F4 — City scoping (start with Atlanta seeded active)
-- ⬜ F5 — Multi-level Category nav + breadcrumbs (mobile)
-- ⬜ F6 — Categories CRUD (admin, drag-reorder, slug auto-from-name, level constraint, uniqueness)
-- ⬜ F24 — Homepage CMS (About text + counts override via `AppSetting`)
+- ✅ F4 — City scoping (`city` table + admin CRUD at `/admin/cities` + Atlanta seeded active, migration `0016`)
+- 🟦 F5 — Multi-level Category nav (web public sidebar + `/listings/[slug]` now DB-driven; native mobile sidebar pending)
+- ✅ F6 — Categories CRUD (admin tree manager, drag-reorder via `@dnd-kit/sortable`, slug auto-from-name, level constraint ≤3, deactivate dialog)
+- ✅ F24 — Homepage CMS (`AppSetting` key/value table; About title + body + stat count overrides; verified live on `/home`)
 
-**Schema additions:** `city`, `category` (with parent self-FK + level), `app_setting` (key/value/city), `audit_log` (created here but heavily used from S4 onward).
+**Schema additions:** ✅ `city`, `category` (self-FK `parent_id`, level 1–3 check constraint), `app_setting` (key/value + optional `city_id`) — migration `0016`.
 
-**Libs to add:**
-- `@dnd-kit/sortable` (admin category reorder)
-- `slug` or inline slugify util
+**Libs added:** ✅ `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` (category drag-reorder). Slugify done inline (no extra lib needed).
 
-**Cron jobs:** none yet.
+**Cron jobs:** none.
 
-**Risk gate:** Drizzle migrations from this sprint apply cleanly to a Neon branch that was migrated from the empty MVP starting state. Establish the "never hand-edit a shipped migration" discipline.
+**Risk gate:** ✅ Migration `0016` applied cleanly; Playwright smoke pass confirms all CRUD flows.
 
 ---
 
@@ -199,10 +201,10 @@ Plan: `.mstack/plans/2026-06-09-business-soft-delete.md`. `deleted_at timestamp`
 - 🟦 F10 — More Info **(detail page live — Hero, About Us, Contact, AIRA Review cards; ≤3 images carousel + directions deep-link TODO)**
 - ✅ F11 — Verified badge + admin star rating (RatingPill hidden when ≤ 0; 0.5-step input in admin form)
 - 🟦 F13 — Business CRUD **(soft-delete/restore + audit log + admin list Status column ✅; gallery + multi-category attach TODO — multi-category blocked on S2 category table)**
-- ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`) — blocked on S2
+- ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`) — S2 unblocked
 - ⬜ F27 — Google Places Autocomplete (admin Business form)
 
-**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`). **TODO:** `business_image` table (gallery), `business_category` join (multi-category — needs S2 `category` table).
+**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`). **TODO:** `business_image` table (gallery), `business_category` join (multi-category — `category` table now available from S2 `0016`).
 
 **Libs to add:**
 - `@react-google-maps/api` OR vanilla Places SDK (admin Business form)
@@ -394,3 +396,6 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-09** — Listings pagination uses URL-driven state (`?page=N&q=...&verified=1`) with React 19 derived-state pattern (compare-and-set in render, not `useEffect`) for prop → input sync. *Why:* URL-driven state makes browser back/forward and shareable URLs work without extra client state machinery.
 - **2026-06-09** — Business soft-delete pattern: `deleted_at timestamp NULL` column + partial index on `(category, tier) WHERE deleted_at IS NULL`. All public reads filter `isNull(deleted_at)`; admin reads use a bypass variant (`getBusinessByIdIncludingArchived`). *Why:* reversible, audit-friendly, no parallel table needed; partial index keeps the common public-side query fast as the archived row count grows.
 - **2026-06-09** — `AlertDialog.Trigger render={<Button>}` pattern dropped from `ArchiveControl`. Using two `@base-ui/react` primitives nested via `render=` races the click → onOpenChange cycle. Since `open` is controlled state, `Trigger` adds no value — plain `<Button onClick={() => setOpen(true)}>` is deterministic. *Why:* intermittent dialog-open failure in Playwright (30% flake rate), fixed after removing the wrapper.
+- **2026-06-09** — S2: `AppSidebar` is `"use client"` so the `(app)/layout.tsx` RSC owns the `listCategoriesOp` fetch and passes active root categories as a prop; fallback to static `CATEGORIES_ORDERED` on error. *Why:* Server Components can't be rendered inside a client component tree — the RSC wrapper must fetch and push data down.
+- **2026-06-09** — `isValidCategory` guards removed from `businesses/queries.ts` (S2). After `BusinessCategorySchema` widened to `z.string()`, any admin-created category slug would have been silently rejected (no results returned) and `toBusiness()` would have reclassified rows to "shopping". *Why:* the whitelist guards were designed for a hardcoded enum and break as soon as the category set is DB-driven.
+- **2026-06-09** — `@neondatabase/serverless` returns `COUNT(*)` as a JavaScript string, not a number. `Number.isFinite("12")` = false, causing the `/home` businesses stat card to render "—". Fixed by wrapping `count()` results in `Number()` in `packages/services/src/businesses/queries.ts`. *Why:* PostgreSQL `bigint` has no safe JS representation so the driver returns it as string; Drizzle's `count()` helper inherits this.

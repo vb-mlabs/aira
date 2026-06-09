@@ -34,7 +34,7 @@ const ADMIN_NAV: Array<{
   { href: "/admin/businesses", label: "Businesses", icon: Store },
   { href: "/admin/categories", label: "Categories", icon: Tag },
   { href: "/admin/cities", label: "Cities", icon: MapPin },
-  { href: "/admin/settings", label: "Settings", icon: Settings2 },
+  { href: "/admin/settings/homepage", label: "Settings", icon: Settings2 },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/audit", label: "Audit log", icon: ClipboardList },
 ]
