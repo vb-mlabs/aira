@@ -11,9 +11,11 @@
 //     sidebar as a slide-in drawer. No bottom tab bar — admin tools are
 //     desktop-first.
 
+import Script from "next/script"
 import Link from "next/link"
 import { brand } from "@aira/config"
 import { requireAdmin } from "@/lib/auth/server"
+import { env } from "@/config/env"
 import { AdminMobileSidebar } from "./_components/admin-mobile-sidebar"
 import { AdminSidebar } from "./_components/admin-sidebar"
 import { AdminTopBar } from "./_components/admin-top-bar"
@@ -55,6 +57,13 @@ export default async function AdminLayout({
       </div>
 
       <p className="sr-only">Signed in as admin {admin.email}</p>
+
+      {env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          strategy="afterInteractive"
+        />
+      )}
     </div>
   )
 }

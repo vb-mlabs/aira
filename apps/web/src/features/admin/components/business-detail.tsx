@@ -11,6 +11,7 @@ import type { Business } from "@/features/listings"
 import type { Category } from "@aira/validators/categories"
 import { ArchiveControl } from "./archive-control"
 import { GallerySection } from "./gallery-section"
+import { PlacesAddressInput } from "./places-address-input"
 
 interface BusinessAdminDetailProps {
   business: Business
@@ -332,7 +333,12 @@ function ContactSection({ business }: { business: Business }) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="b-address">Address</Label>
-          <Input id="b-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St, Atlanta, GA 30301" />
+          <PlacesAddressInput
+            id="b-address"
+            value={address}
+            onChange={setAddress}
+            placeholder="123 Main St, Atlanta, GA 30301"
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="b-hours">Hours</Label>

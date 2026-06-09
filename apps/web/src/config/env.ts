@@ -60,7 +60,10 @@ export const env = createEnv({
   },
   client: {
     // Public env vars must be prefixed NEXT_PUBLIC_
-    // None yet.
+    // Google Maps Places API key — admin address autocomplete (F27).
+    // Optional: when unset, PlacesAddressInput falls back to a plain text input.
+    // Ensure the key is restricted to HTTP referrers before setting in production.
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -76,6 +79,7 @@ export const env = createEnv({
     REPLIT_DEV_DOMAIN: process.env.REPLIT_DEV_DOMAIN,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   },
   // During first-deploy / fork, secrets may not be set yet. Skip validation
   // unless explicitly requested. Set SKIP_ENV_VALIDATION=1 for build steps
