@@ -119,7 +119,7 @@ export function ListingView({
       <div className="mb-5">
         <div className="relative inline-flex cursor-pointer items-center gap-1">
           <h1 className="pointer-events-none font-display text-2xl font-semibold text-foreground">
-            {CATEGORY_META[currentCategory].displayName}
+            {CATEGORY_META[currentCategory as keyof typeof CATEGORY_META]?.displayName ?? currentCategory}
           </h1>
           <ChevronDown
             className="pointer-events-none size-5 flex-shrink-0 text-foreground"
