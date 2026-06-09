@@ -39,6 +39,8 @@ export const BusinessSchema = z.object({
   facebook_url: z.string().nullable(),
   instagram_url: z.string().nullable(),
   whatsapp_number: z.string().nullable(),
+  hours: z.string().nullable(),
+  aira_review: z.string().nullable(),
   tier: BusinessTierSchema,
   verified: z.boolean(),
   /** ISO 8601 */
@@ -60,6 +62,8 @@ export const BusinessUpdateInputSchema = z
     facebook_url: z.string().nullable().optional(),
     instagram_url: z.string().nullable().optional(),
     whatsapp_number: z.string().nullable().optional(),
+    hours: z.string().nullable().optional(),
+    aira_review: z.string().nullable().optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;

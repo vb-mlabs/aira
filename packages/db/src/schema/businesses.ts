@@ -52,6 +52,10 @@ export const businesses = pgTable(
     facebook_url: text("facebook_url"),
     instagram_url: text("instagram_url"),
     whatsapp_number: text("whatsapp_number"),
+    /** Free-text opening hours, e.g. "Mon–Fri: 9am–5pm, Sat: 10am–3pm". */
+    hours: text("hours"),
+    /** Editorial review written by the AIRA team. Shown on the detail page. */
+    aira_review: text("aira_review"),
     /** One of VALID_TIERS — validated in query layer. Defaults to bottom tier. */
     tier: text("tier").notNull().default("tier3"),
     verified: boolean("verified").notNull().default(false),

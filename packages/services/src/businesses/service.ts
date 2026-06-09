@@ -22,6 +22,8 @@ export async function updateBusiness(
   if (data.facebook_url !== undefined) updatePayload.facebook_url = data.facebook_url;
   if (data.instagram_url !== undefined) updatePayload.instagram_url = data.instagram_url;
   if (data.whatsapp_number !== undefined) updatePayload.whatsapp_number = data.whatsapp_number;
+  if (data.hours !== undefined) updatePayload.hours = data.hours;
+  if (data.aira_review !== undefined) updatePayload.aira_review = data.aira_review;
 
   if (Object.keys(updatePayload).length === 0) {
     return getBusinessById(db, id);
