@@ -74,13 +74,29 @@ export const BusinessUpdateOutputSchema = z.object({
 export type BusinessUpdateOutput = z.infer<typeof BusinessUpdateOutputSchema>;
 
 /** Input contract for GET /api/v1/businesses. Used by both the route and the
- *  shared apiClient/apiServerFetch callers. */
+ *  shared apiClient/apiServerFetch callers.
+ *
+ *  When `category` is set together with any of `q`, `page > 1`, `pageSize`,
+ *  or `verified`, the op switches into the paginated path backed by
+ *  services.getBusinessesByCategoryPaged. Otherwise the existing
+ *  featured/category/fallback branches return the full result with
+ *  synthesized pagination metadata so the strict output schema validates
+ *  for every caller. */
 export const BusinessListInputSchema = z
   .object({
     /** When true, returns only tier1/tier2 businesses ordered by tier. */
     featured: z.coerce.boolean().optional(),
     category: BusinessCategorySchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
+    /** Scoped keyword search (name / description / address, ILIKE). */
+    q: z.string().trim().max(100).optional(),
+    /** 1-indexed. Coerced from string so ?page=2 works straight from URL.
+     *  Defaults to 1 in the op handler. */
+    page: z.coerce.number().int().min(1).optional(),
+    /** Cards per page on the listings view. Defaults to 12 in the op handler. */
+    pageSize: z.coerce.number().int().min(1).max(50).optional(),
+    /** When true, only returns rows with verified=true. */
+    verified: z.coerce.boolean().optional(),
   })
   .strict();
 export type BusinessListInput = z.infer<typeof BusinessListInputSchema>;
