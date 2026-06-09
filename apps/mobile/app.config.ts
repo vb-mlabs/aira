@@ -3,10 +3,10 @@ import type { ExpoConfig, ConfigContext } from "expo/config";
 /**
  * Expo dynamic config.
  *
- * BUNDLE_ID PLACEHOLDER: `com.example.mlabs` is a template-safe valid Java
- * package name that lets `expo prebuild` succeed out of the box. Forks
- * replace it with their real bundle/package via the Phase 6 `new-project`
- * skill (which prompts for bundle ID + Apple team ID + Android SHA-256).
+ * Bundle ID `com.airabynisarga.app` is the reverse of the prod host
+ * `airabynisarga.com`. iOS associatedDomains + Android intent host both
+ * point at the apex domain — the .well-known files under
+ * apps/web/public/.well-known/ are what verify the universal link.
  */
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -29,11 +29,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: false,
-    bundleIdentifier: "com.example.mlabs",
-    associatedDomains: ["applinks:app.aira.com"],
+    bundleIdentifier: "com.airabynisarga.app",
+    associatedDomains: ["applinks:airabynisarga.com"],
   },
   android: {
-    package: "com.example.mlabs",
+    package: "com.airabynisarga.app",
     adaptiveIcon: {
       foregroundImage: "./assets/icon.png",
       backgroundColor: "#ffffff",
@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         data: [
           {
             scheme: "https",
-            host: "app.aira.com",
+            host: "airabynisarga.com",
           },
         ],
         category: ["BROWSABLE", "DEFAULT"],

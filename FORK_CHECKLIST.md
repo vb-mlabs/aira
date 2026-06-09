@@ -17,23 +17,27 @@ at the bottom for the happy-path flow.
 
 ## Required before first deploy
 
-- [ ] Create Neon project + branch for `aira`.
-- [ ] Create Postmark server + sender signature.
+**Project facts (locked 2026-06-09):**
+- Prod host: `airabynisarga.com`
+- Bundle ID (iOS + Android): `com.airabynisarga.app`
+
+- [x] Create Neon project + branch for `aira`. _(dev branch live; prod branch handled via Replit env)_
+- [x] Create Postmark server + sender signature.
 - [ ] Set up OAuth apps (Google, Apple, if used by the fork).
-- [ ] Edit `apps/mobile/app.config.ts`:
-  - [ ] `ios.bundleIdentifier`: replace `com.example.mlabs` with the real reverse-domain ID.
-  - [ ] `android.package`: same value as above (Android convention).
-  - [ ] `ios.associatedDomains`: verify `applinks:app.aira.com` matches the deployed host.
+- [x] Edit `apps/mobile/app.config.ts`:
+  - [x] `ios.bundleIdentifier`: `com.airabynisarga.app`.
+  - [x] `android.package`: `com.airabynisarga.app`.
+  - [x] `ios.associatedDomains`: `applinks:airabynisarga.com`.
 - [ ] Edit `apps/web/public/.well-known/apple-app-site-association`:
-  - [ ] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID.
-  - [ ] Replace `{{IOS_BUNDLE_ID}}` with the iOS bundle ID set above.
+  - [ ] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID. **(waiting on Apple Developer registration)**
+  - [x] iOS bundle ID filled: `com.airabynisarga.app`.
 - [ ] Edit `apps/web/public/.well-known/assetlinks.json`:
-  - [ ] Replace `{{ANDROID_PACKAGE}}` with the Android package set above.
-  - [ ] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing cert fingerprint.
+  - [x] Android package filled: `com.airabynisarga.app`.
+  - [ ] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. **(waiting on Play Console signing setup)**
 - [ ] `eas init` to bind this fork to a new EAS project.
-- [ ] Set GitHub repo secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_API_KEY`, `INITIAL_ADMIN_EMAIL`.
-- [ ] `pnpm db:migrate` against the new Neon database.
-- [ ] First-boot smoke: `pnpm dev`, sign up, verify email lands.
+- [x] Set GitHub repo secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL`. _(set in Replit prod env)_
+- [x] `pnpm db:migrate` against the new Neon database. _(migrations 0001–0013 applied)_
+- [x] First-boot smoke: `pnpm dev`, sign up, verify email lands.
 
 ## Verify the rename worked
 
