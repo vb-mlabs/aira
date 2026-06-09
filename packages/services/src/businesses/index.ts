@@ -9,7 +9,9 @@ export {
   getFeaturedBusinesses,
   getBusinessesByCategory,
   getBusinessesByCategoryPaged,
+  getAllBusinesses,
   getBusinessById,
+  getBusinessByIdIncludingArchived,
 } from "./queries";
 export type {
   PagedBusinessesInput,

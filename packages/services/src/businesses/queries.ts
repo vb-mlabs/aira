@@ -4,7 +4,7 @@
 // permission: "user" before invoking these), no Next imports, no captured
 // singletons. Mirrors the rest of the @aira/services convention.
 
-import { and, asc, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { businesses } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
@@ -26,7 +26,12 @@ export async function getFeaturedBusinesses(
   const rows = await db
     .select()
     .from(businesses)
-    .where(inArray(businesses.tier, ["tier1", "tier2"]))
+    .where(
+      and(
+        inArray(businesses.tier, ["tier1", "tier2"]),
+        isNull(businesses.deleted_at),
+      ),
+    )
     .orderBy(TIER_ORDER, asc(businesses.name))
     .limit(limit);
   return rows.map(toBusiness);
@@ -40,8 +45,29 @@ export async function getBusinessesByCategory(
   const rows = await db
     .select()
     .from(businesses)
-    .where(eq(businesses.category, category))
+    .where(
+      and(
+        eq(businesses.category, category),
+        isNull(businesses.deleted_at),
+      ),
+    )
     .orderBy(TIER_ORDER, asc(businesses.name));
+  return rows.map(toBusiness);
+}
+
+/** Admin-only: returns ALL businesses (or only active when includeArchived
+ *  is false). No pagination — admin's a small audience and the table
+ *  doesn't grow that fast. */
+export async function getAllBusinesses(
+  db: Database,
+  opts: { includeArchived: boolean } = { includeArchived: false },
+): Promise<Business[]> {
+  const where = opts.includeArchived ? undefined : isNull(businesses.deleted_at);
+  const builder = db
+    .select()
+    .from(businesses)
+    .orderBy(TIER_ORDER, asc(businesses.name));
+  const rows = await (where ? builder.where(where) : builder);
   return rows.map(toBusiness);
 }
 
@@ -74,7 +100,10 @@ export async function getBusinessesByCategoryPaged(
   // the COUNT. Empty-after-trim q skips the search predicate entirely.
   const trimmed = input.q?.trim();
   const pattern = trimmed ? `%${trimmed}%` : null;
-  const predicates = [eq(businesses.category, input.category)];
+  const predicates = [
+    eq(businesses.category, input.category),
+    isNull(businesses.deleted_at),
+  ];
   if (input.verified) predicates.push(eq(businesses.verified, true));
   if (pattern) {
     const searchPredicate = or(
@@ -106,6 +135,21 @@ export async function getBusinessesByCategoryPaged(
 }
 
 export async function getBusinessById(
+  db: Database,
+  id: string,
+): Promise<Business | null> {
+  const [row] = await db
+    .select()
+    .from(businesses)
+    .where(and(eq(businesses.id, id), isNull(businesses.deleted_at)))
+    .limit(1);
+  return row ? toBusiness(row) : null;
+}
+
+/** Admin-only sibling: bypasses the soft-delete filter so the admin edit
+ *  page can load (and Restore) an archived row. Public consumers use
+ *  getBusinessById which still 404s on archived. */
+export async function getBusinessByIdIncludingArchived(
   db: Database,
   id: string,
 ): Promise<Business | null> {
@@ -147,6 +191,7 @@ function toBusiness(row: typeof businesses.$inferSelect): Business {
     rating: row.rating ?? null,
     tier: isValidTier(row.tier) ? row.tier : "tier3",
     verified: row.verified,
+    deleted_at: row.deleted_at ? row.deleted_at.toISOString() : null,
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString(),
   };

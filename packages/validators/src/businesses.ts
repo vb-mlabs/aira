@@ -46,6 +46,8 @@ export const BusinessSchema = z.object({
   rating: z.number().min(0).max(5).nullable(),
   tier: BusinessTierSchema,
   verified: z.boolean(),
+  /** ISO 8601; NULL = active, non-NULL = archived at this moment. */
+  deleted_at: z.string().nullable(),
   /** ISO 8601 */
   created_at: z.string(),
   /** ISO 8601 */
@@ -101,6 +103,9 @@ export const BusinessListInputSchema = z
     pageSize: z.coerce.number().int().min(1).max(50).optional(),
     /** When true, only returns rows with verified=true. */
     verified: z.coerce.boolean().optional(),
+    /** Admin-only flag honored by listAllBusinessesAdminOp; ignored by the
+     *  public op which always filters archived rows. */
+    includeArchived: z.coerce.boolean().optional(),
   })
   .strict();
 export type BusinessListInput = z.infer<typeof BusinessListInputSchema>;
@@ -125,3 +130,15 @@ export const BusinessDetailOutputSchema = z.object({
   business: BusinessSchema.nullable(),
 });
 export type BusinessDetailOutput = z.infer<typeof BusinessDetailOutputSchema>;
+
+/** Archive request: just the id. The action and timestamp are inferred. */
+export const BusinessArchiveInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type BusinessArchiveInput = z.infer<typeof BusinessArchiveInputSchema>;
+
+/** Restore is symmetric. */
+export const BusinessRestoreInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type BusinessRestoreInput = z.infer<typeof BusinessRestoreInputSchema>;
