@@ -154,6 +154,14 @@ export async function getBusinessByIdIncludingArchived(
   return row ? toBusiness(row) : null;
 }
 
+export async function countActiveBusinesses(db: Database): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(businesses)
+    .where(isNull(businesses.deleted_at));
+  return row?.value ?? 0;
+}
+
 function isValidTier(value: string): value is BusinessTier {
   return (VALID_TIERS as readonly string[]).includes(value);
 }

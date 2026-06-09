@@ -1,8 +1,9 @@
 // End-user landing screen after sign-in. Brand-led: centered tree-of-life
 // mark + wordmark + tagline, then a short About block, two community stat
-// cards (placeholder counts), and a Featured Businesses list pulled from
-// the directory (tier1 + tier2, max 6). Featured section is hidden when
-// the directory is still empty so the page doesn't render a hollow block.
+// cards (live counts from DB or admin overrides), and a Featured Businesses
+// list pulled from the directory (tier1 + tier2, max 6). Featured section is
+// hidden when the directory is still empty so the page doesn't render a
+// hollow block.
 
 import type { Metadata } from "next"
 import Image from "next/image"
@@ -11,22 +12,46 @@ import { brand } from "@aira/config"
 import { BusinessCard, StatCard } from "@/features/listings"
 import { apiServerFetch } from "@aira/api/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
+import { getAppSettingsPublicOp } from "@/server/operations/app-settings"
+import { businesses as businessesService } from "@aira/services"
+import { db } from "@/lib/db"
 
 export const metadata: Metadata = {
   title: "Home",
 }
 
-// Brand tagline "ROOTS & REACH" surfaces as a typographic caps caption
-// with mid-dot separators — keeps the brand string contained to config.
 const TAGLINE_CAPTION = brand.tagline.split(" & ").join(" · ")
 
-const ABOUT_COPY = `${brand.name} is Atlanta's community directory connecting local Indian businesses, services, and resources with the people who care about them. We celebrate our roots and help every trusted business grow its reach in our city.`
-
 export default async function HomePage() {
-  const res = await apiServerFetch(listBusinessesOp, {
-    input: { featured: true, limit: 6 },
-  })
-  const featured = res.data?.items ?? []
+  const [featuredRes, settingsRes] = await Promise.all([
+    apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 6 } }),
+    apiServerFetch(getAppSettingsPublicOp, { input: {} }),
+  ])
+
+  const featured = featuredRes.data?.items ?? []
+  const settings = Object.fromEntries(
+    (settingsRes.data?.settings ?? []).map((s) => [s.key, s.value]),
+  )
+
+  const aboutTitle =
+    settings.homepage_about_title ??
+    `About ${brand.name}`
+  const aboutBody =
+    settings.homepage_about_body ??
+    `${brand.name} is Atlanta's community directory connecting local Indian businesses, services, and resources with the people who care about them.`
+
+  const bizCountSetting = settings.homepage_stat_businesses ?? "auto"
+  const userCountSetting = settings.homepage_stat_users ?? "auto"
+
+  const bizCount =
+    bizCountSetting === "auto"
+      ? await businessesService.countActiveBusinesses(db)
+      : Number.parseInt(bizCountSetting, 10)
+
+  const bizCountDisplay =
+    Number.isFinite(bizCount) && bizCount > 0 ? `${bizCount}` : "—"
+  const userCountDisplay =
+    userCountSetting === "auto" ? "—" : userCountSetting
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
@@ -48,18 +73,15 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto mt-10 max-w-2xl text-center">
-        <h2 className="font-display text-3xl text-foreground">
-          About {brand.name}
-        </h2>
+        <h2 className="font-display text-3xl text-foreground">{aboutTitle}</h2>
         <p className="mt-3 text-sm leading-relaxed text-foreground/80 sm:text-base">
-          {ABOUT_COPY}
+          {aboutBody}
         </p>
       </section>
 
-      {/* TODO(post-MVP): replace with real counts from the businesses + user tables. */}
       <section className="mx-auto mt-8 grid max-w-md grid-cols-2 gap-4">
-        <StatCard value="500+" label="Business Listed" />
-        <StatCard value="10K+" label="Community Members" />
+        <StatCard value={bizCountDisplay} label="Businesses Listed" />
+        <StatCard value={userCountDisplay} label="Community Members" />
       </section>
 
       {featured.length > 0 && (

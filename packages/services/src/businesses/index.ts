@@ -12,6 +12,7 @@ export {
   getAllBusinesses,
   getBusinessById,
   getBusinessByIdIncludingArchived,
+  countActiveBusinesses,
 } from "./queries";
 export type {
   PagedBusinessesInput,
