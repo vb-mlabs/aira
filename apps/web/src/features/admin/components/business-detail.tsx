@@ -48,6 +48,7 @@ export function BusinessAdminDetail({ business }: BusinessAdminDetailProps) {
       <CoreFieldsSection business={business} />
       <ContactSection business={business} />
       <SocialLinksSection business={business} />
+      <EditorialSection business={business} />
     </div>
   )
 }
@@ -113,6 +114,7 @@ function ContactSection({ business }: { business: Business }) {
   const [phone, setPhone] = useState(business.phone ?? "")
   const [website, setWebsite] = useState(business.website ?? "")
   const [address, setAddress] = useState(business.address ?? "")
+  const [hours, setHours] = useState(business.hours ?? "")
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [pending, startTransition] = useTransition()
 
@@ -122,6 +124,7 @@ function ContactSection({ business }: { business: Business }) {
         phone: phone.trim() || null,
         website: website.trim() || null,
         address: address.trim() || null,
+        hours: hours.trim() || null,
       })
       setFeedback(result)
       if (result?.kind === "ok") router.refresh()
@@ -145,6 +148,52 @@ function ContactSection({ business }: { business: Business }) {
         <div className="space-y-1.5">
           <Label htmlFor="b-address">Address</Label>
           <Input id="b-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St, Atlanta, GA 30301" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="b-hours">Hours</Label>
+          <Input id="b-hours" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Mon–Fri: 9am–6pm, Sat: 10am–4pm" />
+        </div>
+        <Button type="button" onClick={save} disabled={pending}>
+          {pending ? "Saving…" : "Save"}
+        </Button>
+        <StatusLine feedback={feedback} />
+      </div>
+    </section>
+  )
+}
+
+function EditorialSection({ business }: { business: Business }) {
+  const router = useRouter()
+  const [airaReview, setAiraReview] = useState(business.aira_review ?? "")
+  const [feedback, setFeedback] = useState<Feedback>(null)
+  const [pending, startTransition] = useTransition()
+
+  function save() {
+    startTransition(async () => {
+      const result = await runUpdate(business.id, {
+        aira_review: airaReview.trim() || null,
+      })
+      setFeedback(result)
+      if (result?.kind === "ok") router.refresh()
+    })
+  }
+
+  return (
+    <section className="rounded-lg border border-border bg-card">
+      <header className="border-b border-border px-6 py-4">
+        <h2 className="text-base font-semibold">Editorial</h2>
+      </header>
+      <div className="space-y-4 px-6 py-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="b-aira-review">AIRA Review</Label>
+          <textarea
+            id="b-aira-review"
+            value={airaReview}
+            onChange={(e) => setAiraReview(e.target.value)}
+            placeholder="Editorial review shown on the detail page."
+            rows={5}
+            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+          />
         </div>
         <Button type="button" onClick={save} disabled={pending}>
           {pending ? "Saving…" : "Save"}
