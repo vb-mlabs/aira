@@ -71,6 +71,10 @@ export const businesses = pgTable(
     /** Editorial rating 0–5 in 0.5 steps. NULL = unrated. CHECK constraint
      *  enforces the range at the DB level; the admin UI enforces the step. */
     rating: numeric("rating", { precision: 2, scale: 1, mode: "number" }),
+    /** Soft-delete tombstone. NULL = active; non-NULL = archived (timestamp
+     *  of the archive action). Public reads filter on `IS NULL`; admin reads
+     *  can opt into seeing archived rows. Hard-purge cron is S5 (F14). */
+    deleted_at: timestamp("deleted_at"),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at")
       .defaultNow()
@@ -80,6 +84,11 @@ export const businesses = pgTable(
   (table) => [
     index("businesses_category_tier_idx").on(table.category, table.tier),
     index("businesses_tier_idx").on(table.tier),
+    // Partial index for the active subset so public reads skip archived rows.
+    // The composite (category, tier) covers the hot getBusinessesByCategory path.
+    index("businesses_active_idx")
+      .on(table.category, table.tier)
+      .where(sql`${table.deleted_at} IS NULL`),
     check(
       "businesses_rating_check",
       sql`${table.rating} IS NULL OR (${table.rating} >= 0 AND ${table.rating} <= 5)`,

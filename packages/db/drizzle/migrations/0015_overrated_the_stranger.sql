@@ -1,0 +1,2 @@
+ALTER TABLE "businesses" ADD COLUMN "deleted_at" timestamp;--> statement-breakpoint
+CREATE INDEX "businesses_active_idx" ON "businesses" USING btree ("category","tier") WHERE "businesses"."deleted_at" IS NULL;
