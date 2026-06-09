@@ -21,10 +21,11 @@ export const VALID_CATEGORIES = [
   "real-estate",
   "shopping",
 ] as const;
-export type BusinessCategory = (typeof VALID_CATEGORIES)[number];
+/** Legacy type kept for seeding helpers and existing tests. */
+export type BusinessCategory = string;
 
 export const BusinessTierSchema = z.enum(VALID_TIERS);
-export const BusinessCategorySchema = z.enum(VALID_CATEGORIES);
+export const BusinessCategorySchema = z.string().min(1);
 
 export const BusinessSchema = z.object({
   id: z.string(),

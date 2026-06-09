@@ -1,12 +1,61 @@
-// Category aggregates — the count-per-category map driving the /categories
-// landing page tiles. "Categories" today are an enum of strings, not their
-// own table; this module exists so the count contract has a single home and
-// the route handler doesn't reach into the businesses module for a query
-// that's logically about categories.
-
 import { z } from "zod";
-import { BusinessCategorySchema } from "./businesses";
 
+export const CategorySchema = z.object({
+  id: z.string(),
+  city_id: z.string(),
+  parent_id: z.string().nullable(),
+  name: z.string(),
+  slug: z.string(),
+  level: z.number().int().min(1).max(2),
+  sort_order: z.number().int().nonnegative(),
+  active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Category = z.infer<typeof CategorySchema>;
+
+export const CategoryCreateInputSchema = z
+  .object({
+    city_id: z.string().min(1),
+    name: z.string().min(1),
+    slug: z.string().min(1).optional(),
+    parent_id: z.string().nullable().optional(),
+    active: z.boolean().default(true),
+  })
+  .strict();
+export type CategoryCreateInput = z.infer<typeof CategoryCreateInputSchema>;
+
+export const CategoryUpdateInputSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1).optional(),
+    slug: z.string().min(1).optional(),
+    parent_id: z.string().nullable().optional(),
+    active: z.boolean().optional(),
+    sort_order: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+export type CategoryUpdateInput = z.infer<typeof CategoryUpdateInputSchema>;
+
+export const CategoryReorderInputSchema = z
+  .object({
+    city_id: z.string().min(1),
+    ordered_ids: z.array(z.string().min(1)).min(1),
+  })
+  .strict();
+export type CategoryReorderInput = z.infer<typeof CategoryReorderInputSchema>;
+
+export const CategoryTreeOutputSchema = z.object({
+  tree: z.array(
+    z.object({
+      root: CategorySchema,
+      children: z.array(CategorySchema),
+    }),
+  ),
+});
+export type CategoryTreeOutput = z.infer<typeof CategoryTreeOutputSchema>;
+
+/** Map of category slug to its current visible business count. */
 export const CategoriesCountsInputSchema = z
   .object({
     withCounts: z.coerce.boolean().optional(),
@@ -14,9 +63,7 @@ export const CategoriesCountsInputSchema = z
   .strict();
 export type CategoriesCountsInput = z.infer<typeof CategoriesCountsInputSchema>;
 
-/** Map of every BusinessCategory to its current visible count. Missing keys
- *  default to 0 in the service layer — clients never see a partial map. */
 export const CategoriesCountsOutputSchema = z.object({
-  counts: z.record(BusinessCategorySchema, z.number().int().min(0)),
+  counts: z.record(z.string(), z.number().int().min(0)),
 });
 export type CategoriesCountsOutput = z.infer<typeof CategoriesCountsOutputSchema>;

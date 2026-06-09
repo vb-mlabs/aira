@@ -9,5 +9,7 @@ export * from "./api-error";
 export * from "./auth";
 export * from "./businesses";
 export * from "./categories";
+export * from "./cities";
+export * from "./app_settings";
 export * from "./notifications";
 export * from "./waitlist";
