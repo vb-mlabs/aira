@@ -8,6 +8,7 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
+import { ArchiveControl } from "./archive-control"
 
 interface BusinessAdminDetailProps {
   business: Business
@@ -38,11 +39,24 @@ async function runUpdate(
 }
 
 export function BusinessAdminDetail({ business }: BusinessAdminDetailProps) {
+  const archived = business.deleted_at !== null
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{business.name}</h1>
-        <p className="mt-1 text-xs text-muted-foreground font-mono">{business.id}</p>
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {business.name}
+            </h1>
+            {archived && (
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                Archived
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground font-mono">{business.id}</p>
+        </div>
+        <ArchiveControl business={business} />
       </header>
 
       <CoreFieldsSection business={business} />
