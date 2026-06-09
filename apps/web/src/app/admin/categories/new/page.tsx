@@ -1,0 +1,20 @@
+import { apiServerFetch } from "@aira/api/server"
+import { listCategoriesAdminOp } from "@/server/operations/categories-admin"
+import { CategoryForm } from "@/features/admin/components/category-form"
+
+export const metadata = { title: "Admin · New Category" }
+export const dynamic = "force-dynamic"
+
+export default async function NewCategoryPage() {
+  const res = await apiServerFetch(listCategoriesAdminOp, { input: {} })
+  const roots = res.data?.tree.map((n) => n.root) ?? []
+
+  return (
+    <div className="mx-auto max-w-lg space-y-6">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">New category</h1>
+      </header>
+      <CategoryForm roots={roots} />
+    </div>
+  )
+}
