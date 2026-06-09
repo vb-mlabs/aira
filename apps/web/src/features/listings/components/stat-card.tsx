@@ -5,7 +5,7 @@ interface StatCardProps {
 
 export function StatCard({ value, label }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-5 text-center shadow-[var(--shadow-card)]">
+    <div className="rounded-xl bg-card px-4 py-5 text-center shadow-[var(--shadow-card)]">
       <p className="font-display text-3xl font-semibold leading-none text-primary">
         {value}
       </p>

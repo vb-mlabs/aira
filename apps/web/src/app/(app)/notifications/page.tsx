@@ -15,9 +15,9 @@ export default async function NotificationsPage() {
   const rows = res.data?.items ?? []
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
+    <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
+      <header className="mb-6">
+        <h1 className="font-display text-3xl text-foreground sm:text-4xl">Notifications</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Recent activity — newest first.
         </p>

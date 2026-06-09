@@ -21,9 +21,9 @@
   /* Warm cream paper aesthetic — no white surfaces. */
   --background:            oklch(0.90 0.04 85);
   --foreground:            oklch(0.25 0.04 60);
-  --card:                  #F8F2E4; /* Figma spec — warm parchment card surface */
+  --card:                  #F3EBDD; /* Figma spec — warm parchment card surface */
   --card-foreground:       oklch(0.25 0.04 60);
-  --popover:               #F8F2E4;
+  --popover:               #F3EBDD;
   --popover-foreground:    oklch(0.25 0.04 60);
   /* AIRA olive green (~#4F653B). Cream-on-green passes AA body (~4.65:1). */
   --primary:               oklch(0.46 0.07 132);
@@ -88,7 +88,8 @@
   /* Shadow tokens — Figma canonical values. */
   --shadow-primary-glow:   0 3px 5px oklch(0.46 0.07 132 / 35%);
   --shadow-drawer:         4px 0 12px rgb(0 0 0 / 15%);
-  --shadow-card:           0 1px 2px oklch(0.25 0.04 60 / 8%);
+  --shadow-card:           0 2px 8px oklch(0.25 0.04 60 / 14%);
+  --shadow-card-hover:     0 4px 16px oklch(0.25 0.04 60 / 22%);
 
   /* Photographic cream/parchment texture — applied to body for page surface.
      Source: Figma design assets — Texurebackground_1_1780921893702.png
@@ -184,7 +185,8 @@
 
   --shadow-primary-glow:   0 3px 5px oklch(0.46 0.07 132 / 35%);
   --shadow-drawer:         4px 0 12px rgb(0 0 0 / 40%);
-  --shadow-card:           0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-card:           0 2px 8px rgb(0 0 0 / 45%);
+  --shadow-card-hover:     0 4px 16px rgb(0 0 0 / 55%);
 
   --chart-1: oklch(0.46 0.07 132);
   --chart-2: oklch(0.55 0.13 55);

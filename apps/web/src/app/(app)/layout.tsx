@@ -46,8 +46,8 @@ export default async function AppLayout({
           <NotificationBell />
         </header>
 
-        {/* Desktop top utility bar (Account / Notifications / Sign out). */}
-        <TopUtilityBar />
+        {/* Desktop top utility bar (Notifications / Account avatar). */}
+        <TopUtilityBar user={user} />
 
         {/* Page content. Bottom padding clears the mobile tab bar; the
             sidebar already pushes width on desktop via md:pl-[280px]. */}

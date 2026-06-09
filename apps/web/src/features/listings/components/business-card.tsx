@@ -7,14 +7,12 @@ import type { Business } from "../types"
 
 interface BusinessCardProps {
   business: Business
-  /** Show the tier pill in the row (used on category list, hidden on home). */
-  showTier?: boolean
 }
 
 // Whole-card link via the `::after` overlay technique — keeps the inner
 // Call button independently clickable without nesting anchors. The Call
 // anchor sits at `z-10` so its hitbox wins over the overlay.
-export function BusinessCard({ business, showTier = false }: BusinessCardProps) {
+export function BusinessCard({ business }: BusinessCardProps) {
   const category = CATEGORY_META[business.category]
   const Icon = category.icon
   const location = locationLabel(business.address)
@@ -22,14 +20,14 @@ export function BusinessCard({ business, showTier = false }: BusinessCardProps) 
   return (
     <article
       className={cn(
-        "relative flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] transition-colors hover:border-primary",
+        "relative flex items-start gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)]",
       )}
     >
       <div
         aria-hidden
-        className="flex size-11 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-background text-foreground"
+        className="flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
       >
-        <Icon className="size-5" />
+        <Icon className="size-4" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -59,40 +57,35 @@ export function BusinessCard({ business, showTier = false }: BusinessCardProps) 
         />
       </div>
 
-      {showTier && <TierPill tier={business.tier} />}
-
-      {business.phone && (
-        <a
-          href={`tel:${business.phone}`}
-          className="relative z-10 inline-flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-opacity hover:opacity-90"
-          aria-label={`Call ${business.name}`}
-        >
-          <Phone className="size-5" aria-hidden />
-        </a>
-      )}
+      {/* Right column: chip pinned to top, phone pinned to bottom */}
+      <div className="flex flex-shrink-0 flex-col items-end justify-between self-stretch gap-2">
+        <TierPill tier={business.tier} />
+        {business.phone && (
+          <a
+            href={`tel:${business.phone}`}
+            className="relative z-10 inline-flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-opacity hover:opacity-90"
+            aria-label={`Call ${business.name}`}
+          >
+            <Phone className="size-5" aria-hidden />
+          </a>
+        )}
+      </div>
     </article>
   )
 }
 
 function TierPill({ tier }: { tier: Business["tier"] }) {
-  const labels: Record<Business["tier"], string> = {
-    tier1: "Tier 1",
-    tier2: "Tier 2",
-    tier3: "Tier 3",
-  }
-  const bg: Record<Business["tier"], string> = {
-    tier1: "bg-tier1 text-tier1-foreground",
-    tier2: "bg-tier2 text-tier2-foreground",
-    tier3: "bg-tier3 text-tier3-foreground",
-  }
+  if (tier === "tier3") return null
+  const label = tier === "tier1" ? "Sponsored" : "Featured"
+  const bg = tier === "tier1" ? "bg-tier1 text-tier1-foreground" : "bg-tier2 text-tier2-foreground"
   return (
     <span
       className={cn(
-        "flex-shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider",
-        bg[tier],
+        "flex-shrink-0 rounded-full px-1.5 py-px text-[0.55rem] font-bold tracking-wide",
+        bg,
       )}
     >
-      {labels[tier]}
+      {label}
     </span>
   )
 }

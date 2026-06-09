@@ -26,7 +26,7 @@ module.exports = {
       "colors": {
         "background": "oklch(0.90 0.04 85)",
         "foreground": "oklch(0.25 0.04 60)",
-        "card": "oklch(0.95 0.02 85)",
+        "card": "oklch(0.94 0.02 80)",
         "cardForeground": "oklch(0.25 0.04 60)",
         "popover": "oklch(0.95 0.02 85)",
         "popoverForeground": "oklch(0.25 0.04 60)",
