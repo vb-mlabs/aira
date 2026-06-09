@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Slug:** 2026-06-09-business-soft-delete
-**Status:** reviewed
+**Status:** implemented
 **Author:** /mlabs-plan
 
 ---
