@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
 import type { Category } from "@aira/validators/categories"
 import { ArchiveControl } from "./archive-control"
+import { GallerySection } from "./gallery-section"
 
 interface BusinessAdminDetailProps {
   business: Business
@@ -24,7 +25,7 @@ interface UpdateResult {
 
 async function runUpdate(
   id: string,
-  data: Record<string, string | number | null>,
+  data: Record<string, string | number | null | string[]>,
 ): Promise<Feedback> {
   try {
     await apiClient.patch<UpdateResult>(
@@ -63,6 +64,7 @@ export function BusinessAdminDetail({ business, categories = [] }: BusinessAdmin
 
       <CoreFieldsSection business={business} />
       <CategorySection business={business} categories={categories} />
+      <GallerySection businessId={business.id} images={business.images} />
       <ContactSection business={business} />
       <RatingSection business={business} />
       <SocialLinksSection business={business} />
@@ -80,12 +82,27 @@ function CategorySection({
 }) {
   const router = useRouter()
   const [category, setCategory] = useState(business.category)
+  const [extraIds, setExtraIds] = useState<string[]>(business.extra_category_ids)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [pending, startTransition] = useTransition()
 
+  function toggleExtra(id: string) {
+    setExtraIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
+  }
+
   function save() {
     startTransition(async () => {
-      const result = await runUpdate(business.id, { category })
+      // Strip the primary category from extras to avoid a redundant join row.
+      const primaryCat = categories.find((c) => c.slug === category)
+      const cleanedExtras = primaryCat
+        ? extraIds.filter((id) => id !== primaryCat.id)
+        : extraIds
+      const result = await runUpdate(business.id, {
+        category,
+        extra_category_ids: cleanedExtras,
+      })
       setFeedback(result)
       if (result?.kind === "ok") router.refresh()
     })
@@ -94,11 +111,11 @@ function CategorySection({
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">Category</h2>
+        <h2 className="text-base font-semibold">Categories</h2>
       </header>
       <div className="space-y-4 px-6 py-5">
         <div className="space-y-1.5">
-          <Label htmlFor="b-category">Category</Label>
+          <Label htmlFor="b-category">Primary category</Label>
           <select
             id="b-category"
             value={category}
@@ -115,6 +132,35 @@ function CategorySection({
             ))}
           </select>
         </div>
+
+        {categories.length > 0 && (
+          <div className="space-y-1.5">
+            <Label>Additional categories</Label>
+            <p className="text-xs text-muted-foreground">
+              Business appears in listings for each checked category.
+            </p>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {categories.map((c) => {
+                const isExtra = extraIds.includes(c.id)
+                return (
+                  <label
+                    key={c.id}
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isExtra}
+                      onChange={() => toggleExtra(c.id)}
+                      className="h-3.5 w-3.5 rounded border-input accent-primary"
+                    />
+                    <span>{c.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <Button type="button" onClick={save} disabled={pending}>
           {pending ? "Saving…" : "Save"}
         </Button>
