@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BadgeCheck, Phone } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { CATEGORY_META } from "../category-meta"
+import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
 import type { Business } from "../types"
 
@@ -31,7 +32,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             href={`/listings/${business.category}/${business.id}`}
             className="font-display text-lg leading-tight text-foreground after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-offset-2"
@@ -43,6 +44,9 @@ export function BusinessCard({ business }: BusinessCardProps) {
               aria-label="Verified"
               className="size-4 flex-shrink-0 fill-info text-info-foreground"
             />
+          )}
+          {business.rating !== null && business.rating > 0 && (
+            <RatingPill rating={business.rating} />
           )}
         </div>
         <p className="mt-0.5 truncate text-xs text-muted-foreground">

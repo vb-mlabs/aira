@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { buttonVariants } from "@aira/ui-web/button"
 import { CATEGORY_META } from "../category-meta"
+import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
 import type { Business } from "../types"
 
@@ -52,7 +53,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <h1 className="font-display text-lg leading-tight text-foreground">
                   {business.name}
                 </h1>
@@ -61,6 +62,9 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                     aria-label="Verified"
                     className="size-4 flex-shrink-0 fill-info text-info-foreground"
                   />
+                )}
+                {business.rating !== null && business.rating > 0 && (
+                  <RatingPill rating={business.rating} />
                 )}
               </div>
 
