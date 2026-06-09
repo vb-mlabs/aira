@@ -18,4 +18,8 @@ export type {
   PagedBusinessesResult,
 } from "./queries";
 
-export { updateBusiness } from "./service";
+export {
+  updateBusiness,
+  archiveBusiness,
+  restoreBusiness,
+} from "./service";
