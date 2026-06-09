@@ -8,7 +8,12 @@
 export {
   getFeaturedBusinesses,
   getBusinessesByCategory,
+  getBusinessesByCategoryPaged,
   getBusinessById,
+} from "./queries";
+export type {
+  PagedBusinessesInput,
+  PagedBusinessesResult,
 } from "./queries";
 
 export { updateBusiness } from "./service";

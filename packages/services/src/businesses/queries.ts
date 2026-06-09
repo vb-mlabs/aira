@@ -4,7 +4,7 @@
 // permission: "user" before invoking these), no Next imports, no captured
 // singletons. Mirrors the rest of the @aira/services convention.
 
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { businesses } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
@@ -43,6 +43,66 @@ export async function getBusinessesByCategory(
     .where(eq(businesses.category, category))
     .orderBy(TIER_ORDER, asc(businesses.name));
   return rows.map(toBusiness);
+}
+
+export interface PagedBusinessesInput {
+  category: string;
+  q?: string;
+  page: number;
+  pageSize: number;
+  verified?: boolean;
+}
+
+export interface PagedBusinessesResult {
+  items: Business[];
+  total: number;
+}
+
+/** Paginated variant of getBusinessesByCategory with scoped keyword
+ *  search (name + description + address, case-insensitive ILIKE) and an
+ *  optional verified filter. Runs the items query and the count query
+ *  in parallel via Promise.all. */
+export async function getBusinessesByCategoryPaged(
+  db: Database,
+  input: PagedBusinessesInput,
+): Promise<PagedBusinessesResult> {
+  if (!isValidCategory(input.category)) {
+    return { items: [], total: 0 };
+  }
+
+  // Build the predicate set once and reuse it for both the SELECT and
+  // the COUNT. Empty-after-trim q skips the search predicate entirely.
+  const trimmed = input.q?.trim();
+  const pattern = trimmed ? `%${trimmed}%` : null;
+  const predicates = [eq(businesses.category, input.category)];
+  if (input.verified) predicates.push(eq(businesses.verified, true));
+  if (pattern) {
+    const searchPredicate = or(
+      ilike(businesses.name, pattern),
+      ilike(businesses.description, pattern),
+      ilike(businesses.address, pattern),
+    );
+    if (searchPredicate) predicates.push(searchPredicate);
+  }
+  const where = and(...predicates);
+
+  const offset = (input.page - 1) * input.pageSize;
+
+  const [rows, countRows] = await Promise.all([
+    db
+      .select()
+      .from(businesses)
+      .where(where)
+      .orderBy(TIER_ORDER, asc(businesses.name))
+      .limit(input.pageSize)
+      .offset(offset),
+    db.select({ value: count() }).from(businesses).where(where),
+  ]);
+
+  return {
+    items: rows.map(toBusiness),
+    total: countRows[0]?.value ?? 0,
+  };
 }
 
 export async function getBusinessById(
