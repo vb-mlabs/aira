@@ -103,6 +103,12 @@ export type BusinessListInput = z.infer<typeof BusinessListInputSchema>;
 
 export const BusinessListOutputSchema = z.object({
   items: z.array(BusinessSchema),
+  /** Total matching rows. For non-paginated branches this equals items.length. */
+  total: z.number().int().nonnegative(),
+  /** Echo of the page that was returned. */
+  page: z.number().int().min(1),
+  /** Echo of the page size that was used. */
+  pageSize: z.number().int().min(1),
 });
 export type BusinessListOutput = z.infer<typeof BusinessListOutputSchema>;
 

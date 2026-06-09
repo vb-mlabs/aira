@@ -2,10 +2,16 @@ import "server-only"
 
 // Businesses operations.
 //
-// Two ops back the community directory listing pages: listBusinessesOp
-// (filterable by ?featured / ?category / ?limit) and getBusinessByIdOp.
-// Both read through @aira/services/businesses — no auth-check in the
-// service layer; defineOperation's permission: "user" gate covers it.
+// listBusinessesOp is the unified read endpoint behind GET /api/v1/businesses.
+// It supports three modes, branched on the input:
+//   1. Paginated category browse (when ?category is set with any of
+//      ?q, ?page, ?pageSize, ?verified) → getBusinessesByCategoryPaged
+//   2. Full category list (when only ?category is set) → getBusinessesByCategory
+//   3. Featured (when ?featured=1, or no filter at all)
+//
+// Every branch returns { items, total, page, pageSize } so the strict
+// output schema validates everywhere — non-paginated branches synthesize
+// the metadata from items.length.
 
 import { businesses as businessesService } from "@aira/services"
 import {
@@ -13,8 +19,23 @@ import {
   BusinessListOutputSchema,
   BusinessDetailInputSchema,
   BusinessDetailOutputSchema,
+  type BusinessListOutput,
 } from "@aira/validators/businesses"
 import { defineOperation } from "./index"
+
+const DEFAULT_PAGE = 1
+const DEFAULT_PAGE_SIZE = 12
+
+/** Synthesize pagination metadata for the non-paginated branches so the
+ *  strict output schema validates uniformly. */
+function withFullPageMeta(items: BusinessListOutput["items"]): BusinessListOutput {
+  return {
+    items,
+    total: items.length,
+    page: 1,
+    pageSize: items.length || 1,
+  }
+}
 
 export const listBusinessesOp = defineOperation({
   name: "businesses.list",
@@ -22,6 +43,31 @@ export const listBusinessesOp = defineOperation({
   output: BusinessListOutputSchema,
   permission: "user",
   handler: async (db, _ctx, input) => {
+    // Paginated category browse. Triggered as soon as any pagination /
+    // search / filter input is present alongside a category — the
+    // existing simple-category branch stays for callers that just want
+    // the full list (admin pages still rely on it).
+    const wantsPaginated =
+      !!input.category &&
+      (input.q !== undefined ||
+        input.page !== undefined ||
+        input.pageSize !== undefined ||
+        input.verified !== undefined)
+
+    if (wantsPaginated && input.category) {
+      const page = input.page ?? DEFAULT_PAGE
+      const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
+      const { items, total } =
+        await businessesService.getBusinessesByCategoryPaged(db, {
+          category: input.category,
+          q: input.q,
+          page,
+          pageSize,
+          verified: input.verified,
+        })
+      return { items, total, page, pageSize }
+    }
+
     // featured wins over category — passing both yields featured-only
     // (intentional: the home tile + the category page are distinct callers).
     if (input.featured) {
@@ -29,19 +75,21 @@ export const listBusinessesOp = defineOperation({
         db,
         input.limit,
       )
-      return { items }
+      return withFullPageMeta(items)
     }
     if (input.category) {
       const items = await businessesService.getBusinessesByCategory(
         db,
         input.category,
       )
-      return { items: typeof input.limit === "number" ? items.slice(0, input.limit) : items }
+      const trimmed =
+        typeof input.limit === "number" ? items.slice(0, input.limit) : items
+      return withFullPageMeta(trimmed)
     }
     // No filter — return featured as a sensible default rather than dumping
     // the whole table. Keeps the "GET with no query" call cheap.
     const items = await businessesService.getFeaturedBusinesses(db, input.limit)
-    return { items }
+    return withFullPageMeta(items)
   },
 })
 
