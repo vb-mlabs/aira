@@ -1,13 +1,11 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import {
-  CATEGORY_META,
-  VALID_CATEGORIES,
-  type BusinessCategory,
-} from "@/features/listings"
+import { Store } from "lucide-react"
+import { CATEGORY_META } from "@/features/listings/category-meta"
 import { ListingView } from "@/features/listings/components/listing-view"
 import { apiServerFetch } from "@aira/api/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
+import { getCategoryBySlugOp } from "@/server/operations/categories"
 
 const PAGE_SIZE = 12
 
@@ -20,16 +18,15 @@ interface PageProps {
   }>
 }
 
-function isValidCategory(value: string): value is BusinessCategory {
-  return (VALID_CATEGORIES as readonly string[]).includes(value)
-}
-
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { category } = await params
-  if (!isValidCategory(category)) return { title: "Not found" }
-  return { title: CATEGORY_META[category].displayName }
+  const res = await apiServerFetch(getCategoryBySlugOp, { input: { slug: category } })
+  const cat = res.data?.category
+  if (!cat) return { title: "Not found" }
+  const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
+  return { title: meta?.displayName ?? cat.name }
 }
 
 export default async function CategoryListingPage({
@@ -37,13 +34,12 @@ export default async function CategoryListingPage({
   searchParams,
 }: PageProps) {
   const { category } = await params
-  if (!isValidCategory(category)) notFound()
+
+  const catRes = await apiServerFetch(getCategoryBySlugOp, { input: { slug: category } })
+  if (!catRes.data?.category) notFound()
 
   const sp = await searchParams
   const q = sp.q?.trim() || undefined
-  // Coerce ?page= manually. Anything non-numeric or < 1 falls back to 1
-  // silently (the Zod schema would clamp at the API layer too, but doing
-  // it here means the URL we render in the page header is always sane).
   const parsedPage = Number.parseInt(sp.page ?? "", 10)
   const page = Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1
   const verified = sp.verified === "1" || sp.verified === "true"
@@ -62,6 +58,9 @@ export default async function CategoryListingPage({
   const total = res.data?.total ?? 0
   const responsePage = res.data?.page ?? page
   const responsePageSize = res.data?.pageSize ?? PAGE_SIZE
+
+  const meta = CATEGORY_META[category as keyof typeof CATEGORY_META]
+  const _ = meta ?? { icon: Store } // keep import alive
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">

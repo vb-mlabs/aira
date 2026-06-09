@@ -4,23 +4,24 @@
 // Desktop renders the same page — duplicate of sidebar nav, but harmless.
 
 import type { Metadata } from "next"
-import {
-  CATEGORIES_ORDERED,
-  CategoryRow,
-} from "@/features/listings"
+import { Store } from "lucide-react"
+import { CategoryRow } from "@/features/listings"
+import { CATEGORY_META } from "@/features/listings/category-meta"
 import { apiServerFetch } from "@aira/api/server"
-import { listCategoriesWithCountsOp } from "@/server/operations/categories"
-import type { BusinessCategory } from "@/features/listings"
+import { listCategoriesWithCountsOp, listCategoriesOp } from "@/server/operations/categories"
 
 export const metadata: Metadata = {
   title: "Categories",
 }
 
 export default async function CategoriesPage() {
-  const res = await apiServerFetch(listCategoriesWithCountsOp, {
-    input: { withCounts: true },
-  })
-  const counts = (res.data?.counts ?? {}) as Record<BusinessCategory, number>
+  const [categoriesRes, countsRes] = await Promise.all([
+    apiServerFetch(listCategoriesOp, { input: {} }),
+    apiServerFetch(listCategoriesWithCountsOp, { input: { withCounts: true } }),
+  ])
+
+  const dbCategories = categoriesRes.data?.categories ?? []
+  const counts = countsRes.data?.counts ?? {}
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
@@ -34,11 +35,20 @@ export default async function CategoriesPage() {
       </header>
 
       <ul className="space-y-2">
-        {CATEGORIES_ORDERED.map((cat) => (
-          <li key={cat.slug}>
-            <CategoryRow category={cat} count={counts[cat.slug]} />
-          </li>
-        ))}
+        {dbCategories.map((cat) => {
+          const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
+          const categoryMeta = {
+            slug: cat.slug,
+            displayName: cat.name,
+            description: meta?.description ?? `Browse ${cat.name} businesses`,
+            icon: meta?.icon ?? Store,
+          }
+          return (
+            <li key={cat.id}>
+              <CategoryRow category={categoryMeta} count={counts[cat.slug]} />
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

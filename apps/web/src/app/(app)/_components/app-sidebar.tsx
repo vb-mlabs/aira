@@ -9,23 +9,28 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronRight, Globe, Home, Mail } from "lucide-react"
+import { ChevronRight, Globe, Home, Mail, Store } from "lucide-react"
 import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
-import { CATEGORIES_ORDERED } from "@/features/listings"
+import { CATEGORIES_ORDERED, CATEGORY_META } from "@/features/listings"
+import type { Category } from "@aira/validators/categories"
 
 interface AppSidebarProps {
   /** Render the close button in the header (mobile drawer mode). */
   onClose?: () => void
+  /** DB categories for Atlanta. When provided replaces static CATEGORIES_ORDERED. */
+  categories?: Category[]
 }
 
-export function AppSidebar({ onClose }: AppSidebarProps) {
+export function AppSidebar({ onClose, categories }: AppSidebarProps) {
   const pathname = usePathname() ?? ""
 
   // Each row's active state is "starts-with" matching so nested listing
   // routes (/listings/[category]/[id]) keep their parent category lit up.
   const isActive = (href: string) =>
     href === "/home" ? pathname === "/home" : pathname.startsWith(href)
+
+  const useFallback = !categories || categories.length === 0
 
   return (
     <aside
@@ -66,15 +71,28 @@ export function AppSidebar({ onClose }: AppSidebarProps) {
           icon={Home}
           active={isActive("/home")}
         />
-        {CATEGORIES_ORDERED.map((cat) => (
-          <SidebarRow
-            key={cat.slug}
-            href={`/listings/${cat.slug}`}
-            label={cat.displayName}
-            icon={cat.icon}
-            active={isActive(`/listings/${cat.slug}`)}
-          />
-        ))}
+        {useFallback
+          ? CATEGORIES_ORDERED.map((cat) => (
+              <SidebarRow
+                key={cat.slug}
+                href={`/listings/${cat.slug}`}
+                label={cat.displayName}
+                icon={cat.icon}
+                active={isActive(`/listings/${cat.slug}`)}
+              />
+            ))
+          : categories.map((cat) => {
+              const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
+              return (
+                <SidebarRow
+                  key={cat.id}
+                  href={`/listings/${cat.slug}`}
+                  label={cat.name}
+                  icon={meta?.icon ?? Store}
+                  active={isActive(`/listings/${cat.slug}`)}
+                />
+              )
+            })}
       </nav>
 
       <footer className="border-t border-sidebar-border px-5 pb-5 pt-6 text-center">

@@ -10,8 +10,13 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { AppSidebar } from "./app-sidebar"
+import type { Category } from "@aira/validators/categories"
 
-export function MobileSidebar() {
+interface MobileSidebarProps {
+  categories?: Category[]
+}
+
+export function MobileSidebar({ categories }: MobileSidebarProps) {
   const [open, setOpen] = useState(false)
   // Defer portal mount to client to avoid SSR/hydration mismatch.
   const [mounted, setMounted] = useState(false)
@@ -73,7 +78,7 @@ export function MobileSidebar() {
               aria-modal="true"
               aria-label="Main menu"
             >
-              <AppSidebar onClose={() => setOpen(false)} />
+              <AppSidebar onClose={() => setOpen(false)} categories={categories} />
             </div>
           </div>,
           document.body,

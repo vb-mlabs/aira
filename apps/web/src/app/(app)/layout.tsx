@@ -12,7 +12,9 @@
 
 import Link from "next/link"
 import { brand } from "@aira/config"
+import { apiServerFetch } from "@aira/api/server"
 import { requireUser } from "@/lib/auth/server"
+import { listCategoriesOp } from "@/server/operations/categories"
 import { NotificationBell } from "@/features/notifications"
 import { AppSidebar } from "./_components/app-sidebar"
 import { BottomTabBar } from "./_components/bottom-tab-bar"
@@ -24,19 +26,23 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await requireUser()
+  const [user, categoriesRes] = await Promise.all([
+    requireUser(),
+    apiServerFetch(listCategoriesOp, { input: {} }),
+  ])
+  const categories = categoriesRes.data?.categories ?? []
 
   return (
     <div className="min-h-full">
       {/* Desktop sidebar — fixed full-height on the left. */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[280px] md:flex-col">
-        <AppSidebar />
+        <AppSidebar categories={categories} />
       </aside>
 
       <div className="flex min-h-full flex-col md:pl-[280px]">
         {/* Mobile top header. */}
         <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
-          <MobileSidebar />
+          <MobileSidebar categories={categories} />
           <Link
             href="/home"
             className="font-display text-lg font-semibold text-foreground"
