@@ -46,6 +46,12 @@ export type AuditMeta =
   | { kind: "user.signed_in" }
   | { kind: "user.signed_in_failed"; reason: "bad_password" | "user_not_found" | "banned" | "email_unverified" }
   | { kind: "user.signed_up" }
+  // Admin curation of the business directory. target_id is the business.id.
+  //   business.archived — soft-delete (deleted_at stamped, public surfaces drop the row).
+  //   business.restored — soft-delete reversed (deleted_at cleared).
+  // No extra metadata fields: action + target_id + actor_id are the full story.
+  | { kind: "business.archived" }
+  | { kind: "business.restored" }
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults
