@@ -22,7 +22,13 @@
 //   - @aira/services/businesses     — getFeaturedBusinesses,
 //                                       getBusinessesByCategory,
 //                                       getBusinessById
-//   - @aira/services/categories     — getBusinessCountsByCategory
+//   - @aira/services/categories     — getBusinessCountsByCategory +
+//                                       getCategoriesByCity, getCategoryTree,
+//                                       createCategory, updateCategory, etc.
+//   - @aira/services/cities         — listCities, getCityBySlug,
+//                                       createCity, updateCity
+//   - @aira/services/app_settings   — getAppSettings, getAppSetting,
+//                                       updateAppSetting
 
 export * as notifications from "./notifications"
 export * as messages from "./messages"
@@ -31,3 +37,5 @@ export * as admin from "./admin"
 export * as billing from "./billing"
 export * as businesses from "./businesses"
 export * as categories from "./categories"
+export * as cities from "./cities"
+export * as appSettings from "./app_settings"

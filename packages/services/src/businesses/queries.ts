@@ -9,10 +9,8 @@ import { businesses } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
   VALID_TIERS,
-  VALID_CATEGORIES,
   type Business,
   type BusinessTier,
-  type BusinessCategory,
 } from "@aira/validators/businesses";
 
 // Tier ordering uses an explicit CASE so renaming tiers can't silently
@@ -41,7 +39,6 @@ export async function getBusinessesByCategory(
   db: Database,
   category: string,
 ): Promise<Business[]> {
-  if (!isValidCategory(category)) return [];
   const rows = await db
     .select()
     .from(businesses)
@@ -92,10 +89,6 @@ export async function getBusinessesByCategoryPaged(
   db: Database,
   input: PagedBusinessesInput,
 ): Promise<PagedBusinessesResult> {
-  if (!isValidCategory(input.category)) {
-    return { items: [], total: 0 };
-  }
-
   // Build the predicate set once and reuse it for both the SELECT and
   // the COUNT. Empty-after-trim q skips the search predicate entirely.
   const trimmed = input.q?.trim();
@@ -161,10 +154,6 @@ export async function getBusinessByIdIncludingArchived(
   return row ? toBusiness(row) : null;
 }
 
-function isValidCategory(value: string): value is BusinessCategory {
-  return (VALID_CATEGORIES as readonly string[]).includes(value);
-}
-
 function isValidTier(value: string): value is BusinessTier {
   return (VALID_TIERS as readonly string[]).includes(value);
 }
@@ -177,7 +166,7 @@ function toBusiness(row: typeof businesses.$inferSelect): Business {
     // DB rows are unvalidated text; coerce to the union or fall back to a
     // safe default. Invalid rows simply render under tier3 / their raw
     // category — they don't crash the page.
-    category: isValidCategory(row.category) ? row.category : "shopping",
+    category: row.category,
     description: row.description,
     phone: row.phone,
     website: row.website,

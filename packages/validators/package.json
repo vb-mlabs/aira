@@ -12,6 +12,8 @@
     "./admin": "./src/admin.ts",
     "./businesses": "./src/businesses.ts",
     "./categories": "./src/categories.ts",
+    "./cities": "./src/cities.ts",
+    "./app_settings": "./src/app_settings.ts",
     "./notifications": "./src/notifications.ts"
   },
   "scripts": {
