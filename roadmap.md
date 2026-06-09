@@ -1,6 +1,6 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-09
+**Last updated:** 2026-06-09 (evening)
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
@@ -83,8 +83,17 @@ Admin edit form gained an "Editorial" section + the `hours` input.
 ### ✅ Admin shell rework (2026-06-09)
 `/admin` now uses the same green-textured sidebar shell as the user-facing `(app)` layout. New dashboard landing page (`/admin`) with stat tiles, quick-link cards, and a recent-businesses list. New components under `app/admin/_components/`: `admin-sidebar.tsx`, `admin-mobile-sidebar.tsx`, `admin-top-bar.tsx`.
 
+### ✅ S3 — Listings pagination + scoped search (2026-06-09)
+Plan: `.mstack/plans/2026-06-09-listings-pagination-search.md`. Paginated listing view (12/page default, configurable), URL-driven pagination with `page` param, server-side total count, `<Pagination>` component with first/last/current±1 truncation. Scoped keyword search with 300ms debounce, `q` URL param, React 19 derived-state sync between URL and input, `verified` boolean filter toggle. `listBusinessesOp` widened with `q`, `page`, `pageSize`, `verified` inputs; `BusinessListOutputSchema` widened with `total`, `page`, `pageSize`.
+
+### ✅ S3 — Admin star rating (F11) (2026-06-09)
+Plan: `.mstack/plans/2026-06-09-admin-star-rating.md`. `rating` numeric(2,1) column (migration `0014`) with 0–5 DB check constraint. `<RatingPill>` component (Star icon, warning token colour, `.toFixed(1)`, hidden when ≤ 0). `rating` field added to admin Business edit form with 0.5-step number input. Public read queries pass `rating` through; `BusinessSchema` widened.
+
+### ✅ S3 — Business soft-delete + restore (F13 partial) (2026-06-09)
+Plan: `.mstack/plans/2026-06-09-business-soft-delete.md`. `deleted_at timestamp` column + partial active-subset index (migration `0015`). All public reads filter `WHERE deleted_at IS NULL`. Admin archive/restore service mutations with audit log entries (`business.archived` / `business.restored`). `POST /api/v1/admin/businesses/[id]/archive` + `/restore` routes. `/admin/businesses` gains Status column (Active/Archived chip) + `?archived=1` toggle; uses new `listAllBusinessesAdminOp` (also fixes pre-existing "admin list only showed tier1+tier2" bug). `<ArchiveControl>` component in admin detail header — AlertDialog confirmation. QA: 9/9 scenarios pass.
+
 ### Other notable items
-- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), plus waitlist extensions.
+- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), plus waitlist extensions.
 - React-email templates groundwork (`.mstack/plans/2026-05-24-react-email-templates.md`)
 - Brand consolidation, primary-color darken, template hardening (May 23–24 cluster) — all merged
 - Mobile welcome + session gate
@@ -184,16 +193,16 @@ Admin edit form gained an "Editorial" section + the `hours` input.
 **Goal:** Admin creates a Business with full details (Google Places address, multi-category, ≤3 gallery images, verify tick, rating). End-user opens the matching category page and sees the listing card with tap-to-call, WhatsApp, social, More Info modal.
 
 **Features (PRD refs):**
-- 🟦 F7 — Listing page **(cards + A-Z sort live; pagination ≥10/page TODO — sponsored sort lands S4)**
-- ⬜ F8 — Scoped keyword search (in-category, contains/starts-with, case-insensitive)
-- ✅ F9 — Business Listing Card with quick actions (tel:, wa.me, social links — More Info link goes to detail page, modal optional)
-- 🟦 F10 — More Info **(detail page live with Hero, About Us, Contact, AIRA Review cards; ≤3 images carousel + directions deep-link TODO)**
-- 🟦 F11 — Verified badge live; **admin star rating TODO** (hide stars if 0/null)
-- 🟦 F13 — Business CRUD **(single-category + core fields + social + hours + AIRA Review editable via `/admin/businesses/[id]`; multi-category attach, soft delete/restore, gallery, status workflow TODO)**
-- ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`)
+- ✅ F7 — Listing page pagination + A-Z sort (12/page, URL-driven; sponsored sort lands S4)
+- ✅ F8 — Scoped keyword search (in-category, debounced, URL-driven, verified filter)
+- ✅ F9 — Business Listing Card with quick actions (tel:, wa.me, social links — More Info → detail page)
+- 🟦 F10 — More Info **(detail page live — Hero, About Us, Contact, AIRA Review cards; ≤3 images carousel + directions deep-link TODO)**
+- ✅ F11 — Verified badge + admin star rating (RatingPill hidden when ≤ 0; 0.5-step input in admin form)
+- 🟦 F13 — Business CRUD **(soft-delete/restore + audit log + admin list Status column ✅; gallery + multi-category attach TODO — multi-category blocked on S2 category table)**
+- ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`) — blocked on S2
 - ⬜ F27 — Google Places Autocomplete (admin Business form)
 
-**Schema additions:** ✅ `businesses` (migration `0011`); ✅ social columns (`0012`); ✅ `hours` + `aira_review` (`0013`). **TODO:** `business_image` table for gallery, `business_category` join for multi-category attach.
+**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`). **TODO:** `business_image` table (gallery), `business_category` join (multi-category — needs S2 `category` table).
 
 **Libs to add:**
 - `@react-google-maps/api` OR vanilla Places SDK (admin Business form)
@@ -382,3 +391,6 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-09** — Admin shell adopts the same green-textured sidebar pattern as the user-facing `(app)` layout. New default landing page at `/admin` (dashboard tiles + recent businesses). *Why:* admins moving between `/home` and `/admin` should feel one product; previous top-bar layout was visually disconnected.
 - **2026-06-09** — Prod host locked to `airabynisarga.com`; bundle ID locked to `com.airabynisarga.app` (iOS + Android). Substituted into `apps/mobile/app.config.ts`, `apple-app-site-association`, `assetlinks.json`. Apple Team ID + Android signing-cert SHA-256 remain placeholders pending external account work.
 - **2026-06-09** — Sprint 1.5 (Admin MFA) **dropped from MVP scope**. Sliding 30-min idle-timeout + audit trail are the controls relied upon. *Why:* admin accounts are internal-only for launch; MFA adds engineering + recovery-code policy work that isn't justified pre-launch. Reopen if external admins ever get enrolled.
+- **2026-06-09** — Listings pagination uses URL-driven state (`?page=N&q=...&verified=1`) with React 19 derived-state pattern (compare-and-set in render, not `useEffect`) for prop → input sync. *Why:* URL-driven state makes browser back/forward and shareable URLs work without extra client state machinery.
+- **2026-06-09** — Business soft-delete pattern: `deleted_at timestamp NULL` column + partial index on `(category, tier) WHERE deleted_at IS NULL`. All public reads filter `isNull(deleted_at)`; admin reads use a bypass variant (`getBusinessByIdIncludingArchived`). *Why:* reversible, audit-friendly, no parallel table needed; partial index keeps the common public-side query fast as the archived row count grows.
+- **2026-06-09** — `AlertDialog.Trigger render={<Button>}` pattern dropped from `ArchiveControl`. Using two `@base-ui/react` primitives nested via `render=` races the click → onOpenChange cycle. Since `open` is controlled state, `Trigger` adds no value — plain `<Button onClick={() => setOpen(true)}>` is deterministic. *Why:* intermittent dialog-open failure in Playwright (30% flake rate), fixed after removing the wrapper.
