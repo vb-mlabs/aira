@@ -48,27 +48,24 @@ export function ArchiveControl({ business }: ArchiveControlProps) {
 
   return (
     <AlertDialog.Root open={open} onOpenChange={setOpen}>
-      <AlertDialog.Trigger
-        render={
-          <Button
-            type="button"
-            variant={archived ? "default" : "destructive"}
-            size="sm"
-          >
-            {archived ? (
-              <>
-                <RotateCcw className="size-4" aria-hidden />
-                Restore
-              </>
-            ) : (
-              <>
-                <Archive className="size-4" aria-hidden />
-                Archive
-              </>
-            )}
-          </Button>
-        }
-      />
+      <Button
+        type="button"
+        variant={archived ? "default" : "destructive"}
+        size="sm"
+        onClick={() => setOpen(true)}
+      >
+        {archived ? (
+          <>
+            <RotateCcw className="size-4" aria-hidden />
+            Restore
+          </>
+        ) : (
+          <>
+            <Archive className="size-4" aria-hidden />
+            Archive
+          </>
+        )}
+      </Button>
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm" />
         <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[min(420px,90vw)] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-card p-6 shadow-[var(--shadow-card-hover)]">
@@ -86,13 +83,14 @@ export function ArchiveControl({ business }: ArchiveControlProps) {
             </p>
           )}
           <div className="mt-5 flex justify-end gap-2">
-            <AlertDialog.Close
-              render={
-                <Button type="button" variant="outline" size="sm">
-                  Cancel
-                </Button>
-              }
-            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button
               type="button"
               variant={archived ? "default" : "destructive"}
