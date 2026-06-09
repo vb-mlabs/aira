@@ -21,7 +21,7 @@ interface UpdateResult {
 
 async function runUpdate(
   id: string,
-  data: Record<string, string | null>,
+  data: Record<string, string | number | null>,
 ): Promise<Feedback> {
   try {
     await apiClient.patch<UpdateResult>(
@@ -47,9 +47,78 @@ export function BusinessAdminDetail({ business }: BusinessAdminDetailProps) {
 
       <CoreFieldsSection business={business} />
       <ContactSection business={business} />
+      <RatingSection business={business} />
       <SocialLinksSection business={business} />
       <EditorialSection business={business} />
     </div>
+  )
+}
+
+const RATING_OPTIONS = [
+  "0",
+  "0.5",
+  "1",
+  "1.5",
+  "2",
+  "2.5",
+  "3",
+  "3.5",
+  "4",
+  "4.5",
+  "5",
+]
+
+function RatingSection({ business }: { business: Business }) {
+  const router = useRouter()
+  // Empty string represents "No rating" → null on save.
+  const [rating, setRating] = useState(
+    business.rating === null ? "" : business.rating.toString(),
+  )
+  const [feedback, setFeedback] = useState<Feedback>(null)
+  const [pending, startTransition] = useTransition()
+
+  function save() {
+    startTransition(async () => {
+      const result = await runUpdate(business.id, {
+        rating: rating === "" ? null : Number(rating),
+      })
+      setFeedback(result)
+      if (result?.kind === "ok") router.refresh()
+    })
+  }
+
+  return (
+    <section className="rounded-lg border border-border bg-card">
+      <header className="border-b border-border px-6 py-4">
+        <h2 className="text-base font-semibold">Rating</h2>
+      </header>
+      <div className="space-y-4 px-6 py-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="b-rating">Star rating</Label>
+          <select
+            id="b-rating"
+            value={rating}
+            onChange={(e) => setRating(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+          >
+            <option value="">No rating</option>
+            {RATING_OPTIONS.map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Half-star steps from 0 to 5. Cards and detail page hide the rating
+            entirely when set to &quot;No rating&quot; or 0.
+          </p>
+        </div>
+        <Button type="button" onClick={save} disabled={pending}>
+          {pending ? "Saving…" : "Save"}
+        </Button>
+        <StatusLine feedback={feedback} />
+      </div>
+    </section>
   )
 }
 
