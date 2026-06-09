@@ -113,12 +113,14 @@ export function ListingView({
 
   return (
     <div>
-      {/* Category switcher */}
+      {/* Category switcher — h1 + transparent <select> overlay so the
+          visible page title is semantic while still being the dropdown
+          trigger. (QA 2026-06-09 Issue 1.) */}
       <div className="mb-5">
         <div className="relative inline-flex cursor-pointer items-center gap-1">
-          <span className="pointer-events-none font-display text-2xl font-semibold text-foreground">
+          <h1 className="pointer-events-none font-display text-2xl font-semibold text-foreground">
             {CATEGORY_META[currentCategory].displayName}
-          </span>
+          </h1>
           <ChevronDown
             className="pointer-events-none size-5 flex-shrink-0 text-foreground"
             aria-hidden
