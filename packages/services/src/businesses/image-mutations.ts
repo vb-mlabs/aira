@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, eq, max } from "drizzle-orm";
 import { businessImages } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import { ApiError } from "@aira/api";
@@ -24,23 +24,24 @@ export async function addBusinessImage(
   db: Database,
   businessId: string,
   url: string,
-  sortOrder: number,
 ): Promise<BusinessImage> {
-  const [countRow] = await db
-    .select({ value: count() })
+  const [agg] = await db
+    .select({ cnt: count(), maxOrder: max(businessImages.sort_order) })
     .from(businessImages)
     .where(eq(businessImages.business_id, businessId));
 
-  if (Number(countRow?.value ?? 0) >= MAX_IMAGES) {
+  if (Number(agg?.cnt ?? 0) >= MAX_IMAGES) {
     throw ApiError.badRequest(
       "images.limit_reached",
       `Maximum ${MAX_IMAGES} images per business`,
     );
   }
 
+  const nextOrder = (agg?.maxOrder ?? -1) + 1;
+
   const [row] = await db
     .insert(businessImages)
-    .values({ business_id: businessId, url, sort_order: sortOrder })
+    .values({ business_id: businessId, url, sort_order: nextOrder })
     .returning();
 
   return toImage(row);
