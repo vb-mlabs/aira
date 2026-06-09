@@ -7,6 +7,7 @@
 export * from "./admin";
 export * from "./api-error";
 export * from "./auth";
+export * from "./business-image";
 export * from "./businesses";
 export * from "./categories";
 export * from "./cities";

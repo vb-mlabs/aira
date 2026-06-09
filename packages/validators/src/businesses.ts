@@ -8,6 +8,7 @@
 // is the validation layer.
 
 import { z } from "zod";
+import { BusinessImageSchema } from "./business-image";
 
 export const VALID_TIERS = ["tier1", "tier2", "tier3"] as const;
 export type BusinessTier = (typeof VALID_TIERS)[number];
@@ -53,6 +54,10 @@ export const BusinessSchema = z.object({
   created_at: z.string(),
   /** ISO 8601 */
   updated_at: z.string(),
+  /** Gallery images ordered by sort_order. Empty array for businesses with no gallery. */
+  images: BusinessImageSchema.array().default([]),
+  /** IDs of extra categories from the business_category join table. Empty when none. */
+  extra_category_ids: z.string().array().default([]),
 });
 export type Business = z.infer<typeof BusinessSchema>;
 
@@ -72,6 +77,7 @@ export const BusinessUpdateInputSchema = z
     hours: z.string().nullable().optional(),
     aira_review: z.string().nullable().optional(),
     rating: z.number().min(0).max(5).nullable().optional(),
+    extra_category_ids: z.string().array().optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
