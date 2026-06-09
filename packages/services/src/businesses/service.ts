@@ -38,6 +38,7 @@ export async function updateBusiness(
   const updatePayload: Partial<typeof businesses.$inferInsert> = {};
 
   if (data.name !== undefined) updatePayload.name = data.name;
+  if (data.category !== undefined) updatePayload.category = data.category;
   if (data.description !== undefined) updatePayload.description = data.description;
   if (data.phone !== undefined) updatePayload.phone = data.phone;
   if (data.website !== undefined) updatePayload.website = data.website;

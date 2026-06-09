@@ -60,6 +60,7 @@ export const BusinessUpdateInputSchema = z
   .object({
     id: z.string().min(1),
     name: z.string().min(1).optional(),
+    category: BusinessCategorySchema.optional(),
     description: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
     website: z.string().nullable().optional(),

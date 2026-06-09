@@ -11,7 +11,10 @@ import {
   ChevronRight,
   ClipboardList,
   LayoutDashboard,
+  MapPin,
+  Settings2,
   Store,
+  Tag,
   Users,
 } from "lucide-react"
 import { brand } from "@aira/config"
@@ -29,6 +32,9 @@ const ADMIN_NAV: Array<{
 }> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/businesses", label: "Businesses", icon: Store },
+  { href: "/admin/categories", label: "Categories", icon: Tag },
+  { href: "/admin/cities", label: "Cities", icon: MapPin },
+  { href: "/admin/settings", label: "Settings", icon: Settings2 },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/audit", label: "Audit log", icon: ClipboardList },
 ]

@@ -8,10 +8,12 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
+import type { Category } from "@aira/validators/categories"
 import { ArchiveControl } from "./archive-control"
 
 interface BusinessAdminDetailProps {
   business: Business
+  categories?: Category[]
 }
 
 type Feedback = { kind: "ok" | "error"; message: string } | null
@@ -38,7 +40,7 @@ async function runUpdate(
   }
 }
 
-export function BusinessAdminDetail({ business }: BusinessAdminDetailProps) {
+export function BusinessAdminDetail({ business, categories = [] }: BusinessAdminDetailProps) {
   const archived = business.deleted_at !== null
   return (
     <div className="space-y-6">
@@ -60,11 +62,65 @@ export function BusinessAdminDetail({ business }: BusinessAdminDetailProps) {
       </header>
 
       <CoreFieldsSection business={business} />
+      <CategorySection business={business} categories={categories} />
       <ContactSection business={business} />
       <RatingSection business={business} />
       <SocialLinksSection business={business} />
       <EditorialSection business={business} />
     </div>
+  )
+}
+
+function CategorySection({
+  business,
+  categories,
+}: {
+  business: Business
+  categories: Category[]
+}) {
+  const router = useRouter()
+  const [category, setCategory] = useState(business.category)
+  const [feedback, setFeedback] = useState<Feedback>(null)
+  const [pending, startTransition] = useTransition()
+
+  function save() {
+    startTransition(async () => {
+      const result = await runUpdate(business.id, { category })
+      setFeedback(result)
+      if (result?.kind === "ok") router.refresh()
+    })
+  }
+
+  return (
+    <section className="rounded-lg border border-border bg-card">
+      <header className="border-b border-border px-6 py-4">
+        <h2 className="text-base font-semibold">Category</h2>
+      </header>
+      <div className="space-y-4 px-6 py-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="b-category">Category</Label>
+          <select
+            id="b-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+          >
+            {categories.length === 0 && (
+              <option value={category}>{category}</option>
+            )}
+            {categories.map((c) => (
+              <option key={c.id} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Button type="button" onClick={save} disabled={pending}>
+          {pending ? "Saving…" : "Save"}
+        </Button>
+        <StatusLine feedback={feedback} />
+      </div>
+    </section>
   )
 }
 

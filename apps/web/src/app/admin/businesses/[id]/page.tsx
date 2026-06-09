@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { apiServerFetch } from "@aira/api/server"
 import { getBusinessByIdAdminOp } from "@/server/operations/businesses-admin"
+import { listCategoriesOp } from "@/server/operations/categories"
 import { BusinessAdminDetail } from "@/features/admin/components/business-detail"
 
 export const dynamic = "force-dynamic"
@@ -18,10 +19,15 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function AdminBusinessDetailPage({ params }: PageProps) {
   const { id } = await params
-  const res = await apiServerFetch(getBusinessByIdAdminOp, { input: { id } })
-  const business = res.data?.business
+  const [bizRes, catRes] = await Promise.all([
+    apiServerFetch(getBusinessByIdAdminOp, { input: { id } }),
+    apiServerFetch(listCategoriesOp, { input: {} }),
+  ])
+  const business = bizRes.data?.business
 
   if (!business) notFound()
 
-  return <BusinessAdminDetail business={business} />
+  const categories = catRes.data?.categories ?? []
+
+  return <BusinessAdminDetail business={business} categories={categories} />
 }
