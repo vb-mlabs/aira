@@ -5,17 +5,76 @@
 // singletons. Mirrors the rest of the @aira/services convention.
 
 import { and, asc, count, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
-import { businesses } from "@aira/db/schema";
+import { businesses, businessImages, businessCategories, categories } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
   VALID_TIERS,
   type Business,
   type BusinessTier,
-} from "@aira/validators/businesses";
+  type BusinessImage,
+} from "@aira/validators";
 
 // Tier ordering uses an explicit CASE so renaming tiers can't silently
 // reorder rows (no implicit alpha sort on the column).
 const TIER_ORDER = sql`CASE ${businesses.tier} WHEN 'tier1' THEN 1 WHEN 'tier2' THEN 2 ELSE 3 END`;
+
+// ─── Relation helpers ────────────────────────────────────────────────────────
+
+async function fetchImages(
+  db: Database,
+  ids: string[],
+): Promise<Map<string, BusinessImage[]>> {
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select()
+    .from(businessImages)
+    .where(inArray(businessImages.business_id, ids))
+    .orderBy(asc(businessImages.sort_order));
+  const out = new Map<string, BusinessImage[]>();
+  for (const row of rows) {
+    const list = out.get(row.business_id) ?? [];
+    list.push(toImage(row));
+    out.set(row.business_id, list);
+  }
+  return out;
+}
+
+async function fetchExtraCategoryIds(
+  db: Database,
+  ids: string[],
+): Promise<Map<string, string[]>> {
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select({
+      business_id: businessCategories.business_id,
+      category_id: businessCategories.category_id,
+    })
+    .from(businessCategories)
+    .where(inArray(businessCategories.business_id, ids));
+  const out = new Map<string, string[]>();
+  for (const row of rows) {
+    const list = out.get(row.business_id) ?? [];
+    list.push(row.category_id);
+    out.set(row.business_id, list);
+  }
+  return out;
+}
+
+async function attachRelations(
+  db: Database,
+  rows: (typeof businesses.$inferSelect)[],
+): Promise<Business[]> {
+  const ids = rows.map((r) => r.id);
+  const [imagesMap, catsMap] = await Promise.all([
+    fetchImages(db, ids),
+    fetchExtraCategoryIds(db, ids),
+  ]);
+  return rows.map((row) =>
+    toBusiness(row, imagesMap.get(row.id) ?? [], catsMap.get(row.id) ?? []),
+  );
+}
+
+// ─── Public queries ──────────────────────────────────────────────────────────
 
 export async function getFeaturedBusinesses(
   db: Database,
@@ -32,7 +91,7 @@ export async function getFeaturedBusinesses(
     )
     .orderBy(TIER_ORDER, asc(businesses.name))
     .limit(limit);
-  return rows.map(toBusiness);
+  return attachRelations(db, rows);
 }
 
 export async function getBusinessesByCategory(
@@ -49,7 +108,7 @@ export async function getBusinessesByCategory(
       ),
     )
     .orderBy(TIER_ORDER, asc(businesses.name));
-  return rows.map(toBusiness);
+  return attachRelations(db, rows);
 }
 
 /** Admin-only: returns ALL businesses (or only active when includeArchived
@@ -65,7 +124,7 @@ export async function getAllBusinesses(
     .from(businesses)
     .orderBy(TIER_ORDER, asc(businesses.name));
   const rows = await (where ? builder.where(where) : builder);
-  return rows.map(toBusiness);
+  return attachRelations(db, rows);
 }
 
 export interface PagedBusinessesInput {
@@ -81,22 +140,32 @@ export interface PagedBusinessesResult {
   total: number;
 }
 
-/** Paginated variant of getBusinessesByCategory with scoped keyword
- *  search (name + description + address, case-insensitive ILIKE) and an
- *  optional verified filter. Runs the items query and the count query
- *  in parallel via Promise.all. */
+/** Paginated variant with scoped keyword search (name + description +
+ *  address, ILIKE) and an optional verified filter.
+ *
+ *  Multi-category: matches businesses whose primary category equals the
+ *  slug OR who have an extra category (via business_category join) with
+ *  the same slug. Runs items + count in parallel. */
 export async function getBusinessesByCategoryPaged(
   db: Database,
   input: PagedBusinessesInput,
 ): Promise<PagedBusinessesResult> {
-  // Build the predicate set once and reuse it for both the SELECT and
-  // the COUNT. Empty-after-trim q skips the search predicate entirely.
   const trimmed = input.q?.trim();
   const pattern = trimmed ? `%${trimmed}%` : null;
-  const predicates = [
+
+  // Subquery: businesses that carry this slug as an extra category.
+  const extraCatSubquery = db
+    .select({ business_id: businessCategories.business_id })
+    .from(businessCategories)
+    .innerJoin(categories, eq(businessCategories.category_id, categories.id))
+    .where(eq(categories.slug, input.category));
+
+  const categoryPredicate = or(
     eq(businesses.category, input.category),
-    isNull(businesses.deleted_at),
-  ];
+    inArray(businesses.id, extraCatSubquery),
+  );
+
+  const predicates = [categoryPredicate!, isNull(businesses.deleted_at)];
   if (input.verified) predicates.push(eq(businesses.verified, true));
   if (pattern) {
     const searchPredicate = or(
@@ -122,7 +191,7 @@ export async function getBusinessesByCategoryPaged(
   ]);
 
   return {
-    items: rows.map(toBusiness),
+    items: await attachRelations(db, rows),
     total: Number(countRows[0]?.value ?? 0),
   };
 }
@@ -136,7 +205,9 @@ export async function getBusinessById(
     .from(businesses)
     .where(and(eq(businesses.id, id), isNull(businesses.deleted_at)))
     .limit(1);
-  return row ? toBusiness(row) : null;
+  if (!row) return null;
+  const [result] = await attachRelations(db, [row]);
+  return result ?? null;
 }
 
 /** Admin-only sibling: bypasses the soft-delete filter so the admin edit
@@ -151,7 +222,9 @@ export async function getBusinessByIdIncludingArchived(
     .from(businesses)
     .where(eq(businesses.id, id))
     .limit(1);
-  return row ? toBusiness(row) : null;
+  if (!row) return null;
+  const [result] = await attachRelations(db, [row]);
+  return result ?? null;
 }
 
 export async function countActiveBusinesses(db: Database): Promise<number> {
@@ -162,11 +235,27 @@ export async function countActiveBusinesses(db: Database): Promise<number> {
   return Number(row?.value ?? 0);
 }
 
+// ─── Mappers ─────────────────────────────────────────────────────────────────
+
 function isValidTier(value: string): value is BusinessTier {
   return (VALID_TIERS as readonly string[]).includes(value);
 }
 
-function toBusiness(row: typeof businesses.$inferSelect): Business {
+function toImage(row: typeof businessImages.$inferSelect): BusinessImage {
+  return {
+    id: row.id,
+    business_id: row.business_id,
+    url: row.url,
+    sort_order: row.sort_order,
+    created_at: new Date(row.created_at).toISOString(),
+  };
+}
+
+function toBusiness(
+  row: typeof businesses.$inferSelect,
+  images: BusinessImage[],
+  extra_category_ids: string[],
+): Business {
   return {
     id: row.id,
     name: row.name,
@@ -191,5 +280,7 @@ function toBusiness(row: typeof businesses.$inferSelect): Business {
     deleted_at: row.deleted_at ? row.deleted_at.toISOString() : null,
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString(),
+    images,
+    extra_category_ids,
   };
 }

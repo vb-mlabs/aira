@@ -13,8 +13,8 @@ import "server-only";
 // but not dangerous) rather than "mutation succeeded with no trail"
 // (worse).
 
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
-import { businesses } from "@aira/db/schema";
+import { and, eq, inArray, isNotNull, isNull, notInArray } from "drizzle-orm";
+import { businesses, businessCategories } from "@aira/db/schema";
 import { createAudit } from "@aira/db/audit";
 import type { Database } from "@aira/db/client";
 import type { CallerContext } from "@aira/api/context";
@@ -51,14 +51,48 @@ export async function updateBusiness(
   if (data.aira_review !== undefined) updatePayload.aira_review = data.aira_review;
   if (data.rating !== undefined) updatePayload.rating = data.rating;
 
-  if (Object.keys(updatePayload).length === 0) {
+  const hasBusinessUpdate = Object.keys(updatePayload).length > 0;
+  const hasCategoryUpdate = data.extra_category_ids !== undefined;
+
+  if (!hasBusinessUpdate && !hasCategoryUpdate) {
     return getBusinessByIdIncludingArchived(db, id);
   }
 
-  await db
-    .update(businesses)
-    .set(updatePayload)
-    .where(eq(businesses.id, id));
+  await db.transaction(async (tx) => {
+    if (hasBusinessUpdate) {
+      await tx.update(businesses).set(updatePayload).where(eq(businesses.id, id));
+    }
+
+    if (hasCategoryUpdate) {
+      const newIds = data.extra_category_ids!;
+      if (newIds.length === 0) {
+        // Clear all extra categories.
+        await tx
+          .delete(businessCategories)
+          .where(eq(businessCategories.business_id, id));
+      } else {
+        // Remove rows no longer in the desired set.
+        await tx
+          .delete(businessCategories)
+          .where(
+            and(
+              eq(businessCategories.business_id, id),
+              notInArray(businessCategories.category_id, newIds),
+            ),
+          );
+        // Upsert new entries (ignore conflicts from existing rows).
+        await tx
+          .insert(businessCategories)
+          .values(
+            newIds.map((category_id) => ({
+              business_id: id,
+              category_id,
+            })),
+          )
+          .onConflictDoNothing();
+      }
+    }
+  });
 
   // Use the including-archived variant so admin edits on archived rows
   // still return the updated row instead of null (per the F13 decision

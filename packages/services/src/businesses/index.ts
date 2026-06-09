@@ -24,3 +24,9 @@ export {
   archiveBusiness,
   restoreBusiness,
 } from "./service";
+
+export {
+  addBusinessImage,
+  removeBusinessImage,
+  listBusinessImages,
+} from "./image-mutations";
