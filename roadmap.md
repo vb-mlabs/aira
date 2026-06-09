@@ -1,7 +1,7 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-05-25
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25.
+**Last updated:** 2026-06-09
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
@@ -44,23 +44,75 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ---
 
+## Off-roadmap progress (2026-05-26 → 2026-06-09)
+
+Significant work has shipped between the original sprint plan and now that isn't slotted into S0–S7. Captured here so the roadmap reflects reality.
+
+### ✅ Auth-shell redesign (2026-05-26)
+Plan: `.mstack/plans/2026-05-26-auth-shell-redesign.md`. Cormorant headings + Figma copy across web `(auth)` pages, tree-of-life logo + "AIRA by Nisarga" footer in the auth layout, shared `AuthShell` component wrapping the six mobile `(auth)` screens, and a new welcome hero (tree-of-life + dual CTAs + footer) on mobile. Post-login redirect flipped from `/messages` to `/home`.
+
+### ✅ End-user app shell (2026-05-27)
+Plan: `.mstack/plans/2026-05-26-end-user-app-shell.md`. The S3 "browse skeleton" note referenced this; it's now fully implemented:
+- `(app)` layout restructured around a persistent 280px green-textured sidebar (desktop) + mobile drawer + 3-tab bottom bar (Home / Categories / Account)
+- `/home` branded landing with featured directory
+- `/categories` full-screen category browser
+- `/listings/[category]` + `/listings/[category]/[id]` business detail
+- `/account` profile hub with Account + Support menus
+- `businesses` Drizzle table + server queries + listing UI components (card, detail, category row, stat card)
+
+### ✅ Marketing page launch + waitlist (2026-05-25 → 2026-06-08)
+Plans: `.mstack/plans/2026-05-25-marketing-page-launch.md`, `2026-06-08-business-waitlist-modal.md`. Marketing nav swapped Sign In / Get Started for a "Join Waitlist" modal; the Google Form CTA replaced by an in-app business sign-up modal. New `POST /api/v1/business-waitlist` route, `BusinessWaitlistSignupSchema` validator, extended `waitlist` table with business-side columns, and a Postmark `BusinessWaitlistWelcomeEmail` template.
+
+### ✅ REST API migration (2026-06-07) — **architectural unlock**
+Plan: `.mstack/plans/2026-06-07-rest-api-migration.md`. Every web Server Action surface migrated to `/api/v1/*` so web + mobile share one contract:
+- `apiServerFetch` helper for in-process RSC op invocation; `apiClient` composition root at `apps/web/src/lib/api-client.ts`
+- Listings, profile, admin (users + audit + mutations), messages, notifications all on REST
+- `defineOperation.runFromAction` and the Server-Action plumbing **deleted**; lefthook `check-no-server-actions` gate added to prevent regression
+- Recorded in [docs/decisions/0007-service-layer.md](./docs/decisions/0007-service-layer.md) and CLAUDE.md hard rule
+
+### ✅ Business social links (2026-06-08)
+Plan: `.mstack/plans/2026-06-08-business-social-links.md`. Added `facebook_url`, `instagram_url`, `whatsapp_number` columns + `SocialLinks` component with inline brand-coloured SVG icons. Wired into BusinessCard + BusinessDetail. Admin edit form at `/admin/businesses/[id]` shipped at the same time.
+
+### ✅ Business detail visual rework + new editorial fields (2026-06-09)
+Detail page redesigned to match Figma — multi-card layout (hero, About Us, Contact, AIRA Review), `image_url` hero, social icons in the header. Two new schema columns added via migration `0013`:
+- `hours` — free-text opening hours, rendered with a Clock row in the Contact card
+- `aira_review` — editorial blurb shown as its own card
+
+Admin edit form gained an "Editorial" section + the `hours` input.
+
+### ✅ Admin shell rework (2026-06-09)
+`/admin` now uses the same green-textured sidebar shell as the user-facing `(app)` layout. New dashboard landing page (`/admin`) with stat tiles, quick-link cards, and a recent-businesses list. New components under `app/admin/_components/`: `admin-sidebar.tsx`, `admin-mobile-sidebar.tsx`, `admin-top-bar.tsx`.
+
+### Other notable items
+- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), plus waitlist extensions.
+- React-email templates groundwork (`.mstack/plans/2026-05-24-react-email-templates.md`)
+- Brand consolidation, primary-color darken, template hardening (May 23–24 cluster) — all merged
+- Mobile welcome + session gate
+- Replit-specific notes: `.claude/memory/replit-gh-push-auth.md` + `replit-truncated-history.md` document the gotchas from pushing to GitHub from the Replit workspace
+
+---
+
 ## Sprint 0 — Foundation & accounts (~1 week)
 
-**Status:** ⬜ Not started — **biggest unaddressed timeline risk.** S1 features have already landed on `main` while none of the Sprint 0 account/setup work has moved. Per the risk gate below, blockers here cascade into S6 mobile shipping; start in parallel with S1.5 planning or explicitly defer with a dated decision.
+**Status:** 🟦 In flight — most internal/config work done 2026-06-09. Outstanding items all need external account work (Apple Developer, Google Play Console, domain registration, EAS init).
+
+**Project facts (locked 2026-06-09):**
+- Prod host: `airabynisarga.com`
+- Bundle ID (iOS + Android): `com.airabynisarga.app`
 
 **Goal:** Everything with external lead time or one-time config is in motion before we start building features.
 
-- ⬜ Register `aira.app` (or final chosen) domain
-- ⬜ Postmark sender signature for the production domain + DKIM/SPF records
+- ⬜ Register `airabynisarga.com` domain (in progress per user)
+- ✅ Postmark sender signature + DKIM/SPF (Postmark server token set in Replit env)
 - ⬜ EAS project init (`eas init`) + bundle ID registration with Apple/Google
-- ⬜ Bundle identifiers in `apps/mobile/app.config.ts` (`ios.bundleIdentifier`, `android.package`)
-- ⬜ `.well-known/apple-app-site-association` filled with real Apple Team ID + bundle ID
-- ⬜ `.well-known/assetlinks.json` filled with real Android package + signing-cert SHA-256
-- ⬜ GitHub Actions secrets: `DATABASE_URL` (dev + prod), `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL`
-- ⬜ Neon production branch created + connection string captured
-- ⬜ Replit production deployment env-var wiring verified (vs dev secrets)
-- ⬜ `pnpm db:migrate` against the new Neon prod branch (sanity)
-- ⬜ Walk and tick remaining items in [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
+- ✅ Bundle identifiers in `apps/mobile/app.config.ts` — `com.airabynisarga.app` (iOS + Android), associated domain `airabynisarga.com`
+- 🟦 `.well-known/apple-app-site-association` — bundle ID filled; `{{APPLE_TEAM_ID}}` waiting on Apple Developer
+- 🟦 `.well-known/assetlinks.json` — package filled; `{{ANDROID_CERT_SHA256}}` waiting on Play Console signing
+- ✅ Env secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL` set in Replit prod
+- ✅ Neon database — dev branch live; prod handled via Replit env
+- ✅ Replit production env wiring verified
+- ✅ `pnpm db:migrate` clean (migrations 0001–0013 applied)
+- 🟦 [FORK_CHECKLIST.md](./FORK_CHECKLIST.md) — internal items ticked; external blockers (Apple Team ID, Android SHA-256, EAS init, OAuth apps) called out
 
 **Risk gate:** None — pure setup. But blockers here cascade into S6 mobile shipping, so finish before S1 ends.
 
@@ -93,28 +145,11 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ---
 
-## Sprint 1.5 — Admin MFA (1 week)
+## Sprint 1.5 — Admin MFA (DROPPED FROM MVP)
 
-**Status:** ⬜ Not started
+**Status:** ⏸ Dropped from MVP scope on **2026-06-09**. Sliding 30-min idle-timeout (S1, F3) + audit trail (S1, F2) are the controls relied upon for admin security until a post-launch revisit. Reopen if the deployment ever exposes admin accounts to non-internal staff.
 
-**Goal:** Admin login at `/admin` requires TOTP after password. New admins set MFA up via `/admin/setup-mfa` (QR code + secret + recovery codes) before reaching any other admin screen. Locked-in before any external (non-Million-Labs-staff) admin account is enrolled in production.
-
-**Why split from S1:** The S1 plan (auth-rbac-hardening) deferred MFA explicitly — it ships role hardening + idle-timeout + audit trail first, since those are the gaps that bite even for internal-only staff. MFA is the next layer; pulling it into the same sprint as the enum migration + idle-timeout would have made the diff much larger than needed.
-
-**Features (PRD refs):**
-- ⬜ F2 (remaining) — Admin MFA (TOTP) setup screen + login challenge + recovery codes. `admin` and `super_admin` roles MUST have MFA before reaching `/admin/*` (existing roles get a one-time setup wall).
-
-**Schema additions:** Better Auth's two-factor tables (auto-managed by the plugin); add `mfa_enabled` flag if the plugin doesn't surface one on `user`.
-
-**Libs to add:**
-- Better Auth `two-factor` plugin (TOTP)
-- `qrcode` (for the setup-flow QR rendering)
-
-**Cron jobs:** none.
-
-**Risk gate:** A new admin cannot reach `/admin/users` without first completing MFA enrollment; an existing admin without MFA is force-redirected to `/admin/setup-mfa` on next login. Verified end-to-end on the deployed Replit URL.
-
-**Decision deferred for client:** Recovery code policy — show once on setup vs. allow regenerate-on-demand; tie-in with phone-OTP plan (above) if that lands first.
+**Original scope (retained for reference):** TOTP via Better Auth `two-factor` plugin, `/admin/setup-mfa` enrollment, force-redirect existing admins on next login, QR code + recovery codes.
 
 ---
 
@@ -144,23 +179,21 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ## Sprint 3 — Listings: admin CRUD + end-user browse (2 weeks)
 
-**Status:** ⬜ Not started (browse shell landed early — see note)
-
-**Shell already on `main`:** The end-user browse skeleton shipped off-roadmap as the `end-user-app-shell` slice — `/home`, `/categories`, `/listings/[category]`, business detail route, plus a `businesses` Drizzle table, server queries, and card/detail/category-row UI components. Remaining S3 scope: admin Business CRUD (F13), Google Places Autocomplete (F27), multi-category join + soft-delete/restore, sponsored sort (F12), verified badge + admin rating (F11), city-aware slug wiring (F25 web half), gallery upload (≤3 images), and replacing sample data with real queries.
+**Status:** 🟦 In flight — substantial off-roadmap progress (see Off-roadmap progress section above). Browse shell + business detail + social links + editorial fields + admin Business edit are live. Remaining S3 scope: pagination + scoped search (F7/F8), More Info modal (F10), admin star rating (F11 half), multi-category join + soft-delete/restore + gallery (F13 advanced), city-aware slugs (F25), Google Places Autocomplete (F27).
 
 **Goal:** Admin creates a Business with full details (Google Places address, multi-category, ≤3 gallery images, verify tick, rating). End-user opens the matching category page and sees the listing card with tap-to-call, WhatsApp, social, More Info modal.
 
 **Features (PRD refs):**
-- ⬜ F7 — Listing page (cards, pagination ≥10/page, default sort A-Z — sponsored sort lands S4)
+- 🟦 F7 — Listing page **(cards + A-Z sort live; pagination ≥10/page TODO — sponsored sort lands S4)**
 - ⬜ F8 — Scoped keyword search (in-category, contains/starts-with, case-insensitive)
-- ⬜ F9 — Business Listing Card with quick actions (tel:, wa.me, social links, More info)
-- ⬜ F10 — More Info modal (address, directions via place_id or formatted_address, email, phone, website, short description, ≤3 images carousel)
-- ⬜ F11 — Verified badge + admin star rating (hide stars if 0/null)
-- ⬜ F13 — Business CRUD (multi-category attach, soft delete/restore, gallery, status)
+- ✅ F9 — Business Listing Card with quick actions (tel:, wa.me, social links — More Info link goes to detail page, modal optional)
+- 🟦 F10 — More Info **(detail page live with Hero, About Us, Contact, AIRA Review cards; ≤3 images carousel + directions deep-link TODO)**
+- 🟦 F11 — Verified badge live; **admin star rating TODO** (hide stars if 0/null)
+- 🟦 F13 — Business CRUD **(single-category + core fields + social + hours + AIRA Review editable via `/admin/businesses/[id]`; multi-category attach, soft delete/restore, gallery, status workflow TODO)**
 - ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`)
 - ⬜ F27 — Google Places Autocomplete (admin Business form)
 
-**Schema additions:** `business`, `business_image`, `business_category` (join with unique constraint).
+**Schema additions:** ✅ `businesses` (migration `0011`); ✅ social columns (`0012`); ✅ `hours` + `aira_review` (`0013`). **TODO:** `business_image` table for gallery, `business_category` join for multi-category attach.
 
 **Libs to add:**
 - `@react-google-maps/api` OR vanilla Places SDK (admin Business form)
@@ -342,3 +375,10 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-05-25** — Deployment target = Replit Reserved VM, not Vercel. *Why:* existing setup, cost-effective for MVP scale, supports always-on cron in-process.
 - **2026-05-25** — Sprint structure locked: 8 sprints (S0 + S1–S7), ~15 weeks engineering + 2-3 weeks app review cycles → ~18 weeks elapsed to live in stores.
 - **2026-05-25** — Design system v1.0 locked as CSS approximation of Figma (not pixel-exact). Iteration cycles built in for client feedback. See `.mstack/design-system/DESIGN.md`.
+- **2026-06-07** — REST API migration: every web Server Action surface moved to `/api/v1/*` so web + mobile share one contract. `defineOperation.runFromAction` deleted; lefthook `check-no-server-actions` gate added. *Why:* the monorepo ships both `apps/web` and `apps/mobile` — Server Actions split them onto two code paths. RSCs now call `apiServerFetch` (in-process, same Zod pipeline); Client Components call `apiClient`. Recorded in `docs/decisions/0007-service-layer.md` + CLAUDE.md hard rule.
+- **2026-06-08** — Business detail card design split into multiple cards (Hero, About Us, Contact, AIRA Review) to match Figma. *Why:* single bordered card didn't match the Figma's stacked-card hierarchy; multi-card maps better to optional content (e.g. detail page works even when only a subset of fields are populated).
+- **2026-06-09** — `--card` token aligned to Figma `#F3EBDD` (was `#F8F2E4`). *Why:* surface contrast against page cream `--background` matches the Figma intent.
+- **2026-06-09** — `next-themes` dropped from `apps/web/src/app/providers.tsx`. *Why:* `forcedTheme="light"` with `enableSystem={false}` provided no dynamic behaviour; React 19 flagged the injected `<script>` tag. `colorScheme: "light"` on `<html>` carries light mode. Re-add if/when a real dark-mode toggle ships.
+- **2026-06-09** — Admin shell adopts the same green-textured sidebar pattern as the user-facing `(app)` layout. New default landing page at `/admin` (dashboard tiles + recent businesses). *Why:* admins moving between `/home` and `/admin` should feel one product; previous top-bar layout was visually disconnected.
+- **2026-06-09** — Prod host locked to `airabynisarga.com`; bundle ID locked to `com.airabynisarga.app` (iOS + Android). Substituted into `apps/mobile/app.config.ts`, `apple-app-site-association`, `assetlinks.json`. Apple Team ID + Android signing-cert SHA-256 remain placeholders pending external account work.
+- **2026-06-09** — Sprint 1.5 (Admin MFA) **dropped from MVP scope**. Sliding 30-min idle-timeout + audit trail are the controls relied upon. *Why:* admin accounts are internal-only for launch; MFA adds engineering + recovery-code policy work that isn't justified pre-launch. Reopen if external admins ever get enrolled.
