@@ -41,6 +41,9 @@ export const BusinessSchema = z.object({
   whatsapp_number: z.string().nullable(),
   hours: z.string().nullable(),
   aira_review: z.string().nullable(),
+  /** Editorial rating 0–5. Step granularity (0.5) is enforced by the admin UI,
+   *  not the API. NULL = unrated; 0 also renders as "no rating" per PRD F11. */
+  rating: z.number().min(0).max(5).nullable(),
   tier: BusinessTierSchema,
   verified: z.boolean(),
   /** ISO 8601 */
@@ -64,6 +67,7 @@ export const BusinessUpdateInputSchema = z
     whatsapp_number: z.string().nullable().optional(),
     hours: z.string().nullable().optional(),
     aira_review: z.string().nullable().optional(),
+    rating: z.number().min(0).max(5).nullable().optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;

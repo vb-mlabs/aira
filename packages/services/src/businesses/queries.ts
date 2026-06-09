@@ -144,6 +144,7 @@ function toBusiness(row: typeof businesses.$inferSelect): Business {
     whatsapp_number: row.whatsapp_number ?? null,
     hours: row.hours ?? null,
     aira_review: row.aira_review ?? null,
+    rating: row.rating ?? null,
     tier: isValidTier(row.tier) ? row.tier : "tier3",
     verified: row.verified,
     created_at: new Date(row.created_at).toISOString(),

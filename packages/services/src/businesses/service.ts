@@ -24,6 +24,7 @@ export async function updateBusiness(
   if (data.whatsapp_number !== undefined) updatePayload.whatsapp_number = data.whatsapp_number;
   if (data.hours !== undefined) updatePayload.hours = data.hours;
   if (data.aira_review !== undefined) updatePayload.aira_review = data.aira_review;
+  if (data.rating !== undefined) updatePayload.rating = data.rating;
 
   if (Object.keys(updatePayload).length === 0) {
     return getBusinessById(db, id);
