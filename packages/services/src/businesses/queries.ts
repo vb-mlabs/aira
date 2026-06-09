@@ -123,7 +123,7 @@ export async function getBusinessesByCategoryPaged(
 
   return {
     items: rows.map(toBusiness),
-    total: countRows[0]?.value ?? 0,
+    total: Number(countRows[0]?.value ?? 0),
   };
 }
 
@@ -159,7 +159,7 @@ export async function countActiveBusinesses(db: Database): Promise<number> {
     .select({ value: count() })
     .from(businesses)
     .where(isNull(businesses.deleted_at));
-  return row?.value ?? 0;
+  return Number(row?.value ?? 0);
 }
 
 function isValidTier(value: string): value is BusinessTier {
