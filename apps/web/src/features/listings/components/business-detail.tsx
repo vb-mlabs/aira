@@ -12,6 +12,7 @@ import { buttonVariants } from "@aira/ui-web/button"
 import { CATEGORY_META } from "../category-meta"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
+import { BusinessImageCarousel } from "./business-image-carousel"
 import type { Business } from "../types"
 
 interface BusinessDetailProps {
@@ -106,7 +107,15 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
         </div>
       </div>
 
-      {/* ── Card 2: About Us ── */}
+      {/* ── Card 2: Gallery carousel (when gallery images exist) ── */}
+      {business.images.length > 0 && (
+        <BusinessImageCarousel
+          images={business.images}
+          businessName={business.name}
+        />
+      )}
+
+      {/* ── Card 3: About Us ── */}
       {business.description && (
         <div className="rounded-xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
           <h2 className="font-display text-xl text-foreground">About Us</h2>
@@ -116,7 +125,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
         </div>
       )}
 
-      {/* ── Card 3: Contact ── */}
+      {/* ── Card 4: Contact ── */}
       {(business.address || business.hours || business.phone || business.website) && (
         <div className="rounded-xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
           <div className="space-y-4">
@@ -157,7 +166,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
         </div>
       )}
 
-      {/* ── Card 4: AIRA Review ── */}
+      {/* ── Card 5: AIRA Review ── */}
       {business.aira_review && (
         <div className="rounded-xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
           <h2 className="font-display text-xl text-foreground">AIRA Review</h2>
