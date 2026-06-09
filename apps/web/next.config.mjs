@@ -39,6 +39,7 @@ const nextConfig = {
     "*.repl.co",
     "*.worf.replit.dev",
     "*.kirk.replit.dev",
+    // eslint-disable-next-line no-restricted-syntax
     ...(process.env.REPLIT_DEV_DOMAIN ? [process.env.REPLIT_DEV_DOMAIN] : []),
   ],
 

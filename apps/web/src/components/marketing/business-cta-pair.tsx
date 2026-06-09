@@ -143,7 +143,7 @@ function GetListedForm() {
           Request received!
         </h3>
         <p className="mt-2 text-[14px] leading-[1.6] text-muted-foreground">
-          We'll be in touch via your preferred contact channel shortly.
+          We&apos;ll be in touch via your preferred contact channel shortly.
         </p>
         <Dialog.Close className="mt-6 inline-flex items-center justify-center rounded-full border border-border bg-transparent px-6 py-[11px] font-sans text-sm font-bold tracking-[0.3px] text-foreground transition-colors hover:bg-muted">
           Close
@@ -355,7 +355,7 @@ export function BusinessCtaPair() {
                 Get your business listed
               </Dialog.Title>
               <Dialog.Description className="mt-1.5 text-[13px] text-muted-foreground">
-                Fill in your details and we'll reach out to get you set up.
+                Fill in your details and we&apos;ll reach out to get you set up.
               </Dialog.Description>
 
               <div className="mt-6">

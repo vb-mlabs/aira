@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { Store } from "lucide-react"
 import { CATEGORY_META } from "@/features/listings/category-meta"
 import { ListingView } from "@/features/listings/components/listing-view"
 import { apiServerFetch } from "@aira/api/server"
@@ -58,9 +57,6 @@ export default async function CategoryListingPage({
   const total = res.data?.total ?? 0
   const responsePage = res.data?.page ?? page
   const responsePageSize = res.data?.pageSize ?? PAGE_SIZE
-
-  const meta = CATEGORY_META[category as keyof typeof CATEGORY_META]
-  const _ = meta ?? { icon: Store } // keep import alive
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
