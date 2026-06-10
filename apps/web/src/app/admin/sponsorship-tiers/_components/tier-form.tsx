@@ -19,6 +19,7 @@ export function TierForm({ tier }: TierFormProps) {
 
   const [name, setName] = useState(tier?.name ?? "")
   const [priority, setPriority] = useState(tier ? String(tier.priority) : "")
+  const [maxSlots, setMaxSlots] = useState(tier?.max_slots != null ? String(tier.max_slots) : "")
   const [active, setActive] = useState(tier?.active ?? true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -32,6 +33,11 @@ export function TierForm({ tier }: TierFormProps) {
       setError("Priority must be a positive integer.")
       return
     }
+    const maxSlotsNum = maxSlots.trim() === "" ? null : parseInt(maxSlots, 10)
+    if (maxSlotsNum !== null && (isNaN(maxSlotsNum) || maxSlotsNum < 1)) {
+      setError("Max slots must be a positive integer, or leave blank for unlimited.")
+      return
+    }
 
     startTransition(async () => {
       try {
@@ -40,12 +46,14 @@ export function TierForm({ tier }: TierFormProps) {
             id: tier.id,
             name,
             priority: priorityNum,
+            max_slots: maxSlotsNum,
             active,
           })
         } else {
           await apiClient.post("/api/v1/admin/sponsorship-tiers", {
             name,
             priority: priorityNum,
+            max_slots: maxSlotsNum,
           })
         }
         router.push("/admin/sponsorship-tiers")
@@ -85,6 +93,21 @@ export function TierForm({ tier }: TierFormProps) {
           required
         />
         <p className="text-xs text-muted-foreground">Lower number = better position (1 is highest).</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="tier-max-slots">Max slots per category</Label>
+        <Input
+          id="tier-max-slots"
+          type="number"
+          min={1}
+          value={maxSlots}
+          onChange={(e) => setMaxSlots(e.target.value)}
+          placeholder="Unlimited"
+        />
+        <p className="text-xs text-muted-foreground">
+          Leave blank for unlimited. Enforced per category — e.g. 1 means only 1 active sponsorship per category at this tier.
+        </p>
       </div>
 
       {isEdit && (
