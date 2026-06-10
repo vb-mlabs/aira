@@ -20,6 +20,7 @@ import { PasswordResetEmail } from "./templates/password-reset"
 import { VerifyEmail } from "./templates/verify-email"
 import { WaitlistWelcomeEmail } from "./templates/waitlist-welcome"
 import { BusinessWaitlistWelcomeEmail } from "./templates/business-waitlist-welcome"
+import { RenewalReminderEmail, type RenewalReminderRow } from "./templates/renewal-reminder"
 import type { EmailDriver } from "./types"
 
 interface BaseSendOpts {
@@ -53,6 +54,9 @@ export interface EmailTemplates {
   ) => Promise<void>
   sendWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
   sendBusinessWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
+  sendRenewalReminderEmail: (
+    opts: BaseSendOpts & { businesses: RenewalReminderRow[]; adminUrl: string },
+  ) => Promise<void>
 }
 
 export function createTemplates({
@@ -157,6 +161,28 @@ export function createTemplates({
       await getDriver().send({
         to: opts.to,
         subject: `Your ${brandName} business listing request — we'll be in touch`,
+        html,
+        text,
+        fromName: brandName,
+      })
+    },
+
+    async sendRenewalReminderEmail(opts) {
+      const count = opts.businesses.length
+      const tree = (
+        <RenewalReminderEmail
+          {...layoutChrome}
+          businesses={opts.businesses}
+          adminUrl={opts.adminUrl}
+        />
+      )
+      const [html, text] = await Promise.all([
+        render(tree),
+        render(tree, { plainText: true }),
+      ])
+      await getDriver().send({
+        to: opts.to,
+        subject: `[${brandName}] Renewal reminder — ${count} subscription${count === 1 ? "" : "s"} expiring soon`,
         html,
         text,
         fromName: brandName,

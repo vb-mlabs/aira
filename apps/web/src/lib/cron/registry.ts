@@ -43,12 +43,15 @@ export async function startCrons(): Promise<void> {
   const { JOB_NAME: spJob, runSponsorshipRollover } = await import(
     "./sponsorship-status-rollover"
   )
+  const { JOB_NAME: rrJob, runRenewalReminder } = await import("./renewal-reminder")
 
   registerRunner(subJob, runSubscriptionRollover)
   registerRunner(spJob, runSponsorshipRollover)
+  registerRunner(rrJob, runRenewalReminder)
 
   await scheduleJob(subJob, "5 0 * * *", runSubscriptionRollover)
   await scheduleJob(spJob, "0 * * * *", runSponsorshipRollover)
+  await scheduleJob(rrJob, "0 8 * * *", runRenewalReminder)
 
   process.on("SIGTERM", () => {
     tasks.forEach((t) => t.stop())
