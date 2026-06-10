@@ -62,6 +62,32 @@ function sponsoredAmountCents(catSlug: string) {
   ), 0)`;
 }
 
+// Sponsored sort helpers for homepage featured tile — same shape as the
+// per-category helpers but without a category filter (cross-category aggregate).
+const homepageSponsoredFlag = sql`CASE WHEN EXISTS (
+  SELECT 1 FROM sponsorship sp
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+) THEN 0 ELSE 1 END`;
+
+const homepageSponsoredPriority = sql`COALESCE((
+  SELECT MIN(st.priority)
+  FROM sponsorship sp
+  LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+), 99999)`;
+
+const homepageSponsoredAmountCents = sql`COALESCE((
+  SELECT MAX(sp.amount_cents)
+  FROM sponsorship sp
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+), 0)`;
+
 // ─── Relation helpers ────────────────────────────────────────────────────────
 
 async function fetchImages(
@@ -134,7 +160,13 @@ export async function getFeaturedBusinesses(
         VISIBLE,
       ),
     )
-    .orderBy(TIER_ORDER, asc(businesses.name))
+    .orderBy(
+      homepageSponsoredFlag,
+      homepageSponsoredPriority,
+      desc(homepageSponsoredAmountCents),
+      TIER_ORDER,
+      asc(businesses.name),
+    )
     .limit(limit);
   return attachRelations(db, rows);
 }
