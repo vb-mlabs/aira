@@ -14,7 +14,11 @@
     "./categories": "./src/categories.ts",
     "./cities": "./src/cities.ts",
     "./app_settings": "./src/app_settings.ts",
-    "./notifications": "./src/notifications.ts"
+    "./notifications": "./src/notifications.ts",
+    "./membership-plans": "./src/membership-plans.ts",
+    "./business-subscriptions": "./src/business-subscriptions.ts",
+    "./sponsorship-tiers": "./src/sponsorship-tiers.ts",
+    "./sponsorships": "./src/sponsorships.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
