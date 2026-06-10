@@ -42,6 +42,7 @@ import {
   check,
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
+import { cities } from "./cities"
 
 export const businesses = pgTable(
   "businesses",
@@ -71,6 +72,12 @@ export const businesses = pgTable(
     /** Editorial rating 0–5 in 0.5 steps. NULL = unrated. CHECK constraint
      *  enforces the range at the DB level; the admin UI enforces the step. */
     rating: numeric("rating", { precision: 2, scale: 1, mode: "number" }),
+    /** Nullable FK to cities. NULL until city-aware slugs (F25) assigns one. */
+    city_id: text("city_id").references(() => cities.id),
+    /** One of VALID_BUSINESS_TYPES — validated in Zod layer. */
+    business_type: text("business_type"),
+    /** One of VALID_YEARS_OPERATING — validated in Zod layer. */
+    years_operating: text("years_operating"),
     /** Soft-delete tombstone. NULL = active; non-NULL = archived (timestamp
      *  of the archive action). Public reads filter on `IS NULL`; admin reads
      *  can opt into seeing archived rows. Hard-purge cron is S5 (F14). */

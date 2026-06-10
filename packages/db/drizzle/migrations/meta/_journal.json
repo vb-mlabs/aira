@@ -141,6 +141,13 @@
       "when": 1781080481597,
       "tag": "0019_curious_wrecking_crew",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1781100668629,
+      "tag": "0020_nebulous_colonel_america",
+      "breakpoints": true
     }
   ]
 }
