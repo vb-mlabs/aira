@@ -1,6 +1,6 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-09 (night)
+**Last updated:** 2026-06-10
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
@@ -95,8 +95,19 @@ Plan: `.mstack/plans/2026-06-09-business-soft-delete.md`. `deleted_at timestamp`
 ### ✅ S2 — City scoping + Category tree + Homepage CMS (2026-06-09)
 Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/reviews/2026-06-09-city-category-cms.md`. `city`, `category` (self-FK + level 1–3 check), `app_setting` tables via migration `0016`. Admin pages: `/admin/cities` (CRUD), `/admin/categories` (tree manager + drag-reorder via `@dnd-kit/sortable` + deactivate dialog), `/admin/settings/homepage` (CMS). Public `(app)` sidebar + `/listings/[slug]` switched to DB-driven categories. Homepage reads `AppSetting` for About title/body and stat count overrides. QA: 15/15 Playwright scenarios pass.
 
+### ✅ S4 — Membership, Sponsorship, sponsored sort (2026-06-10)
+Plans: `.mstack/plans/2026-06-09-s4-membership-sponsorship.md` / `.mstack/reviews/2026-06-10-s4-membership-sponsorship.md`. Admin creates `MembershipPlan` and `SponsorshipTier` records; records manual subscriptions per business with `payment_status` and optional Zelle evidence URL; creates date-range `Sponsorship` records per business × category × tier. Public listing pages now gate visibility to businesses with an active paid subscription AND float sponsored businesses to the top of their category (tier.priority → amount_cents → name). Two cron jobs added: `sponsorship-status-rollover` (hourly) and `subscription-status-rollover` (daily). Migrations `0017` (membership + subscription tables) + `0018` (sponsorship_tier + sponsorship tables). QA: 20/20 Playwright scenarios pass.
+
+### ✅ S5 mini-sprint — Renewal reminder, homepage sponsored sort, sponsorship slot limits (2026-06-10)
+Plan: `.mstack/plans/2026-06-10-s5-renewal-reminder-homepage-slots.md`. Three follow-on gaps from S4:
+- **Renewal reminder cron (F17 partial):** `renewal-reminder` daily job (8 AM UTC) — queries `paid` subscriptions expiring within 7 days, sends a summary email to `brand.supportEmail` with a CTA deep-link to `/admin/businesses?renewing=7`. Logged to `cron_run`. Visible as the third card on `/admin/cron`.
+- **Homepage sponsored sort:** `getFeaturedBusinesses` extended with correlated subqueries that float businesses with any active cross-category sponsorship to the top of the homepage featured tile (within the existing tier1+tier2 visibility filter). Sort: sponsored-flag → best-tier-priority → highest-bid → TIER_ORDER → name.
+- **Sponsorship slot limits (accelerated from Phase 2):** `max_slots integer NULL` added to `sponsorship_tier` (migration `0019`). Enforced per-(tier, category) at create time — `409 sponsorship.tier_slots_full` if slot count ≥ max_slots. "Add sponsorship" dialog re-fetches tiers with slot annotation after category selection; full tiers disabled. "Max slots per category" field in tier admin form.
+
+QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-severity issue found and fixed (missing `KNOWN_JOBS` entry for `renewal-reminder` on the admin cron page).
+
 ### Other notable items
-- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), plus waitlist extensions.
+- Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), `0017` (membership_plan + business_subscription), `0018` (sponsorship_tier + sponsorship), `0019` (sponsorship_tier.max_slots), plus waitlist extensions.
 - Businesses stat `COUNT` bigint-as-string fix (commit `233f144`): `@neondatabase/serverless` returns `COUNT(*)` as a string; wrapped in `Number()` in `packages/services/src/businesses/queries.ts`.
 - React-email templates groundwork (`.mstack/plans/2026-05-24-react-email-templates.md`)
 - Brand consolidation, primary-color darken, template hardening (May 23–24 cluster) — all merged
@@ -219,7 +230,7 @@ Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/review
 
 ## Sprint 4 — Membership, Sponsorship, sponsored sort (2 weeks)
 
-**Status:** ✅ Done (2026-06-10)
+**Status:** ✅ Done (2026-06-10) — QA 20/20
 
 **Goal:** Admin sets membership prices + durations, records manual payments, assigns sponsorships to businesses for date ranges + tiers. Listings page respects active subscription gate AND sponsored-first sort within a category.
 
@@ -231,7 +242,7 @@ Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/review
 - ✅ F19 — Pricing configuration (`MembershipPlan` + `SponsorshipTier` editable in admin)
 - ✅ Add `payment_evidence_url` field to `BusinessSubscription` (Zelle screenshot upload — risk mitigation for manual payment disputes)
 
-**Schema additions:** `membership_plan`, `business_subscription`, `sponsorship_tier`, `sponsorship`.
+**Schema additions:** `membership_plan`, `business_subscription` (migration `0017`); `sponsorship_tier`, `sponsorship` (migration `0018`).
 
 **Libs to add:**
 - `node-cron` (in-process scheduler — first sprint that needs it)
@@ -246,17 +257,17 @@ Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/review
 
 ## Sprint 5 — Renewals, Posts board, Broadcasts (2 weeks)
 
-**Status:** ⬜ Not started
+**Status:** 🟦 In flight — F17 (renewal reminder, 7-day fixed window) and homepage sponsored sort shipped in the S5 mini-sprint (2026-06-10). Community Requests Board, Notifications broadcast, and purge cron remain.
 
 **Goal:** Renewal reminder emails go out on the configurable schedule. Community Requests Board live with submission + moderation queue + auto-expiry. Admin broadcasts a push notification to a segment of business users and it lands on real devices.
 
 **Features (PRD refs):**
-- ⬜ F17 (amended) — Renewal reminder automation, **email-only** via Postmark. Configurable schedule (`AppSetting.reminder_schedule`, default `[-14d, -3d, +7d]`)
+- 🟦 F17 (amended) — Renewal reminder automation, **email-only** via Postmark. **7-day fixed window shipped** (daily cron, admin inbox, deep-link to renewing filter). Configurable schedule (`AppSetting.reminder_schedule`) and individual business-owner emails remain.
 - ⬜ F20 — Community Requests Board (submission with PENDING status, admin moderation, auto-expire after `posts_expiry_days`, search/pagination)
 - ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`.
 - ⬜ F14 — Lifecycle: `purge_soft_deleted` cron (default 180 days)
 
-**Schema additions:** `post`, `notification`, `notification_delivery` (optional but recommended for delivery tracking).
+**Schema additions:** `post`, `notification`, `notification_delivery` (optional but recommended for delivery tracking). Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
 
 **Libs to add:**
 - `expo-server-sdk` (push delivery from the Next.js server)
@@ -264,7 +275,8 @@ Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/review
 
 **Cron jobs added:**
 - `expire_posts` (hourly): status PENDING/APPROVED with `expires_at < now` → EXPIRED
-- `renewal_reminders` (daily): query subscriptions matching the configured schedule offsets, dispatch Postmark email
+- ✅ `renewal-reminder` (daily 08:00 UTC): query paid subscriptions expiring within 7 days, dispatch summary email to admin inbox — **shipped in S5 mini-sprint**
+- `renewal_reminders` full (daily): configurable multi-window schedule offsets + per-business-owner emails — remaining
 - `purge_soft_deleted` (daily): hard-delete businesses with `status=soft_deleted AND deleted_at > now - purge_days`
 
 **Risk gate:** Push notification arrives on a real iOS device AND a real Android device. Renewal email lands in Postmark + delivers to a real inbox (not just localhost test).
@@ -354,7 +366,7 @@ Out-of-scope for MVP; revisit after launch + 1-2 months of usage data:
 - Masked call routing via Twilio proxy numbers (call logging + basic analytics)
 - Anti-spam for Posts board (rate limiting, keyword checks, reject-reason UI)
 - Multi-city UI switcher + cross-city slug handling + city-aware admin analytics
-- Sponsorship tiers with slot limits + richer ordering / rotation
+- ~~Sponsorship tiers with slot limits~~ — **shipped in S5 mini-sprint** (per-category max_slots + 409 enforcement + dialog slot annotation); richer rotation / rotation algorithms remain Phase 2
 - Stripe subscriptions (memberships + sponsorship add-ons), Checkout, Customer Portal, revenue dashboards, ACH/check/wire invoicing
 - Business-owner self-edit portals
 - Algolia / Typesense if scoped search needs fuzzy / fault-tolerant matching
@@ -399,3 +411,6 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-09** — S2: `AppSidebar` is `"use client"` so the `(app)/layout.tsx` RSC owns the `listCategoriesOp` fetch and passes active root categories as a prop; fallback to static `CATEGORIES_ORDERED` on error. *Why:* Server Components can't be rendered inside a client component tree — the RSC wrapper must fetch and push data down.
 - **2026-06-09** — `isValidCategory` guards removed from `businesses/queries.ts` (S2). After `BusinessCategorySchema` widened to `z.string()`, any admin-created category slug would have been silently rejected (no results returned) and `toBusiness()` would have reclassified rows to "shopping". *Why:* the whitelist guards were designed for a hardcoded enum and break as soon as the category set is DB-driven.
 - **2026-06-09** — `@neondatabase/serverless` returns `COUNT(*)` as a JavaScript string, not a number. `Number.isFinite("12")` = false, causing the `/home` businesses stat card to render "—". Fixed by wrapping `count()` results in `Number()` in `packages/services/src/businesses/queries.ts`. *Why:* PostgreSQL `bigint` has no safe JS representation so the driver returns it as string; Drizzle's `count()` helper inherits this.
+- **2026-06-10** — Sponsorship slot limits (max_slots per category) accelerated from Phase 2 into the S5 mini-sprint. *Why:* small migration + service-layer change; admin was about to sell exclusive tiers without capacity controls, which would have required a data-fix later. Slot limits are per-(tier_id, category_id) — global limits rejected because the sponsorship model is per-category.
+- **2026-06-10** — `apps/web/src/app/admin/cron/page.tsx` uses a static `KNOWN_JOBS` array — adding a handler to the cron registry does **not** auto-surface it on the admin page. Must add an entry to `KNOWN_JOBS` (name + human schedule string) alongside every new cron job. *Why:* discovered when `renewal-reminder` was missing from the cron page despite the handler being registered; caught in QA and fixed before shipping.
+- **2026-06-10** — Homepage sponsored sort uses correlated subqueries (not LATERAL JOIN) to match Drizzle's `.orderBy()` builder, which has no LATERAL support. Three SQL fragments (`homepageSponsoredFlag`, `homepageSponsoredPriority`, `homepageSponsoredAmountCents`) follow the same pattern as S4's per-category sort helpers. The tier1+tier2 visibility filter is unchanged — sponsored sort lifts paying sponsors within the curated set, not beyond it.
