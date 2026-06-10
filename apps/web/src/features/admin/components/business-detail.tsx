@@ -12,6 +12,8 @@ import type { Category } from "@aira/validators/categories"
 import { ArchiveControl } from "./archive-control"
 import { GallerySection } from "./gallery-section"
 import { PlacesAddressInput } from "./places-address-input"
+import { SubscriptionsSection } from "./subscriptions-section"
+import { SponsorshipsSection } from "./sponsorships-section"
 
 interface BusinessAdminDetailProps {
   business: Business
@@ -70,6 +72,8 @@ export function BusinessAdminDetail({ business, categories = [] }: BusinessAdmin
       <RatingSection business={business} />
       <SocialLinksSection business={business} />
       <EditorialSection business={business} />
+      <SubscriptionsSection businessId={business.id} />
+      <SponsorshipsSection businessId={business.id} />
     </div>
   )
 }
