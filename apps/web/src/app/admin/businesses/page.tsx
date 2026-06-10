@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BadgeCheck, Download } from "lucide-react"
+import { BadgeCheck, Download, Plus } from "lucide-react"
 import { Suspense } from "react"
 import { apiServerFetch } from "@aira/api/server"
 import { listAllBusinessesAdminOp } from "@/server/operations/businesses-admin"
@@ -46,15 +46,24 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
             View and edit directory listings.
           </p>
         </div>
-        {renewing && (
-          <a
-            href={csvHref}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted"
+        <div className="flex items-center gap-2">
+          {renewing && (
+            <a
+              href={csvHref}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted"
+            >
+              <Download className="size-4" aria-hidden />
+              Download CSV
+            </a>
+          )}
+          <Link
+            href="/admin/businesses/new"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
-            <Download className="size-4" aria-hidden />
-            Download CSV
-          </a>
-        )}
+            <Plus className="size-4" aria-hidden />
+            Add business
+          </Link>
+        </div>
       </header>
 
       <div className="flex flex-wrap items-center gap-3">
