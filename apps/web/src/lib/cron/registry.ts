@@ -14,6 +14,10 @@ export function getRunner(jobName: string): RunnerFn | undefined {
   return runners.get(jobName)
 }
 
+export function getRegisteredJobs(): string[] {
+  return Array.from(runners.keys())
+}
+
 export async function startCrons(): Promise<void> {
   // Implemented in T9.
 }
