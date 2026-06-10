@@ -46,7 +46,6 @@ export const auth = createAuth({
   trustedOrigins,
   initialAdminEmail: env.INITIAL_ADMIN_EMAIL,
   initialSuperAdminEmail: env.INITIAL_SUPER_ADMIN_EMAIL,
-  isProduction: env.NODE_ENV === "production",
   email: {
     sendVerifyEmail: ({ to, name, verifyUrl }) =>
       sendVerifyEmail({ to, name, verifyUrl }),

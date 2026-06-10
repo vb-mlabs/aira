@@ -50,8 +50,6 @@ export interface CreateAuthOptions {
    *  signup. Must differ from initialAdminEmail when both are set
    *  (enforced at boot in apps/web/src/config/env.ts). */
   initialSuperAdminEmail?: string | undefined
-  /** Set true when NODE_ENV === "production" to surface the missing-admin warning. */
-  isProduction?: boolean
   email: AuthEmailSender
   /** Optional logger. Defaults to console. */
   logger?: AuthLogger
@@ -64,7 +62,6 @@ export function createAuth({
   trustedOrigins,
   initialAdminEmail,
   initialSuperAdminEmail,
-  isProduction = false,
   email,
   logger,
 }: CreateAuthOptions) {
@@ -199,17 +196,6 @@ export function createAuth({
       user: { create: { after: afterUserCreate } },
     },
   })
-
-  // Boot-time warning. If admin bootstrap is unset, the very first signup
-  // won't auto-promote — admin pages would be inaccessible until someone is
-  // manually granted in the DB. Loud at boot so a missing env doesn't fail
-  // silently after deploy.
-  if (!initialAdminEmail && isProduction) {
-    log.warn(
-      "INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. " +
-        "Grant admin manually if needed: UPDATE \"user\" SET role='admin' WHERE email=?",
-    )
-  }
 
   return auth
 }

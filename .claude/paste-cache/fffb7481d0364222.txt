@@ -1,0 +1,192 @@
+2026-06-10T14:33:25Z info: Deployment: 921f5cd3-bb8e-45ea-bd43-e6e641c51d26
+2026-06-10T14:33:25Z info: Build: b8ee103d-2a02-4d47-9aed-cf09fd6aade2
+2026-06-10T14:33:25Z info: Running Security Scan
+2026-06-10T14:39:14Z info: Security Scan Complete
+2026-06-10T14:39:15Z info: Installing packages
+--> pnpm install
+
+Scope: all 15 workspace projects
+
+Lockfile is up to date, resolution step is skipped
+
+Progress: resolved 0, reused 1, downloaded 0, added 0
+
+
+   ╭─────────────────────────────────────────╮
+   │                                         │
+   │   Update available! 10.26.1 → 11.5.3.   │
+   │   Changelog: https://pnpm.io/v/11.5.3   │
+   │    To update, run: pnpm add -g pnpm     │
+   │                                         │
+   ╰─────────────────────────────────────────╯
+
+
+Progress: resolved 0, reused 142, downloaded 0, added 0
+
+Packages: +10 -188
+++++----------------------------------------------------------------------------
+
+Progress: resolved 0, reused 198, downloaded 0, added 10, done
+
+Done in 3.3s using pnpm v10.26.1
+
+2026-06-10T14:39:19Z info: Starting Build
+Scope: all 15 workspace projects
+
+Lockfile is up to date, resolution step is skipped
+
+Progress: resolved 0, reused 1, downloaded 0, added 0
+
+Progress: resolved 0, reused 118, downloaded 0, added 0
+
+Packages: -188
+--------------------------------------------------------------------------------
+
+Progress: resolved 0, reused 188, downloaded 0, added 0, done
+
+Done in 3.2s using pnpm v10.26.1
+
+
+> @aira/db@0.0.0 migrate /home/runner/workspace/packages/db
+> tsx scripts/migrate.ts
+
+
+✓ migrations applied
+
+
+> @aira/web@0.1.0 build /home/runner/workspace/apps/web
+> next build
+
+
+▲ Next.js 16.2.6 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+  Creating an optimized production build ...
+
+✓ Compiled successfully in 7.9s
+
+  Running TypeScript ...
+
+  Finished TypeScript in 11.7s ...
+
+  Collecting page data using 7 workers ...
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+[Error [BetterAuthError]: You are using the default secret. Please set `BETTER_AUTH_SECRET` in your environment variables or pass `secret` in your auth config.]
+
+{
+  level: 'warn',
+  message: `INITIAL_ADMIN_EMAIL is not set; the first signup will be a regular user. Grant admin manually if needed: UPDATE "user" SET role='admin' WHERE email=?`
+}
+
+  Generating static pages using 7 workers (0/46) ...
+
+  Generating static pages using 7 workers (11/46) 
+
+  Generating static pages using 7 workers (22/46) 
+
+  Generating static pages using 7 workers (34/46) 
+
+  Finalizing page optimization ...
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+node-v20.18.1-linux-x64.tar.xz: OK
+
+[deploy-prune] starting
+
+[deploy-prune] removed node_modules
+
+[deploy-prune] removed packages/ui-web/node_modules
+
+[deploy-prune] removed packages/validators/node_modules
+
+[deploy-prune] removed packages/db/.turbo
+
+[deploy-prune] removed packages/email/.turbo
+
+[deploy-prune] removed tooling
+
+[deploy-prune] removed .lefthook
+
+[deploy-prune] removed .npm
+
+[deploy-prune] removed .local
+
+[deploy-prune] done
+
+2026-06-10T14:40:06Z info: Pushing pid1 binary layer...
+2026-06-10T14:40:09Z info: Pushing Repl layer...
+2026-06-10T14:40:09Z info: Pushing hosting layer...
+2026-06-10T14:40:09Z info: Retrieved cached nix layer
+2026-06-10T14:40:10Z info: Created hosting layer
+2026-06-10T14:40:36Z info: Created Repl layer
+2026-06-10T14:40:39Z info: Pushed image manifest
+2026-06-10T14:40:41Z info: Pushed soci index manifest

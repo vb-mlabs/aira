@@ -64,7 +64,10 @@ export function AppSidebar({ onClose, categories }: AppSidebarProps) {
         )}
       </header>
 
-      <nav className="flex flex-1 flex-col overflow-y-auto" aria-label="Main">
+      <nav
+        className="flex flex-1 flex-col overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-label="Main"
+      >
         <SidebarRow
           href="/home"
           label="Home"
@@ -135,18 +138,18 @@ function SidebarRow({ href, label, icon: Icon, active }: SidebarRowProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3.5 border-b border-sidebar-border px-5 py-3.5 text-sm transition-colors hover:bg-sidebar-foreground/5",
+        "flex items-center gap-3 border-b border-sidebar-border px-5 py-2.5 text-sm transition-colors hover:bg-sidebar-foreground/5",
         active && "bg-sidebar-foreground/10 font-bold",
       )}
       aria-current={active ? "page" : undefined}
     >
       <Icon
-        className="size-5 flex-shrink-0 opacity-90"
+        className="size-4 flex-shrink-0 opacity-90"
         aria-hidden
       />
       <span className="flex-1 truncate">{label}</span>
       <ChevronRight
-        className="size-4 flex-shrink-0 opacity-55"
+        className="size-3.5 flex-shrink-0 opacity-55"
         aria-hidden
       />
     </Link>
