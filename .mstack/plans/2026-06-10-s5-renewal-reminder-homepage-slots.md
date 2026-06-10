@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-10
 **Slug:** 2026-06-10-s5-renewal-reminder-homepage-slots
-**Status:** reviewed
+**Status:** implemented
 **Author:** VB (framer@millionlabs.co.uk)
 
 ---
