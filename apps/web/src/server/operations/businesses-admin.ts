@@ -11,6 +11,7 @@ import { and, desc, eq, gte, lte, inArray, sql } from "drizzle-orm"
 import { businessSubscriptions } from "@aira/db/schema"
 import { businesses as businessesService } from "@aira/services"
 import {
+  BusinessCreateInputSchema,
   BusinessUpdateInputSchema,
   BusinessUpdateOutputSchema,
   BusinessArchiveInputSchema,
@@ -38,6 +39,17 @@ const AdminBusinessListOutputSchema = z.object({
   total: z.number().int().nonnegative(),
   page: z.number().int().min(1),
   pageSize: z.number().int().min(1),
+})
+
+export const createBusinessAdminOp = defineOperation({
+  name: "admin.businesses.create",
+  input: BusinessCreateInputSchema,
+  output: z.object({ business: BusinessSchema }),
+  permission: "admin",
+  handler: async (db, _ctx, input) => {
+    const business = await businessesService.createBusiness(db, input)
+    return { business }
+  },
 })
 
 export const updateBusinessOp = defineOperation({
