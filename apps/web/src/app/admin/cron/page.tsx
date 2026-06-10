@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic"
 const KNOWN_JOBS = [
   { name: "subscription-status-rollover", schedule: "5 0 * * * (daily 00:05 UTC)" },
   { name: "sponsorship-status-rollover", schedule: "0 * * * * (hourly)" },
+  { name: "renewal-reminder", schedule: "0 8 * * * (daily 08:00 UTC)" },
 ]
 
 type CronStatus = "running" | "succeeded" | "failed" | "skipped"
