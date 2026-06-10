@@ -219,17 +219,17 @@ Plan + review: `.mstack/plans/2026-06-09-city-category-cms.md` / `.mstack/review
 
 ## Sprint 4 — Membership, Sponsorship, sponsored sort (2 weeks)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Done (2026-06-10)
 
 **Goal:** Admin sets membership prices + durations, records manual payments, assigns sponsorships to businesses for date ranges + tiers. Listings page respects active subscription gate AND sponsored-first sort within a category.
 
 **Features (PRD refs):**
-- ⬜ F15 — Membership management + activation rules (visibility = `status=active` AND `BusinessSubscription` ACTIVE covering now)
-- ⬜ F16 — Manual payment recording + renewal tracking + filter "renewals due in X days" + CSV export light
-- ⬜ F18 — Sponsorship management (admin CRUD per business + category + date range + tier)
-- ⬜ F12 — Sponsored placement + sorting rules (tier.priority asc, amount_cents desc, name asc, then organic name asc)
-- ⬜ F19 — Pricing configuration (`MembershipPlan` + `SponsorshipTier` editable in admin)
-- ⬜ Add `payment_evidence_url` field to `BusinessSubscription` (Zelle screenshot upload — risk mitigation for manual payment disputes)
+- ✅ F15 — Membership management + activation rules (visibility = `status=active` AND `BusinessSubscription` ACTIVE covering now)
+- ✅ F16 — Manual payment recording + renewal tracking + filter "renewals due in X days" + CSV export light
+- ✅ F18 — Sponsorship management (admin CRUD per business + category + date range + tier)
+- ✅ F12 — Sponsored placement + sorting rules (tier.priority asc, amount_cents desc, name asc, then organic name asc)
+- ✅ F19 — Pricing configuration (`MembershipPlan` + `SponsorshipTier` editable in admin)
+- ✅ Add `payment_evidence_url` field to `BusinessSubscription` (Zelle screenshot upload — risk mitigation for manual payment disputes)
 
 **Schema additions:** `membership_plan`, `business_subscription`, `sponsorship_tier`, `sponsorship`.
 

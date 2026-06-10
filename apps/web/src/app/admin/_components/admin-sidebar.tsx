@@ -10,11 +10,14 @@ import { usePathname } from "next/navigation"
 import {
   ChevronRight,
   ClipboardList,
+  Clock,
+  CreditCard,
   LayoutDashboard,
   MapPin,
   Settings2,
   Store,
   Tag,
+  Trophy,
   Users,
 } from "lucide-react"
 import { brand } from "@aira/config"
@@ -34,9 +37,12 @@ const ADMIN_NAV: Array<{
   { href: "/admin/businesses", label: "Businesses", icon: Store },
   { href: "/admin/categories", label: "Categories", icon: Tag },
   { href: "/admin/cities", label: "Cities", icon: MapPin },
+  { href: "/admin/membership-plans", label: "Membership plans", icon: CreditCard },
+  { href: "/admin/sponsorship-tiers", label: "Sponsorship tiers", icon: Trophy },
   { href: "/admin/settings/homepage", label: "Settings", icon: Settings2 },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/audit", label: "Audit log", icon: ClipboardList },
+  { href: "/admin/cron", label: "Cron", icon: Clock },
 ]
 
 export function AdminSidebar({ onClose }: AdminSidebarProps) {
