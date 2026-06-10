@@ -18,11 +18,12 @@ export const listCronRunsOp = defineOperation({
 
 export const triggerCronRunOp = defineOperation({
   name: "admin.cron.trigger",
-  input: z.object({ job_name: z.string().min(1) }).strict(),
+  input: z.object({ job_name: z.string().min(1) }).passthrough(),
   output: z.object({ run: z.any() }),
   permission: "admin",
   handler: async (db, _ctx, { job_name }) => {
     const { startCrons } = await import("@/lib/cron/registry")
+    await startCrons()
     const runner = startCrons.getRunner(job_name)
     if (!runner) throw ApiError.notFound("cron.not_found", `No job named "${job_name}"`)
     const run = await cronService.startRun(db, job_name)
