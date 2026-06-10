@@ -26,7 +26,7 @@ export const listCategoriesWithCountsOp = defineOperation({
 
 export const listCategoriesOp = defineOperation({
   name: "categories.list",
-  input: z.object({}).strict(),
+  input: z.object({}),
   output: z.object({ categories: z.array(z.any()) }),
   permission: "user",
   handler: async (db) => {
@@ -37,7 +37,7 @@ export const listCategoriesOp = defineOperation({
 
 export const listCategoriesTreeOp = defineOperation({
   name: "categories.tree",
-  input: z.object({}).strict(),
+  input: z.object({}),
   output: CategoryTreeOutputSchema,
   permission: "user",
   handler: async (db) => {

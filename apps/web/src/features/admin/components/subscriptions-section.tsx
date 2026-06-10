@@ -76,9 +76,9 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
     setError(null)
     setDeletingId(subId)
     try {
+      // Path params [id]=businessId, [subId]=subId are sufficient — no query needed.
       await apiClient.delete(
         `/api/v1/admin/businesses/${businessId}/subscriptions/${subId}`,
-        { query: { id: subId, business_id: businessId } },
       )
       await fetchSubs()
       router.refresh()

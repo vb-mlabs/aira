@@ -67,9 +67,9 @@ export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
     setError(null)
     setCancellingId(spId)
     try {
+      // Path params [id]=businessId, [spId]=spId are sufficient — no query needed.
       await apiClient.delete(
         `/api/v1/admin/businesses/${businessId}/sponsorships/${spId}`,
-        { query: { id: spId, business_id: businessId } },
       )
       await fetchSponsorships()
       router.refresh()
@@ -201,11 +201,15 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
   useEffect(() => {
     if (!open) return
     Promise.all([
-      apiClient.get<{ categories: Category[] }>("/api/v1/categories"),
+      apiClient.get<{ tree: Array<{ root: Category; children: Category[] }> }>("/api/v1/categories?tree=1"),
       apiClient.get<{ items: SponsorshipTier[] }>("/api/v1/admin/sponsorship-tiers?includeInactive=false"),
     ])
       .then(([catRes, tierRes]) => {
-        setCategories(catRes.data?.categories ?? [])
+        const flat: Category[] = []
+        for (const node of catRes.data?.tree ?? []) {
+          flat.push(node.root, ...node.children)
+        }
+        setCategories(flat)
         setTiers(tierRes.data?.items ?? [])
       })
       .catch(() => {})
