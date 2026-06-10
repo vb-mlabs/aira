@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-24
 **Slug:** 2026-05-24-primary-color-darken
-**Status:** reviewed
+**Status:** implemented
 **Author:** VB (framer@millionlabs.co.uk)
 
 ---
