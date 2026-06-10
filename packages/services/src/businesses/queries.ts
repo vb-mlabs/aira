@@ -4,8 +4,8 @@
 // permission: "user" before invoking these), no Next imports, no captured
 // singletons. Mirrors the rest of the @aira/services convention.
 
-import { and, asc, count, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
-import { businesses, businessImages, businessCategories, categories } from "@aira/db/schema";
+import { and, asc, count, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { businesses, businessImages, businessCategories, categories, businessSubscriptions } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
   VALID_TIERS,
@@ -17,6 +17,50 @@ import {
 // Tier ordering uses an explicit CASE so renaming tiers can't silently
 // reorder rows (no implicit alpha sort on the column).
 const TIER_ORDER = sql`CASE ${businesses.tier} WHEN 'tier1' THEN 1 WHEN 'tier2' THEN 2 ELSE 3 END`;
+
+// Visibility gate: business must have at least one paid subscription covering now.
+// Applied on all public surfaces; admin surfaces bypass this.
+const VISIBLE = sql`EXISTS (
+  SELECT 1 FROM business_subscription bs
+  WHERE bs.business_id = businesses.id
+  AND bs.payment_status = 'paid'
+  AND now() BETWEEN bs.start_date AND bs.end_date
+)`;
+
+// Sponsored sort helpers for /listings/[cat] — correlated subqueries to avoid
+// duplicate rows from a LEFT JOIN when a business holds multiple sponsorships.
+function sponsoredFlag(catSlug: string) {
+  return sql`CASE WHEN EXISTS (
+    SELECT 1 FROM sponsorship sp
+    WHERE sp.business_id = businesses.id
+    AND sp.status = 'active'
+    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
+    AND now() BETWEEN sp.start_date AND sp.end_date
+  ) THEN 0 ELSE 1 END`;
+}
+
+function sponsoredTierPriority(catSlug: string) {
+  return sql`COALESCE((
+    SELECT MIN(st.priority)
+    FROM sponsorship sp
+    LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
+    WHERE sp.business_id = businesses.id
+    AND sp.status = 'active'
+    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
+    AND now() BETWEEN sp.start_date AND sp.end_date
+  ), 99999)`;
+}
+
+function sponsoredAmountCents(catSlug: string) {
+  return sql`COALESCE((
+    SELECT MAX(sp.amount_cents)
+    FROM sponsorship sp
+    WHERE sp.business_id = businesses.id
+    AND sp.status = 'active'
+    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
+    AND now() BETWEEN sp.start_date AND sp.end_date
+  ), 0)`;
+}
 
 // ─── Relation helpers ────────────────────────────────────────────────────────
 
@@ -87,6 +131,7 @@ export async function getFeaturedBusinesses(
       and(
         inArray(businesses.tier, ["tier1", "tier2"]),
         isNull(businesses.deleted_at),
+        VISIBLE,
       ),
     )
     .orderBy(TIER_ORDER, asc(businesses.name))
@@ -105,9 +150,16 @@ export async function getBusinessesByCategory(
       and(
         eq(businesses.category, category),
         isNull(businesses.deleted_at),
+        VISIBLE,
       ),
     )
-    .orderBy(TIER_ORDER, asc(businesses.name));
+    .orderBy(
+      sponsoredFlag(category),
+      sponsoredTierPriority(category),
+      desc(sponsoredAmountCents(category)),
+      TIER_ORDER,
+      asc(businesses.name),
+    );
   return attachRelations(db, rows);
 }
 
@@ -165,7 +217,7 @@ export async function getBusinessesByCategoryPaged(
     inArray(businesses.id, extraCatSubquery),
   );
 
-  const predicates = [categoryPredicate!, isNull(businesses.deleted_at)];
+  const predicates = [categoryPredicate!, isNull(businesses.deleted_at), VISIBLE];
   if (input.verified) predicates.push(eq(businesses.verified, true));
   if (pattern) {
     const searchPredicate = or(
@@ -184,7 +236,13 @@ export async function getBusinessesByCategoryPaged(
       .select()
       .from(businesses)
       .where(where)
-      .orderBy(TIER_ORDER, asc(businesses.name))
+      .orderBy(
+        sponsoredFlag(input.category),
+        sponsoredTierPriority(input.category),
+        desc(sponsoredAmountCents(input.category)),
+        TIER_ORDER,
+        asc(businesses.name),
+      )
       .limit(input.pageSize)
       .offset(offset),
     db.select({ value: count() }).from(businesses).where(where),
@@ -203,7 +261,7 @@ export async function getBusinessById(
   const [row] = await db
     .select()
     .from(businesses)
-    .where(and(eq(businesses.id, id), isNull(businesses.deleted_at)))
+    .where(and(eq(businesses.id, id), isNull(businesses.deleted_at), VISIBLE))
     .limit(1);
   if (!row) return null;
   const [result] = await attachRelations(db, [row]);
