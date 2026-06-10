@@ -29,5 +29,8 @@
 // See docs/decisions/0008-codebase-conventions.md (lands in T18).
 
 export async function register() {
-  // No-op in the template — forks add their boot code here.
+  if (process.env.NEXT_RUNTIME !== "nodejs") return
+  if (process.env.NEXT_PHASE === "phase-production-build") return
+  const { startCrons } = await import("@/lib/cron/registry")
+  await startCrons()
 }
