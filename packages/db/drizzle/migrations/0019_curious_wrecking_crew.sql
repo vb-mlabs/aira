@@ -1,0 +1,2 @@
+ALTER TABLE "sponsorship_tier" ADD COLUMN "max_slots" integer;--> statement-breakpoint
+ALTER TABLE "sponsorship_tier" ADD CONSTRAINT "st_max_slots_check" CHECK ("sponsorship_tier"."max_slots" IS NULL OR "sponsorship_tier"."max_slots" > 0);

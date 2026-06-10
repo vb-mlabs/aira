@@ -134,6 +134,13 @@
       "when": 1781071814686,
       "tag": "0018_lucky_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1781080481597,
+      "tag": "0019_curious_wrecking_crew",
+      "breakpoints": true
     }
   ]
 }
