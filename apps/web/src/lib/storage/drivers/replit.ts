@@ -16,11 +16,10 @@ let _client: Client | null = null
 
 function getClient(): Client {
   if (_client) return _client
-  if (!env.REPLIT_OBJECT_STORAGE_BUCKET_ID) {
-    throw new Error(
-      "REPLIT_OBJECT_STORAGE_BUCKET_ID is required for the replit storage driver",
-    )
-  }
+  // Pass bucketId when explicitly set; otherwise the SDK auto-detects from the
+  // Replit sidecar at http://127.0.0.1:1106/object-storage/default-bucket.
+  // REPLIT_OBJECT_STORAGE_BUCKET_ID is runtime-injected by Replit, not a
+  // static .env.local var, so it may be absent from the validated env object.
   _client = new Client({ bucketId: env.REPLIT_OBJECT_STORAGE_BUCKET_ID })
   return _client
 }
