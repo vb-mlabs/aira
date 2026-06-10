@@ -23,6 +23,7 @@ export {
   updateBusiness,
   archiveBusiness,
   restoreBusiness,
+  purgeArchivedBusinesses,
 } from "./service";
 
 export {

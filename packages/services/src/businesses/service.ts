@@ -13,7 +13,7 @@ import "server-only";
 // but not dangerous) rather than "mutation succeeded with no trail"
 // (worse).
 
-import { and, eq, inArray, isNotNull, isNull, notInArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, lt, notInArray } from "drizzle-orm";
 import { businesses, businessCategories } from "@aira/db/schema";
 import { createAudit } from "@aira/db/audit";
 import type { Database } from "@aira/db/client";
@@ -130,6 +130,18 @@ export async function archiveBusiness(
   }
 
   return getBusinessByIdIncludingArchived(db, id);
+}
+
+export async function purgeArchivedBusinesses(
+  db: Database,
+  { olderThanDays }: { olderThanDays: number },
+): Promise<{ deleted: number }> {
+  const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000)
+  const result = await db
+    .delete(businesses)
+    .where(and(isNotNull(businesses.deleted_at), lt(businesses.deleted_at, cutoff)))
+    .returning({ id: businesses.id })
+  return { deleted: result.length }
 }
 
 export async function restoreBusiness(
