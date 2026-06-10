@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Compare · S4 Subscriptions + Sponsorships mockups</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: oklch(0.20 0.02 60);
+    color: oklch(0.94 0.02 80);
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  header {
+    padding: 18px 24px;
+    border-bottom: 1px solid oklch(0.30 0.03 60);
+  }
+  header h1 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  header p { margin: 0; font-size: 13px; color: oklch(0.70 0.02 80); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: oklch(0.30 0.03 60);
+    height: calc(100vh - 70px);
+  }
+  .col { display: flex; flex-direction: column; background: oklch(0.22 0.02 60); }
+  .col-head {
+    padding: 10px 16px;
+    background: oklch(0.25 0.02 60);
+    border-bottom: 1px solid oklch(0.30 0.03 60);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .col-head .name { font-weight: 700; font-size: 14px; }
+  .col-head .tag { font-size: 11px; color: oklch(0.70 0.02 80); background: oklch(0.30 0.03 60); padding: 2px 8px; border-radius: 999px; }
+  iframe { width: 100%; flex: 1; border: 0; background: white; }
+  .controls {
+    padding: 8px 16px;
+    background: oklch(0.25 0.02 60);
+    border-top: 1px solid oklch(0.30 0.03 60);
+    display: flex; gap: 12px;
+    font-size: 12px;
+  }
+  .controls a { color: oklch(0.75 0.10 132); text-decoration: none; }
+  .controls a:hover { text-decoration: underline; }
+  @media (max-width: 1400px) {
+    .grid { grid-template-columns: repeat(2, 1fr); height: auto; }
+    iframe { height: 800px; }
+  }
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: 1fr; height: auto; }
+    iframe { height: 800px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>S4 — Subscriptions + Sponsorships sections on business edit</h1>
+  <p>Four variants. v4 = selected direction (v2 table + modal forms). Scroll inside each frame; resize browser to test mobile.</p>
+</header>
+<div class="grid">
+  <div class="col">
+    <div class="col-head">
+      <div class="name">v1 — Stacked cards</div>
+      <div class="tag">spacious</div>
+    </div>
+    <iframe src="v1/index.html" title="v1"></iframe>
+    <div class="controls">
+      <a href="v1/index.html" target="_blank">Open standalone ↗</a>
+      <a href="v1/NOTES.md" target="_blank">Notes</a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="col-head">
+      <div class="name">v2 — Compact table</div>
+      <div class="tag">dense</div>
+    </div>
+    <iframe src="v2/index.html" title="v2"></iframe>
+    <div class="controls">
+      <a href="v2/index.html" target="_blank">Open standalone ↗</a>
+      <a href="v2/NOTES.md" target="_blank">Notes</a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="col-head">
+      <div class="name">v3 — Hybrid summary + expand</div>
+      <div class="tag">progressive</div>
+    </div>
+    <iframe src="v3/index.html" title="v3"></iframe>
+    <div class="controls">
+      <a href="v3/index.html" target="_blank">Open standalone ↗</a>
+      <a href="v3/NOTES.md" target="_blank">Notes</a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="col-head">
+      <div class="name">v4 — Table + modals ★</div>
+      <div class="tag" style="background: oklch(0.46 0.07 132 / 30%); color: oklch(0.90 0.04 85);">selected</div>
+    </div>
+    <iframe src="v4/index.html" title="v4"></iframe>
+    <div class="controls">
+      <a href="v4/index.html" target="_blank">Open standalone ↗</a>
+      <a href="v4/NOTES.md" target="_blank">Notes</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

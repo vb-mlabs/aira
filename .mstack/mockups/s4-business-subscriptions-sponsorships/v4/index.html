@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>v4 — Compact table + modals · Subscriptions & Sponsorships</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background:           oklch(0.90 0.04 85);
+    --foreground:           oklch(0.25 0.04 60);
+    --card:                 #F3EBDD;
+    --card-foreground:      oklch(0.25 0.04 60);
+    --primary:              oklch(0.46 0.07 132);
+    --primary-foreground:   oklch(0.94 0.02 80);
+    --secondary:            oklch(0.93 0.03 85);
+    --muted:                oklch(0.88 0.03 85);
+    --muted-foreground:     oklch(0.45 0.04 60);
+    --accent:               oklch(0.95 0.02 85);
+    --destructive:          oklch(0.55 0.22 27);
+    --border:               oklch(0.50 0.07 80);
+    --input:                oklch(0.50 0.07 80);
+    --success:              oklch(0.46 0.07 132);
+    --warning:              oklch(0.62 0.13 55);
+    --info:                 oklch(0.55 0.18 240);
+    --radius:               0.875rem;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', system-ui, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 600; letter-spacing: -0.01em; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  .breadcrumb { font-size: 12px; color: var(--muted-foreground); margin-bottom: 8px; }
+  .page-title { font-size: 28px; margin: 0 0 4px; }
+  .page-sub { font-size: 13px; color: var(--muted-foreground); margin: 0 0 28px; }
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 24px; overflow: hidden; }
+  .section-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .section-header h2 { font-size: 16px; margin: 0; font-family: 'Lato', sans-serif; font-weight: 600; letter-spacing: 0; }
+  .section-header .sub { font-size: 12px; color: var(--muted-foreground); margin-top: 2px; }
+  .section-toolbar { display: flex; gap: 8px; align-items: center; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: oklch(0.88 0.03 85 / 60%); }
+  thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+    border-bottom: 1px solid var(--border);
+  }
+  thead th.num { text-align: right; }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid oklch(0.78 0.04 80 / 60%); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: oklch(0.95 0.02 85 / 60%); }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .plan-cell { display: flex; flex-direction: column; gap: 2px; }
+  .plan-name { font-weight: 600; }
+  .plan-meta { font-size: 11px; color: var(--muted-foreground); }
+  .period-cell { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .period-meta { font-size: 11px; color: var(--muted-foreground); }
+  .action-cell { white-space: nowrap; text-align: right; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .chip-success { background: oklch(0.46 0.07 132 / 15%); color: var(--success); }
+  .chip-warning { background: oklch(0.62 0.13 55 / 18%); color: oklch(0.32 0.10 55); }
+  .chip-destructive { background: oklch(0.55 0.22 27 / 12%); color: var(--destructive); }
+  .chip-muted { background: var(--muted); color: var(--muted-foreground); }
+  .chip-info { background: oklch(0.55 0.18 240 / 12%); color: oklch(0.42 0.16 240); }
+  .tier-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .tier-gold { background: oklch(0.66 0.10 80); color: oklch(0.18 0.03 60); }
+  .tier-silver { background: oklch(0.78 0.02 80); color: oklch(0.25 0.04 60); }
+
+  .evidence-cell { display: flex; align-items: center; gap: 6px; }
+  .evidence-thumb {
+    width: 26px; height: 26px; border-radius: 4px;
+    background: linear-gradient(135deg, oklch(0.85 0.03 85), oklch(0.78 0.04 80));
+    border: 1px solid oklch(0.78 0.04 80);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: var(--muted-foreground);
+  }
+  .evidence-link { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; font-size: 12px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 6px; border: 1px solid transparent;
+    background: transparent; cursor: pointer;
+    color: var(--foreground); font-size: 14px; line-height: 1;
+  }
+  .icon-btn:hover { background: var(--accent); border-color: var(--border); }
+  .icon-btn.danger { color: var(--destructive); }
+  .icon-btn.danger:hover { background: oklch(0.55 0.22 27 / 8%); border-color: oklch(0.55 0.22 27 / 30%); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-ghost { background: transparent; color: var(--foreground); border-color: var(--border); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* ── Modal ─────────────────────────────────────── */
+  dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 0;
+    max-width: 560px;
+    width: calc(100vw - 48px);
+    background: var(--card);
+    color: var(--foreground);
+    box-shadow:
+      0 4px 6px -1px oklch(0 0 0 / 12%),
+      0 20px 40px -4px oklch(0 0 0 / 24%);
+  }
+  dialog::backdrop {
+    background: oklch(0.15 0.02 60 / 60%);
+    backdrop-filter: blur(2px);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+    letter-spacing: 0;
+  }
+  .modal-subtitle {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    margin: 2px 0 0;
+  }
+  .modal-close {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 6px; border: 1px solid transparent;
+    background: transparent; cursor: pointer;
+    color: var(--muted-foreground); font-size: 18px; line-height: 1;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--accent); border-color: var(--border); color: var(--foreground); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 24px 18px;
+    border-top: 1px solid var(--border);
+    background: oklch(0.93 0.03 85 / 40%);
+  }
+
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 14px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--muted-foreground);
+    font-weight: 600;
+  }
+  .field input, .field select, .field textarea {
+    height: 36px; padding: 6px 10px;
+    border: 1px solid var(--input); border-radius: 6px;
+    background: oklch(0.96 0.02 85); color: var(--foreground);
+    font-family: inherit; font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--primary);
+    background: var(--card);
+    box-shadow: 0 0 0 3px oklch(0.46 0.07 132 / 14%);
+  }
+  .field textarea { height: 64px; resize: vertical; padding-top: 8px; }
+  .field.full { grid-column: 1 / -1; }
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: 6px;
+    padding: 12px; display: flex; align-items: center; gap: 8px;
+    color: var(--muted-foreground); font-size: 12px;
+    background: oklch(0.95 0.02 85);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .dropzone:hover { border-color: var(--primary); background: oklch(0.97 0.02 85); }
+  .field-hint { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+
+  @media (max-width: 760px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .field.full { grid-column: 1; }
+    .hide-mobile { display: none; }
+    .page { padding: 20px 12px 64px; }
+    thead th, tbody td { padding: 10px 8px; }
+    dialog { max-width: calc(100vw - 24px); width: calc(100vw - 24px); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="breadcrumb">Admin · Businesses · Spice Garden</div>
+  <h1 class="page-title">Spice Garden</h1>
+  <p class="page-sub">Tier 1 · Restaurants · biz-001</p>
+
+  <!-- ── Subscriptions section ───────────────────── -->
+  <section class="section">
+    <header class="section-header">
+      <div>
+        <h2>Subscriptions</h2>
+        <div class="sub">Latest payment covers today — business is publicly visible</div>
+      </div>
+      <div class="section-toolbar">
+        <span class="chip chip-success">Currently visible</span>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-sub').showModal()">+ Add subscription</button>
+      </div>
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th>Evidence</th>
+          <th class="hide-mobile">Recorded</th>
+          <th class="num">Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="plan-cell">
+              <span class="plan-name">Premium Annual</span>
+              <span class="plan-meta">12 months · discounted</span>
+            </div>
+          </td>
+          <td>
+            <div class="period-cell">Jan 1 → Dec 31, 2026</div>
+            <div class="period-meta">342 days remaining</div>
+          </td>
+          <td><span class="chip chip-success">Paid</span></td>
+          <td>
+            <div class="evidence-cell">
+              <div class="evidence-thumb">PNG</div>
+              <a class="evidence-link" href="#">zelle-payment.png</a>
+            </div>
+          </td>
+          <td class="hide-mobile">Priya I.<br><span class="plan-meta">2026-01-04</span></td>
+          <td class="num">$1,200.00</td>
+          <td class="action-cell">
+            <button class="icon-btn" title="Edit">✎</button>
+            <button class="icon-btn danger" title="Void">✕</button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="plan-cell">
+              <span class="plan-name">Basic Quarterly</span>
+              <span class="plan-meta">3 months</span>
+            </div>
+          </td>
+          <td>
+            <div class="period-cell">Jul 1 → Sep 30, 2025</div>
+            <div class="period-meta">Expired 252 days ago</div>
+          </td>
+          <td><span class="chip chip-destructive">Overdue</span></td>
+          <td><span class="chip chip-warning">No evidence</span></td>
+          <td class="hide-mobile">Priya I.<br><span class="plan-meta">2025-07-01</span></td>
+          <td class="num">$300.00</td>
+          <td class="action-cell">
+            <button class="icon-btn" title="Edit">✎</button>
+            <button class="icon-btn danger" title="Void">✕</button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="plan-cell">
+              <span class="plan-name">Basic Quarterly</span>
+              <span class="plan-meta">3 months</span>
+            </div>
+          </td>
+          <td>
+            <div class="period-cell">Apr 1 → Jun 30, 2025</div>
+            <div class="period-meta">Expired 345 days ago</div>
+          </td>
+          <td><span class="chip chip-success">Paid</span></td>
+          <td>
+            <div class="evidence-cell">
+              <div class="evidence-thumb">PDF</div>
+              <a class="evidence-link" href="#">receipt-q2-2025.pdf</a>
+            </div>
+          </td>
+          <td class="hide-mobile">Rajan M.<br><span class="plan-meta">2025-04-02</span></td>
+          <td class="num">$300.00</td>
+          <td class="action-cell">
+            <button class="icon-btn" title="Edit">✎</button>
+            <button class="icon-btn danger" title="Void">✕</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── Sponsorships section ───────────────────── -->
+  <section class="section">
+    <header class="section-header">
+      <div>
+        <h2>Sponsorships</h2>
+        <div class="sub">Promotes the business to the top of a category for the period</div>
+      </div>
+      <div class="section-toolbar">
+        <span class="chip chip-success">1 active</span>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-spon').showModal()">+ Add sponsorship</button>
+      </div>
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Category · Tier</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th class="hide-mobile">Notes</th>
+          <th class="num">Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="plan-cell">
+              <span class="plan-name">Restaurants</span>
+              <span><span class="tier-badge tier-gold">Gold</span> <span class="plan-meta">priority 1</span></span>
+            </div>
+          </td>
+          <td>
+            <div class="period-cell">Jun 1 → Jul 31, 2026</div>
+            <div class="period-meta">51 days remaining</div>
+          </td>
+          <td><span class="chip chip-success">Active</span></td>
+          <td class="hide-mobile">Summer promo — top of /listings/restaurants.</td>
+          <td class="num">$500.00</td>
+          <td class="action-cell">
+            <button class="icon-btn" title="Edit">✎</button>
+            <button class="icon-btn danger" title="Cancel">✕</button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="plan-cell">
+              <span class="plan-name">Events & Entertainment</span>
+              <span><span class="tier-badge tier-silver">Silver</span> <span class="plan-meta">priority 2</span></span>
+            </div>
+          </td>
+          <td>
+            <div class="period-cell">Aug 1 → Sep 30, 2026</div>
+            <div class="period-meta">Starts in 52 days</div>
+          </td>
+          <td><span class="chip chip-info">Scheduled</span></td>
+          <td class="hide-mobile">Cross-category bid for festival season.</td>
+          <td class="num">$200.00</td>
+          <td class="action-cell">
+            <button class="icon-btn" title="Edit">✎</button>
+            <button class="icon-btn danger" title="Cancel">✕</button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="plan-cell">
+              <span class="plan-name">Restaurants</span>
+              <span><span class="tier-badge tier-silver">Silver</span> <span class="plan-meta">priority 2</span></span>
+            </div>
+          </td>
+          <td>
+            <div class="period-cell">Mar 1 → Apr 30, 2026</div>
+            <div class="period-meta">Ended 41 days ago</div>
+          </td>
+          <td><span class="chip chip-muted">Expired</span></td>
+          <td class="hide-mobile">Spring trial — converted into Gold renewal.</td>
+          <td class="num">$200.00</td>
+          <td class="action-cell">
+            <button class="icon-btn" title="Edit">✎</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<!-- ── Add subscription modal ─────────────────── -->
+<dialog id="modal-sub" aria-labelledby="modal-sub-title">
+  <div class="modal-header">
+    <div>
+      <div class="modal-title" id="modal-sub-title">Add subscription</div>
+      <div class="modal-subtitle">Spice Garden · biz-001</div>
+    </div>
+    <button class="modal-close" onclick="document.getElementById('modal-sub').close()" aria-label="Close">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="field full">
+        <label>Plan</label>
+        <select>
+          <option>Premium Annual — $1,200 / 12mo</option>
+          <option>Basic Quarterly — $300 / 3mo</option>
+          <option>Premium Quarterly — $400 / 3mo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Start date</label>
+        <input type="date" value="2026-06-10" />
+      </div>
+      <div class="field">
+        <label>End date</label>
+        <input type="date" value="2027-06-10" />
+        <span class="field-hint">Auto-filled from plan duration — adjust if needed</span>
+      </div>
+      <div class="field">
+        <label>Payment status</label>
+        <select>
+          <option>Paid</option>
+          <option>Pending</option>
+          <option>Overdue</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Amount (USD)</label>
+        <input type="number" value="1200" />
+        <span class="field-hint">Pre-filled from plan — override if discounted</span>
+      </div>
+      <div class="field full">
+        <label>Payment evidence (optional)</label>
+        <div class="dropzone">
+          <span>📎</span>
+          <span>Drop screenshot or PDF here, or click to browse · max 5 MB</span>
+        </div>
+      </div>
+      <div class="field full">
+        <label>Notes</label>
+        <textarea placeholder="Internal notes — never shown publicly"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-sub').close()">Cancel</button>
+    <button class="btn btn-primary btn-sm">Record subscription</button>
+  </div>
+</dialog>
+
+<!-- ── Add sponsorship modal ──────────────────── -->
+<dialog id="modal-spon" aria-labelledby="modal-spon-title">
+  <div class="modal-header">
+    <div>
+      <div class="modal-title" id="modal-spon-title">Add sponsorship</div>
+      <div class="modal-subtitle">Spice Garden · biz-001</div>
+    </div>
+    <button class="modal-close" onclick="document.getElementById('modal-spon').close()" aria-label="Close">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-grid">
+      <div class="field">
+        <label>Category</label>
+        <select>
+          <option>Restaurants</option>
+          <option>Events & Entertainment</option>
+          <option>Shopping</option>
+          <option>Health & Wellness</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tier</label>
+        <select>
+          <option>Gold (priority 1)</option>
+          <option>Silver (priority 2)</option>
+          <option>Bronze (priority 3)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Start date</label>
+        <input type="date" value="2026-08-01" />
+      </div>
+      <div class="field">
+        <label>End date</label>
+        <input type="date" value="2026-09-30" />
+      </div>
+      <div class="field full">
+        <label>Amount (USD)</label>
+        <input type="number" value="500" />
+      </div>
+      <div class="field full">
+        <label>Notes</label>
+        <textarea placeholder="Internal notes — visible to admin only"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-spon').close()">Cancel</button>
+    <button class="btn btn-primary btn-sm">Add sponsorship</button>
+  </div>
+</dialog>
+
+<script>
+  /* Close modal on backdrop click */
+  document.querySelectorAll('dialog').forEach(function(dlg) {
+    dlg.addEventListener('click', function(e) {
+      var rect = dlg.getBoundingClientRect();
+      var inside = rect.top <= e.clientY && e.clientY <= rect.bottom
+                && rect.left <= e.clientX && e.clientX <= rect.right;
+      if (!inside) dlg.close();
+    });
+  });
+</script>
+</body>
+</html>

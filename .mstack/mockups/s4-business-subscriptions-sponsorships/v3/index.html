@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>v3 — Hybrid summary + expand · Subscriptions & Sponsorships</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background:           oklch(0.90 0.04 85);
+    --foreground:           oklch(0.25 0.04 60);
+    --card:                 #F3EBDD;
+    --primary:              oklch(0.46 0.07 132);
+    --primary-foreground:   oklch(0.94 0.02 80);
+    --muted:                oklch(0.88 0.03 85);
+    --muted-foreground:     oklch(0.45 0.04 60);
+    --accent:               oklch(0.95 0.02 85);
+    --destructive:          oklch(0.55 0.22 27);
+    --border:               oklch(0.50 0.07 80);
+    --input:                oklch(0.50 0.07 80);
+    --success:              oklch(0.46 0.07 132);
+    --warning:              oklch(0.62 0.13 55);
+    --info:                 oklch(0.55 0.18 240);
+    --radius:               0.875rem;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', system-ui, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 600; letter-spacing: -0.01em; }
+  .page { max-width: 940px; margin: 0 auto; padding: 32px 24px 80px; }
+  .breadcrumb { font-size: 12px; color: var(--muted-foreground); margin-bottom: 8px; }
+  .page-title { font-size: 28px; margin: 0 0 4px; }
+  .page-sub { font-size: 13px; color: var(--muted-foreground); margin: 0 0 28px; }
+
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 24px; overflow: hidden; }
+  .section-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .section-header h2 { font-size: 16px; margin: 0; font-family: 'Lato', sans-serif; font-weight: 600; letter-spacing: 0; }
+  .section-header .sub { font-size: 12px; color: var(--muted-foreground); margin-top: 2px; }
+  .section-toolbar { display: flex; gap: 8px; align-items: center; }
+  .section-body { padding: 6px 0; }
+
+  details.row { border-bottom: 1px solid oklch(0.78 0.04 80 / 60%); }
+  details.row:last-child { border-bottom: 0; }
+  details.row[open] { background: oklch(0.95 0.02 85 / 50%); }
+  details.row > summary {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 110px 1fr 170px 110px 28px;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  details.row > summary::-webkit-details-marker { display: none; }
+  details.row > summary:hover { background: oklch(0.95 0.02 85 / 80%); }
+  details.row .caret {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 4px;
+    color: var(--muted-foreground); transition: transform 0.15s ease;
+    font-size: 12px;
+  }
+  details.row[open] .caret { transform: rotate(90deg); color: var(--primary); }
+  .sum-title { font-weight: 600; font-size: 14px; }
+  .sum-meta { font-size: 11px; color: var(--muted-foreground); margin-top: 1px; }
+  .sum-period { font-variant-numeric: tabular-nums; }
+  .sum-amount { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .details-body {
+    padding: 4px 24px 18px 154px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 24px;
+    font-size: 13px;
+    border-top: 1px dashed oklch(0.78 0.04 80);
+    margin-top: 0;
+  }
+  .details-body .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); margin-bottom: 2px; }
+  .details-body .value { color: var(--foreground); }
+  .details-actions {
+    grid-column: 1 / -1;
+    display: flex; justify-content: flex-end; gap: 8px;
+    margin-top: 6px;
+  }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .chip-success { background: oklch(0.46 0.07 132 / 15%); color: var(--success); }
+  .chip-warning { background: oklch(0.62 0.13 55 / 18%); color: oklch(0.32 0.10 55); }
+  .chip-destructive { background: oklch(0.55 0.22 27 / 12%); color: var(--destructive); }
+  .chip-muted { background: var(--muted); color: var(--muted-foreground); }
+  .chip-info { background: oklch(0.55 0.18 240 / 12%); color: oklch(0.42 0.16 240); }
+
+  .tier-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .tier-gold { background: oklch(0.66 0.10 80); color: oklch(0.18 0.03 60); }
+  .tier-silver { background: oklch(0.78 0.02 80); color: oklch(0.25 0.04 60); }
+
+  .evidence-row { display: flex; align-items: center; gap: 8px; }
+  .evidence-thumb {
+    width: 28px; height: 28px; border-radius: 5px;
+    background: linear-gradient(135deg, oklch(0.85 0.03 85), oklch(0.78 0.04 80));
+    border: 1px solid oklch(0.78 0.04 80);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--muted-foreground);
+  }
+  .evidence-link { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; font-size: 12px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-ghost { background: transparent; color: var(--foreground); border-color: var(--border); }
+  .btn-danger-ghost { background: transparent; color: var(--destructive); border-color: oklch(0.55 0.22 27 / 30%); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  .add-form {
+    border-top: 1px solid var(--border);
+    padding: 18px 24px 22px;
+    background: oklch(0.93 0.03 85 / 40%);
+  }
+  .add-form-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); }
+  .field input, .field select, .field textarea {
+    height: 34px; padding: 4px 10px;
+    border: 1px solid var(--input); border-radius: 6px;
+    background: var(--card); color: var(--foreground);
+    font-family: inherit; font-size: 13px;
+  }
+  .field textarea { height: 60px; resize: vertical; padding-top: 8px; }
+  .field.full { grid-column: 1 / -1; }
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: 8px;
+    padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    color: var(--muted-foreground); font-size: 12px; background: oklch(0.95 0.02 85);
+    cursor: pointer;
+  }
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+  .filter-bar {
+    padding: 8px 24px;
+    background: oklch(0.88 0.03 85 / 40%);
+    border-bottom: 1px solid oklch(0.78 0.04 80 / 60%);
+    font-size: 12px;
+    display: flex; gap: 14px; align-items: center;
+    color: var(--muted-foreground);
+  }
+  .filter-tab {
+    padding: 3px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .filter-tab.active { background: var(--accent); color: var(--foreground); }
+
+  @media (max-width: 700px) {
+    details.row > summary { grid-template-columns: 90px 1fr auto; gap: 8px; padding: 12px 16px; }
+    .hide-mobile { display: none; }
+    .details-body { padding-left: 24px; grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .page { padding: 20px 12px 64px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="breadcrumb">Admin · Businesses · Spice Garden</div>
+  <h1 class="page-title">Spice Garden</h1>
+  <p class="page-sub">Tier 1 · Restaurants · biz-001</p>
+
+  <!-- Subscriptions section -->
+  <section class="section">
+    <header class="section-header">
+      <div>
+        <h2>Subscriptions</h2>
+        <div class="sub">Click a row for full detail · payment evidence + period control visibility</div>
+      </div>
+      <div class="section-toolbar">
+        <span class="chip chip-success">Currently visible</span>
+        <button class="btn btn-primary btn-sm">+ Add</button>
+      </div>
+    </header>
+    <div class="filter-bar">
+      <span>Show</span>
+      <span class="filter-tab active">All (3)</span>
+      <span class="filter-tab">Active (1)</span>
+      <span class="filter-tab">Expired (2)</span>
+    </div>
+    <div class="section-body">
+
+      <details class="row" open>
+        <summary>
+          <span class="chip chip-success">Paid</span>
+          <span>
+            <div class="sum-title">Premium Annual</div>
+            <div class="sum-meta">Discounted · 12 mo · 342 days remaining</div>
+          </span>
+          <span class="sum-period">Jan 1 → Dec 31, 2026</span>
+          <span class="sum-amount">$1,200.00</span>
+          <span class="caret">▶</span>
+        </summary>
+        <div class="details-body">
+          <div>
+            <div class="label">Payment evidence</div>
+            <div class="value evidence-row">
+              <div class="evidence-thumb">PNG</div>
+              <a class="evidence-link" href="#">zelle-payment.png</a>
+            </div>
+          </div>
+          <div>
+            <div class="label">Recorded by</div>
+            <div class="value">Priya Iyer · 2026-01-04 14:22</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div class="label">Notes</div>
+            <div class="value">Renewed early. Discount applied per email thread 2026-01-04.</div>
+          </div>
+          <div class="details-actions">
+            <button class="btn btn-ghost btn-sm">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm">Void</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="row">
+        <summary>
+          <span class="chip chip-destructive">Overdue</span>
+          <span>
+            <div class="sum-title">Basic Quarterly</div>
+            <div class="sum-meta">3 mo · Expired 252 days ago · <strong style="color: oklch(0.32 0.10 55);">No evidence</strong></div>
+          </span>
+          <span class="sum-period">Jul 1 → Sep 30, 2025</span>
+          <span class="sum-amount">$300.00</span>
+          <span class="caret">▶</span>
+        </summary>
+        <div class="details-body">
+          <div>
+            <div class="label">Payment evidence</div>
+            <div class="value"><span class="chip chip-warning">No evidence on file</span></div>
+          </div>
+          <div>
+            <div class="label">Recorded by</div>
+            <div class="value">Priya Iyer · 2025-07-01 09:10</div>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <div class="label">Notes</div>
+            <div class="value">Owner promised Zelle receipt — chase via WhatsApp.</div>
+          </div>
+          <div class="details-actions">
+            <button class="btn btn-ghost btn-sm">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm">Void</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="row">
+        <summary>
+          <span class="chip chip-muted">Paid · expired</span>
+          <span>
+            <div class="sum-title">Basic Quarterly</div>
+            <div class="sum-meta">3 mo · Expired 345 days ago</div>
+          </span>
+          <span class="sum-period">Apr 1 → Jun 30, 2025</span>
+          <span class="sum-amount">$300.00</span>
+          <span class="caret">▶</span>
+        </summary>
+        <div class="details-body">
+          <div>
+            <div class="label">Payment evidence</div>
+            <div class="value evidence-row">
+              <div class="evidence-thumb">PDF</div>
+              <a class="evidence-link" href="#">receipt-q2-2025.pdf</a>
+            </div>
+          </div>
+          <div>
+            <div class="label">Recorded by</div>
+            <div class="value">Rajan M. · 2025-04-02 11:00</div>
+          </div>
+          <div class="details-actions">
+            <button class="btn btn-ghost btn-sm">Edit</button>
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="add-form">
+      <div class="add-form-head">+ Add subscription</div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Plan</label>
+          <select>
+            <option>Premium Annual — $1,200 / 12mo</option>
+            <option>Basic Quarterly — $300 / 3mo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Start date</label>
+          <input type="date" value="2026-06-10" />
+        </div>
+        <div class="field">
+          <label>End date (auto)</label>
+          <input type="date" value="2027-06-10" />
+        </div>
+        <div class="field">
+          <label>Payment status</label>
+          <select>
+            <option>Paid</option>
+            <option>Pending</option>
+            <option>Overdue</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Amount (USD)</label>
+          <input type="number" value="1200" />
+        </div>
+        <div class="field full">
+          <label>Payment evidence (optional)</label>
+          <div class="dropzone">
+            <span>Drop screenshot or PDF · max 5 MB</span>
+            <span style="font-size: 11px;">JPEG, PNG, WebP, PDF</span>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Notes</label>
+          <textarea placeholder="Internal notes — never shown publicly"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm">Cancel</button>
+        <button class="btn btn-primary btn-sm">Record subscription</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sponsorships section -->
+  <section class="section">
+    <header class="section-header">
+      <div>
+        <h2>Sponsorships</h2>
+        <div class="sub">Click a row for full detail · per-category top placement</div>
+      </div>
+      <div class="section-toolbar">
+        <span class="chip chip-success">1 active</span>
+        <button class="btn btn-primary btn-sm">+ Add</button>
+      </div>
+    </header>
+    <div class="filter-bar">
+      <span>Show</span>
+      <span class="filter-tab active">All (3)</span>
+      <span class="filter-tab">Active (1)</span>
+      <span class="filter-tab">Scheduled (1)</span>
+      <span class="filter-tab">Expired (1)</span>
+    </div>
+    <div class="section-body">
+
+      <details class="row" open>
+        <summary>
+          <span class="chip chip-success">Active</span>
+          <span>
+            <div class="sum-title">Restaurants · <span class="tier-badge tier-gold">Gold</span></div>
+            <div class="sum-meta">Priority 1 · 51 days remaining</div>
+          </span>
+          <span class="sum-period">Jun 1 → Jul 31, 2026</span>
+          <span class="sum-amount">$500.00</span>
+          <span class="caret">▶</span>
+        </summary>
+        <div class="details-body">
+          <div>
+            <div class="label">Sort effect</div>
+            <div class="value">Top of /listings/restaurants — above all organic tiers.</div>
+          </div>
+          <div>
+            <div class="label">Notes</div>
+            <div class="value">Summer promo — top of /listings/restaurants.</div>
+          </div>
+          <div class="details-actions">
+            <button class="btn btn-ghost btn-sm">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm">Cancel</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="row">
+        <summary>
+          <span class="chip chip-info">Scheduled</span>
+          <span>
+            <div class="sum-title">Events & Entertainment · <span class="tier-badge tier-silver">Silver</span></div>
+            <div class="sum-meta">Priority 2 · starts in 52 days</div>
+          </span>
+          <span class="sum-period">Aug 1 → Sep 30, 2026</span>
+          <span class="sum-amount">$200.00</span>
+          <span class="caret">▶</span>
+        </summary>
+        <div class="details-body">
+          <div>
+            <div class="label">Notes</div>
+            <div class="value">Cross-category bid for festival season.</div>
+          </div>
+          <div class="details-actions">
+            <button class="btn btn-ghost btn-sm">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm">Cancel</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="row">
+        <summary>
+          <span class="chip chip-muted">Expired</span>
+          <span>
+            <div class="sum-title">Restaurants · <span class="tier-badge tier-silver">Silver</span></div>
+            <div class="sum-meta">Priority 2 · ended 41 days ago</div>
+          </span>
+          <span class="sum-period">Mar 1 → Apr 30, 2026</span>
+          <span class="sum-amount">$200.00</span>
+          <span class="caret">▶</span>
+        </summary>
+        <div class="details-body">
+          <div>
+            <div class="label">Notes</div>
+            <div class="value">Spring trial — converted into Gold renewal.</div>
+          </div>
+          <div class="details-actions">
+            <button class="btn btn-ghost btn-sm">Edit</button>
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="add-form">
+      <div class="add-form-head">+ Add sponsorship</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Category</label>
+          <select>
+            <option>Restaurants</option>
+            <option>Events & Entertainment</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tier</label>
+          <select>
+            <option>Gold (priority 1)</option>
+            <option>Silver (priority 2)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Start date</label>
+          <input type="date" value="2026-08-01" />
+        </div>
+        <div class="field">
+          <label>End date</label>
+          <input type="date" value="2026-09-30" />
+        </div>
+        <div class="field full">
+          <label>Amount (USD)</label>
+          <input type="number" value="500" />
+        </div>
+        <div class="field full">
+          <label>Notes</label>
+          <textarea placeholder="Internal notes"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm">Cancel</button>
+        <button class="btn btn-primary btn-sm">Add sponsorship</button>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>
