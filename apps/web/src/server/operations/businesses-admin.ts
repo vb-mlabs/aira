@@ -7,6 +7,8 @@ import "server-only"
 // per permission level. Admin ops here go through the idle-timeout
 // freshness gate via defineOperation's "admin" permission.
 
+import { and, desc, eq, gte, lte, inArray, sql } from "drizzle-orm"
+import { businessSubscriptions } from "@aira/db/schema"
 import { businesses as businessesService } from "@aira/services"
 import {
   BusinessUpdateInputSchema,
@@ -17,9 +19,26 @@ import {
   BusinessListOutputSchema,
   BusinessDetailInputSchema,
   BusinessDetailOutputSchema,
+  BusinessSchema,
 } from "@aira/validators/businesses"
+import { z } from "zod"
 import { ApiError } from "@aira/api"
 import { defineOperation } from "./index"
+
+const AdminBusinessItemSchema = BusinessSchema.extend({
+  latest_payment_status: z.enum(["paid", "pending", "overdue"]).nullable(),
+})
+
+const AdminBusinessListInputSchema = BusinessListInputSchema.extend({
+  renewing: z.coerce.number().int().min(1).max(365).optional(),
+})
+
+const AdminBusinessListOutputSchema = z.object({
+  items: z.array(AdminBusinessItemSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().min(1),
+  pageSize: z.number().int().min(1),
+})
 
 export const updateBusinessOp = defineOperation({
   name: "admin.businesses.update",
@@ -58,18 +77,53 @@ export const restoreBusinessOp = defineOperation({
 })
 
 /** Admin list — returns ALL active businesses by default, or active +
- *  archived when ?includeArchived=1. No pagination. Output shape reuses
- *  BusinessListOutputSchema with synthesized total/page/pageSize so the
- *  admin list page can read items.length and friends uniformly. */
+ *  archived when ?includeArchived=1. Accepts optional ?renewing=N to filter
+ *  to businesses whose latest subscription expires within N days. */
 export const listAllBusinessesAdminOp = defineOperation({
   name: "admin.businesses.list",
-  input: BusinessListInputSchema,
-  output: BusinessListOutputSchema,
+  input: AdminBusinessListInputSchema,
+  output: AdminBusinessListOutputSchema,
   permission: "admin",
   handler: async (db, _ctx, input) => {
-    const items = await businessesService.getAllBusinesses(db, {
+    const allItems = await businessesService.getAllBusinesses(db, {
       includeArchived: input.includeArchived ?? false,
     })
+
+    // Fetch latest subscription per business in one query using DISTINCT ON.
+    const latestSubs = await db.execute<{
+      business_id: string
+      payment_status: "paid" | "pending" | "overdue"
+      end_date: string
+    }>(sql`
+      SELECT DISTINCT ON (business_id) business_id, payment_status, end_date
+      FROM business_subscription
+      ORDER BY business_id, end_date DESC
+    `)
+
+    const subMap = new Map(
+      latestSubs.rows.map((r) => [r.business_id, r]),
+    )
+
+    // Renewing filter: keep only businesses whose latest sub end_date falls
+    // within the requested window AND payment_status IN ('paid','overdue').
+    let filtered = allItems
+    if (input.renewing) {
+      const now = new Date()
+      const cutoff = new Date(now.getTime() + input.renewing * 24 * 60 * 60 * 1000)
+      filtered = allItems.filter((b) => {
+        const sub = subMap.get(b.id)
+        if (!sub) return false
+        if (sub.payment_status !== "paid" && sub.payment_status !== "overdue") return false
+        const end = new Date(sub.end_date)
+        return end > now && end <= cutoff
+      })
+    }
+
+    const items = filtered.map((b) => ({
+      ...b,
+      latest_payment_status: subMap.get(b.id)?.payment_status ?? null,
+    }))
+
     return {
       items,
       total: items.length,
