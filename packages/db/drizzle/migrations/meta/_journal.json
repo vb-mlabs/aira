@@ -127,6 +127,13 @@
       "when": 1781031493208,
       "tag": "0017_lyrical_king_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1781071814686,
+      "tag": "0018_lucky_marten_broadcloak",
+      "breakpoints": true
     }
   ]
 }
