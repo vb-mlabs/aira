@@ -52,6 +52,26 @@ export type AuditMeta =
   // No extra metadata fields: action + target_id + actor_id are the full story.
   | { kind: "business.archived" }
   | { kind: "business.restored" }
+  // S4 — subscription + sponsorship audit trail.
+  //   business.subscription_recorded — admin manually records a payment.
+  //   business.subscription_voided   — admin deletes a subscription row.
+  //   business.sponsorship_assigned  — admin assigns a category sponsorship.
+  //   business.sponsorship_cancelled — admin cancels an active/scheduled sponsorship.
+  | {
+      kind: "business.subscription_recorded"
+      payment_status: "paid" | "pending" | "overdue"
+      plan_id: string | null
+      end_date: string
+    }
+  | { kind: "business.subscription_voided" }
+  | {
+      kind: "business.sponsorship_assigned"
+      category_id: string
+      tier_id: string
+      end_date: string
+      amount_cents: number
+    }
+  | { kind: "business.sponsorship_cancelled" }
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults
