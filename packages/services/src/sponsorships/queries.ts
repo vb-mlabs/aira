@@ -1,6 +1,6 @@
 import "server-only"
 
-import { eq, and, sql } from "drizzle-orm"
+import { eq, and, inArray, sql, count } from "drizzle-orm"
 import { sponsorships, sponsorshipTiers } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
 import type { Sponsorship } from "@aira/validators/sponsorships"
@@ -49,6 +49,28 @@ export interface ActiveSponsorshipForSort {
   business_id: string
   tier_priority: number | null
   amount_cents: number
+}
+
+/**
+ * Counts active + scheduled sponsorships for a (tier, category) pair.
+ * Used to enforce max_slots before INSERT.
+ */
+export async function countActiveSponsorships(
+  db: Database,
+  tierId: string,
+  categoryId: string,
+): Promise<number> {
+  const result = await db
+    .select({ n: count() })
+    .from(sponsorships)
+    .where(
+      and(
+        eq(sponsorships.tier_id, tierId),
+        eq(sponsorships.category_id, categoryId),
+        inArray(sponsorships.status, ["active", "scheduled"]),
+      ),
+    )
+  return result[0]?.n ?? 0
 }
 
 /** Returns currently-active sponsorships for a category — used by the sort JOIN. */
