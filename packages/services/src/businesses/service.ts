@@ -21,6 +21,7 @@ import type { CallerContext } from "@aira/api/context";
 import { ApiError } from "@aira/api";
 import type { Business, BusinessUpdateInput } from "@aira/validators/businesses";
 import {
+  createBusiness,
   getBusinessByIdIncludingArchived,
 } from "./queries";
 
@@ -50,6 +51,9 @@ export async function updateBusiness(
   if (data.hours !== undefined) updatePayload.hours = data.hours;
   if (data.aira_review !== undefined) updatePayload.aira_review = data.aira_review;
   if (data.rating !== undefined) updatePayload.rating = data.rating;
+  if (data.city_id !== undefined) updatePayload.city_id = data.city_id;
+  if (data.business_type !== undefined) updatePayload.business_type = data.business_type;
+  if (data.years_operating !== undefined) updatePayload.years_operating = data.years_operating;
 
   const hasBusinessUpdate = Object.keys(updatePayload).length > 0;
   const hasCategoryUpdate = data.extra_category_ids !== undefined;

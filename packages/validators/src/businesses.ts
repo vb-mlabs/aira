@@ -13,6 +13,23 @@ import { BusinessImageSchema } from "./business-image";
 export const VALID_TIERS = ["tier1", "tier2", "tier3"] as const;
 export type BusinessTier = (typeof VALID_TIERS)[number];
 
+export const VALID_BUSINESS_TYPES = [
+  "storefront",
+  "home_based",
+  "service_at_client",
+  "online_only",
+  "mixed",
+] as const;
+export type BusinessType = (typeof VALID_BUSINESS_TYPES)[number];
+
+export const VALID_YEARS_OPERATING = [
+  "under_1",
+  "1_to_3",
+  "3_to_5",
+  "5_plus",
+] as const;
+export type YearsOperating = (typeof VALID_YEARS_OPERATING)[number];
+
 export const VALID_CATEGORIES = [
   "restaurants",
   "education",
@@ -48,6 +65,9 @@ export const BusinessSchema = z.object({
   rating: z.number().min(0).max(5).nullable(),
   tier: BusinessTierSchema,
   verified: z.boolean(),
+  city_id: z.string().nullable(),
+  business_type: z.string().nullable(),
+  years_operating: z.string().nullable(),
   /** ISO 8601; NULL = active, non-NULL = archived at this moment. */
   deleted_at: z.string().nullable(),
   /** ISO 8601 */
@@ -78,9 +98,34 @@ export const BusinessUpdateInputSchema = z
     aira_review: z.string().nullable().optional(),
     rating: z.number().min(0).max(5).nullable().optional(),
     extra_category_ids: z.string().array().optional(),
+    city_id: z.string().nullable().optional(),
+    business_type: z.string().nullable().optional(),
+    years_operating: z.string().nullable().optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
+
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const BusinessCreateInputSchema = z
+  .object({
+    name: z.string().min(1),
+    slug: z.string().min(1).regex(slugPattern, "Slug must be lowercase kebab-case"),
+    category: BusinessCategorySchema,
+    tier: BusinessTierSchema,
+    description: z.string().nullable().optional(),
+    phone: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
+    city_id: z.string().nullable().optional(),
+    business_type: z.string().nullable().optional(),
+    years_operating: z.string().nullable().optional(),
+    instagram_url: z.string().nullable().optional(),
+    facebook_url: z.string().nullable().optional(),
+    website: z.string().nullable().optional(),
+    whatsapp_number: z.string().nullable().optional(),
+  })
+  .strict();
+export type BusinessCreateInput = z.infer<typeof BusinessCreateInputSchema>;
 
 export const BusinessUpdateOutputSchema = z.object({
   business: BusinessSchema,

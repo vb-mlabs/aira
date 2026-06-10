@@ -6,6 +6,7 @@
 // apiServerFetch and mobile via apiClient).
 
 export {
+  createBusiness,
   getFeaturedBusinesses,
   getBusinessesByCategory,
   getBusinessesByCategoryPaged,

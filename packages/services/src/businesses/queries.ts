@@ -10,6 +10,7 @@ import type { Database } from "@aira/db/client";
 import {
   VALID_TIERS,
   type Business,
+  type BusinessCreateInput,
   type BusinessTier,
   type BusinessImage,
 } from "@aira/validators";
@@ -367,10 +368,50 @@ function toBusiness(
     rating: row.rating ?? null,
     tier: isValidTier(row.tier) ? row.tier : "tier3",
     verified: row.verified,
+    city_id: row.city_id ?? null,
+    business_type: row.business_type ?? null,
+    years_operating: row.years_operating ?? null,
     deleted_at: row.deleted_at ? row.deleted_at.toISOString() : null,
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString(),
     images,
     extra_category_ids,
   };
+}
+
+export async function createBusiness(
+  db: Database,
+  input: BusinessCreateInput,
+): Promise<Business> {
+  const existing = await db
+    .select({ id: businesses.id })
+    .from(businesses)
+    .where(eq(businesses.slug, input.slug))
+    .limit(1);
+  if (existing.length > 0) {
+    throw { code: "businesses.slug_taken", message: "Slug already in use", status: 409 };
+  }
+  const [row] = await db
+    .insert(businesses)
+    .values({
+      id: crypto.randomUUID(),
+      name: input.name,
+      slug: input.slug,
+      category: input.category,
+      tier: input.tier,
+      description: input.description ?? null,
+      phone: input.phone ?? null,
+      address: input.address ?? null,
+      city_id: input.city_id ?? null,
+      business_type: input.business_type ?? null,
+      years_operating: input.years_operating ?? null,
+      instagram_url: input.instagram_url ?? null,
+      facebook_url: input.facebook_url ?? null,
+      website: input.website ?? null,
+      whatsapp_number: input.whatsapp_number ?? null,
+    })
+    .returning();
+  if (!row) throw new Error("Insert returned no row");
+  const [result] = await attachRelations(db, [row]);
+  return result!;
 }
