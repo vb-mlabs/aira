@@ -43,6 +43,28 @@ export const listBusinessesOp = defineOperation({
   output: BusinessListOutputSchema,
   permission: "user",
   handler: async (db, _ctx, input) => {
+    // Paginated all-directory browse (no category). Triggered when pagination
+    // params are present but no category is set — powers /directory.
+    const wantsAllPaged =
+      !input.category &&
+      !input.featured &&
+      (input.q !== undefined ||
+        input.page !== undefined ||
+        input.pageSize !== undefined ||
+        input.verified !== undefined)
+
+    if (wantsAllPaged) {
+      const page = input.page ?? DEFAULT_PAGE
+      const pageSize = input.pageSize ?? DEFAULT_PAGE_SIZE
+      const { items, total } = await businessesService.getAllBusinessesPaged(db, {
+        q: input.q,
+        page,
+        pageSize,
+        verified: input.verified,
+      })
+      return { items, total, page, pageSize }
+    }
+
     // Paginated category browse. Triggered as soon as any pagination /
     // search / filter input is present alongside a category — the
     // existing simple-category branch stays for callers that just want

@@ -1,8 +1,7 @@
-// /admin/audit — global audit log with date filter + pagination.
-
 import { apiServerFetch } from "@aira/api/server"
 import { listAuditOp } from "@/server/operations/admin"
 import { AuditTable } from "@/features/admin"
+import { AdminPageHeader } from "../_components/page-header"
 import { ADMIN_AUDIT_PAGE_SIZE } from "@/features/admin/types"
 
 export const metadata = { title: "Admin · Audit log" }
@@ -41,17 +40,15 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Audit log</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Every state-changing admin action, newest first.
-        </p>
-      </header>
+      <AdminPageHeader
+        title="Audit log"
+        subtitle="Every state-changing admin action, newest first."
+      />
 
       <form
         method="get"
         action="/admin/audit"
-        className="flex flex-wrap items-end gap-2 rounded-md border border-border bg-card p-4"
+        className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-card p-4"
       >
         <div className="space-y-1">
           <label htmlFor="since" className="text-xs text-muted-foreground">
@@ -61,9 +58,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
             id="since"
             name="since"
             type="date"
-            defaultValue={
-              since ? since.toISOString().slice(0, 10) : ""
-            }
+            defaultValue={since ? since.toISOString().slice(0, 10) : ""}
             className="rounded-md border border-border bg-background px-2 py-1 text-sm"
           />
         </div>
@@ -75,15 +70,13 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
             id="until"
             name="until"
             type="date"
-            defaultValue={
-              until ? until.toISOString().slice(0, 10) : ""
-            }
+            defaultValue={until ? until.toISOString().slice(0, 10) : ""}
             className="rounded-md border border-border bg-background px-2 py-1 text-sm"
           />
         </div>
         <button
           type="submit"
-          className="rounded-md bg-primary px-3 py-1 text-sm font-medium text-primary-foreground hover:opacity-90"
+          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Filter
         </button>
@@ -95,27 +88,30 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
       />
 
       {totalPages > 1 && (
-        <nav className="flex items-center justify-between text-sm">
-          <PageLink page={page - 1} disabled={page <= 1} params={params}>
-            ← Previous
-          </PageLink>
-          <p className="text-muted-foreground">
+        <nav className="flex items-center justify-between">
+          <PaginationLink page={page - 1} disabled={page <= 1} params={params}>
+            Previous
+          </PaginationLink>
+          <p className="text-sm text-muted-foreground">
             Page {page} of {totalPages}
           </p>
-          <PageLink
+          <PaginationLink
             page={page + 1}
             disabled={page >= totalPages}
             params={params}
           >
-            Next →
-          </PageLink>
+            Next
+          </PaginationLink>
         </nav>
       )}
     </div>
   )
 }
 
-function PageLink({
+const btnBase =
+  "inline-flex items-center rounded-md border border-border px-3 py-1.5 text-sm font-medium transition-colors"
+
+function PaginationLink({
   page,
   disabled,
   params,
@@ -127,7 +123,11 @@ function PageLink({
   children: React.ReactNode
 }) {
   if (disabled) {
-    return <span className="text-muted-foreground/60">{children}</span>
+    return (
+      <span className={`${btnBase} cursor-not-allowed text-muted-foreground/50`}>
+        {children}
+      </span>
+    )
   }
   const qs = new URLSearchParams()
   if (params.since) qs.set("since", params.since)
@@ -136,7 +136,7 @@ function PageLink({
   return (
     <a
       href={`/admin/audit?${qs.toString()}`}
-      className="rounded-md border border-border px-3 py-1 text-muted-foreground hover:text-foreground"
+      className={`${btnBase} bg-card text-foreground hover:bg-muted`}
     >
       {children}
     </a>

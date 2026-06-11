@@ -287,6 +287,53 @@ export async function getBusinessesByCategoryPaged(
   };
 }
 
+export interface AllBusinessesPagedInput {
+  q?: string;
+  page: number;
+  pageSize: number;
+  verified?: boolean;
+}
+
+/** Paginated directory view — all active/visible businesses across every
+ *  category. Same sort order (tier1 → tier2 → tier3, then name) as the
+ *  category-scoped variant but without a category predicate. */
+export async function getAllBusinessesPaged(
+  db: Database,
+  input: AllBusinessesPagedInput,
+): Promise<PagedBusinessesResult> {
+  const trimmed = input.q?.trim();
+  const pattern = trimmed ? `%${trimmed}%` : null;
+
+  const predicates = [isNull(businesses.deleted_at), VISIBLE];
+  if (input.verified) predicates.push(eq(businesses.verified, true));
+  if (pattern) {
+    const searchPredicate = or(
+      ilike(businesses.name, pattern),
+      ilike(businesses.description, pattern),
+      ilike(businesses.address, pattern),
+    );
+    if (searchPredicate) predicates.push(searchPredicate);
+  }
+  const where = and(...predicates);
+  const offset = (input.page - 1) * input.pageSize;
+
+  const [rows, countRows] = await Promise.all([
+    db
+      .select()
+      .from(businesses)
+      .where(where)
+      .orderBy(TIER_ORDER, asc(businesses.name))
+      .limit(input.pageSize)
+      .offset(offset),
+    db.select({ value: count() }).from(businesses).where(where),
+  ]);
+
+  return {
+    items: await attachRelations(db, rows),
+    total: Number(countRows[0]?.value ?? 0),
+  };
+}
+
 export async function getBusinessById(
   db: Database,
   id: string,

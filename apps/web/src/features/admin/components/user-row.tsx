@@ -1,49 +1,39 @@
 import Link from "next/link"
-import { cn } from "@aira/ui-web/utils"
+import { AdminBadge } from "./admin-badge"
 import type { AdminUserRow } from "@/features/admin/types"
 
-interface UserRowProps {
-  user: AdminUserRow
-}
-
-export function UserRow({ user }: UserRowProps) {
+export function UserRow({ user }: { user: AdminUserRow }) {
   const banned = !!user.banned_at
-  const isAdmin = user.role === "admin"
 
   return (
-    <Link
-      href={`/admin/users/${user.id}`}
-      className={cn(
-        "flex items-center justify-between gap-3 rounded-md border border-border bg-card p-3 transition-colors hover:bg-accent",
-        banned && "border-destructive/40 bg-destructive/5",
-      )}
-    >
-      <div className="min-w-0 flex-1">
+    <tr className="hover:bg-muted/20">
+      <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-medium">{user.name}</p>
-          {isAdmin && (
-            <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[0.65rem] font-semibold text-primary">
-              admin
-            </span>
-          )}
-          {banned && (
-            <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[0.65rem] font-semibold text-destructive">
-              banned
-            </span>
-          )}
-          {!user.email_verified && (
-            <span className="rounded bg-muted px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-foreground">
-              unverified
-            </span>
+          <Link
+            href={`/admin/users/${user.id}`}
+            className="font-medium text-primary hover:underline"
+          >
+            {user.name}
+          </Link>
+          {user.role === "admin" && (
+            <AdminBadge variant="admin" label="Admin" />
           )}
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {user.email}
-        </p>
-      </div>
-      <p className="shrink-0 text-xs text-muted-foreground">
+      </td>
+      <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
+      <td className="px-4 py-3">
+        {user.email_verified ? (
+          <span className="text-muted-foreground">—</span>
+        ) : (
+          <AdminBadge variant="unverified" label="Unverified" />
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <AdminBadge variant={banned ? "banned" : "active"} label={banned ? "Banned" : "Active"} />
+      </td>
+      <td className="px-4 py-3 text-xs text-muted-foreground">
         {new Date(user.created_at).toLocaleDateString()}
-      </p>
-    </Link>
+      </td>
+    </tr>
   )
 }

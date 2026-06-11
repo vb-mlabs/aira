@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
-import { DataList, EmptyState } from "@/lib/ui"
+import { EmptyState } from "@/lib/ui"
 import { UserRow } from "./user-row"
 import type { AdminUserRow } from "@/features/admin/types"
 
@@ -16,9 +16,6 @@ interface UserListProps {
   pageSize: number
 }
 
-// Search + filter bar (client-driven URL state) + paginated list.
-// Page is server-rendered from search params; this component just
-// pushes new params and lets the server re-fetch.
 export function UserList({ items, total, page, pageSize }: UserListProps) {
   const router = useRouter()
   const params = useSearchParams()
@@ -31,7 +28,6 @@ export function UserList({ items, total, page, pageSize }: UserListProps) {
       if (v === null || v === "") next.delete(k)
       else next.set(k, v)
     }
-    // Reset to page 1 on any non-page change.
     if (!("page" in updates)) next.delete("page")
     startTransition(() => router.push(`/admin/users?${next.toString()}`))
   }
@@ -40,6 +36,7 @@ export function UserList({ items, total, page, pageSize }: UserListProps) {
 
   return (
     <div className="space-y-4">
+      {/* Search */}
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -59,6 +56,7 @@ export function UserList({ items, total, page, pageSize }: UserListProps) {
         </Button>
       </form>
 
+      {/* Filters */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <FilterPills
           label="Role"
@@ -81,29 +79,44 @@ export function UserList({ items, total, page, pageSize }: UserListProps) {
           onSelect={(v) => navigateWith({ banned: v === "all" ? null : v })}
         />
         <p className="ml-auto text-muted-foreground">
-          {total.toLocaleString()} user{total === 1 ? "" : "s"}
+          {total.toLocaleString()} {total === 1 ? "user" : "users"}
         </p>
       </div>
 
-      <DataList
-        data={items}
-        loading={false}
-        error={null}
-        keyExtractor={(u) => u.id}
-        empty={
-          <EmptyState
-            title="No users match"
-            description="Try a different search or clear filters."
-          />
-        }
-        renderItem={(user) => <UserRow user={user} />}
-      />
+      {/* Table */}
+      {items.length === 0 ? (
+        <EmptyState
+          title="No users match"
+          description="Try a different search term or clear the filters."
+        />
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-muted/40">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Name</th>
+                <th className="px-4 py-3 text-left font-semibold">Email</th>
+                <th className="px-4 py-3 text-left font-semibold">Verified</th>
+                <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-left font-semibold">Joined</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {items.map((user) => (
+                <UserRow key={user.id} user={user} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <nav className="flex items-center justify-between text-sm">
+        <nav className="flex items-center justify-between">
           <Button
             type="button"
             variant="outline"
+            size="sm"
             disabled={page <= 1 || pending}
             onClick={() =>
               navigateWith({ page: page > 2 ? String(page - 1) : null })
@@ -111,12 +124,13 @@ export function UserList({ items, total, page, pageSize }: UserListProps) {
           >
             Previous
           </Button>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Page {page} of {totalPages}
           </p>
           <Button
             type="button"
             variant="outline"
+            size="sm"
             disabled={page >= totalPages || pending}
             onClick={() => navigateWith({ page: String(page + 1) })}
           >
@@ -126,10 +140,7 @@ export function UserList({ items, total, page, pageSize }: UserListProps) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        <Link
-          href="/admin/audit"
-          className="underline hover:text-foreground"
-        >
+        <Link href="/admin/audit" className="underline hover:text-foreground">
           View full audit log →
         </Link>
       </p>
@@ -157,7 +168,7 @@ function FilterPills({
           type="button"
           onClick={() => onSelect(opt.value)}
           className={
-            "rounded-full border px-2 py-0.5 " +
+            "rounded-full border px-2 py-0.5 text-xs transition-colors " +
             (value === opt.value
               ? "border-primary bg-primary/10 text-primary"
               : "border-border text-muted-foreground hover:text-foreground")

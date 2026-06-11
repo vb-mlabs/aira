@@ -1,8 +1,10 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Building2, Plus } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { listCitiesAdminOp } from "@/server/operations/cities-admin"
-import { cn } from "@aira/ui-web/utils"
+import { AdminBadge } from "@/features/admin"
+import { EmptyState } from "@/lib/ui"
+import { AdminPageHeader } from "../_components/page-header"
 
 export const metadata = { title: "Admin · Cities" }
 export const dynamic = "force-dynamic"
@@ -13,24 +15,27 @@ export default async function AdminCitiesPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Cities</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage the cities the directory covers.
-          </p>
-        </div>
-        <Link
-          href="/admin/cities/new"
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="size-4" aria-hidden />
-          New city
-        </Link>
-      </header>
+      <AdminPageHeader
+        title="Cities"
+        subtitle="Manage the cities the directory covers."
+        actions={
+          <Link
+            href="/admin/cities/new"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="size-4" aria-hidden />
+            New city
+          </Link>
+        }
+      />
 
       {cities.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No cities yet.</p>
+        <EmptyState
+          icon={Building2}
+          title="No cities yet"
+          description="Add the first city to start building the directory."
+          action={{ label: "New city", href: "/admin/cities/new" }}
+        />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
@@ -52,18 +57,14 @@ export default async function AdminCitiesPage() {
                       {city.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{city.slug}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    {city.slug}
+                  </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                        city.active
-                          ? "bg-success/15 text-success"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {city.active ? "Active" : "Inactive"}
-                    </span>
+                    <AdminBadge
+                      variant={city.active ? "active" : "inactive"}
+                      label={city.active ? "Active" : "Inactive"}
+                    />
                   </td>
                 </tr>
               ))}

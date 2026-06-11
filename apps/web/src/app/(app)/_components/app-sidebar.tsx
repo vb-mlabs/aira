@@ -9,7 +9,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronRight, Globe, Home, Mail, Store } from "lucide-react"
+import { ChevronRight, Globe, Home, Mail, Settings, Store } from "lucide-react"
 import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import { CATEGORIES_ORDERED, CATEGORY_META } from "@/features/listings"
@@ -20,9 +20,11 @@ interface AppSidebarProps {
   onClose?: () => void
   /** DB categories for Atlanta. When provided replaces static CATEGORIES_ORDERED. */
   categories?: Category[]
+  /** Show the Admin link at the bottom of the footer. */
+  isAdmin?: boolean
 }
 
-export function AppSidebar({ onClose, categories }: AppSidebarProps) {
+export function AppSidebar({ onClose, categories, isAdmin }: AppSidebarProps) {
   const pathname = usePathname() ?? ""
 
   // Each row's active state is "starts-with" matching so nested listing
@@ -97,6 +99,17 @@ export function AppSidebar({ onClose, categories }: AppSidebarProps) {
               )
             })}
       </nav>
+
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="flex items-center gap-3 border-t border-sidebar-border px-5 py-3 text-sm transition-colors hover:bg-sidebar-foreground/5"
+        >
+          <Settings className="size-4 flex-shrink-0 opacity-90" aria-hidden />
+          <span className="flex-1">Admin Panel</span>
+          <ChevronRight className="size-3.5 flex-shrink-0 opacity-55" aria-hidden />
+        </Link>
+      )}
 
       <footer className="border-t border-sidebar-border px-5 pb-5 pt-6 text-center">
         <p className="mb-3 font-display text-base">Contact Us</p>

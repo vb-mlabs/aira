@@ -1,10 +1,7 @@
-// /admin/users — list with search + filter + pagination. Server-renders the
-// page from the URL search params; the UserList client component pushes new
-// params to navigate.
-
 import { apiServerFetch } from "@aira/api/server"
 import { listUsersOp } from "@/server/operations/admin"
 import { UserList } from "@/features/admin"
+import { AdminPageHeader } from "../_components/page-header"
 import type { UserRole } from "@/features/admin/types"
 
 export const metadata = { title: "Admin · Users" }
@@ -39,12 +36,10 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Search, filter, and manage accounts.
-        </p>
-      </header>
+      <AdminPageHeader
+        title="Users"
+        subtitle="Search, filter, and manage accounts."
+      />
       <UserList
         items={result.items}
         total={result.total}

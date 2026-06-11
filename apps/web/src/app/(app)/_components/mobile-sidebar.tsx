@@ -14,9 +14,10 @@ import type { Category } from "@aira/validators/categories"
 
 interface MobileSidebarProps {
   categories?: Category[]
+  isAdmin?: boolean
 }
 
-export function MobileSidebar({ categories }: MobileSidebarProps) {
+export function MobileSidebar({ categories, isAdmin }: MobileSidebarProps) {
   const [open, setOpen] = useState(false)
   // Defer portal mount to client to avoid SSR/hydration mismatch.
   const [mounted, setMounted] = useState(false)
@@ -79,7 +80,7 @@ export function MobileSidebar({ categories }: MobileSidebarProps) {
               aria-modal="true"
               aria-label="Main menu"
             >
-              <AppSidebar onClose={() => setOpen(false)} categories={categories} />
+              <AppSidebar onClose={() => setOpen(false)} categories={categories} isAdmin={isAdmin} />
             </div>
           </div>,
           document.body,

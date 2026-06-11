@@ -91,7 +91,7 @@ export default async function HomePage() {
               Featured Businesses
             </h3>
             <Link
-              href="/categories"
+              href="/directory"
               className="text-sm text-primary hover:underline"
             >
               View All →

@@ -1,8 +1,10 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { CreditCard, Plus } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { listMembershipPlansOp } from "@/server/operations/membership-plans"
-import { cn } from "@aira/ui-web/utils"
+import { AdminBadge } from "@/features/admin"
+import { EmptyState } from "@/lib/ui"
+import { AdminPageHeader } from "../_components/page-header"
 
 export const metadata = { title: "Admin · Membership Plans" }
 export const dynamic = "force-dynamic"
@@ -13,24 +15,27 @@ export default async function AdminMembershipPlansPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Membership Plans</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Define the subscription plans businesses can purchase.
-          </p>
-        </div>
-        <Link
-          href="/admin/membership-plans/new"
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="size-4" aria-hidden />
-          New plan
-        </Link>
-      </header>
+      <AdminPageHeader
+        title="Membership Plans"
+        subtitle="Define the subscription plans businesses can purchase."
+        actions={
+          <Link
+            href="/admin/membership-plans/new"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="size-4" aria-hidden />
+            New plan
+          </Link>
+        }
+      />
 
       {plans.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No plans yet.</p>
+        <EmptyState
+          icon={CreditCard}
+          title="No plans yet"
+          description="Create a membership plan that businesses can subscribe to."
+          action={{ label: "New plan", href: "/admin/membership-plans/new" }}
+        />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
@@ -53,26 +58,23 @@ export default async function AdminMembershipPlansPage() {
                       {plan.name}
                     </Link>
                     {plan.description && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{plan.description}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {plan.description}
+                      </p>
                     )}
                   </td>
                   <td className="px-4 py-3 tabular-nums">
                     ${(plan.price_cents / 100).toFixed(2)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {plan.duration_months} {plan.duration_months === 1 ? "month" : "months"}
+                    {plan.duration_months}{" "}
+                    {plan.duration_months === 1 ? "month" : "months"}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                        plan.active
-                          ? "bg-success/15 text-success"
-                          : "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {plan.active ? "Active" : "Inactive"}
-                    </span>
+                    <AdminBadge
+                      variant={plan.active ? "active" : "inactive"}
+                      label={plan.active ? "Active" : "Inactive"}
+                    />
                   </td>
                 </tr>
               ))}

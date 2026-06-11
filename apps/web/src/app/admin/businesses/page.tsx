@@ -1,21 +1,18 @@
 import Link from "next/link"
-import { BadgeCheck, Download, Plus } from "lucide-react"
+import { BadgeCheck, Download, Plus, Store } from "lucide-react"
 import { Suspense } from "react"
 import { apiServerFetch } from "@aira/api/server"
 import { listAllBusinessesAdminOp } from "@/server/operations/businesses-admin"
+import { AdminBadge } from "@/features/admin"
+import { EmptyState } from "@/lib/ui"
 import { cn } from "@aira/ui-web/utils"
+import { AdminPageHeader } from "../_components/page-header"
 import { RenewingFilter } from "./_components/renewing-filter"
 
 export const metadata = { title: "Admin · Businesses" }
 export const dynamic = "force-dynamic"
 
 type PaymentStatus = "paid" | "pending" | "overdue"
-
-const SUB_CHIP_STYLES: Record<PaymentStatus, string> = {
-  paid: "bg-success/15 text-success",
-  pending: "bg-warning/15 text-warning",
-  overdue: "bg-destructive/15 text-destructive",
-}
 
 interface PageProps {
   searchParams: Promise<{ archived?: string; renewing?: string }>
@@ -39,32 +36,30 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Businesses</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            View and edit directory listings.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {renewing && (
-            <a
-              href={csvHref}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted"
+      <AdminPageHeader
+        title="Businesses"
+        subtitle="View and edit directory listings."
+        actions={
+          <>
+            {renewing && (
+              <a
+                href={csvHref}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              >
+                <Download className="size-4" aria-hidden />
+                Download CSV
+              </a>
+            )}
+            <Link
+              href="/admin/businesses/new"
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              <Download className="size-4" aria-hidden />
-              Download CSV
-            </a>
-          )}
-          <Link
-            href="/admin/businesses/new"
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus className="size-4" aria-hidden />
-            Add business
-          </Link>
-        </div>
-      </header>
+              <Plus className="size-4" aria-hidden />
+              Add business
+            </Link>
+          </>
+        }
+      />
 
       <div className="flex flex-wrap items-center gap-3">
         <Link
@@ -98,9 +93,12 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
       </div>
 
       {businesses.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {renewing ? `No businesses renewing within ${renewing} days.` : "No businesses yet."}
-        </p>
+        <EmptyState
+          icon={Store}
+          title={renewing ? `No businesses renewing within ${renewing} days` : "No businesses yet"}
+          description={renewing ? "Adjust the renewal window or check back later." : "Add your first business to get started."}
+          action={!renewing ? { label: "Add business", href: "/admin/businesses/new" } : undefined}
+        />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
@@ -120,7 +118,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 return (
                   <tr
                     key={b.id}
-                    className={cn("hover:bg-muted/20", archived && "opacity-70")}
+                    className={cn("hover:bg-muted/20", archived && "opacity-60")}
                   >
                     <td className="px-4 py-3">
                       <Link
@@ -136,15 +134,10 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                     <td className="px-4 py-3 text-muted-foreground">{b.tier}</td>
                     <td className="px-4 py-3">
                       {b.latest_payment_status ? (
-                        <span
-                          className={cn(
-                            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                            SUB_CHIP_STYLES[b.latest_payment_status as PaymentStatus] ??
-                              "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {b.latest_payment_status}
-                        </span>
+                        <AdminBadge
+                          variant={b.latest_payment_status as PaymentStatus}
+                          label={b.latest_payment_status}
+                        />
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -158,7 +151,10 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <StatusChip archived={archived} />
+                      <AdminBadge
+                        variant={archived ? "archived" : "active"}
+                        label={archived ? "Archived" : "Active"}
+                      />
                     </td>
                   </tr>
                 )
@@ -168,20 +164,5 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
         </div>
       )}
     </div>
-  )
-}
-
-function StatusChip({ archived }: { archived: boolean }) {
-  if (archived) {
-    return (
-      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-        Archived
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center rounded-full bg-success/15 px-2 py-0.5 text-xs font-medium text-success">
-      Active
-    </span>
   )
 }

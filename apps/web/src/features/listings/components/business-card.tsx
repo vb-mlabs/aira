@@ -16,7 +16,6 @@ interface BusinessCardProps {
 export function BusinessCard({ business }: BusinessCardProps) {
   const category = CATEGORY_META[business.category]
   const Icon = category.icon
-  const location = locationLabel(business.address)
 
   return (
     <article
@@ -45,14 +44,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
               className="size-4 flex-shrink-0 fill-info text-info-foreground"
             />
           )}
+        </div>
+        <div className="mt-0.5 flex items-center gap-2">
+          <p className="truncate text-xs text-muted-foreground">
+            {category.displayName}
+          </p>
           {business.rating !== null && business.rating > 0 && (
-            <RatingPill rating={business.rating} />
+            <RatingPill rating={business.rating} showValue={false} />
           )}
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {category.displayName}
-          {location && <> · {location}</>}
-        </p>
         <SocialLinks
           facebook_url={business.facebook_url}
           instagram_url={business.instagram_url}
@@ -94,10 +94,3 @@ function TierPill({ tier }: { tier: Business["tier"] }) {
   )
 }
 
-function locationLabel(address: string | null): string | null {
-  if (!address) return null
-  // Prefer the city segment if comma-separated; otherwise the first 24 chars.
-  const parts = address.split(",").map((s) => s.trim())
-  if (parts.length >= 2) return parts[parts.length - 2] || parts[0]
-  return parts[0].length > 24 ? parts[0].slice(0, 24) + "…" : parts[0]
-}

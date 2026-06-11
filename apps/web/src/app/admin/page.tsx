@@ -7,6 +7,7 @@ import { ArrowRight, ClipboardList, Store, Users } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
 import { CATEGORY_META } from "@/features/listings"
+import { AdminPageHeader } from "./_components/page-header"
 
 export const metadata = { title: "Admin · Dashboard" }
 export const dynamic = "force-dynamic"
@@ -27,12 +28,10 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="font-display text-3xl text-foreground">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Overview of the AIRA directory.
-        </p>
-      </header>
+      <AdminPageHeader
+        title="Dashboard"
+        subtitle="Overview of the directory."
+      />
 
       {/* Counts */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
