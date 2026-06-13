@@ -13,17 +13,19 @@ export function AboutEditorial() {
   return (
     <section
       id="about"
-      className="bg-[url('/marketing-images/textures/paper-ochre.webp')] bg-cover bg-center py-[120px] md:py-[120px]"
+      className="scroll-mt-20 bg-[url('/marketing-images/textures/paper-ochre.webp')] bg-cover bg-center py-[120px] md:py-[120px]"
     >
       <div className="mx-auto max-w-[1180px] px-6">
         <header className="mb-16 text-center">
           <Ornament />
-          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
+          <span className="block text-[14px] font-bold uppercase tracking-[4px] text-foreground">
             Why we built this
           </span>
-          <h2 className="mt-3.5 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-5xl">
-            The opposite of an algorithm and a pile of{" "}
-            <em className="font-bold italic text-primary">scraped data</em>.
+          <h2 className="mt-4 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-5xl">
+            Real businesses. Real people.{" "}
+            <em className="font-bold italic text-primary">
+              Not a random data dump.
+            </em>
           </h2>
         </header>
 
@@ -31,8 +33,9 @@ export function AboutEditorial() {
           <div>
             <p className="about-drop-cap text-lg leading-[1.75] text-foreground">
               Most directory apps are an algorithm. AIRA isn&rsquo;t. Every
-              listing is reviewed by a person before it appears. Real
-              businesses. Real people. Not a random data dump.
+              listing is reviewed by a person before it appears. No scraped
+              records, no auto-imported phone books &mdash; just the places
+              your neighbors would actually recommend.
             </p>
           </div>
           <div className="space-y-[22px]">

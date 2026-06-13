@@ -32,36 +32,36 @@ export function BusinessPanel() {
   return (
     <section
       id="businesses"
-      className="bg-[color:oklch(0.42_0.06_130)] bg-[url('/marketing-images/textures/paper-green.webp')] bg-cover bg-center py-[120px] text-brand-cream-bright"
+      className="scroll-mt-20 bg-[color:oklch(0.42_0.06_130)] bg-[url('/marketing-images/textures/paper-green.webp')] bg-cover bg-center py-[120px] text-brand-cream-bright"
     >
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[80px]">
         <div>
-          <span className="block text-[13px] font-bold uppercase tracking-[3.5px] text-brand-gold">
+          <span className="block text-[15px] font-bold uppercase tracking-[4px] text-brand-cream-bright">
             For business owners
           </span>
-          <h2 className="mt-3.5 font-display text-5xl font-bold leading-[1.05] text-brand-cream-bright md:text-[64px]">
+          <h2 className="mt-4 font-display text-5xl font-bold leading-[1.05] text-brand-cream-bright md:text-[68px]">
             List your business{" "}
             <em className="font-bold italic text-brand-gold">
               where Atlanta&rsquo;s Indian community looks first.
             </em>
           </h2>
-          <p className="mt-5 text-[19px] leading-[1.65] text-brand-cream-muted">
+          <p className="mt-6 text-[21px] font-medium leading-[1.55] text-brand-cream-bright">
             Get in front of a curated, growing audience. Verified members get
             the blue tick. Sponsored placement puts you at the top of your
             category.
           </p>
 
-          <ul className="my-9 space-y-[18px]">
+          <ul className="my-10 space-y-[20px]">
             {perks.map((perk) => (
-              <li key={perk.title} className="flex items-start gap-[14px]">
+              <li key={perk.title} className="flex items-start gap-[16px]">
                 <span
                   aria-hidden="true"
-                  className="mt-[3px] flex size-[22px] flex-shrink-0 items-center justify-center rounded-full bg-brand-cream-bright text-[11px] font-bold text-[color:oklch(0.42_0.06_130)]"
+                  className="mt-[3px] flex size-[26px] flex-shrink-0 items-center justify-center rounded-full bg-brand-cream-bright text-[13px] font-bold text-[color:oklch(0.42_0.06_130)]"
                 >
                   ✓
                 </span>
-                <p className="text-[15px] leading-[1.55] text-brand-cream-muted">
-                  <strong className="text-brand-cream-bright">
+                <p className="text-[17px] leading-[1.55] text-brand-cream-muted">
+                  <strong className="font-bold text-brand-cream-bright">
                     {perk.title}
                   </strong>{" "}
                   &mdash; {perk.body}

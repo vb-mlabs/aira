@@ -15,22 +15,21 @@ export function Hero() {
       <Image
         src="/marketing-images/logo.png"
         alt="AIRA tree-of-life"
-        width={160}
-        height={160}
+        width={190}
+        height={190}
         priority
-        className="mb-9 size-[160px] drop-shadow-[0_16px_32px_oklch(0.25_0.04_60_/_25%)]"
+        className="mb-5 size-[180px] drop-shadow-[0_16px_32px_oklch(0.25_0.04_60_/_25%)] md:size-[190px]"
       />
-      <h1 className="m-0 max-w-[760px] font-display text-[36px] font-semibold leading-[1.05] tracking-tight text-foreground md:text-[5.4vw] md:[font-size:clamp(36px,5.4vw,64px)]">
-        A directory of Atlanta&rsquo;s Indian community,
-        <br />
-        <em className="font-bold italic text-primary">curated with care.</em>
-      </h1>
-      <p className="mt-7 font-display text-[24px] italic text-muted-foreground">
+      <p className="mb-7 font-display text-[20px] italic text-muted-foreground md:text-[22px]">
         Roots &amp;{" "}
         <em className="font-bold not-italic text-brand-gold">
           Reach
         </em>
       </p>
+      <h1 className="m-0 max-w-[640px] font-display text-[30px] font-semibold leading-[1.2] tracking-tight text-foreground md:text-[3.6vw] md:[font-size:clamp(28px,3.6vw,44px)]">
+        A directory of Atlanta&rsquo;s Indian community,{" "}
+        <em className="font-bold italic text-primary">curated with care.</em>
+      </h1>
 
       <WaitlistCard />
     </section>
