@@ -1,7 +1,7 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-10
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09.
+**Last updated:** 2026-06-13
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
@@ -201,7 +201,7 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 ## Sprint 3 — Listings: admin CRUD + end-user browse (2 weeks)
 
-**Status:** 🟦 In flight — substantial off-roadmap progress (see Off-roadmap progress section above). Browse shell + business detail + social links + editorial fields + admin Business edit are live. Remaining S3 scope: pagination + scoped search (F7/F8), More Info modal (F10), admin star rating (F11 half), multi-category join + soft-delete/restore + gallery (F13 advanced), city-aware slugs (F25), Google Places Autocomplete (F27).
+**Status:** ✅ Done (2026-06-13) — all MVP scope shipped. F25 city-aware slugs deliberately deferred (see note below).
 
 **Goal:** Admin creates a Business with full details (Google Places address, multi-category, ≤3 gallery images, verify tick, rating). End-user opens the matching category page and sees the listing card with tap-to-call, WhatsApp, social, More Info modal.
 
@@ -209,22 +209,21 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 - ✅ F7 — Listing page pagination + A-Z sort (12/page, URL-driven; sponsored sort lands S4)
 - ✅ F8 — Scoped keyword search (in-category, debounced, URL-driven, verified filter)
 - ✅ F9 — Business Listing Card with quick actions (tel:, wa.me, social links — More Info → detail page)
-- 🟦 F10 — More Info **(detail page live — Hero, About Us, Contact, AIRA Review cards; ≤3 images carousel + directions deep-link TODO)**
+- ✅ F10 — More Info (detail page: Hero, About Us, Contact, AIRA Review cards; ≤3 image carousel via `BusinessImageCarousel`; address is a clickable Google Maps directions link — 2026-06-13)
 - ✅ F11 — Verified badge + admin star rating (RatingPill hidden when ≤ 0; 0.5-step input in admin form)
-- 🟦 F13 — Business CRUD **(soft-delete/restore + audit log + admin list Status column ✅; gallery + multi-category attach TODO — multi-category blocked on S2 category table)**
-- ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`) — S2 unblocked
-- ⬜ F27 — Google Places Autocomplete (admin Business form)
+- ✅ F13 — Business CRUD (soft-delete/restore + audit log + admin list Status column; gallery upload via `GallerySection` + `react-dropzone` + `/api/v1/admin/businesses/[id]/images` POST/DELETE; multi-category attach via `CategorySection` + `business_category` join — all shipped)
+- ✅ F27 — Google Places Autocomplete (`PlacesAddressInput` component wired in admin Business form; falls back to plain input when `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` absent)
+- ⏸ F25 (web half) — City-aware slugs **deferred to S6** — see decision note below
 
-**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`). **TODO:** `business_image` table (gallery), `business_category` join (multi-category — `category` table now available from S2 `0016`).
+**F25 deferral note (2026-06-13):** AIRA is Atlanta-only for MVP. Adding `/atlanta/` as a URL prefix to `/listings/[category]` buys zero user benefit at this stage and introduces redirect complexity + mobile deep-link coordination. Current URLs (`/listings/[category]`) are stable and shareable. **Revisit in S6** when Universal Links / App Links activation needs a stable, city-scoped URL contract for the mobile deep-link wiring. At that point, add a single `[city]` segment, seed the Atlanta slug, and add 301 redirects from the old paths.
 
-**Libs to add:**
-- `@react-google-maps/api` OR vanilla Places SDK (admin Business form)
-- `react-dropzone` (gallery image upload UI)
-- Sharp already wired in `apps/web/src/features/avatar/server/pipeline.ts` — reuse for business image processing
+**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`); ✅ `business_image` (`0020` — gallery); ✅ `business_category` join (`0020` — multi-category).
 
-**Cron jobs:** none yet.
+**Libs added:** ✅ `react-dropzone` (gallery upload UI); ✅ vanilla Places SDK via `<Script>` in admin layout (no extra npm package needed).
 
-**Risk gate:** Google Places billing alarm set in GCP. Image upload pipeline handles ≤3 images with size limits.
+**Cron jobs:** none.
+
+**Risk gate:** ✅ Google Places billing alarm set in GCP. Image upload pipeline handles ≤3 images with 8 MB cap + Sharp resize to 1200×800.
 
 ---
 
@@ -413,4 +412,6 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-09** — `@neondatabase/serverless` returns `COUNT(*)` as a JavaScript string, not a number. `Number.isFinite("12")` = false, causing the `/home` businesses stat card to render "—". Fixed by wrapping `count()` results in `Number()` in `packages/services/src/businesses/queries.ts`. *Why:* PostgreSQL `bigint` has no safe JS representation so the driver returns it as string; Drizzle's `count()` helper inherits this.
 - **2026-06-10** — Sponsorship slot limits (max_slots per category) accelerated from Phase 2 into the S5 mini-sprint. *Why:* small migration + service-layer change; admin was about to sell exclusive tiers without capacity controls, which would have required a data-fix later. Slot limits are per-(tier_id, category_id) — global limits rejected because the sponsorship model is per-category.
 - **2026-06-10** — `apps/web/src/app/admin/cron/page.tsx` uses a static `KNOWN_JOBS` array — adding a handler to the cron registry does **not** auto-surface it on the admin page. Must add an entry to `KNOWN_JOBS` (name + human schedule string) alongside every new cron job. *Why:* discovered when `renewal-reminder` was missing from the cron page despite the handler being registered; caught in QA and fixed before shipping.
+- **2026-06-13** — F25 (city-aware slugs) deferred from S3 to S6. *Why:* AIRA is Atlanta-only for MVP; `/listings/[category]` is stable and shareable; adding a `/[city]/` prefix now would require redirect handling and mobile deep-link re-coordination with no user-visible benefit. Revisit in S6 when Universal Links + App Links activation needs a stable city-scoped URL contract. At that point seed the Atlanta slug, add a `[city]` route segment, and 301 from old paths.
+- **2026-06-13** — S3 marked ✅ Done. Gallery upload (`GallerySection` + `react-dropzone` + image pipeline), multi-category attach (`CategorySection` + `business_category` join), and Google Places Autocomplete (`PlacesAddressInput`) were all shipped during the off-roadmap sprint and not reflected in the tracker. Directions deep-link added to the public business detail page (address → `maps.google.com/?q=...`).
 - **2026-06-10** — Homepage sponsored sort uses correlated subqueries (not LATERAL JOIN) to match Drizzle's `.orderBy()` builder, which has no LATERAL support. Three SQL fragments (`homepageSponsoredFlag`, `homepageSponsoredPriority`, `homepageSponsoredAmountCents`) follow the same pattern as S4's per-category sort helpers. The tier1+tier2 visibility filter is unchanged — sponsored sort lifts paying sponsors within the curated set, not beyond it.

@@ -131,7 +131,14 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
           <div className="space-y-4">
             {business.address && (
               <ContactRow icon={MapPin}>
-                {business.address}
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent(business.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {business.address}
+                </a>
               </ContactRow>
             )}
             {business.hours && (
