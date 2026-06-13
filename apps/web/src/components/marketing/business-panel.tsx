@@ -46,8 +46,8 @@ export function BusinessPanel() {
             </em>
           </h2>
           <p className="mt-6 text-[21px] font-medium leading-[1.55] text-brand-cream-bright">
-            Get in front of a curated, growing audience. Verified members get
-            the blue tick. Sponsored placement puts you at the top of your
+            Get in front of a curated, growing audience. Verified businesses
+            get the blue tick. Sponsored placement puts you at the top of your
             category.
           </p>
 
