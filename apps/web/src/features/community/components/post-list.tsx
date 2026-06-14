@@ -13,6 +13,7 @@ import { apiClient } from "@/lib/api-client"
 import { EmptyState } from "@/lib/ui"
 import type { PostRow } from "../types"
 import { PostCard } from "./post-card"
+import { PostDetailModal } from "./post-detail-modal"
 
 interface ListResponse {
   items: PostRow[]
@@ -34,6 +35,7 @@ export function PostList({ initial, currentUserId }: PostListProps) {
   const [activeQuery, setActiveQuery] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const [openId, setOpenId] = useState<string | null>(null)
 
   // Debounce the search input — fire after 300ms idle.
   useEffect(() => {
@@ -111,7 +113,11 @@ export function PostList({ initial, currentUserId }: PostListProps) {
         <ul className="space-y-3">
           {data.items.map((post) => (
             <li key={post.id}>
-              <PostCard post={post} currentUserId={currentUserId} />
+              <PostCard
+                post={post}
+                currentUserId={currentUserId}
+                onOpen={() => setOpenId(post.id)}
+              />
             </li>
           ))}
         </ul>
@@ -152,6 +158,19 @@ export function PostList({ initial, currentUserId }: PostListProps) {
       {pending && !isEmpty && (
         <p className="text-xs text-muted-foreground">Loading…</p>
       )}
+
+      {(() => {
+        const opened = data.items.find((p) => p.id === openId)
+        if (!opened) return null
+        return (
+          <PostDetailModal
+            post={opened}
+            open
+            onClose={() => setOpenId(null)}
+            currentUserId={currentUserId}
+          />
+        )
+      })()}
     </div>
   )
 }

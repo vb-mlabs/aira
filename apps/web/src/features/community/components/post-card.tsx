@@ -1,9 +1,13 @@
-// Compact community post card — matches the listing card density so the
-// /community feed and /listings/<category> share one visual rhythm. The
-// whole card is the link target via the ::after overlay technique;
-// InterestButton sits at z-10 so its hitbox wins over the overlay.
+"use client"
 
-import Link from "next/link"
+// Compact community post card — matches the listing card density so the
+// /community feed and /listings/<category> share one visual rhythm.
+//
+// PostList drives the click target via `onOpen`, opening
+// PostDetailModal inline. The InterestButton sits at z-10 so its hitbox
+// wins over the row's click handler.
+
+import { cn } from "@aira/ui-web/utils"
 import type { PostRow } from "../types"
 import { InterestButton } from "./interest-button"
 
@@ -12,25 +16,49 @@ interface PostCardProps {
   /** Current session user id, when known. Used to suppress "I can help"
    *  on a post the viewer authored. */
   currentUserId?: string | null
-  /** Whether the current session has already offered to help on this post.
-   *  Defaults to false; the parent passes the truthful value when it has
-   *  pre-fetched interests data. */
+  /** Whether the current session has already offered to help on this post. */
   alreadyHelped?: boolean
-  /** When true (default), wraps the title in a card-spanning link to the
-   *  detail page. The card on the detail page itself sets this to false. */
-  linkToDetail?: boolean
+  /** Click handler for the whole-card affordance — opens
+   *  PostDetailModal. Required when the card sits in a list; the detail
+   *  page (which renders the same data inline) passes nothing. */
+  onOpen?: () => void
 }
 
 export function PostCard({
   post,
   currentUserId = null,
   alreadyHelped = false,
-  linkToDetail = true,
+  onOpen,
 }: PostCardProps) {
   const isAuthor = currentUserId !== null && currentUserId === post.user_id
+  const clickable = Boolean(onOpen)
+
+  function activate() {
+    if (onOpen) onOpen()
+  }
 
   return (
-    <article className="relative flex items-start gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)]">
+    <article
+      onClick={clickable ? activate : undefined}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                activate()
+              }
+            }
+          : undefined
+      }
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? `View request: ${post.title}` : undefined}
+      className={cn(
+        "relative flex items-start gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-card)] transition-shadow",
+        clickable &&
+          "cursor-pointer hover:shadow-[var(--shadow-card-hover)] focus:outline-none focus:ring-2 focus:ring-ring/40",
+      )}
+    >
       <div
         aria-hidden
         className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary"
@@ -39,22 +67,12 @@ export function PostCard({
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          {linkToDetail ? (
-            <Link
-              href={`/community/${post.id}`}
-              className="font-display text-lg leading-tight text-foreground line-clamp-1 after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-offset-2"
-            >
-              {post.title}
-            </Link>
-          ) : (
-            <h2 className="font-display text-lg leading-tight text-foreground line-clamp-1">
-              {post.title}
-            </h2>
-          )}
-        </div>
+        <h3 className="font-display text-lg leading-tight text-foreground line-clamp-1">
+          {post.title}
+        </h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {post.author_name} · <span suppressHydrationWarning>{relativeTime(post.created_at)}</span>
+          {post.author_name} ·{" "}
+          <span suppressHydrationWarning>{relativeTime(post.created_at)}</span>
         </p>
         {post.body && (
           <p className="mt-1 line-clamp-1 text-xs leading-snug text-foreground/85">
@@ -74,7 +92,11 @@ export function PostCard({
                 : `${post.interest_count} helpers`}
           </p>
         ) : (
-          <div className="relative z-10">
+          <div
+            className="relative z-10"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <InterestButton
               postId={post.id}
               initialActive={alreadyHelped}
@@ -84,6 +106,39 @@ export function PostCard({
           </div>
         )}
       </div>
+    </article>
+  )
+}
+
+/**
+ * Compact read-only variant — used on the standalone /community/[id] page
+ * (still reachable via notification deep-links). No click target, no
+ * InterestButton; the page surrounding it owns the interaction.
+ */
+export function PostCardReadOnly({ post }: { post: PostRow }) {
+  return (
+    <article className="relative flex items-start gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-card)]">
+      <div
+        aria-hidden
+        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary"
+      >
+        {initialsOf(post.author_name)}
+      </div>
+      <div className="min-w-0 flex-1">
+        <h2 className="font-display text-lg leading-tight text-foreground">
+          {post.title}
+        </h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {post.author_name} ·{" "}
+          <span suppressHydrationWarning>{relativeTime(post.created_at)}</span>
+        </p>
+        {post.body && (
+          <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-foreground/85">
+            {post.body}
+          </p>
+        )}
+      </div>
+      <StatusPill status={post.status} />
     </article>
   )
 }
@@ -139,3 +194,4 @@ function relativeTime(iso: string): string {
   const dd = String(dt.getUTCDate()).padStart(2, "0")
   return `${mm}/${dd}/${dt.getUTCFullYear()}`
 }
+

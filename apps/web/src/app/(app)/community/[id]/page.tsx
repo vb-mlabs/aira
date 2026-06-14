@@ -15,7 +15,7 @@ import {
   getCommunityPostOp,
   listInterestsOp,
 } from "@/server/operations/community"
-import { PostCard } from "@/features/community"
+import { PostCardReadOnly } from "@/features/community"
 import type { InterestRow } from "@/features/community"
 
 export const dynamic = "force-dynamic"
@@ -61,13 +61,9 @@ export default async function CommunityPostPage({
         Back to community
       </Link>
 
-      <article className="mt-4">
-        <PostCard
-          post={post}
-          currentUserId={user.id}
-          linkToDetail={false}
-        />
-      </article>
+      <div className="mt-4">
+        <PostCardReadOnly post={post} />
+      </div>
 
       {isAuthor ? (
         <section

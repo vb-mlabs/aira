@@ -1,7 +1,8 @@
 // Public surface of features/community. Components only — no server
 // modules (those live in @aira/services/community).
 
-export { PostCard } from "./components/post-card"
+export { PostCard, PostCardReadOnly } from "./components/post-card"
+export { PostDetailModal } from "./components/post-detail-modal"
 export { PostForm } from "./components/post-form"
 export { PostList } from "./components/post-list"
 export { InterestButton } from "./components/interest-button"
