@@ -148,6 +148,13 @@
       "when": 1781100668629,
       "tag": "0020_nebulous_colonel_america",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1781413824616,
+      "tag": "0021_lush_rattler",
+      "breakpoints": true
     }
   ]
 }

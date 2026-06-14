@@ -29,3 +29,6 @@ export * from "./business-subscriptions"
 export * from "./sponsorship-tiers"
 export * from "./sponsorships"
 export * from "./cron-runs"
+// S5: F20 community requests board
+export * from "./community-post"
+export * from "./post-interest"
