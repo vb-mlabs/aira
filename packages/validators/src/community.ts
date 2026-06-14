@@ -13,6 +13,11 @@ export const COMMUNITY_POST_STATUSES = [
 export type CommunityPostStatus = (typeof COMMUNITY_POST_STATUSES)[number];
 export const CommunityPostStatusSchema = z.enum(COMMUNITY_POST_STATUSES);
 
+/** Shared length bounds. CreatePostInputSchema and EditPostInputSchema both
+ *  read from here so the rules can't drift. */
+export const COMMUNITY_POST_TITLE_MAX = 120;
+export const COMMUNITY_POST_BODY_MAX = 1000;
+
 /** Public row — what end users see on the board and detail page. Excludes
  *  rejected_reason and the raw user_id (the post author's display name is
  *  exposed via `author_name`). Rejected posts are never returned through the
@@ -91,8 +96,8 @@ export type ListPostsOutput = z.infer<typeof ListPostsOutputSchema>;
 
 export const CreatePostInputSchema = z
   .object({
-    title: z.string().trim().min(1).max(120),
-    body: z.string().trim().max(1000).optional(),
+    title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX),
+    body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).optional(),
   })
   .strict();
 export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
@@ -160,11 +165,24 @@ export const AdminListPostsInputSchema = z
   .strict();
 export type AdminListPostsInput = z.infer<typeof AdminListPostsInputSchema>;
 
+/** Counts of posts in each status. Surfaced on the admin queue page so the
+ *  filter chips can show "Pending (3) · Approved (12) · …" without a second
+ *  round-trip. Returned alongside the paginated items on every adminList
+ *  call. */
+export const StatusCountsSchema = z.object({
+  pending: z.number().int().nonnegative(),
+  approved: z.number().int().nonnegative(),
+  expired: z.number().int().nonnegative(),
+  rejected: z.number().int().nonnegative(),
+});
+export type StatusCounts = z.infer<typeof StatusCountsSchema>;
+
 export const AdminListPostsOutputSchema = z.object({
   items: z.array(AdminPostRowSchema),
   total: z.number().int().nonnegative(),
   page: z.number().int().min(1),
   pageSize: z.number().int().min(1),
+  status_counts: StatusCountsSchema,
 });
 export type AdminListPostsOutput = z.infer<typeof AdminListPostsOutputSchema>;
 
@@ -182,3 +200,49 @@ export const AdminModeratePostOutputSchema = z.object({
   post: AdminPostRowSchema,
 });
 export type AdminModeratePostOutput = z.infer<typeof AdminModeratePostOutputSchema>;
+
+// ─── Admin edit + delete + admin-only interests (F20 v2) ────────────────────
+
+/** Admin can edit the title and/or body of any post regardless of status.
+ *  Status is never changed by an edit — keep approve/reject as the only
+ *  state-change actions. At least one of title or body must be present;
+ *  the .refine() enforces this so the operation surface stays honest.
+ *
+ *  An explicit `body: null` clears the body. An empty string is rejected
+ *  to nudge the admin to use clear-via-empty intentionally (`null` is
+ *  unambiguous; `""` looks like a typo). */
+export const EditPostInputSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX).optional(),
+    body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).nullable().optional(),
+  })
+  .strict()
+  .refine((v) => v.title !== undefined || v.body !== undefined, {
+    message: "Nothing to update.",
+  });
+export type EditPostInput = z.infer<typeof EditPostInputSchema>;
+
+export const EditPostOutputSchema = z.object({
+  post: AdminPostRowSchema,
+});
+export type EditPostOutput = z.infer<typeof EditPostOutputSchema>;
+
+export const DeletePostInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type DeletePostInput = z.infer<typeof DeletePostInputSchema>;
+
+export const DeletePostOutputSchema = z.object({
+  ok: z.literal(true),
+});
+export type DeletePostOutput = z.infer<typeof DeletePostOutputSchema>;
+
+/** Admin-side list of respondents for any post. The public-side
+ *  listInterests enforces author-only access; this admin variant bypasses
+ *  that guard at the service layer (the operation's `permission: "admin"`
+ *  gate is the real ACL). Output shape mirrors ListInterestsOutputSchema. */
+export const AdminListInterestsInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type AdminListInterestsInput = z.infer<typeof AdminListInterestsInputSchema>;
