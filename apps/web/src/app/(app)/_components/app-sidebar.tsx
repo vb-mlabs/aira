@@ -9,7 +9,15 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronRight, Globe, Home, Mail, Settings, Store } from "lucide-react"
+import {
+  ChevronRight,
+  Globe,
+  Home,
+  Mail,
+  MessageSquare,
+  Settings,
+  Store,
+} from "lucide-react"
 import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import { CATEGORIES_ORDERED, CATEGORY_META } from "@/features/listings"
@@ -75,6 +83,12 @@ export function AppSidebar({ onClose, categories, isAdmin }: AppSidebarProps) {
           label="Home"
           icon={Home}
           active={isActive("/home")}
+        />
+        <SidebarRow
+          href="/community"
+          label="Community"
+          icon={MessageSquare}
+          active={isActive("/community")}
         />
         {useFallback
           ? CATEGORIES_ORDERED.map((cat) => (
