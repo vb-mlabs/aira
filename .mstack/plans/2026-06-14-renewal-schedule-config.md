@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-14
 **Slug:** renewal-schedule-config
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 
 ---
