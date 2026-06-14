@@ -18,3 +18,4 @@ export * from "./membership-plans";
 export * from "./business-subscriptions";
 export * from "./sponsorship-tiers";
 export * from "./sponsorships";
+export * from "./community";
