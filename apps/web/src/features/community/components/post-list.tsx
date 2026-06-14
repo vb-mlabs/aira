@@ -108,7 +108,7 @@ export function PostList({ initial, currentUserId }: PostListProps) {
           }
         />
       ) : (
-        <ul className="space-y-5">
+        <ul className="space-y-3">
           {data.items.map((post) => (
             <li key={post.id}>
               <PostCard post={post} currentUserId={currentUserId} />

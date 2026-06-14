@@ -1,7 +1,7 @@
-// Editorial card for a single community post. Server-renderable — the
-// "I can help" interaction lives in <InterestButton/> (client). Drops the
-// button when the viewer is the post author; otherwise hands current-state
-// + count to the button.
+// Compact community post card — matches the listing card density so the
+// /community feed and /listings/<category> share one visual rhythm. The
+// whole card is the link target via the ::after overlay technique;
+// InterestButton sits at z-10 so its hitbox wins over the overlay.
 
 import Link from "next/link"
 import type { PostRow } from "../types"
@@ -16,8 +16,8 @@ interface PostCardProps {
    *  Defaults to false; the parent passes the truthful value when it has
    *  pre-fetched interests data. */
   alreadyHelped?: boolean
-  /** When true, wraps the title in a link to the detail page. The card on
-   *  the detail page itself sets this to false (no self-link). */
+  /** When true (default), wraps the title in a card-spanning link to the
+   *  detail page. The card on the detail page itself sets this to false. */
   linkToDetail?: boolean
 }
 
@@ -29,63 +29,61 @@ export function PostCard({
 }: PostCardProps) {
   const isAuthor = currentUserId !== null && currentUserId === post.user_id
 
-  const title = linkToDetail ? (
-    <Link
-      href={`/community/${post.id}`}
-      className="font-display text-2xl leading-snug text-foreground hover:underline md:text-[28px]"
-    >
-      {post.title}
-    </Link>
-  ) : (
-    <h2 className="font-display text-2xl leading-snug text-foreground md:text-[28px]">
-      {post.title}
-    </h2>
-  )
-
   return (
-    <article className="rounded-xl bg-card px-6 py-6 shadow-[var(--shadow-card)] sm:px-8 sm:py-7">
-      <header className="flex items-center gap-3">
-        <div
-          aria-hidden
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary"
-        >
-          {initialsOf(post.author_name)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-tight text-foreground">
-            {post.author_name}
-          </p>
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            {relativeTime(post.created_at)}
-          </p>
-        </div>
-        <StatusPill status={post.status} />
-      </header>
+    <article className="relative flex items-start gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)]">
+      <div
+        aria-hidden
+        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary"
+      >
+        {initialsOf(post.author_name)}
+      </div>
 
-      <div className="mt-5">{title}</div>
-      {post.body && (
-        <p className="mt-3 text-[15px] leading-relaxed text-foreground/85">
-          {post.body}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          {linkToDetail ? (
+            <Link
+              href={`/community/${post.id}`}
+              className="font-display text-lg leading-tight text-foreground line-clamp-1 after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-ring focus-visible:after:ring-offset-2"
+            >
+              {post.title}
+            </Link>
+          ) : (
+            <h2 className="font-display text-lg leading-tight text-foreground line-clamp-1">
+              {post.title}
+            </h2>
+          )}
+        </div>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {post.author_name} · <span suppressHydrationWarning>{relativeTime(post.created_at)}</span>
         </p>
-      )}
+        {post.body && (
+          <p className="mt-1 line-clamp-1 text-xs leading-snug text-foreground/85">
+            {post.body}
+          </p>
+        )}
+      </div>
 
-      <footer className="mt-6">
+      <div className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch">
+        <StatusPill status={post.status} />
         {isAuthor ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             {post.interest_count === 0
-              ? "No one has offered help yet."
+              ? "No offers yet"
               : post.interest_count === 1
-                ? "1 neighbour has offered to help."
-                : `${post.interest_count} neighbours have offered to help.`}
+                ? "1 helper"
+                : `${post.interest_count} helpers`}
           </p>
         ) : (
-          <InterestButton
-            postId={post.id}
-            initialActive={alreadyHelped}
-            initialCount={post.interest_count}
-          />
+          <div className="relative z-10">
+            <InterestButton
+              postId={post.id}
+              initialActive={alreadyHelped}
+              initialCount={post.interest_count}
+              showCount={false}
+            />
+          </div>
         )}
-      </footer>
+      </div>
     </article>
   )
 }
@@ -93,28 +91,28 @@ export function PostCard({
 function StatusPill({ status }: { status: PostRow["status"] }) {
   if (status === "approved") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-        <span aria-hidden className="size-1.5 rounded-full bg-primary" />
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+        <span aria-hidden className="size-1 rounded-full bg-primary" />
         Open
       </span>
     )
   }
   if (status === "expired") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+      <span className="inline-flex shrink-0 items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
         Closed
       </span>
     )
   }
   if (status === "pending") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-[11px] font-medium text-warning-foreground">
-        Pending review
+      <span className="inline-flex shrink-0 items-center rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning-foreground">
+        Pending
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-1 text-[11px] font-medium text-destructive">
+    <span className="inline-flex shrink-0 items-center rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
       Not approved
     </span>
   )
@@ -136,5 +134,8 @@ function relativeTime(iso: string): string {
   const d = Math.floor(h / 24)
   if (d < 7) return `${d}d ago`
   if (d < 30) return `${Math.floor(d / 7)}w ago`
-  return new Date(iso).toLocaleDateString()
+  const dt = new Date(iso)
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0")
+  const dd = String(dt.getUTCDate()).padStart(2, "0")
+  return `${mm}/${dd}/${dt.getUTCFullYear()}`
 }
