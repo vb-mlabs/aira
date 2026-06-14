@@ -1,7 +1,7 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-13
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13.
+**Last updated:** 2026-06-14
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
@@ -105,6 +105,21 @@ Plan: `.mstack/plans/2026-06-10-s5-renewal-reminder-homepage-slots.md`. Three fo
 - **Sponsorship slot limits (accelerated from Phase 2):** `max_slots integer NULL` added to `sponsorship_tier` (migration `0019`). Enforced per-(tier, category) at create time — `409 sponsorship.tier_slots_full` if slot count ≥ max_slots. "Add sponsorship" dialog re-fetches tiers with slot annotation after category selection; full tiers disabled. "Max slots per category" field in tier admin form.
 
 QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-severity issue found and fixed (missing `KNOWN_JOBS` entry for `renewal-reminder` on the admin cron page).
+
+### ✅ S5 — F14 purge cron (2026-06-10)
+Plan: `.mstack/plans/2026-06-10-f14-purge-soft-deleted.md`. `purge-soft-deleted` daily job (03:00 UTC) hard-deletes businesses archived more than 180 days ago, logging the affected count to `cron_run` via the standard envelope. Registered alongside the rest of the cron suite in `apps/web/src/lib/cron/registry.ts`.
+
+### ✅ S5 — F20 Community Requests Board (2026-06-14) — **end-to-end shipped**
+Plan: `.mstack/plans/2026-06-13-community-requests-board.md`. Review locked Option B (posts + private "I can help" intent signal) over PRD-spec posts-only. v2 editorial-cards mockup picked from `.mstack/mockups/community-requests-board/`. Implementation ledger at `.mstack/code/2026-06-13-community-requests-board/` (14 commits, atomic per task).
+
+- Two tables shipped via migration `0021` — `community_post` (id, user_id, title, body, status enum, expires_at, rejected_reason, interest_count, approved_at, created_at) and `post_interest` (unique per post_id × user_id) — plus `posts_expiry_days = 30` seeded into `app_setting`
+- `NotificationBody` discriminated union extended with a `post_interest` variant; both the web `notification-item.tsx` and mobile `notifications.tsx` renderers updated to cover the new kind
+- 8 REST endpoints under `/api/v1/community/*` and `/api/v1/admin/community/*` via `defineOperation`; auth model matches existing patterns (sidebar-gated web, bearer-gated mobile)
+- Service-layer authz: 1-active-post-per-user limit, self-interest blocked, author-only respondent list (`listInterests` 403 otherwise)
+- `expire-posts` hourly cron registered in `registry.ts` and surfaced on `/admin/cron` (caught + fixed in QA as a follow-on missed `KNOWN_JOBS` entry)
+- UI: editorial card stack on `/community` (search + paginated 10/page), Dialog "Ask the community" form, gradient "I can help" toggle, author-only respondent card on detail page, admin moderation queue at `/admin/community` with inline Approve/Reject + reason
+- Nav: Community entry added to `(app)` sidebar (above categories) and to admin sidebar's `ADMIN_NAV`; bottom-tab-bar untouched (locked at 3 tabs per V4 mockup)
+- QA: 11/11 Playwright scenarios pass (`.mstack/qa/2026-06-14-0507/`). Two issues found and fixed: (1) `expire-posts` missing from admin cron page's `KNOWN_JOBS` array (same drift as F17 caught earlier — re-recorded in learnings); (2) stale duplicate "X have offered to help" paragraph on the non-author detail-page branch removed because `InterestButton` already renders the same count and the page-level paragraph went stale until next navigation.
 
 ### Other notable items
 - Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), `0017` (membership_plan + business_subscription), `0018` (sponsorship_tier + sponsorship), `0019` (sponsorship_tier.max_slots), plus waitlist extensions.
@@ -256,27 +271,27 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 ## Sprint 5 — Renewals, Posts board, Broadcasts (2 weeks)
 
-**Status:** 🟦 In flight — F17 (renewal reminder, 7-day fixed window) and homepage sponsored sort shipped in the S5 mini-sprint (2026-06-10). Community Requests Board, Notifications broadcast, and purge cron remain.
+**Status:** 🟦 In flight — F14 (purge cron), F17 (7-day window), homepage sponsored sort, and **F20 Community Requests Board** all shipped. **F21 push broadcasts and the F17 configurable-schedule remainder are the only S5 items left.**
 
 **Goal:** Renewal reminder emails go out on the configurable schedule. Community Requests Board live with submission + moderation queue + auto-expiry. Admin broadcasts a push notification to a segment of business users and it lands on real devices.
 
 **Features (PRD refs):**
 - 🟦 F17 (amended) — Renewal reminder automation, **email-only** via Postmark. **7-day fixed window shipped** (daily cron, admin inbox, deep-link to renewing filter). Configurable schedule (`AppSetting.reminder_schedule`) and individual business-owner emails remain.
-- ⬜ F20 — Community Requests Board (submission with PENDING status, admin moderation, auto-expire after `posts_expiry_days`, search/pagination)
-- ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`.
-- ⬜ F14 — Lifecycle: `purge_soft_deleted` cron (default 180 days)
+- ✅ F20 — Community Requests Board (submission → admin moderation → approved board with search/pagination, "I can help" private intent signal, in-app notification to author, hourly expiry cron) — shipped 2026-06-14, QA 11/11
+- ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`. **Gated on S0 EAS init.**
+- ✅ F14 — Lifecycle: `purge_soft_deleted` cron (180 days default) — shipped in S5 mini-sprint
 
-**Schema additions:** `post`, `notification`, `notification_delivery` (optional but recommended for delivery tracking). Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
+**Schema additions:** ✅ `community_post`, `post_interest` (migration `0021`) shipped with F20. `notification`, `notification_delivery` still pending for F21 broadcast delivery tracking. Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
 
 **Libs to add:**
-- `expo-server-sdk` (push delivery from the Next.js server)
-- Postmark template additions for the 3 reminder windows
+- `expo-server-sdk` (push delivery from the Next.js server) — F21
+- Postmark template additions for the configurable reminder windows — F17 remainder
 
 **Cron jobs added:**
-- `expire_posts` (hourly): status PENDING/APPROVED with `expires_at < now` → EXPIRED
-- ✅ `renewal-reminder` (daily 08:00 UTC): query paid subscriptions expiring within 7 days, dispatch summary email to admin inbox — **shipped in S5 mini-sprint**
-- `renewal_reminders` full (daily): configurable multi-window schedule offsets + per-business-owner emails — remaining
-- `purge_soft_deleted` (daily): hard-delete businesses with `status=soft_deleted AND deleted_at > now - purge_days`
+- ✅ `expire-posts` (hourly): approved community posts past `expires_at` flip to EXPIRED — shipped with F20
+- ✅ `renewal-reminder` (daily 08:00 UTC): query paid subscriptions expiring within 7 days, dispatch summary email to admin inbox — shipped in S5 mini-sprint
+- ⬜ `renewal_reminders` full (daily): configurable multi-window schedule offsets + per-business-owner emails — remaining
+- ✅ `purge-soft-deleted` (daily 03:00 UTC): hard-delete businesses archived more than 180 days ago — shipped
 
 **Risk gate:** Push notification arrives on a real iOS device AND a real Android device. Renewal email lands in Postmark + delivers to a real inbox (not just localhost test).
 
@@ -415,3 +430,7 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-13** — F25 (city-aware slugs) deferred from S3 to S6. *Why:* AIRA is Atlanta-only for MVP; `/listings/[category]` is stable and shareable; adding a `/[city]/` prefix now would require redirect handling and mobile deep-link re-coordination with no user-visible benefit. Revisit in S6 when Universal Links + App Links activation needs a stable city-scoped URL contract. At that point seed the Atlanta slug, add a `[city]` route segment, and 301 from old paths.
 - **2026-06-13** — S3 marked ✅ Done. Gallery upload (`GallerySection` + `react-dropzone` + image pipeline), multi-category attach (`CategorySection` + `business_category` join), and Google Places Autocomplete (`PlacesAddressInput`) were all shipped during the off-roadmap sprint and not reflected in the tracker. Directions deep-link added to the public business detail page (address → `maps.google.com/?q=...`).
 - **2026-06-10** — Homepage sponsored sort uses correlated subqueries (not LATERAL JOIN) to match Drizzle's `.orderBy()` builder, which has no LATERAL support. Three SQL fragments (`homepageSponsoredFlag`, `homepageSponsoredPriority`, `homepageSponsoredAmountCents`) follow the same pattern as S4's per-category sort helpers. The tier1+tier2 visibility filter is unchanged — sponsored sort lifts paying sponsors within the curated set, not beyond it.
+- **2026-06-13** — F20 scope extended beyond PRD: added private "I can help" intent signal (`post_interest` table) on top of the PRD's plain posts-only spec. *Why:* PRD F20 leaves the word-of-mouth loop open — someone posts a request, but there's no app-native way for another member to close it. The intent signal stays inside MVP scope (no public threads, no in-app messaging — the responder's optional note IS the help signal). Locked in `/mlabs-plan` consultation as Option B over Option A (posts only) and Option C (full public comments).
+- **2026-06-14** — `/admin/cron`'s `KNOWN_JOBS` drift caught a SECOND time (first time was `renewal-reminder` in the S5 mini-sprint; second time was `expire-posts` shipping with F20). *Why pattern matters:* the admin cron page maintains a static display array decoupled from `apps/web/src/lib/cron/registry.ts`. Adding a handler to the registry does not auto-surface it on the admin page. Every new cron job needs an entry in `KNOWN_JOBS` (name + human schedule string). Recorded again in `.mstack/learnings.jsonl` — consider promoting to a CI check if this drifts a third time.
+- **2026-06-14** — Discriminated-union changes (e.g. adding a `kind` to `NotificationBody`) break sibling `switch (body.kind)` statements in BOTH the web `notification-item.tsx` and the mobile `notifications.tsx` renderers. Plans that grow the union must list both renderer files as edit targets, OR sequence the renderer-coverage tasks BEFORE the union-extension task (so the union grows under exhaustive coverage). Surfaced during F20's `/mlabs-code` run; T7 (renderer) had to be pulled forward before T4 (routes) would typecheck.
+- **2026-06-14** — Migration-time SQL seeds (e.g. `INSERT INTO app_setting`) need an explicit `gen_random_uuid()::text` for the id column. The schema's `$defaultFn(() => crypto.randomUUID())` is **application-side only** and does not become a SQL column DEFAULT, so a bare `INSERT (key, value)` fails with NOT NULL on `id`. Caught when seeding `posts_expiry_days` for F20.
