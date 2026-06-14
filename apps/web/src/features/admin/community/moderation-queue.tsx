@@ -28,10 +28,11 @@ import type {
 import { DeleteConfirmDialog } from "./delete-confirm-dialog"
 import { EditPostModal } from "./edit-post-modal"
 import { RespondentList } from "./respondent-list"
+import type { StatusFilterValue } from "./status-filter"
 
 interface ModerationQueueProps {
   initialItems: AdminPostRow[]
-  currentStatus: CommunityPostStatus
+  currentStatus: StatusFilterValue
 }
 
 interface ModerateResponse {
@@ -39,9 +40,14 @@ interface ModerateResponse {
 }
 
 const EMPTY_COPY: Record<
-  CommunityPostStatus,
+  StatusFilterValue,
   { title: string; description: string }
 > = {
+  all: {
+    title: "No requests yet",
+    description:
+      "When a community member submits a request, it shows up here for moderation.",
+  },
   pending: {
     title: "Nothing waiting for review",
     description:

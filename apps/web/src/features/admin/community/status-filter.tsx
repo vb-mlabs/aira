@@ -3,6 +3,10 @@
 // Server component. Each chip is a plain <Link> updating the ?status=
 // query param. The page reads searchParams.status to drive the active
 // state; counts come from the same round-trip that fetched the rows.
+//
+// "All" is the default — keeps everything visible on first hit so an
+// admin landing on the page sees the full picture. Pending is one click
+// away via its chip.
 
 import Link from "next/link"
 import { cn } from "@aira/ui-web/utils"
@@ -11,33 +15,46 @@ import type {
   StatusCounts,
 } from "@aira/validators/community"
 
+/** Page-level filter selector. "all" means no `status=` query param at all;
+ *  each named status drives the matching DB filter. */
+export type StatusFilterValue = "all" | CommunityPostStatus
+
 interface StatusFilterProps {
-  currentStatus: CommunityPostStatus
+  currentStatus: StatusFilterValue
   counts: StatusCounts
 }
 
 interface Chip {
-  status: CommunityPostStatus
+  status: StatusFilterValue
   label: string
+  href: string
 }
 
 const CHIPS: readonly Chip[] = [
-  { status: "pending", label: "Pending" },
-  { status: "approved", label: "Approved" },
-  { status: "expired", label: "Expired" },
-  { status: "rejected", label: "Rejected" },
+  { status: "all", label: "All", href: "/admin/community" },
+  { status: "pending", label: "Pending", href: "/admin/community?status=pending" },
+  { status: "approved", label: "Approved", href: "/admin/community?status=approved" },
+  { status: "expired", label: "Expired", href: "/admin/community?status=expired" },
+  { status: "rejected", label: "Rejected", href: "/admin/community?status=rejected" },
 ] as const
+
+function countFor(status: StatusFilterValue, counts: StatusCounts): number {
+  if (status === "all") {
+    return counts.pending + counts.approved + counts.expired + counts.rejected
+  }
+  return counts[status]
+}
 
 export function StatusFilter({ currentStatus, counts }: StatusFilterProps) {
   return (
     <nav aria-label="Filter by status" className="flex flex-wrap gap-2">
       {CHIPS.map((chip) => {
         const active = chip.status === currentStatus
-        const count = counts[chip.status]
+        const count = countFor(chip.status, counts)
         return (
           <Link
             key={chip.status}
-            href={`/admin/community?status=${chip.status}`}
+            href={chip.href}
             aria-current={active ? "page" : undefined}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
