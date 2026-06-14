@@ -12,6 +12,7 @@ const KNOWN_JOBS = [
   { name: "sponsorship-status-rollover", schedule: "0 * * * * (hourly)" },
   { name: "renewal-reminder", schedule: "0 8 * * * (daily 08:00 UTC)" },
   { name: "purge-soft-deleted", schedule: "0 3 * * * (daily 03:00 UTC)" },
+  { name: "expire-posts", schedule: "0 * * * * (hourly)" },
 ]
 
 type CronStatus = "running" | "succeeded" | "failed" | "skipped"
