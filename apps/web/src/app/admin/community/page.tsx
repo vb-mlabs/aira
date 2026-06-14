@@ -7,7 +7,7 @@
 import { apiServerFetch } from "@aira/api/server"
 import { CommunityPostStatusSchema } from "@aira/validators/community"
 import { adminListCommunityPostsOp } from "@/server/operations/community"
-import { ModerationQueue } from "@/features/admin/community/moderation-queue"
+import { CommunityTable } from "@/features/admin/community/community-table"
 import {
   StatusFilter,
   type StatusFilterValue,
@@ -58,7 +58,7 @@ export default async function AdminCommunityPage({
         subtitle={`${counts.pending} pending · ${counts.approved} approved · ${counts.expired} expired · ${counts.rejected} rejected`}
       />
       <StatusFilter currentStatus={status} counts={counts} />
-      <ModerationQueue initialItems={items} currentStatus={status} />
+      <CommunityTable items={items} currentStatus={status} />
     </div>
   )
 }

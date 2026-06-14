@@ -15,6 +15,7 @@ export {
   expirePosts,
   adminListPosts,
   getAdminPostStatusCounts,
+  adminGetPost,
   editPost,
   deletePost,
   adminListInterests,

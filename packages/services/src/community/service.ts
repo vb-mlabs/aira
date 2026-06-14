@@ -612,6 +612,26 @@ export async function getAdminPostStatusCounts(
   return counts
 }
 
+/**
+ * Admin-side single post read. No visibility filter — returns the row
+ * regardless of status (including rejected) so the moderation detail page
+ * can render everything. Authorization gate is at the op layer
+ * (`permission: "admin"`); the service treats the admin as trusted.
+ */
+export async function adminGetPost(
+  db: Database,
+  _ctx: CallerContext,
+  args: { id: string },
+): Promise<{ post: AdminPostRow | null }> {
+  const [row] = await db
+    .select(POST_SELECT)
+    .from(communityPost)
+    .leftJoin(user, eq(user.id, communityPost.user_id))
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+  return { post: row ? toAdminPostRow(row) : null }
+}
+
 // ─── Admin: post edit / delete / respondent visibility (F20 v2) ────────────
 
 /**

@@ -11,6 +11,8 @@ import "server-only"
 import { community as communityService } from "@aira/services"
 import {
   AddInterestInputSchema,
+  AdminGetPostInputSchema,
+  AdminGetPostOutputSchema,
   AdminListInterestsInputSchema,
   AdminListPostsInputSchema,
   AdminListPostsOutputSchema,
@@ -162,4 +164,13 @@ export const adminListInterestsOp = defineOperation({
   permission: "admin",
   handler: async (db, ctx, { id }) =>
     communityService.adminListInterests(db, ctx, { id }),
+})
+
+export const adminGetCommunityPostOp = defineOperation({
+  name: "community.adminGet",
+  input: AdminGetPostInputSchema,
+  output: AdminGetPostOutputSchema,
+  permission: "admin",
+  handler: async (db, ctx, { id }) =>
+    communityService.adminGetPost(db, ctx, { id }),
 })
