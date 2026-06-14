@@ -29,27 +29,27 @@ export default async function CommunityPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
-      <header className="rounded-xl bg-card px-6 py-8 text-center shadow-[var(--shadow-card)] sm:px-10 sm:py-12">
-        <p className="text-[11px] font-bold uppercase tracking-[4px] text-foreground">
+    <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
+      <section className="text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">
           Community Requests
         </p>
-        <h1 className="mx-auto mt-5 max-w-xl font-display text-3xl leading-tight sm:text-5xl">
+        <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">
           Real people. Real asks.{" "}
-          <em className="block not-italic font-semibold text-primary">
+          <em className="not-italic font-semibold text-primary">
             Trusted leads.
           </em>
         </h1>
-        <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-foreground/80 sm:text-base">
           Ask the community for a referral — a doctor, a teacher, a contractor —
           and let neighbours close the loop with someone they actually know.
         </p>
         <div className="mt-6 flex justify-center">
           <PostForm />
         </div>
-      </header>
+      </section>
 
-      <section className="mt-8">
+      <section className="mt-10">
         <PostList initial={initial} currentUserId={user.id} />
       </section>
     </div>
