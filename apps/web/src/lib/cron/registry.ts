@@ -45,16 +45,19 @@ export async function startCrons(): Promise<void> {
   )
   const { JOB_NAME: rrJob, runRenewalReminder } = await import("./renewal-reminder")
   const { JOB_NAME: purgeJob, runPurgeSoftDeleted } = await import("./purge-soft-deleted")
+  const { JOB_NAME: expireJob, runExpirePosts } = await import("./expire-posts")
 
   registerRunner(subJob, runSubscriptionRollover)
   registerRunner(spJob, runSponsorshipRollover)
   registerRunner(rrJob, runRenewalReminder)
   registerRunner(purgeJob, runPurgeSoftDeleted)
+  registerRunner(expireJob, runExpirePosts)
 
   await scheduleJob(subJob, "5 0 * * *", runSubscriptionRollover)
   await scheduleJob(spJob, "0 * * * *", runSponsorshipRollover)
   await scheduleJob(rrJob, "0 8 * * *", runRenewalReminder)
   await scheduleJob(purgeJob, "0 3 * * *", runPurgeSoftDeleted)
+  await scheduleJob(expireJob, "0 * * * *", runExpirePosts)
 
   process.on("SIGTERM", () => {
     tasks.forEach((t) => t.stop())
