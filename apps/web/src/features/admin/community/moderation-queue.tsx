@@ -134,7 +134,7 @@ export function ModerationQueue({
   }
 
   return (
-    <ul className="space-y-4">
+    <ul className="space-y-2">
       {items.map((post) => {
         const isRejecting = rejectingId === post.id
         const rowError = errorById[post.id]
@@ -142,12 +142,12 @@ export function ModerationQueue({
         return (
           <li
             key={post.id}
-            className="rounded-xl bg-card px-6 py-5 shadow-[var(--shadow-card)]"
+            className="rounded-lg bg-card px-4 py-3 shadow-[var(--shadow-card)]"
           >
-            <header className="flex flex-wrap items-baseline gap-2">
-              <p className="text-sm font-bold">{post.author_name}</p>
+            <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <p className="text-xs font-bold">{post.author_name}</p>
               {post.author_email && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   · {post.author_email}
                 </p>
               )}
@@ -157,24 +157,24 @@ export function ModerationQueue({
                   can still differ from the browser's locale on first
                   paint. React reconciles to the client value either way. */}
               <span
-                className="text-xs text-muted-foreground"
+                className="text-[11px] text-muted-foreground"
                 suppressHydrationWarning
               >
                 · {isPending ? "submitted" : statusLabel(post.status)}{" "}
                 {relativeTime(post.created_at)}
               </span>
               {post.rejected_reason && (
-                <p className="basis-full text-xs italic text-muted-foreground">
-                  Rejected reason: {post.rejected_reason}
+                <p className="basis-full text-[11px] italic text-muted-foreground">
+                  Rejected: {post.rejected_reason}
                 </p>
               )}
             </header>
 
-            <h3 className="mt-3 font-display text-xl leading-snug">
+            <h3 className="mt-1.5 font-display text-[15px] font-semibold leading-snug">
               {post.title}
             </h3>
             {post.body && (
-              <p className="mt-2 text-sm leading-relaxed text-foreground/85">
+              <p className="mt-0.5 line-clamp-1 text-xs leading-snug text-foreground/85">
                 {post.body}
               </p>
             )}
@@ -187,34 +187,37 @@ export function ModerationQueue({
             ) : null}
 
             {rowError && (
-              <p role="alert" className="mt-3 text-sm text-destructive">
+              <p role="alert" className="mt-2 text-xs text-destructive">
                 {rowError}
               </p>
             )}
 
             {isRejecting ? (
-              <div className="mt-4 space-y-3 border-t border-border pt-4">
-                <Label htmlFor={`reject-reason-${post.id}`}>
+              <div className="mt-2.5 space-y-2 border-t border-border pt-2.5">
+                <Label
+                  htmlFor={`reject-reason-${post.id}`}
+                  className="text-xs"
+                >
                   Note for the author (optional)
                 </Label>
                 <textarea
                   id={`reject-reason-${post.id}`}
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  rows={3}
+                  rows={2}
                   maxLength={500}
                   className={cn(
-                    "block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs",
+                    "block w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs shadow-xs",
                     "placeholder:text-muted-foreground",
                     "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring",
                   )}
                   placeholder="Tone is too commercial; please rephrase as a request, not an offer."
                 />
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center justify-end gap-1.5">
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     onClick={() => {
                       setRejectingId(null)
                       setRejectReason("")
@@ -225,7 +228,7 @@ export function ModerationQueue({
                   <Button
                     type="button"
                     variant="destructive"
-                    size="sm"
+                    size="xs"
                     disabled={pending}
                     onClick={() =>
                       moderate(post.id, "reject", rejectReason.trim() || undefined)
@@ -236,11 +239,11 @@ export function ModerationQueue({
                 </div>
               </div>
             ) : (
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
+              <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5 border-t border-border pt-2">
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="xs"
                   onClick={() => setEditingId(post.id)}
                   disabled={pending}
                 >
@@ -250,7 +253,7 @@ export function ModerationQueue({
                 <Button
                   type="button"
                   variant="destructive"
-                  size="sm"
+                  size="xs"
                   onClick={() => setDeletingId(post.id)}
                   disabled={pending}
                 >
@@ -262,7 +265,7 @@ export function ModerationQueue({
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="xs"
                       disabled={pending}
                       onClick={() => setRejectingId(post.id)}
                     >
@@ -271,7 +274,7 @@ export function ModerationQueue({
                     </Button>
                     <Button
                       type="button"
-                      size="sm"
+                      size="xs"
                       disabled={pending}
                       onClick={() => moderate(post.id, "approve")}
                       className="bg-[image:var(--gradient-primary)] shadow-[var(--shadow-primary-glow)]"
