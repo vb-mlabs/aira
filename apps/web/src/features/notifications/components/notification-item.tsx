@@ -98,6 +98,12 @@ function renderBody(body: NotificationRow["body"]): RenderedBody {
         message: body.preview,
         href: `/messages/${body.conversation_id}`,
       }
+    case "post_interest":
+      return {
+        title: `${body.responder_name} can help with your request`,
+        message: body.message ?? `Re: ${body.post_title}`,
+        href: `/community/${body.post_id}`,
+      }
   }
 }
 
