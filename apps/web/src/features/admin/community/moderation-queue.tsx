@@ -1,48 +1,84 @@
 "use client"
 
-// Admin moderation queue for F20 Community Requests.
+// F20 v2 — admin community queue.
 //
-// Renders the server-fetched PENDING list and gives each row Approve /
-// Reject (with reason) controls. Calls PATCH
-// /api/v1/admin/community/posts/[id] and removes the row on success so
-// the moderator gets immediate feedback.
+// Status-aware actions on each card:
+//   - status === "pending":       Approve / Reject (with reason)
+//   - any status:                 Edit (modal) / Delete (confirm)
+//                                  Respondent expander when count > 0
+//
+// Editing never changes the status — approve/reject remain the only
+// state-change actions. Deletes are hard, cascade through post_interest,
+// and write an audit_log snapshot before the DELETE so the trail can
+// reconstruct the row.
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Check, X } from "lucide-react"
+import { Check, Mail, Pencil, Trash2, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
 import { EmptyState } from "@/lib/ui"
-import { Mail } from "lucide-react"
-import type { AdminPostRow } from "@aira/validators/community"
+import type {
+  AdminPostRow,
+  CommunityPostStatus,
+} from "@aira/validators/community"
+import { DeleteConfirmDialog } from "./delete-confirm-dialog"
+import { EditPostModal } from "./edit-post-modal"
+import { RespondentList } from "./respondent-list"
 
 interface ModerationQueueProps {
   initialItems: AdminPostRow[]
+  currentStatus: CommunityPostStatus
 }
 
 interface ModerateResponse {
   post: AdminPostRow
 }
 
-export function ModerationQueue({ initialItems }: ModerationQueueProps) {
+const EMPTY_COPY: Record<
+  CommunityPostStatus,
+  { title: string; description: string }
+> = {
+  pending: {
+    title: "Nothing waiting for review",
+    description:
+      "When a community member submits a request, it shows up here for moderation.",
+  },
+  approved: {
+    title: "No approved posts",
+    description: "Approve a pending request to see it land here.",
+  },
+  expired: {
+    title: "No expired posts yet",
+    description:
+      "Posts expire automatically after their schedule; expired rows surface here for cleanup.",
+  },
+  rejected: {
+    title: "No rejected posts",
+    description:
+      "Rejected posts stay here for the record. The user can resubmit if needed.",
+  },
+}
+
+export function ModerationQueue({
+  initialItems,
+  currentStatus,
+}: ModerationQueueProps) {
   const router = useRouter()
   const [items, setItems] = useState<AdminPostRow[]>(initialItems)
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [rejectReason, setRejectReason] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [errorById, setErrorById] = useState<Record<string, string>>({})
   const [pending, startTransition] = useTransition()
 
   if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={Mail}
-        title="Nothing waiting for review"
-        description="When a community member submits a request, it shows up here for moderation."
-      />
-    )
+    const copy = EMPTY_COPY[currentStatus]
+    return <EmptyState icon={Mail} title={copy.title} description={copy.description} />
   }
 
   function clearError(id: string) {
@@ -65,6 +101,7 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
             ...(reason ? { rejected_reason: reason } : {}),
           },
         )
+        // The card leaves the current view since its status changed.
         setItems((rows) => rows.filter((r) => r.id !== id))
         setRejectingId(null)
         setRejectReason("")
@@ -79,11 +116,23 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
     })
   }
 
+  function onEdited(updated: AdminPostRow) {
+    setItems((rows) => rows.map((r) => (r.id === updated.id ? updated : r)))
+    setEditingId(null)
+  }
+
+  function onDeleted(id: string) {
+    setItems((rows) => rows.filter((r) => r.id !== id))
+    setDeletingId(null)
+    router.refresh()
+  }
+
   return (
     <ul className="space-y-4">
       {items.map((post) => {
         const isRejecting = rejectingId === post.id
         const rowError = errorById[post.id]
+        const isPending = post.status === "pending"
         return (
           <li
             key={post.id}
@@ -97,8 +146,14 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
                 </p>
               )}
               <span className="text-xs text-muted-foreground">
-                · submitted {relativeTime(post.created_at)}
+                · {isPending ? "submitted" : statusLabel(post.status)}{" "}
+                {relativeTime(post.created_at)}
               </span>
+              {post.rejected_reason && (
+                <p className="basis-full text-xs italic text-muted-foreground">
+                  Rejected reason: {post.rejected_reason}
+                </p>
+              )}
             </header>
 
             <h3 className="mt-3 font-display text-xl leading-snug">
@@ -109,6 +164,13 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
                 {post.body}
               </p>
             )}
+
+            {post.status === "approved" || post.status === "expired" ? (
+              <RespondentList
+                postId={post.id}
+                interestCount={post.interest_count}
+              />
+            ) : null}
 
             {rowError && (
               <p role="alert" className="mt-3 text-sm text-destructive">
@@ -160,34 +222,88 @@ export function ModerationQueue({ initialItems }: ModerationQueueProps) {
                 </div>
               </div>
             ) : (
-              <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-4">
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  onClick={() => setEditingId(post.id)}
                   disabled={pending}
-                  onClick={() => setRejectingId(post.id)}
                 >
-                  <X aria-hidden />
-                  Reject
+                  <Pencil aria-hidden />
+                  Edit
                 </Button>
                 <Button
                   type="button"
+                  variant="destructive"
                   size="sm"
+                  onClick={() => setDeletingId(post.id)}
                   disabled={pending}
-                  onClick={() => moderate(post.id, "approve")}
-                  className="bg-[image:var(--gradient-primary)] shadow-[var(--shadow-primary-glow)]"
                 >
-                  <Check aria-hidden />
-                  {pending ? "Approving…" : "Approve"}
+                  <Trash2 aria-hidden />
+                  Delete
                 </Button>
+                {isPending && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() => setRejectingId(post.id)}
+                    >
+                      <X aria-hidden />
+                      Reject
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() => moderate(post.id, "approve")}
+                      className="bg-[image:var(--gradient-primary)] shadow-[var(--shadow-primary-glow)]"
+                    >
+                      <Check aria-hidden />
+                      {pending ? "Approving…" : "Approve"}
+                    </Button>
+                  </>
+                )}
               </div>
+            )}
+
+            {editingId === post.id && (
+              <EditPostModal
+                post={post}
+                open
+                onClose={() => setEditingId(null)}
+                onSaved={onEdited}
+              />
+            )}
+            {deletingId === post.id && (
+              <DeleteConfirmDialog
+                post={post}
+                open
+                onClose={() => setDeletingId(null)}
+                onDeleted={() => onDeleted(post.id)}
+              />
             )}
           </li>
         )
       })}
     </ul>
   )
+}
+
+function statusLabel(status: CommunityPostStatus): string {
+  switch (status) {
+    case "approved":
+      return "approved"
+    case "expired":
+      return "expired"
+    case "rejected":
+      return "rejected"
+    case "pending":
+      return "submitted"
+  }
 }
 
 function relativeTime(iso: string): string {
