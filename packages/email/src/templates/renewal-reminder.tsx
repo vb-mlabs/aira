@@ -16,6 +16,10 @@ export interface RenewalReminderEmailProps {
   legalEntity: string
   businesses: RenewalReminderRow[]
   adminUrl: string
+  /** Header + preview label, e.g. "Expiring in 30 days". F17 sends one
+   *  email per configured window; this is what tells the admin which
+   *  window they're looking at. */
+  windowLabel: string
 }
 
 export function RenewalReminderEmail({
@@ -24,6 +28,7 @@ export function RenewalReminderEmail({
   legalEntity,
   businesses,
   adminUrl,
+  windowLabel,
 }: RenewalReminderEmailProps) {
   const count = businesses.length
   return (
@@ -31,7 +36,7 @@ export function RenewalReminderEmail({
       brandName={brandName}
       supportEmail={supportEmail}
       legalEntity={legalEntity}
-      preview={`${count} subscription${count === 1 ? "" : "s"} expiring within 7 days`}
+      preview={`${count} business${count === 1 ? "" : "es"} ${windowLabel.toLowerCase()}`}
     >
       <Heading
         as="h1"
@@ -42,11 +47,11 @@ export function RenewalReminderEmail({
           margin: "0 0 8px 0",
         }}
       >
-        Renewal reminder
+        {windowLabel}
       </Heading>
 
       <Text style={{ margin: "0 0 20px 0", color: theme.colors.mutedForeground }}>
-        {count} subscription{count === 1 ? "" : "s"} expiring within 7 days.
+        {count} business{count === 1 ? "" : "es"} in this window.
       </Text>
 
       <Hr style={{ borderColor: theme.colors.border, margin: "0 0 16px 0" }} />

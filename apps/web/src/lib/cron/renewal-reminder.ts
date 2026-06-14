@@ -26,6 +26,7 @@ export async function runRenewalReminder(runId: string): Promise<void> {
             daysRemaining: r.days_remaining,
           })),
           adminUrl,
+          windowLabel: `Expiring in ${REMINDER_DAYS} days`,
         })
       }
 
