@@ -11,12 +11,17 @@ import "server-only"
 import { community as communityService } from "@aira/services"
 import {
   AddInterestInputSchema,
+  AdminListInterestsInputSchema,
   AdminListPostsInputSchema,
   AdminListPostsOutputSchema,
   AdminModeratePostInputSchema,
   AdminModeratePostOutputSchema,
   CreatePostInputSchema,
   CreatePostOutputSchema,
+  DeletePostInputSchema,
+  DeletePostOutputSchema,
+  EditPostInputSchema,
+  EditPostOutputSchema,
   GetPostInputSchema,
   GetPostOutputSchema,
   InterestMutationOutputSchema,
@@ -124,4 +129,37 @@ export const adminModerateCommunityPostOp = defineOperation({
       rejected_reason: input.rejected_reason,
     })
   },
+})
+
+// ─── F20 v2 — admin edit/delete + admin-only respondent visibility ─────────
+
+export const editCommunityPostOp = defineOperation({
+  name: "community.adminEdit",
+  input: EditPostInputSchema,
+  output: EditPostOutputSchema,
+  permission: "admin",
+  handler: async (db, ctx, input) =>
+    communityService.editPost(db, ctx, {
+      id: input.id,
+      title: input.title,
+      body: input.body,
+    }),
+})
+
+export const deleteCommunityPostOp = defineOperation({
+  name: "community.adminDelete",
+  input: DeletePostInputSchema,
+  output: DeletePostOutputSchema,
+  permission: "admin",
+  handler: async (db, ctx, { id }) =>
+    communityService.deletePost(db, ctx, { id }),
+})
+
+export const adminListInterestsOp = defineOperation({
+  name: "community.adminListInterests",
+  input: AdminListInterestsInputSchema,
+  output: ListInterestsOutputSchema,
+  permission: "admin",
+  handler: async (db, ctx, { id }) =>
+    communityService.adminListInterests(db, ctx, { id }),
 })
