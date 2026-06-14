@@ -1,10 +1,28 @@
 # AIRA — Implementation Roadmap
 
 **Last updated:** 2026-06-14
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14.
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
+
+## What's pending (as of 2026-06-14)
+
+**Sprint 5 — engineering-ready scope is closed.** Only outstanding: F21 push broadcasts (gated on S0 EAS init + business-owner identity decision for audience targeting).
+
+**Sprint 0 — external work in motion:**
+- ⬜ Register `airabynisarga.com` domain
+- ⬜ EAS project init + Apple/Google bundle ID registration
+- 🟦 Apple Team ID → fill into `.well-known/apple-app-site-association`
+- 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json`
+
+**Sprint 6 — not started:** F26 mobile distribution + update prompt, F25 mobile deep links, F22 audit log UI, F23 CSV export, generic AppSetting admin hub, TODOS.md cleanup.
+
+**Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions.
+
+**Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI, Sentry. All blocked or premature for MVP.
+
+The critical path to TestFlight runs through **S0 (Apple Team ID + Android SHA-256 + EAS init) → F21 → S6**.
 
 ---
 
@@ -109,6 +127,9 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 ### ✅ S5 — F14 purge cron (2026-06-10)
 Plan: `.mstack/plans/2026-06-10-f14-purge-soft-deleted.md`. `purge-soft-deleted` daily job (03:00 UTC) hard-deletes businesses archived more than 180 days ago, logging the affected count to `cron_run` via the standard envelope. Registered alongside the rest of the cron suite in `apps/web/src/lib/cron/registry.ts`.
 
+### ✅ S5 — F17 configurable renewal schedule (2026-06-14)
+Plan: `.mstack/plans/2026-06-14-renewal-schedule-config.md`. Closes the F17 amendment from the S5 mini-sprint: the renewal cron now reads `app_setting.reminder_schedule` (comma-separated days list, default `"7"`, seeded via migration `0022`), loops the configured windows, and sends one `"AIRA · Expiring in N days"` email per non-empty window. Admin edits the schedule at `/admin/settings/renewal-schedule` (gated behind the new `/admin/settings` hub). Audit log captures every schedule edit via a new `app_setting.updated` `AuditMeta` variant. QA: 8/8 Playwright scenarios pass (`.mstack/qa/2026-06-14-0612/`). Per-business-owner emails remain Phase 2 — blocked on the business owner identity model (no `owner_email` / `owner_user_id` exists today).
+
 ### ✅ S5 — F20 Community Requests Board (2026-06-14) — **end-to-end shipped**
 Plan: `.mstack/plans/2026-06-13-community-requests-board.md`. Review locked Option B (posts + private "I can help" intent signal) over PRD-spec posts-only. v2 editorial-cards mockup picked from `.mstack/mockups/community-requests-board/`. Implementation ledger at `.mstack/code/2026-06-13-community-requests-board/` (14 commits, atomic per task).
 
@@ -120,6 +141,17 @@ Plan: `.mstack/plans/2026-06-13-community-requests-board.md`. Review locked Opti
 - UI: editorial card stack on `/community` (search + paginated 10/page), Dialog "Ask the community" form, gradient "I can help" toggle, author-only respondent card on detail page, admin moderation queue at `/admin/community` with inline Approve/Reject + reason
 - Nav: Community entry added to `(app)` sidebar (above categories) and to admin sidebar's `ADMIN_NAV`; bottom-tab-bar untouched (locked at 3 tabs per V4 mockup)
 - QA: 11/11 Playwright scenarios pass (`.mstack/qa/2026-06-14-0507/`). Two issues found and fixed: (1) `expire-posts` missing from admin cron page's `KNOWN_JOBS` array (same drift as F17 caught earlier — re-recorded in learnings); (2) stale duplicate "X have offered to help" paragraph on the non-author detail-page branch removed because `InterestButton` already renders the same count and the page-level paragraph went stale until next navigation.
+
+### ✅ S5 — F20 v2 admin moderation hardening (2026-06-14)
+Plan: `.mstack/plans/2026-06-14-community-admin-v2.md`. Polish layer on top of F20 v1 — adds the moderation lifecycle that v1 deferred:
+
+- **All-status filter chips** (All / Pending / Approved / Expired / Rejected) with count badges from a single grouped COUNT query (`status_counts` on `adminListPostsOp` output). Default landing: All.
+- **Admin can edit, delete, and see respondents** for any post regardless of status. Edit fix typos without changing status; hard delete cascades through `post_interest` with a transactional snapshot audit (snapshot → audit → delete in one `db.transaction` since the row is unreadable after delete). Two new `AuditMeta` variants (`community.post_deleted`, `community.post_edited`).
+- **Admin-only respondent endpoint** at `/api/v1/admin/community/posts/[id]/interests` — bypasses the author-only guard the public route enforces. Admin permission is the ACL.
+- **Table-style queue** matching the `/admin/businesses` pattern: columns User / Request / Status / Helpers / Created / Actions. Row click opens a popup `PostDetailModal` carrying the full body, respondent list, and an inline Approve/Reject flow (no nested dialogs). Edit + Delete are icon buttons on the row itself that stop propagation so they don't fire the row click.
+- **Confirmation dialogs on every state-change action** — Approve confirms inline in the modal, Reject keeps its reason-prompt flow (which is itself a confirmation), Delete keeps its base-ui `AlertDialog`.
+- QA: 10/10 Playwright scenarios pass (`.mstack/qa/2026-06-14-0732/`).
+- Companion polish on the **user-facing** `/community` feed shipped the same day: post cards now match the listing-card density (`p-4`, single-line title + body, compact status pill + InterestButton), the hero adopts the home page's chromeless `text-center` section pattern, and clicking a card opens a `PostDetailModal` in place rather than navigating to `/community/[id]` (the detail page still exists for notification deep-links via `PostCardReadOnly`).
 
 ### Other notable items
 - Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), `0017` (membership_plan + business_subscription), `0018` (sponsorship_tier + sponsorship), `0019` (sponsorship_tier.max_slots), plus waitlist extensions.
@@ -271,13 +303,14 @@ Plan: `.mstack/plans/2026-06-13-community-requests-board.md`. Review locked Opti
 
 ## Sprint 5 — Renewals, Posts board, Broadcasts (2 weeks)
 
-**Status:** 🟦 In flight — F14 (purge cron), F17 (7-day window), homepage sponsored sort, and **F20 Community Requests Board** all shipped. **F21 push broadcasts and the F17 configurable-schedule remainder are the only S5 items left.**
+**Status:** 🟦 In flight — F14 (purge cron), F17 (full configurable schedule), homepage sponsored sort, **F20 Community Requests Board** and **F20 v2 admin moderation hardening** all shipped. **F21 push broadcasts is the only S5 work left** — and it's gated on S0 EAS init.
 
 **Goal:** Renewal reminder emails go out on the configurable schedule. Community Requests Board live with submission + moderation queue + auto-expiry. Admin broadcasts a push notification to a segment of business users and it lands on real devices.
 
 **Features (PRD refs):**
-- 🟦 F17 (amended) — Renewal reminder automation, **email-only** via Postmark. **7-day fixed window shipped** (daily cron, admin inbox, deep-link to renewing filter). Configurable schedule (`AppSetting.reminder_schedule`) and individual business-owner emails remain.
+- ✅ F17 (amended) — Renewal reminder automation, **email-only** via Postmark. Configurable schedule (`AppSetting.reminder_schedule`) shipped — cron loops the windows, sends one labelled email per non-empty window, admin edits at `/admin/settings/renewal-schedule`. Per-business-owner emails moved to Phase 2 (blocked on owner identity).
 - ✅ F20 — Community Requests Board (submission → admin moderation → approved board with search/pagination, "I can help" private intent signal, in-app notification to author, hourly expiry cron) — shipped 2026-06-14, QA 11/11
+- ✅ F20 v2 — admin moderation hardening (all-status filter + counts, edit/delete with snapshot audit, admin-only respondent visibility, table UI + popup-modal row click) — shipped 2026-06-14, QA 10/10
 - ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`. **Gated on S0 EAS init.**
 - ✅ F14 — Lifecycle: `purge_soft_deleted` cron (180 days default) — shipped in S5 mini-sprint
 
@@ -289,8 +322,7 @@ Plan: `.mstack/plans/2026-06-13-community-requests-board.md`. Review locked Opti
 
 **Cron jobs added:**
 - ✅ `expire-posts` (hourly): approved community posts past `expires_at` flip to EXPIRED — shipped with F20
-- ✅ `renewal-reminder` (daily 08:00 UTC): query paid subscriptions expiring within 7 days, dispatch summary email to admin inbox — shipped in S5 mini-sprint
-- ⬜ `renewal_reminders` full (daily): configurable multi-window schedule offsets + per-business-owner emails — remaining
+- ✅ `renewal-reminder` (daily 08:00 UTC): reads `app_setting.reminder_schedule`, loops configured windows, dispatches one labelled email per non-empty window to admin inbox — shipped (S5 mini-sprint + F17 config schedule, 2026-06-14)
 - ✅ `purge-soft-deleted` (daily 03:00 UTC): hard-delete businesses archived more than 180 days ago — shipped
 
 **Risk gate:** Push notification arrives on a real iOS device AND a real Android device. Renewal email lands in Postmark + delivers to a real inbox (not just localhost test).
@@ -434,3 +466,6 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-14** — `/admin/cron`'s `KNOWN_JOBS` drift caught a SECOND time (first time was `renewal-reminder` in the S5 mini-sprint; second time was `expire-posts` shipping with F20). *Why pattern matters:* the admin cron page maintains a static display array decoupled from `apps/web/src/lib/cron/registry.ts`. Adding a handler to the registry does not auto-surface it on the admin page. Every new cron job needs an entry in `KNOWN_JOBS` (name + human schedule string). Recorded again in `.mstack/learnings.jsonl` — consider promoting to a CI check if this drifts a third time.
 - **2026-06-14** — Discriminated-union changes (e.g. adding a `kind` to `NotificationBody`) break sibling `switch (body.kind)` statements in BOTH the web `notification-item.tsx` and the mobile `notifications.tsx` renderers. Plans that grow the union must list both renderer files as edit targets, OR sequence the renderer-coverage tasks BEFORE the union-extension task (so the union grows under exhaustive coverage). Surfaced during F20's `/mlabs-code` run; T7 (renderer) had to be pulled forward before T4 (routes) would typecheck.
 - **2026-06-14** — Migration-time SQL seeds (e.g. `INSERT INTO app_setting`) need an explicit `gen_random_uuid()::text` for the id column. The schema's `$defaultFn(() => crypto.randomUUID())` is **application-side only** and does not become a SQL column DEFAULT, so a bare `INSERT (key, value)` fails with NOT NULL on `id`. Caught when seeding `posts_expiry_days` for F20.
+- **2026-06-14** — F17 per-business-owner emails formally moved to Phase 2. *Why:* the business schema has no `owner_email` and no FK to `user` today, so "email each owner" requires deciding the owner identity model first (column on `business` vs FK to user vs join table for multi-owner). Same blocker pins F21's "broadcast to business users" target shape. Doing the owner-identity decision once unblocks both — capture as a pre-Phase 2 plan when business-owner self-service becomes a goal.
+- **2026-06-14** — Audit-around-delete pattern locked: SELECT snapshot → INSERT audit → DELETE all inside one `db.transaction`. The conventional "audit BEFORE mutation" can't apply because the row is unreadable after delete. Required widening `createAudit` to accept any handle with `insert()` (Database or PgTransaction) — shipped in `Pick<Database, "insert">`. Used by F20 v2 `deletePost`; future hard-deletes should follow the same shape.
+- **2026-06-14** — `relativeTime()` helpers across the app use `toLocaleDateString()` as the >7d fallback, which silently differs between Node (server) and the browser, triggering hydration warnings on older fixture data. Fix: stable UTC `MM/DD/YYYY` formatter + `suppressHydrationWarning` on the wrapping span. Landed on `admin/community/moderation-queue.tsx` and the user-facing community card; same pattern lives in notification-item, post-form, etc. and will need the same fix if those surfaces ever render >7d-old timestamps.
