@@ -88,7 +88,13 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
         )}
       </header>
 
-      <nav className="flex flex-1 flex-col overflow-y-auto" aria-label="Admin">
+      <nav
+        // Hide the scrollbar (matches the user-facing AppSidebar). On
+        // shorter viewports the nav still scrolls — without the visible
+        // bar cluttering the texture.
+        className="flex flex-1 flex-col overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-label="Admin"
+      >
         {ADMIN_NAV.map((item) => (
           <SidebarRow
             key={item.href}
