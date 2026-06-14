@@ -41,7 +41,7 @@ const ADMIN_NAV: Array<{
   { href: "/admin/membership-plans", label: "Membership plans", icon: CreditCard },
   { href: "/admin/sponsorship-tiers", label: "Sponsorship tiers", icon: Trophy },
   { href: "/admin/community", label: "Community", icon: MessageSquare },
-  { href: "/admin/settings/homepage", label: "Settings", icon: Settings2 },
+  { href: "/admin/settings", label: "Settings", icon: Settings2 },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/audit", label: "Audit log", icon: ClipboardList },
   { href: "/admin/cron", label: "Cron", icon: Clock },
