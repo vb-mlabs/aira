@@ -50,6 +50,7 @@ function toPostRow(row: DbPostRow): PostRow {
     title: row.title,
     body: row.body,
     status: row.status,
+    user_id: row.user_id,
     author_name: row.author_name,
     interest_count: row.interest_count,
     expires_at: row.expires_at?.toISOString() ?? null,

@@ -23,6 +23,10 @@ export const PostRowSchema = z.object({
   title: z.string(),
   body: z.string().nullable(),
   status: CommunityPostStatusSchema,
+  /** Author user.id — included so client components can recognise "this is
+   *  the viewer's own post" without an extra round-trip. The author name is
+   *  already publicly visible, so the id is no more sensitive. */
+  user_id: z.string(),
   author_name: z.string(),
   interest_count: z.number().int().nonnegative(),
   /** ISO 8601, null when the post is pending (no expiry set yet). */
