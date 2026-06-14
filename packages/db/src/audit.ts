@@ -72,6 +72,15 @@ export type AuditMeta =
       amount_cents: number
     }
   | { kind: "business.sponsorship_cancelled" }
+  // S5 — AppSetting admin edits. target.id = AppSetting.key (stable id is
+  // the row id, but the key is what humans recognise in /admin/cron and
+  // /admin/settings). Used by F17 (reminder_schedule) and future keys.
+  | {
+      kind: "app_setting.updated"
+      key: string
+      old: string | null
+      new: string
+    }
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults
