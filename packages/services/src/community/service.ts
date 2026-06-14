@@ -17,13 +17,19 @@ import {
 import type { Database } from "@aira/db/client"
 import type { CallerContext } from "@aira/api/context"
 import { ApiError } from "@aira/api/errors"
+import { createAudit } from "@aira/db/audit"
 import type {
   AdminPostRow,
   CommunityPostStatus,
   InterestRow,
   PostRow,
+  StatusCounts,
 } from "@aira/validators/community"
 import { createNotification } from "../notifications"
+
+function auditClient(ctx: CallerContext): "web" | "mobile" {
+  return ctx.source === "mobile" ? "mobile" : "web"
+}
 
 const DEFAULT_EXPIRY_DAYS = 30
 
@@ -542,6 +548,7 @@ export async function adminListPosts(
   total: number
   page: number
   pageSize: number
+  status_counts: StatusCounts
 }> {
   const page = args.page ?? 1
   const pageSize = args.pageSize ?? 25
@@ -551,25 +558,237 @@ export async function adminListPosts(
     ? eq(communityPost.status, args.status)
     : undefined
 
-  const rows = await db
-    .select(POST_SELECT)
-    .from(communityPost)
-    .leftJoin(user, eq(user.id, communityPost.user_id))
-    .where(whereClause)
-    .orderBy(desc(communityPost.created_at))
-    .limit(pageSize)
-    .offset(offset)
-
-  const [countRow] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(communityPost)
-    .where(whereClause)
+  const [rows, countRow, status_counts] = await Promise.all([
+    db
+      .select(POST_SELECT)
+      .from(communityPost)
+      .leftJoin(user, eq(user.id, communityPost.user_id))
+      .where(whereClause)
+      .orderBy(desc(communityPost.created_at))
+      .limit(pageSize)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(communityPost)
+      .where(whereClause)
+      .then((r) => r[0]),
+    getAdminPostStatusCounts(db),
+  ])
 
   return {
     items: rows.map(toAdminPostRow),
     total: countRow?.count ?? 0,
     page,
     pageSize,
+    status_counts,
+  }
+}
+
+/**
+ * One `SELECT status, count(*) GROUP BY status` per call. Returns zero for
+ * any status that has no rows so the admin filter chips always render
+ * consistent badges.
+ */
+export async function getAdminPostStatusCounts(
+  db: Database,
+): Promise<StatusCounts> {
+  const rows = await db
+    .select({
+      status: communityPost.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(communityPost)
+    .groupBy(communityPost.status)
+
+  const counts: StatusCounts = {
+    pending: 0,
+    approved: 0,
+    expired: 0,
+    rejected: 0,
+  }
+  for (const r of rows) {
+    counts[r.status] = r.count
+  }
+  return counts
+}
+
+// ─── Admin: post edit / delete / respondent visibility (F20 v2) ────────────
+
+/**
+ * Edit the title and/or body of a post regardless of status. Status is
+ * intentionally NOT changed by an edit (locked review decision — keep
+ * approve/reject as the only state-change actions). At least one of
+ * title or body must be defined; the validator guards this at the
+ * boundary.
+ *
+ * Body of "" (empty after trim) or explicit null both clear the body.
+ * Audit row written BEFORE the update inside one transaction so a failed
+ * audit rolls back the change.
+ */
+export async function editPost(
+  db: Database,
+  ctx: CallerContext,
+  args: { id: string; title?: string; body?: string | null },
+): Promise<{ post: AdminPostRow }> {
+  // Capture the row before the transaction so we can short-circuit on
+  // not-found without opening a tx — and so the before/after pair has a
+  // consistent snapshot to compare against.
+  const [before] = await db
+    .select({ title: communityPost.title, body: communityPost.body })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!before) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+
+  // Build the field set + per-field before/after pairs. The trimmed-empty
+  // body case is normalised to null here so the audit captures the canonical
+  // "cleared" state.
+  const update: { title?: string; body?: string | null } = {}
+  const fields: Array<"title" | "body"> = []
+  const meta: {
+    title?: { from: string; to: string }
+    body?: { from: string | null; to: string | null }
+  } = {}
+
+  if (args.title !== undefined && args.title !== before.title) {
+    update.title = args.title
+    fields.push("title")
+    meta.title = { from: before.title, to: args.title }
+  }
+
+  if (args.body !== undefined) {
+    const next = args.body === null || args.body.length === 0 ? null : args.body
+    if (next !== before.body) {
+      update.body = next
+      fields.push("body")
+      meta.body = { from: before.body, to: next }
+    }
+  }
+
+  // No-op update (admin saved without changing anything). Return the row
+  // as-is rather than write a meaningless audit row.
+  if (fields.length === 0) {
+    const fresh = await getAdminRow(db, args.id)
+    return { post: fresh }
+  }
+
+  await db.transaction(async (tx) => {
+    const audit = createAudit(tx)
+    await audit({
+      actorId: ctx.userId,
+      action: "community.post_edited",
+      target: { type: "community_post", id: args.id },
+      meta: { kind: "community.post_edited", fields, ...meta },
+      client: auditClient(ctx),
+    })
+
+    await tx
+      .update(communityPost)
+      .set(update)
+      .where(eq(communityPost.id, args.id))
+  })
+
+  return { post: await getAdminRow(db, args.id) }
+}
+
+/**
+ * Hard-delete a post. The `post_interest` rows cascade (FK ON DELETE CASCADE
+ * was set in migration 0021). Audit row is written BEFORE the delete inside
+ * one transaction — the row is unreadable after delete, so this is the only
+ * point where we can capture the snapshot for the trail.
+ *
+ * If the audit insert fails, the transaction rolls back and the post stays
+ * (same convention as users.ts / app_settings).
+ */
+export async function deletePost(
+  db: Database,
+  ctx: CallerContext,
+  args: { id: string },
+): Promise<{ ok: true }> {
+  const [snapshot] = await db
+    .select({
+      title: communityPost.title,
+      body: communityPost.body,
+      status: communityPost.status,
+      author_id: communityPost.user_id,
+      interest_count: communityPost.interest_count,
+    })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!snapshot) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+
+  await db.transaction(async (tx) => {
+    const audit = createAudit(tx)
+    await audit({
+      actorId: ctx.userId,
+      action: "community.post_deleted",
+      target: { type: "community_post", id: args.id },
+      meta: {
+        kind: "community.post_deleted",
+        title: snapshot.title,
+        body: snapshot.body,
+        status: snapshot.status,
+        author_id: snapshot.author_id,
+        interest_count: snapshot.interest_count,
+      },
+      client: auditClient(ctx),
+    })
+
+    await tx.delete(communityPost).where(eq(communityPost.id, args.id))
+  })
+
+  return { ok: true }
+}
+
+/**
+ * Admin-only respondent list. Mirrors listInterests but skips the
+ * author-only guard — the operation's `permission: "admin"` gate is the
+ * real ACL. Read-only; no audit. (Reading is high-frequency; auditing
+ * every view would balloon the log without proportional value.)
+ */
+export async function adminListInterests(
+  db: Database,
+  _ctx: CallerContext,
+  args: { id: string },
+): Promise<{ items: InterestRow[] }> {
+  const [post] = await db
+    .select({ id: communityPost.id })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!post) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+
+  const rows = await db
+    .select({
+      id: postInterest.id,
+      responder_id: postInterest.user_id,
+      responder_name: sql<string>`COALESCE(${user.name}, ${user.email}, 'Someone')`,
+      message: postInterest.message,
+      created_at: postInterest.created_at,
+    })
+    .from(postInterest)
+    .leftJoin(user, eq(user.id, postInterest.user_id))
+    .where(eq(postInterest.post_id, args.id))
+    .orderBy(desc(postInterest.created_at))
+
+  return {
+    items: rows.map((r) => ({
+      id: r.id,
+      responder_id: r.responder_id,
+      responder_name: r.responder_name,
+      message: r.message,
+      created_at: r.created_at.toISOString(),
+    })),
   }
 }
 

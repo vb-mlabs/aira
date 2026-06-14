@@ -119,7 +119,14 @@ export interface AuditOpts {
 
 export type AuditFn = (opts: AuditOpts) => Promise<void>
 
-export function createAudit(db: Database): AuditFn {
+/** Subset of the Database API the audit helper actually exercises. Lets
+ *  callers pass either the full Database singleton OR a PgTransaction handle
+ *  from db.transaction(async (tx) => …) without a type assertion. Used by
+ *  F20 v2 deletePost / editPost which write audit + mutation in one
+ *  transaction so a failed audit rolls back the change. */
+export type AuditDb = Pick<Database, "insert">
+
+export function createAudit(db: AuditDb): AuditFn {
   return async function audit(opts: AuditOpts): Promise<void> {
     const client: AuditClient = opts.client ?? "web"
     // metadata now always carries a discriminated body wrapped with `client` —

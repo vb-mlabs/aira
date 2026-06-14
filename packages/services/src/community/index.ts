@@ -14,6 +14,10 @@ export {
   listInterests,
   expirePosts,
   adminListPosts,
+  getAdminPostStatusCounts,
+  editPost,
+  deletePost,
+  adminListInterests,
 } from "./service"
 
 export type {
