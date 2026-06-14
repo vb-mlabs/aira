@@ -12,14 +12,16 @@ import {
 import type { NotificationRow } from "../../features/notifications/api";
 
 /** Resolve the row's body to a short display string. The wire shape is a
- *  discriminated union (generic | message); both kinds carry enough copy
- *  to fit in the list-row preview slot. */
+ *  discriminated union (generic | message | post_interest); every kind
+ *  carries enough copy to fit in the list-row preview slot. */
 function renderPreview(body: NotificationRow["body"]): string {
   switch (body.kind) {
     case "generic":
       return body.title;
     case "message":
       return `${body.sender_name}: ${body.preview}`;
+    case "post_interest":
+      return `${body.responder_name} can help with your request`;
   }
 }
 
