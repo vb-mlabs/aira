@@ -103,3 +103,53 @@ export async function findRenewingSoon(
     payment_evidence_url: r.payment_evidence_url ?? null,
   }))
 }
+
+/**
+ * Subscriptions whose `end_date` is EXACTLY `days` days from today
+ * (date-only diff — ignores the time-of-day component). Used by the F17
+ * renewal-reminder cron to fire one labeled email per configured window.
+ *
+ * Inline-filters to `payment_status = 'paid'` so the caller doesn't have
+ * to re-filter. The cron's intent is paid-only; `findRenewingSoon` keeps
+ * the inclusive paid+overdue shape for the admin `?renewing=N` view.
+ */
+export async function findRenewingExactlyInDays(
+  db: Database,
+  opts: { days: number },
+): Promise<RenewingSoonRow[]> {
+  const days = Math.trunc(opts.days)
+  const rows = await db
+    .select({
+      subscription_id: businessSubscriptions.id,
+      business_id: businesses.id,
+      business_name: businesses.name,
+      plan_name: membershipPlans.name,
+      payment_status: businessSubscriptions.payment_status,
+      end_date: businessSubscriptions.end_date,
+      contact_phone: businesses.phone,
+      payment_evidence_url: businessSubscriptions.payment_evidence_url,
+    })
+    .from(businessSubscriptions)
+    .innerJoin(businesses, eq(businessSubscriptions.business_id, businesses.id))
+    .leftJoin(membershipPlans, eq(businessSubscriptions.plan_id, membershipPlans.id))
+    .where(
+      and(
+        eq(businessSubscriptions.payment_status, "paid"),
+        sql`(${businessSubscriptions.end_date}::date - CURRENT_DATE) = ${sql.raw(String(days))}`,
+      ),
+    )
+    .orderBy(businessSubscriptions.end_date)
+
+  return rows.map((r) => ({
+    subscription_id: r.subscription_id,
+    business_id: r.business_id,
+    business_name: r.business_name,
+    plan_name: r.plan_name ?? null,
+    payment_status: r.payment_status,
+    end_date: r.end_date.toISOString(),
+    days_remaining: days,
+    contact_phone: r.contact_phone ?? null,
+    contact_email: null,
+    payment_evidence_url: r.payment_evidence_url ?? null,
+  }))
+}
