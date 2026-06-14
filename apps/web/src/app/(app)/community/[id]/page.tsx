@@ -125,15 +125,11 @@ export default async function CommunityPostPage({
             </ul>
           )}
         </section>
-      ) : (
-        <p className="mt-6 text-sm text-muted-foreground">
-          {post.interest_count === 0
-            ? "No one has offered to help yet — be the first."
-            : post.interest_count === 1
-              ? "1 neighbour has offered to help on this request."
-              : `${post.interest_count} neighbours have offered to help on this request.`}
-        </p>
-      )}
+      ) : null /* Non-author count is shown next to InterestButton on the
+                  PostCard above; a second paragraph here duplicated it AND
+                  went stale until the next navigation because router.refresh()
+                  doesn't always reconcile the page-level closure during the
+                  same tick. Source of truth: the button's own local count. */}
 
       <div className="mt-8">
         <Link
