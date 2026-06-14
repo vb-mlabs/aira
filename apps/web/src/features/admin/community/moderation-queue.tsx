@@ -151,7 +151,15 @@ export function ModerationQueue({
                   · {post.author_email}
                 </p>
               )}
-              <span className="text-xs text-muted-foreground">
+              {/* suppressHydrationWarning: relativeTime() reads Date.now()
+                  so server + client can disagree on minute boundaries, and
+                  the >7d fallback hands off to a stable UTC formatter that
+                  can still differ from the browser's locale on first
+                  paint. React reconciles to the client value either way. */}
+              <span
+                className="text-xs text-muted-foreground"
+                suppressHydrationWarning
+              >
                 · {isPending ? "submitted" : statusLabel(post.status)}{" "}
                 {relativeTime(post.created_at)}
               </span>
@@ -321,5 +329,10 @@ function relativeTime(iso: string): string {
   if (h < 24) return `${h}h ago`
   const d = Math.floor(h / 24)
   if (d < 7) return `${d}d ago`
-  return new Date(iso).toLocaleDateString()
+  // Stable MM/DD/YYYY in UTC — toLocaleDateString() differs between the
+  // Node runtime (server) and the browser, triggering a hydration mismatch.
+  const dt = new Date(iso)
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0")
+  const dd = String(dt.getUTCDate()).padStart(2, "0")
+  return `${mm}/${dd}/${dt.getUTCFullYear()}`
 }

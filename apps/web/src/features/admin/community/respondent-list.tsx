@@ -117,6 +117,9 @@ export function RespondentList({ postId, interestCount }: RespondentListProps) {
 }
 
 function relativeTime(iso: string): string {
+  // Respondent rows only render after the client-side fetch resolves, so
+  // there's no SSR HTML to mismatch against. We still use the stable
+  // UTC formatter to match the queue's date display.
   const ms = Date.now() - new Date(iso).getTime()
   const m = Math.floor(ms / 60_000)
   if (m < 1) return "just now"
@@ -125,5 +128,8 @@ function relativeTime(iso: string): string {
   if (h < 24) return `${h}h ago`
   const d = Math.floor(h / 24)
   if (d < 7) return `${d}d ago`
-  return new Date(iso).toLocaleDateString()
+  const dt = new Date(iso)
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0")
+  const dd = String(dt.getUTCDate()).padStart(2, "0")
+  return `${mm}/${dd}/${dt.getUTCFullYear()}`
 }
