@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-13
 **Slug:** community-requests-board
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 
 ---
