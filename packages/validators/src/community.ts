@@ -246,15 +246,3 @@ export const AdminListInterestsInputSchema = z
   .object({ id: z.string().min(1) })
   .strict();
 export type AdminListInterestsInput = z.infer<typeof AdminListInterestsInputSchema>;
-
-/** Admin single-post fetch — no visibility filter, returns even rejected
- *  rows. Powers the admin detail page at /admin/community/[id]. */
-export const AdminGetPostInputSchema = z
-  .object({ id: z.string().min(1) })
-  .strict();
-export type AdminGetPostInput = z.infer<typeof AdminGetPostInputSchema>;
-
-export const AdminGetPostOutputSchema = z.object({
-  post: AdminPostRowSchema.nullable(),
-});
-export type AdminGetPostOutput = z.infer<typeof AdminGetPostOutputSchema>;
