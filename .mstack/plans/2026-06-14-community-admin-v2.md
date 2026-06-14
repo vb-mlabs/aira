@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-14
 **Slug:** community-admin-v2
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 
 ---
