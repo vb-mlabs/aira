@@ -81,6 +81,27 @@ export type AuditMeta =
       old: string | null
       new: string
     }
+  // S5 — F20 v2 community moderation: hard-delete + edit.
+  //
+  // post_deleted carries a full snapshot of the row before it disappears
+  // (the audit trail is the only record after the row + cascaded interests
+  // are gone). post_edited carries a before/after pair PER FIELD — the
+  // `fields` array signals which keys are populated so consumers don't
+  // have to probe for undefined.
+  | {
+      kind: "community.post_deleted"
+      title: string
+      body: string | null
+      status: "pending" | "approved" | "expired" | "rejected"
+      author_id: string
+      interest_count: number
+    }
+  | {
+      kind: "community.post_edited"
+      fields: Array<"title" | "body">
+      title?: { from: string; to: string }
+      body?: { from: string | null; to: string | null }
+    }
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults
