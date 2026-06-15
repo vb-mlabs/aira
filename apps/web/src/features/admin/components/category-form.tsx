@@ -66,7 +66,7 @@ export function CategoryForm({
             parent_id: parentId || null,
           })
         }
-        router.push("/admin/categories")
+        router.push("/admin/settings/categories")
         router.refresh()
       } catch {
         setError("Failed to save. Please try again.")
@@ -90,7 +90,7 @@ export function CategoryForm({
 
   function confirmDeactivate() {
     setDeactivateOpen(false)
-    router.push("/admin/categories")
+    router.push("/admin/settings/categories")
     router.refresh()
   }
 
@@ -158,7 +158,7 @@ export function CategoryForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/admin/categories")}
+            onClick={() => router.push("/admin/settings/categories")}
           >
             Cancel
           </Button>

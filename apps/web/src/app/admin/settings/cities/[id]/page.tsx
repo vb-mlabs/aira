@@ -18,7 +18,7 @@ export default async function EditCityPage({ params }: PageProps) {
   if (!city) notFound()
 
   return (
-    <AdminFormModal title={`Edit ${city.name}`} backHref="/admin/cities">
+    <AdminFormModal title={`Edit ${city.name}`} backHref="/admin/settings/cities">
       <CityForm city={city} />
     </AdminFormModal>
   )

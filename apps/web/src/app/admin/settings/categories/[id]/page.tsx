@@ -23,7 +23,7 @@ export default async function EditCategoryPage({ params }: PageProps) {
   const roots = tree.map((n) => n.root)
 
   return (
-    <AdminFormModal title={`Edit ${category.name}`} backHref="/admin/categories">
+    <AdminFormModal title={`Edit ${category.name}`} backHref="/admin/settings/categories">
       <CategoryForm category={category} roots={roots} />
     </AdminFormModal>
   )

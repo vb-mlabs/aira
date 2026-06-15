@@ -18,7 +18,7 @@ export default async function EditMembershipPlanPage({ params }: PageProps) {
   if (!plan) notFound()
 
   return (
-    <AdminFormModal title={`Edit ${plan.name}`} backHref="/admin/membership-plans">
+    <AdminFormModal title={`Edit ${plan.name}`} backHref="/admin/settings/membership-plans">
       <PlanForm plan={plan} />
     </AdminFormModal>
   )

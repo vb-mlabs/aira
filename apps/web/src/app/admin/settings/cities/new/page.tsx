@@ -5,7 +5,7 @@ export const metadata = { title: "Admin · New City" }
 
 export default function NewCityPage() {
   return (
-    <AdminFormModal title="New city" backHref="/admin/cities">
+    <AdminFormModal title="New city" backHref="/admin/settings/cities">
       <CityForm />
     </AdminFormModal>
   )

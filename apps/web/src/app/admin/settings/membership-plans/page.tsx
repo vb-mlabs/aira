@@ -5,7 +5,7 @@ import { TIER_LABELS } from "@aira/validators"
 import { listMembershipPlansOp } from "@/server/operations/membership-plans"
 import { AdminBadge } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
-import { AdminPageHeader } from "../_components/page-header"
+import { AdminPageHeader } from "../../_components/page-header"
 
 export const metadata = { title: "Admin · Membership Plans" }
 export const dynamic = "force-dynamic"
@@ -21,7 +21,7 @@ export default async function AdminMembershipPlansPage() {
         subtitle="Define the subscription plans businesses can purchase."
         actions={
           <Link
-            href="/admin/membership-plans/new"
+            href="/admin/settings/membership-plans/new"
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="size-4" aria-hidden />
@@ -35,7 +35,7 @@ export default async function AdminMembershipPlansPage() {
           icon={CreditCard}
           title="No plans yet"
           description="Create a membership plan that businesses can subscribe to."
-          action={{ label: "New plan", href: "/admin/membership-plans/new" }}
+          action={{ label: "New plan", href: "/admin/settings/membership-plans/new" }}
         />
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
@@ -54,7 +54,7 @@ export default async function AdminMembershipPlansPage() {
                 <tr key={plan.id} className="hover:bg-muted/20">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/admin/membership-plans/${plan.id}`}
+                      href={`/admin/settings/membership-plans/${plan.id}`}
                       className="font-medium text-primary hover:underline"
                     >
                       {plan.name}

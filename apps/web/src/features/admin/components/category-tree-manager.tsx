@@ -141,7 +141,7 @@ function SortableRootRow({
         <span className="flex-1 font-medium">{node.root.name}</span>
         <ActiveBadge active={node.root.active} />
         <Link
-          href={`/admin/categories/${node.root.id}`}
+          href={`/admin/settings/categories/${node.root.id}`}
           className="ml-2 text-muted-foreground hover:text-foreground"
           aria-label={`Edit ${node.root.name}`}
         >
@@ -195,7 +195,7 @@ function SortableChildRow({ child }: { child: Category }) {
       <span className="flex-1 text-sm text-muted-foreground">{child.name}</span>
       <ActiveBadge active={child.active} small />
       <Link
-        href={`/admin/categories/${child.id}`}
+        href={`/admin/settings/categories/${child.id}`}
         className="text-muted-foreground hover:text-foreground"
         aria-label={`Edit ${child.name}`}
       >

@@ -71,7 +71,7 @@ export function PlanForm({ plan }: PlanFormProps) {
             tier,
           })
         }
-        router.push("/admin/membership-plans")
+        router.push("/admin/settings/membership-plans")
         router.refresh()
       } catch {
         setError("Failed to save. Please try again.")
@@ -176,7 +176,7 @@ export function PlanForm({ plan }: PlanFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/admin/membership-plans")}
+          onClick={() => router.push("/admin/settings/membership-plans")}
         >
           Cancel
         </Button>

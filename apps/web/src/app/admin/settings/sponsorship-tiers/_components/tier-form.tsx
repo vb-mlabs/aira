@@ -56,7 +56,7 @@ export function TierForm({ tier }: TierFormProps) {
             max_slots: maxSlotsNum,
           })
         }
-        router.push("/admin/sponsorship-tiers")
+        router.push("/admin/settings/sponsorship-tiers")
         router.refresh()
       } catch (err) {
         if (err instanceof ApiError && err.code === "sponsorship_tier.priority_taken") {
@@ -132,7 +132,7 @@ export function TierForm({ tier }: TierFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/admin/sponsorship-tiers")}
+          onClick={() => router.push("/admin/settings/sponsorship-tiers")}
         >
           Cancel
         </Button>

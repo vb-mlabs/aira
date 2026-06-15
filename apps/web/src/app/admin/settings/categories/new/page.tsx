@@ -11,7 +11,7 @@ export default async function NewCategoryPage() {
   const roots = res.data?.tree.map((n) => n.root) ?? []
 
   return (
-    <AdminFormModal title="New category" backHref="/admin/categories">
+    <AdminFormModal title="New category" backHref="/admin/settings/categories">
       <CategoryForm roots={roots} />
     </AdminFormModal>
   )

@@ -5,7 +5,7 @@ export const metadata = { title: "Admin · New Sponsorship Tier" }
 
 export default function NewSponsorshipTierPage() {
   return (
-    <AdminFormModal title="New sponsorship tier" backHref="/admin/sponsorship-tiers">
+    <AdminFormModal title="New sponsorship tier" backHref="/admin/settings/sponsorship-tiers">
       <TierForm />
     </AdminFormModal>
   )

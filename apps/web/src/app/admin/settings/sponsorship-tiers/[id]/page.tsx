@@ -18,7 +18,7 @@ export default async function EditSponsorshipTierPage({ params }: PageProps) {
   if (!tier) notFound()
 
   return (
-    <AdminFormModal title={`Edit ${tier.name}`} backHref="/admin/sponsorship-tiers">
+    <AdminFormModal title={`Edit ${tier.name}`} backHref="/admin/settings/sponsorship-tiers">
       <TierForm tier={tier} />
     </AdminFormModal>
   )

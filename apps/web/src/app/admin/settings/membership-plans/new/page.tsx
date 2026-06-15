@@ -5,7 +5,7 @@ export const metadata = { title: "Admin · New Membership Plan" }
 
 export default function NewMembershipPlanPage() {
   return (
-    <AdminFormModal title="New membership plan" backHref="/admin/membership-plans">
+    <AdminFormModal title="New membership plan" backHref="/admin/settings/membership-plans">
       <PlanForm />
     </AdminFormModal>
   )
