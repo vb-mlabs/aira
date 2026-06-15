@@ -6,6 +6,11 @@ import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
+import {
+  TIER_LABELS,
+  VALID_TIERS,
+  type BusinessTier,
+} from "@aira/validators"
 import type { MembershipPlan } from "@aira/validators/membership-plans"
 
 interface PlanFormProps {
@@ -24,6 +29,7 @@ export function PlanForm({ plan }: PlanFormProps) {
   const [durationMonths, setDurationMonths] = useState(
     plan ? String(plan.duration_months) : "12"
   )
+  const [tier, setTier] = useState<BusinessTier>(plan?.tier ?? "tier3")
   const [active, setActive] = useState(plan?.active ?? true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -53,6 +59,7 @@ export function PlanForm({ plan }: PlanFormProps) {
             description: description || null,
             price_cents,
             duration_months,
+            tier,
             active,
           })
         } else {
@@ -61,6 +68,7 @@ export function PlanForm({ plan }: PlanFormProps) {
             description: description || null,
             price_cents,
             duration_months,
+            tier,
           })
         }
         router.push("/admin/membership-plans")
@@ -92,6 +100,26 @@ export function PlanForm({ plan }: PlanFormProps) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Optional description"
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="plan-tier">Placement</Label>
+        <select
+          id="plan-tier"
+          value={tier}
+          onChange={(e) => setTier(e.target.value as BusinessTier)}
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+        >
+          {VALID_TIERS.map((t) => (
+            <option key={t} value={t}>
+              {TIER_LABELS[t]}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          The placement a business is entitled to while a subscription on this
+          plan is active and paid.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
