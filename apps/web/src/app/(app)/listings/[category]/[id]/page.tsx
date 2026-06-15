@@ -36,7 +36,7 @@ export default async function BusinessDetailPage({ params }: PageProps) {
   if (!business) notFound()
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
+    <div className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 sm:py-10">
       <BusinessDetail business={business} />
     </div>
   )

@@ -28,7 +28,7 @@ export function SocialLinks({
     : null
 
   const iconBase =
-    "relative z-10 inline-flex size-8 flex-shrink-0 items-center justify-center rounded-full transition-opacity"
+    "relative z-10 inline-flex size-8 md:size-10 flex-shrink-0 items-center justify-center rounded-full transition-opacity"
 
   return (
     <div className={`flex items-center gap-1.5 ${className ?? ""}`}>

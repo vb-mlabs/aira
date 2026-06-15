@@ -35,35 +35,37 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
           <img
             src={business.image_url}
             alt={business.name}
-            className="h-52 w-full object-cover"
+            className="h-72 w-full object-cover md:h-96"
           />
         ) : (
-          <div className="flex h-52 items-center justify-center bg-muted text-muted-foreground">
+          <div className="flex h-72 items-center justify-center bg-muted text-muted-foreground md:h-96">
             <Icon className="size-16 opacity-30" aria-hidden />
           </div>
         )}
 
         <div className="p-6 sm:p-8">
-          {/* Name + verified + rating + category + socials */}
+          {/* Name + verified + category + rating + socials */}
           <div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h1 className="font-display text-lg leading-tight text-foreground">
+              <h1 className="font-display text-2xl leading-tight text-foreground md:text-3xl">
                 {business.name}
               </h1>
               {business.verified && (
                 <BadgeCheck
                   aria-label="Verified"
-                  className="size-4 flex-shrink-0 fill-info text-info-foreground"
+                  className="size-5 flex-shrink-0 fill-info text-info-foreground md:size-6"
                 />
               )}
+            </div>
+
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p className="text-xs text-muted-foreground">
+                {category.displayName}
+              </p>
               {business.rating !== null && business.rating > 0 && (
                 <RatingPill rating={business.rating} />
               )}
             </div>
-
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {category.displayName}
-            </p>
 
             <SocialLinks
               facebook_url={business.facebook_url}
@@ -93,21 +95,23 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
         </div>
       </div>
 
-      {/* ── Card 2: Gallery carousel (when gallery images exist) ── */}
-      {business.images.length > 0 && (
-        <BusinessImageCarousel
-          images={business.images}
-          businessName={business.name}
-        />
-      )}
-
-      {/* ── Card 3: About Us ── */}
-      {business.description && (
-        <div className="rounded-xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
-          <h2 className="font-display text-xl text-foreground">About Us</h2>
-          <p className="mt-3 text-sm leading-relaxed text-foreground">
-            {business.description}
-          </p>
+      {/* ── Card 2: Gallery + About Us ── */}
+      {(business.images.length > 0 || business.description) && (
+        <div className="overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card)]">
+          {business.images.length > 0 && (
+            <BusinessImageCarousel
+              images={business.images}
+              businessName={business.name}
+            />
+          )}
+          {business.description && (
+            <div className="p-6 sm:p-8">
+              <h2 className="font-display text-xl text-foreground">About Us</h2>
+              <p className="mt-3 text-sm leading-relaxed text-foreground">
+                {business.description}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
