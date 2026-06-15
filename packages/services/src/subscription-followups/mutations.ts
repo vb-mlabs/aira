@@ -58,10 +58,7 @@ export async function create(
 
   const id = crypto.randomUUID()
   const outcome: FollowupOutcome = args.outcome
-  const scheduledNext =
-    outcome === "reschedule" && args.scheduleDays !== undefined
-      ? new Date(Date.now() + args.scheduleDays * DAY_MS)
-      : null
+  const scheduledNext = computeScheduledNext(outcome, args.scheduleDays)
   const note = args.note?.trim() ? args.note.trim() : null
 
   await db.transaction(async (tx) => {
@@ -90,4 +87,23 @@ export async function create(
   })
 
   return { id }
+}
+
+/** Hybrid outcome → scheduled_next mapping (locked 2026-06-15 QA Issue 1):
+ *    - reschedule: explicit scheduleDays from operator (validator-enforced 1-60)
+ *    - called:     auto +7d (real conversation; pace the next attempt)
+ *    - paid, refused: drop from queue permanently — see inActiveQueue filter
+ *    - voicemail, no_answer: stay in queue with last-attempt annotation
+ */
+function computeScheduledNext(
+  outcome: FollowupOutcome,
+  scheduleDays: number | undefined,
+): Date | null {
+  if (outcome === "reschedule" && scheduleDays !== undefined) {
+    return new Date(Date.now() + scheduleDays * DAY_MS)
+  }
+  if (outcome === "called") {
+    return new Date(Date.now() + 7 * DAY_MS)
+  }
+  return null
 }

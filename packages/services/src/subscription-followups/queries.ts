@@ -43,7 +43,15 @@ const latestScheduledNext = sql`(
 )`
 
 // A subscription drops out of the queue iff its LATEST followup row
-// (a) marked it paid, or (b) reschedules it to a future timestamp.
+// (a) marked it paid, (b) marked it refused (terminal — owner declined),
+// or (c) reschedules it to a future timestamp.
+//
+// `called` outcomes auto-set scheduled_next = now + 7 days in the
+// mutation layer (operator had a real conversation; pace the next
+// attempt). `voicemail` and `no_answer` leave scheduled_next null so
+// the row stays visible — those attempts ARE the chase, not the
+// resolution.
+//
 // Encoded as a NOT EXISTS against the same "latest-by-created_at" shape
 // the SELECTs use.
 const inActiveQueue = sql`NOT EXISTS (
@@ -55,7 +63,7 @@ const inActiveQueue = sql`NOT EXISTS (
       WHERE sf2.subscription_id = ${businessSubscriptions.id}
     )
     AND (
-      sf.outcome = 'paid'
+      sf.outcome IN ('paid', 'refused')
       OR (sf.scheduled_next IS NOT NULL AND sf.scheduled_next > now())
     )
 )`
