@@ -169,6 +169,13 @@
       "when": 1781511293943,
       "tag": "0023_tan_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1781533019887,
+      "tag": "0024_plain_nightshade",
+      "breakpoints": true
     }
   ]
 }
