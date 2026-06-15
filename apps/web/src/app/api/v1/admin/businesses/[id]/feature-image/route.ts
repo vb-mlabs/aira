@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server"
 import { ApiError } from "@aira/api"
-import { getSessionFromHeaders, adminSessionIsStale } from "@/lib/auth/server"
+import { requireAdminJSON } from "@/lib/auth/server"
 import { businesses as businessesService } from "@aira/services"
 import { db } from "@/lib/db"
 import { logger } from "@/lib/logger"
@@ -20,17 +20,6 @@ import {
 export const runtime = "nodejs"
 export const maxDuration = 30
 
-async function authorise(req: Request): Promise<ApiError | null> {
-  const session = await getSessionFromHeaders(req.headers)
-  if (!session?.user) return ApiError.unauthorized()
-  const role = (session.user as { role?: string }).role ?? "end_user"
-  if (role !== "admin" && role !== "super_admin")
-    return ApiError.forbidden("Admin access required")
-  const sessionId = (session.session as { id?: string }).id
-  if (await adminSessionIsStale(sessionId)) return ApiError.idleTimeout()
-  return null
-}
-
 function storageKeyFromUrl(url: string): string | null {
   const prefix = "/api/storage/"
   if (!url.startsWith(prefix)) return null
@@ -41,8 +30,8 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const authErr = await authorise(req)
-  if (authErr) return authErr.toResponse()
+  const auth = await requireAdminJSON(req)
+  if (auth instanceof Response) return auth
 
   const { id: businessId } = await params
 
@@ -101,8 +90,8 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const authErr = await authorise(req)
-  if (authErr) return authErr.toResponse()
+  const auth = await requireAdminJSON(req)
+  if (auth instanceof Response) return auth
 
   const { id: businessId } = await params
 

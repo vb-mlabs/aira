@@ -4,8 +4,7 @@
 
 import { NextResponse } from "next/server"
 import { ApiError } from "@aira/api"
-import { getSessionFromHeaders } from "@/lib/auth/server"
-import { adminSessionIsStale } from "@/lib/auth/server"
+import { requireAdminJSON } from "@/lib/auth/server"
 import { logger } from "@/lib/logger"
 import {
   ImagePipelineError,
@@ -20,18 +19,8 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getSessionFromHeaders(req.headers)
-  if (!session?.user) {
-    return ApiError.unauthorized().toResponse()
-  }
-  const role = (session.user as { role?: string }).role ?? "end_user"
-  if (role !== "admin" && role !== "super_admin") {
-    return ApiError.forbidden("Admin access required").toResponse()
-  }
-  const sessionId = (session.session as { id?: string }).id
-  if (await adminSessionIsStale(sessionId)) {
-    return ApiError.idleTimeout().toResponse()
-  }
+  const auth = await requireAdminJSON(req)
+  if (auth instanceof Response) return auth
 
   const { id: businessId } = await params
 

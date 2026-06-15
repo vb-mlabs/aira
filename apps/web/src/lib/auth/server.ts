@@ -146,6 +146,33 @@ export async function requireUserJSON(): Promise<
 }
 
 /**
+ * REST-friendly admin auth check for route handlers that can't use
+ * defineOperation (multipart uploads, CSV, binary responses).
+ *
+ * Mirrors requireAdmin() — same role check + idle-timeout — but returns
+ * a Response on failure instead of throwing redirect/notFound. Use in
+ * /api/* handlers that must serve non-JSON or non-standard responses.
+ *
+ * Usage:
+ *   const auth = await requireAdminJSON(req)
+ *   if (auth instanceof Response) return auth
+ *   // auth is AuthSession["user"]
+ */
+export async function requireAdminJSON(
+  req: Request,
+): Promise<AuthSession["user"] | Response> {
+  const session = await getSessionFromHeaders(req.headers)
+  if (!session?.user) return ApiError.unauthorized().toResponse()
+  const role = (session.user as { role?: string }).role ?? "end_user"
+  if (role !== "admin" && role !== "super_admin") {
+    return ApiError.forbidden("Admin access required").toResponse()
+  }
+  const sessionId = (session.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) return ApiError.idleTimeout().toResponse()
+  return session.user
+}
+
+/**
  * Server-component helper: enforces auth + admin role.
  *
  * Non-admin authenticated users get notFound() — same response as any
