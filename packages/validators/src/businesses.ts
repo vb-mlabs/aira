@@ -13,6 +13,25 @@ import { BusinessImageSchema } from "./business-image";
 export const VALID_TIERS = ["tier1", "tier2", "tier3"] as const;
 export type BusinessTier = (typeof VALID_TIERS)[number];
 
+/** Single source of truth for human-readable tier labels. Every UI surface
+ *  (admin tables, plan picker, public business card badge, tier section
+ *  header) imports from here so the labels can't drift. Mobile + web both
+ *  consume @aira/validators so they get the same map.
+ *
+ *  Why these labels:
+ *    - tier1 is the top-of-listing premium slot ("Sponsored")
+ *    - tier2 is the mid-tier paid slot ("Sponsored Level 2") — matches the
+ *      label tier-section.tsx already uses and replaces the inconsistent
+ *      "Featured" string that used to live in business-card.tsx:76
+ *    - tier3 is the unpaid default ("Regular") — public cards skip the
+ *      badge entirely for this tier, but admin surfaces still need a label
+ */
+export const TIER_LABELS: Record<BusinessTier, string> = {
+  tier1: "Sponsored",
+  tier2: "Sponsored Level 2",
+  tier3: "Regular",
+};
+
 export const VALID_BUSINESS_TYPES = [
   "storefront",
   "home_based",
