@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-15
 **Slug:** 2026-06-15-admin-setup-hub-super-admin-gate
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
