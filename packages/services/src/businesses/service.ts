@@ -136,6 +136,36 @@ export async function archiveBusiness(
   return getBusinessByIdIncludingArchived(db, id);
 }
 
+export async function setBusinessFeatureImage(
+  db: Database,
+  id: string,
+  url: string,
+): Promise<Business | null> {
+  await db
+    .update(businesses)
+    .set({ image_url: url })
+    .where(eq(businesses.id, id));
+  return getBusinessByIdIncludingArchived(db, id);
+}
+
+export async function clearBusinessFeatureImage(
+  db: Database,
+  id: string,
+): Promise<{ oldUrl: string | null }> {
+  const [row] = await db
+    .select({ image_url: businesses.image_url })
+    .from(businesses)
+    .where(eq(businesses.id, id));
+  const oldUrl = row?.image_url ?? null;
+  if (oldUrl !== null) {
+    await db
+      .update(businesses)
+      .set({ image_url: null })
+      .where(eq(businesses.id, id));
+  }
+  return { oldUrl };
+}
+
 export async function purgeArchivedBusinesses(
   db: Database,
   { olderThanDays }: { olderThanDays: number },
