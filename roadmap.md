@@ -1,7 +1,7 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-14
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14.
+**Last updated:** 2026-06-15
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
@@ -16,7 +16,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 - 🟦 Apple Team ID → fill into `.well-known/apple-app-site-association`
 - 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json`
 
-**Sprint 6 — not started:** F26 mobile distribution + update prompt, F25 mobile deep links, F22 audit log UI, F23 CSV export, generic AppSetting admin hub, TODOS.md cleanup.
+**Sprint 6 — not started:** F26 mobile distribution + update prompt (includes `min_supported_build_*` seed + form), F25 mobile deep links, F22 audit log UI, F23 CSV export, TODOS.md cleanup. *Generic AppSetting admin hub deferred — see 2026-06-15 decision below.*
 
 **Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions.
 
@@ -336,12 +336,13 @@ Plan: `.mstack/plans/2026-06-14-community-admin-v2.md`. Polish layer on top of F
 **Goal:** First TestFlight build + Play Internal Track build in QA's hands. Admin console feels finished. All TODO items from `TODOS.md` cleared.
 
 **Features (PRD refs):**
-- ⬜ F26 — Mobile app distribution + update prompt (`AppSetting.min_supported_build_*`, blocking dialog with store links if behind)
+- ⬜ F26 — Mobile app distribution + update prompt. Includes: seed `min_supported_build_ios` / `min_supported_build_android` keys, build the admin form to edit them, and the mobile-side blocking dialog with store links when `appVersion < min`.
 - ⬜ F25 (mobile half) — Deep links wiring (Universal Links + App Links activation via .well-known files filled in S0)
 - ⬜ F22 — Audit log UI (filterable by date / actor / entity / action, search, CSV export)
 - ⬜ F23 — Full CSV export (Listings, Categories, Memberships, Sponsorships, Posts — apply current filters)
-- ⬜ AppSetting admin UI (reminder schedule, posts expiry, purge days, min builds, homepage counts override)
 - ⬜ Clear all open items from [TODOS.md](./TODOS.md) — brand strings, mobile fonts via `@expo-google-fonts/*`, dark theme client review
+
+**Deferred from S6 (2026-06-15):** generic AppSetting admin hub covering `posts_expiry_days`, `soft_delete_purge_days`, `posts_max_visible`. Defaults work for launch; one-off SQL is cheaper than building UI for knobs ops won't touch in month 1. Reopen if (a) ops asks twice to change one, or (b) we ship a second knob that needs a form anyway.
 
 **Schema additions:** none — AuditLog already exists from S2.
 
@@ -469,3 +470,4 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-14** — F17 per-business-owner emails formally moved to Phase 2. *Why:* the business schema has no `owner_email` and no FK to `user` today, so "email each owner" requires deciding the owner identity model first (column on `business` vs FK to user vs join table for multi-owner). Same blocker pins F21's "broadcast to business users" target shape. Doing the owner-identity decision once unblocks both — capture as a pre-Phase 2 plan when business-owner self-service becomes a goal.
 - **2026-06-14** — Audit-around-delete pattern locked: SELECT snapshot → INSERT audit → DELETE all inside one `db.transaction`. The conventional "audit BEFORE mutation" can't apply because the row is unreadable after delete. Required widening `createAudit` to accept any handle with `insert()` (Database or PgTransaction) — shipped in `Pick<Database, "insert">`. Used by F20 v2 `deletePost`; future hard-deletes should follow the same shape.
 - **2026-06-14** — `relativeTime()` helpers across the app use `toLocaleDateString()` as the >7d fallback, which silently differs between Node (server) and the browser, triggering hydration warnings on older fixture data. Fix: stable UTC `MM/DD/YYYY` formatter + `suppressHydrationWarning` on the wrapping span. Landed on `admin/community/moderation-queue.tsx` and the user-facing community card; same pattern lives in notification-item, post-form, etc. and will need the same fix if those surfaces ever render >7d-old timestamps.
+- **2026-06-15** — Generic AppSetting admin hub dropped from S6 MVP scope. *Why:* PRD F10 lists five tunable keys (`reminder_schedule`, `homepage_*`, `posts_expiry_days`, `soft_delete_purge_days`, `min_supported_build_*`). Three already have dedicated admin UI (`/admin/settings/renewal-schedule`, `/admin/settings/homepage`). Of the remaining two: `posts_expiry_days` (default 30) and `soft_delete_purge_days` (default 180) have no believable change-pressure in month 1 — a one-off Drizzle Studio edit is cheaper than building a form ops won't open. `min_supported_build_*` only matters when F26 ships, so it's folded into F26's own scope (seed + form land together with the mobile-side force-update dialog). Trade-off accepted: changes to the two deferred knobs won't appear in audit log until a UI exists, which is fine for internal-admin launch. Reopen the generic hub if ops asks twice or a third tunable knob ships.
