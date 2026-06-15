@@ -77,31 +77,26 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                 facebook_url={business.facebook_url}
                 instagram_url={business.instagram_url}
                 whatsapp_number={business.whatsapp_number}
+                phone={business.phone}
+                website={business.website}
+                address={business.address}
                 className="mt-2"
               />
             </div>
           </div>
 
           {/* CTAs */}
-          {(business.phone || business.website) && (
-            <div className="mt-5 flex flex-wrap gap-3">
-              {business.phone && (
-                <a href={`tel:${business.phone}`} className={buttonVariants()}>
-                  <Phone className="size-4" aria-hidden />
-                  Call Now
-                </a>
-              )}
-              {business.website && (
-                <a
-                  href={business.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={buttonVariants()}
-                >
-                  <ExternalLink className="size-4" aria-hidden />
-                  Visit Website
-                </a>
-              )}
+          {business.address && (
+            <div className="mt-5">
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(business.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonVariants()}
+              >
+                <MapPin className="size-4" aria-hidden />
+                Get Directions
+              </a>
             </div>
           )}
         </div>

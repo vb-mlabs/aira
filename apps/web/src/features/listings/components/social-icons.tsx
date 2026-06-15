@@ -1,7 +1,12 @@
+import { Globe, Map, Phone } from "lucide-react"
+
 interface SocialLinksProps {
   facebook_url?: string | null
   instagram_url?: string | null
   whatsapp_number?: string | null
+  phone?: string | null
+  website?: string | null
+  address?: string | null
   className?: string
 }
 
@@ -9,10 +14,17 @@ export function SocialLinks({
   facebook_url,
   instagram_url,
   whatsapp_number,
+  phone,
+  website,
+  address,
   className,
 }: SocialLinksProps) {
   const waHref = whatsapp_number
     ? `https://wa.me/${whatsapp_number.replace(/\D/g, "")}`
+    : null
+
+  const mapsHref = address
+    ? `https://maps.google.com/?q=${encodeURIComponent(address)}`
     : null
 
   const iconBase =
@@ -80,6 +92,67 @@ export function SocialLinks({
           style={{ backgroundColor: "#25D366", opacity: 0.25 }}
         >
           <WhatsappIcon />
+        </span>
+      )}
+
+      {phone ? (
+        <a
+          href={`tel:${phone}`}
+          aria-label="Call"
+          className={`${iconBase} hover:opacity-80`}
+          style={{ backgroundColor: "#16A34A" }}
+        >
+          <Phone className="size-4 text-white" aria-hidden />
+        </a>
+      ) : (
+        <span
+          aria-hidden
+          className={`${iconBase} cursor-default`}
+          style={{ backgroundColor: "#16A34A", opacity: 0.25 }}
+        >
+          <Phone className="size-4 text-white" aria-hidden />
+        </span>
+      )}
+
+      {website ? (
+        <a
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Website"
+          className={`${iconBase} hover:opacity-80`}
+          style={{ backgroundColor: "#6366F1" }}
+        >
+          <Globe className="size-4 text-white" aria-hidden />
+        </a>
+      ) : (
+        <span
+          aria-hidden
+          className={`${iconBase} cursor-default`}
+          style={{ backgroundColor: "#6366F1", opacity: 0.25 }}
+        >
+          <Globe className="size-4 text-white" aria-hidden />
+        </span>
+      )}
+
+      {mapsHref ? (
+        <a
+          href={mapsHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View on Google Maps"
+          className={`${iconBase} hover:opacity-80`}
+          style={{ backgroundColor: "#EA4335" }}
+        >
+          <Map className="size-4 text-white" aria-hidden />
+        </a>
+      ) : (
+        <span
+          aria-hidden
+          className={`${iconBase} cursor-default`}
+          style={{ backgroundColor: "#EA4335", opacity: 0.25 }}
+        >
+          <Map className="size-4 text-white" aria-hidden />
         </span>
       )}
     </div>
