@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
 import { Clock, Globe, Pencil, Phone, X } from "lucide-react"
 import { ApiError } from "@aira/api"
+import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
+import { RatingPill } from "@/features/listings/components/rating-pill"
 import {
   GoogleMapsPinIcon,
   SocialLinks,
@@ -72,58 +74,13 @@ export function BusinessAdminDetail({ business, categories = [] }: BusinessAdmin
         <ArchiveControl business={business} />
       </header>
 
-      <CoreFieldsSection business={business} />
-      <CategorySection business={business} categories={categories} />
+      <CoreFieldsSection business={business} categories={categories} />
       <GallerySection businessId={business.id} images={business.images} />
       <ContactSection business={business} />
-      <RatingSection business={business} />
-      <SocialLinksSection business={business} />
-      <EditorialSection business={business} />
+      <AiraReviewSection business={business} />
       <SubscriptionsSection businessId={business.id} />
       <SponsorshipsSection businessId={business.id} />
     </div>
-  )
-}
-
-function CategorySection({
-  business,
-  categories,
-}: {
-  business: Business
-  categories: Category[]
-}) {
-  const [open, setOpen] = useState(false)
-  const [feedback, setFeedback] = useState<Feedback>(null)
-
-  return (
-    <section className="rounded-lg border border-border bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">Categories</h2>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setOpen(true)}
-        >
-          <Pencil className="size-3.5" aria-hidden />
-          Edit
-        </Button>
-      </header>
-      <div className="space-y-3 px-6 py-5">
-        <CategoryPreview business={business} categories={categories} />
-        <StatusLine feedback={feedback} />
-      </div>
-      <CategoryEditModal
-        business={business}
-        categories={categories}
-        open={open}
-        onClose={() => setOpen(false)}
-        onSaved={(result) => {
-          setFeedback(result)
-          if (result?.kind === "ok") setOpen(false)
-        }}
-      />
-    </section>
   )
 }
 
@@ -338,62 +295,15 @@ const RATING_OPTIONS = [
   "5",
 ]
 
-function RatingSection({ business }: { business: Business }) {
-  const router = useRouter()
-  // Empty string represents "No rating" → null on save.
-  const [rating, setRating] = useState(
-    business.rating === null ? "" : business.rating.toString(),
-  )
-  const [feedback, setFeedback] = useState<Feedback>(null)
-  const [pending, startTransition] = useTransition()
-
-  function save() {
-    startTransition(async () => {
-      const result = await runUpdate(business.id, {
-        rating: rating === "" ? null : Number(rating),
-      })
-      setFeedback(result)
-      if (result?.kind === "ok") router.refresh()
-    })
-  }
-
-  return (
-    <section className="rounded-lg border border-border bg-card">
-      <header className="border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">Rating</h2>
-      </header>
-      <div className="space-y-4 px-6 py-5">
-        <div className="space-y-1.5">
-          <Label htmlFor="b-rating">Star rating</Label>
-          <select
-            id="b-rating"
-            value={rating}
-            onChange={(e) => setRating(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-          >
-            <option value="">No rating</option>
-            {RATING_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-muted-foreground">
-            Half-star steps from 0 to 5. Cards and detail page hide the rating
-            entirely when set to &quot;No rating&quot; or 0.
-          </p>
-        </div>
-        <Button type="button" onClick={save} disabled={pending}>
-          {pending ? "Saving…" : "Save"}
-        </Button>
-        <StatusLine feedback={feedback} />
-      </div>
-    </section>
-  )
-}
-
-function CoreFieldsSection({ business }: { business: Business }) {
-  const [open, setOpen] = useState(false)
+function CoreFieldsSection({
+  business,
+  categories,
+}: {
+  business: Business
+  categories: Category[]
+}) {
+  const [coreOpen, setCoreOpen] = useState(false)
+  const [categoryOpen, setCategoryOpen] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
 
   return (
@@ -404,30 +314,52 @@ function CoreFieldsSection({ business }: { business: Business }) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => setOpen(true)}
+          onClick={() => setCoreOpen(true)}
         >
           <Pencil className="size-3.5" aria-hidden />
           Edit
         </Button>
       </header>
       <div className="space-y-4 px-6 py-5">
-        <CoreFieldsPreview business={business} />
+        <CoreFieldsPreview
+          business={business}
+          categories={categories}
+          onEditCategories={() => setCategoryOpen(true)}
+        />
         <StatusLine feedback={feedback} />
       </div>
       <CoreFieldsEditModal
         business={business}
-        open={open}
-        onClose={() => setOpen(false)}
+        open={coreOpen}
+        onClose={() => setCoreOpen(false)}
         onSaved={(result) => {
           setFeedback(result)
-          if (result?.kind === "ok") setOpen(false)
+          if (result?.kind === "ok") setCoreOpen(false)
+        }}
+      />
+      <CategoryEditModal
+        business={business}
+        categories={categories}
+        open={categoryOpen}
+        onClose={() => setCategoryOpen(false)}
+        onSaved={(result) => {
+          setFeedback(result)
+          if (result?.kind === "ok") setCategoryOpen(false)
         }}
       />
     </section>
   )
 }
 
-function CoreFieldsPreview({ business }: { business: Business }) {
+function CoreFieldsPreview({
+  business,
+  categories,
+  onEditCategories,
+}: {
+  business: Business
+  categories: Category[]
+  onEditCategories: () => void
+}) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
       <div className="w-full overflow-hidden rounded-md border border-border bg-muted/30 sm:w-48 sm:flex-shrink-0">
@@ -444,8 +376,23 @@ function CoreFieldsPreview({ business }: { business: Business }) {
           </div>
         )}
       </div>
-      <div className="min-w-0 flex-1 space-y-2">
+      <div className="min-w-0 flex-1 space-y-3">
         <p className="font-display text-lg text-foreground">{business.name}</p>
+        {/* Categories live next to the name so admins read placement
+            (primary + extras) without scrolling. Edit button opens the
+            CategoryEditModal owned by the parent section. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <CategoryPreview business={business} categories={categories} />
+          <button
+            type="button"
+            onClick={onEditCategories}
+            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Edit categories"
+          >
+            <Pencil className="size-3" aria-hidden />
+            Edit
+          </button>
+        </div>
         {business.description ? (
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">
             {business.description}
@@ -576,10 +523,11 @@ function CoreFieldsEditModal({
 }
 
 function ContactSection({ business }: { business: Business }) {
-  const [open, setOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const [socialOpen, setSocialOpen] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
 
-  const empty =
+  const contactEmpty =
     !business.phone &&
     !business.website &&
     !business.address &&
@@ -593,14 +541,37 @@ function ContactSection({ business }: { business: Business }) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => setOpen(true)}
+          onClick={() => setContactOpen(true)}
         >
           <Pencil className="size-3.5" aria-hidden />
           Edit
         </Button>
       </header>
-      <div className="space-y-3 px-6 py-5">
-        {empty ? (
+      <div className="space-y-4 px-6 py-5">
+        {/* Social icon row + inline Edit pencil — same component the
+            public listing detail page uses, so the admin sees the row
+            exactly as it will publish. Edit button opens the
+            SocialLinksEditModal owned here. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <SocialLinks
+            facebook_url={business.facebook_url}
+            instagram_url={business.instagram_url}
+            whatsapp_number={business.whatsapp_number}
+            phone={business.phone}
+            website={business.website}
+            address={business.address}
+          />
+          <button
+            type="button"
+            onClick={() => setSocialOpen(true)}
+            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Edit social links"
+          >
+            <Pencil className="size-3" aria-hidden />
+            Edit
+          </button>
+        </div>
+        {contactEmpty ? (
           <p className="text-sm text-muted-foreground">
             No contact details yet.
           </p>
@@ -611,11 +582,20 @@ function ContactSection({ business }: { business: Business }) {
       </div>
       <ContactEditModal
         business={business}
-        open={open}
-        onClose={() => setOpen(false)}
+        open={contactOpen}
+        onClose={() => setContactOpen(false)}
         onSaved={(result) => {
           setFeedback(result)
-          if (result?.kind === "ok") setOpen(false)
+          if (result?.kind === "ok") setContactOpen(false)
+        }}
+      />
+      <SocialLinksEditModal
+        business={business}
+        open={socialOpen}
+        onClose={() => setSocialOpen(false)}
+        onSaved={(result) => {
+          setFeedback(result)
+          if (result?.kind === "ok") setSocialOpen(false)
         }}
       />
     </section>
@@ -823,14 +803,14 @@ function ContactEditModal({
   )
 }
 
-function EditorialSection({ business }: { business: Business }) {
+function AiraReviewSection({ business }: { business: Business }) {
   const [open, setOpen] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
 
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">Editorial</h2>
+        <h2 className="text-base font-semibold">{brand.name} Review</h2>
         <Button
           type="button"
           variant="outline"
@@ -842,10 +822,13 @@ function EditorialSection({ business }: { business: Business }) {
         </Button>
       </header>
       <div className="space-y-3 px-6 py-5">
-        <EditorialPreview review={business.aira_review} />
+        <AiraReviewPreview
+          rating={business.rating}
+          review={business.aira_review}
+        />
         <StatusLine feedback={feedback} />
       </div>
-      <EditorialEditModal
+      <AiraReviewEditModal
         business={business}
         open={open}
         onClose={() => setOpen(false)}
@@ -858,18 +841,39 @@ function EditorialSection({ business }: { business: Business }) {
   )
 }
 
-function EditorialPreview({ review }: { review: string | null }) {
-  if (!review || review.trim().length === 0) {
+function AiraReviewPreview({
+  rating,
+  review,
+}: {
+  rating: number | null
+  review: string | null
+}) {
+  const hasRating = rating !== null && rating > 0
+  const hasReview = review !== null && review.trim().length > 0
+  if (!hasRating && !hasReview) {
     return (
-      <p className="text-sm text-muted-foreground">No editorial review yet.</p>
+      <p className="text-sm text-muted-foreground">
+        No rating or review yet.
+      </p>
     )
   }
   return (
-    <p className="whitespace-pre-wrap text-sm text-foreground">{review}</p>
+    <div className="space-y-2">
+      {hasRating ? (
+        <RatingPill rating={rating!} />
+      ) : (
+        <p className="text-xs text-muted-foreground">No rating</p>
+      )}
+      {hasReview ? (
+        <p className="whitespace-pre-wrap text-sm text-foreground">{review}</p>
+      ) : (
+        <p className="text-xs text-muted-foreground">No written review</p>
+      )}
+    </div>
   )
 }
 
-function EditorialEditModal({
+function AiraReviewEditModal({
   business,
   open,
   onClose,
@@ -881,6 +885,10 @@ function EditorialEditModal({
   onSaved: (result: Feedback) => void
 }) {
   const router = useRouter()
+  // Empty string represents "No rating" → null on save.
+  const [rating, setRating] = useState(
+    business.rating === null ? "" : business.rating.toString(),
+  )
   const [airaReview, setAiraReview] = useState(business.aira_review ?? "")
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -889,6 +897,7 @@ function EditorialEditModal({
     setError(null)
     startTransition(async () => {
       const result = await runUpdate(business.id, {
+        rating: rating === "" ? null : Number(rating),
         aira_review: airaReview.trim() || null,
       })
       if (result?.kind === "error") {
@@ -904,6 +913,8 @@ function EditorialEditModal({
     if (!next) onClose()
   }
 
+  const previewRating = rating === "" ? null : Number(rating)
+
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
@@ -912,10 +923,11 @@ function EditorialEditModal({
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
             <div>
               <Dialog.Title className="font-display text-xl text-foreground">
-                Edit editorial review
+                Edit {brand.name} Review
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                Shown on the public detail page.
+                Both the star rating and the written review show on the
+                public detail page.
               </Dialog.Description>
             </div>
             <Dialog.Close
@@ -931,7 +943,28 @@ function EditorialEditModal({
               <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
                 Preview
               </p>
-              <EditorialPreview review={airaReview} />
+              <AiraReviewPreview rating={previewRating} review={airaReview} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="b-rating">Star rating</Label>
+              <select
+                id="b-rating"
+                value={rating}
+                onChange={(e) => setRating(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">No rating</option>
+                {RATING_OPTIONS.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Half-star steps from 0 to 5. Cards and the detail page hide
+                the rating entirely when set to &quot;No rating&quot; or 0.
+              </p>
             </div>
 
             <div className="space-y-1.5">
@@ -968,53 +1001,6 @@ function EditorialEditModal({
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
-  )
-}
-
-function SocialLinksSection({ business }: { business: Business }) {
-  const [open, setOpen] = useState(false)
-  const [feedback, setFeedback] = useState<Feedback>(null)
-
-  return (
-    <section className="rounded-lg border border-border bg-card">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">Social links</h2>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setOpen(true)}
-        >
-          <Pencil className="size-3.5" aria-hidden />
-          Edit
-        </Button>
-      </header>
-      <div className="space-y-3 px-6 py-5">
-        {/* Read-only preview — same component the public listing uses, so
-            the admin sees the row exactly as it will publish. Click Edit
-            to open the focused modal. Phone / website / address come from
-            Contact section; facebook / instagram / whatsapp come from
-            this section's stored fields. */}
-        <SocialLinks
-          facebook_url={business.facebook_url}
-          instagram_url={business.instagram_url}
-          whatsapp_number={business.whatsapp_number}
-          phone={business.phone}
-          website={business.website}
-          address={business.address}
-        />
-        <StatusLine feedback={feedback} />
-      </div>
-      <SocialLinksEditModal
-        business={business}
-        open={open}
-        onClose={() => setOpen(false)}
-        onSaved={(result) => {
-          setFeedback(result)
-          if (result?.kind === "ok") setOpen(false)
-        }}
-      />
-    </section>
   )
 }
 
