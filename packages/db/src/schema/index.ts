@@ -32,3 +32,5 @@ export * from "./cron-runs"
 // S5: F20 community requests board
 export * from "./community-post"
 export * from "./post-interest"
+// S6: F23′ admin renewal follow-up queue
+export * from "./subscription-followups"
