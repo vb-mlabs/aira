@@ -13,6 +13,11 @@ const KNOWN_JOBS = [
   { name: "renewal-reminder", schedule: "0 8 * * * (daily 08:00 UTC)" },
   { name: "purge-soft-deleted", schedule: "0 3 * * * (daily 03:00 UTC)" },
   { name: "expire-posts", schedule: "0 * * * * (hourly)" },
+  {
+    name: "backfill-business-tiers",
+    schedule:
+      "manual only · brings every business's tier column in line with its active paid subscriptions (idempotent)",
+  },
 ]
 
 type CronStatus = "running" | "succeeded" | "failed" | "skipped"

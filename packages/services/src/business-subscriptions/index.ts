@@ -10,4 +10,6 @@ export {
   updateSubscription,
   deleteSubscription,
   rolloverExpiredSubscriptions,
+  recomputeBusinessTier,
+  backfillBusinessTiersFromActivePaidSubscriptions,
 } from "./service"

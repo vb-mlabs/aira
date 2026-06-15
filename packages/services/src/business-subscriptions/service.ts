@@ -135,6 +135,34 @@ export async function deleteSubscription(
 }
 
 /**
+ * One-shot backfill: bring every business's `tier` column in line with its
+ * active-paid subscription set. Idempotent — re-running yields the same
+ * column values as a fresh post-deploy run. Returns the count of rows
+ * whose tier actually changed so the cron-runs log shows real impact.
+ *
+ * Iterates without a transaction wrapper (the recompute helper writes
+ * each row independently and the operation is recovery-safe). A failure
+ * partway through leaves earlier writes committed; the next invocation
+ * picks up the rest.
+ */
+export async function backfillBusinessTiersFromActivePaidSubscriptions(
+  db: Database,
+): Promise<{ updated: number }> {
+  const rows = await db
+    .select({
+      id: businesses.id,
+      currentTier: businesses.tier,
+    })
+    .from(businesses)
+  let updated = 0
+  for (const { id, currentTier } of rows) {
+    const { tier } = await recomputeBusinessTier(db, id)
+    if (tier !== currentTier) updated += 1
+  }
+  return { updated }
+}
+
+/**
  * Daily rollover: flip paid → overdue when end_date has passed.
  *
  * The `.returning({ id, business_id })` projection lets the recompute fire
