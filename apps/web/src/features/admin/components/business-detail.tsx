@@ -445,10 +445,7 @@ function CoreFieldsPreview({ business }: { business: Business }) {
         )}
       </div>
       <div className="min-w-0 flex-1 space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-display text-lg text-foreground">{business.name}</p>
-          <TierBadge tier={business.tier} />
-        </div>
+        <p className="font-display text-lg text-foreground">{business.name}</p>
         {business.description ? (
           <p className="whitespace-pre-wrap text-sm text-muted-foreground">
             {business.description}
@@ -458,16 +455,6 @@ function CoreFieldsPreview({ business }: { business: Business }) {
         )}
       </div>
     </div>
-  )
-}
-
-function TierBadge({ tier }: { tier: Business["tier"] }) {
-  const label =
-    tier === "tier1" ? "Tier 1" : tier === "tier2" ? "Tier 2" : "Tier 3"
-  return (
-    <span className="inline-flex items-center rounded-full border border-border bg-muted/30 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-foreground">
-      {label}
-    </span>
   )
 }
 
@@ -485,7 +472,6 @@ function CoreFieldsEditModal({
   const router = useRouter()
   const [name, setName] = useState(business.name)
   const [description, setDescription] = useState(business.description ?? "")
-  const [tier, setTier] = useState(business.tier)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -495,7 +481,6 @@ function CoreFieldsEditModal({
       const result = await runUpdate(business.id, {
         name: name.trim() || null,
         description: description.trim() || null,
-        tier,
       })
       if (result?.kind === "error") {
         setError(result.message)
@@ -521,7 +506,9 @@ function CoreFieldsEditModal({
                 Edit core fields
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                Name, description, tier, and the feature image (1200×630 cover).
+                Name, description, and the feature image (1200×630 cover). Placement
+                comes from the business&rsquo;s active paid subscription &mdash; edit
+                that in Subscriptions below.
               </Dialog.Description>
             </div>
             <Dialog.Close
@@ -563,20 +550,6 @@ function CoreFieldsEditModal({
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="b-tier">Tier</Label>
-              <select
-                id="b-tier"
-                value={tier}
-                onChange={(e) => setTier(e.target.value as Business["tier"])}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-              >
-                <option value="tier1">Tier 1</option>
-                <option value="tier2">Tier 2</option>
-                <option value="tier3">Tier 3</option>
-              </select>
-            </div>
-
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}

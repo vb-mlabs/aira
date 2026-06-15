@@ -11,6 +11,7 @@ import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import { cn } from "@aira/ui-web/utils"
 import type { BusinessSubscription } from "@aira/validators/business-subscriptions"
+import { TIER_LABELS } from "@aira/validators"
 import type { MembershipPlan } from "@aira/validators/membership-plans"
 
 interface SubscriptionsSectionProps {
@@ -50,6 +51,11 @@ function addMonthsToDate(dateStr: string, months: number): string {
 export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) {
   const router = useRouter()
   const [subs, setSubs] = useState<BusinessSubscription[]>([])
+  // Plan lookup map keyed by plan_id. Used to render the per-row plan name
+  // + tier chip — without this the table only shows a truncated plan_id
+  // UUID, which doesn't tell support staff what placement the customer
+  // is paying for.
+  const [planById, setPlanById] = useState<Map<string, MembershipPlan>>(new Map())
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -69,7 +75,21 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
     }
   }
 
-  useEffect(() => { fetchSubs() }, [businessId]) // eslint-disable-line react-hooks/exhaustive-deps
+  async function fetchPlans() {
+    try {
+      const res = await apiClient.get<{ items: MembershipPlan[] }>(
+        "/api/v1/admin/membership-plans?includeInactive=true",
+      )
+      const map = new Map<string, MembershipPlan>()
+      for (const p of res.data?.items ?? []) map.set(p.id, p)
+      setPlanById(map)
+    } catch {
+      // leave empty; rows fall back to "—" for tier
+    }
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { fetchSubs(); fetchPlans() }, [businessId])
 
   async function handleDelete(subId: string) {
     if (!confirm("Delete this subscription? This action is permanent.")) return
@@ -117,6 +137,7 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
                 <tr>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Status</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Plan</th>
+                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Placement</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Amount</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Period</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Evidence</th>
@@ -138,7 +159,19 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
                       </span>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {sub.plan_id ? sub.plan_id.slice(0, 8) + "…" : "—"}
+                      {sub.plan_id
+                        ? planById.get(sub.plan_id)?.name ??
+                          sub.plan_id.slice(0, 8) + "…"
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2">
+                      {sub.plan_id && planById.get(sub.plan_id) ? (
+                        <span className="inline-flex items-center rounded-full border border-border bg-muted/30 px-2 py-0.5 text-xs font-medium text-foreground">
+                          {TIER_LABELS[planById.get(sub.plan_id)!.tier]}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="px-3 py-2 tabular-nums">
                       ${(sub.amount_cents / 100).toFixed(2)}
