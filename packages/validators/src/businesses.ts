@@ -202,6 +202,15 @@ export const BusinessListOutputSchema = z.object({
 });
 export type BusinessListOutput = z.infer<typeof BusinessListOutputSchema>;
 
+/** Output contract for GET /api/v1/businesses/count. Tiny by design — just
+ *  the count of active (non-archived) businesses. Used by /home's stat
+ *  card so the RSC doesn't have to import the service directly (which
+ *  would bypass the /api/v1/* boundary). */
+export const BusinessCountOutputSchema = z.object({
+  count: z.number().int().nonnegative(),
+});
+export type BusinessCountOutput = z.infer<typeof BusinessCountOutputSchema>;
+
 export const BusinessDetailInputSchema = z
   .object({ id: z.string().min(1) })
   .strict();

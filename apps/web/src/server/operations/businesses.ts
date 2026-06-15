@@ -13,12 +13,14 @@ import "server-only"
 // output schema validates everywhere — non-paginated branches synthesize
 // the metadata from items.length.
 
+import { z } from "zod"
 import { businesses as businessesService } from "@aira/services"
 import {
   BusinessListInputSchema,
   BusinessListOutputSchema,
   BusinessDetailInputSchema,
   BusinessDetailOutputSchema,
+  BusinessCountOutputSchema,
   type BusinessListOutput,
 } from "@aira/validators/businesses"
 import { defineOperation } from "./index"
@@ -123,5 +125,20 @@ export const getBusinessByIdOp = defineOperation({
   handler: async (db, _ctx, { id }) => {
     const business = await businessesService.getBusinessById(db, id)
     return { business }
+  },
+})
+
+/** Active-businesses count. Powers the /home Businesses stat card via
+ *  apiServerFetch — the RSC used to import @aira/services directly and
+ *  call countActiveBusinesses(db), which bypassed the /api/v1/* boundary
+ *  documented in CLAUDE.md. This op restores that boundary. */
+export const countActiveBusinessesOp = defineOperation({
+  name: "businesses.countActive",
+  input: z.object({}).strict(),
+  output: BusinessCountOutputSchema,
+  permission: "user",
+  handler: async (db) => {
+    const count = await businessesService.countActiveBusinesses(db)
+    return { count }
   },
 })
