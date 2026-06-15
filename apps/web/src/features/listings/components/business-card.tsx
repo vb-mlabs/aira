@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { BadgeCheck } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
+import { TIER_LABELS } from "@aira/validators"
 import { CATEGORY_META } from "../category-meta"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
@@ -73,7 +74,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
 function TierPill({ tier }: { tier: Business["tier"] }) {
   if (tier === "tier3") return null
-  const label = tier === "tier1" ? "Sponsored" : "Featured"
+  // Label comes from the shared TIER_LABELS map so the badge matches the
+  // tier-section heading exactly. Previously tier2 said "Featured" here
+  // while tier-section said "Sponsored Level 2" — a long-standing
+  // inconsistency this collapses.
   const bg = tier === "tier1" ? "bg-tier1 text-tier1-foreground" : "bg-tier2 text-tier2-foreground"
   return (
     <span
@@ -82,7 +86,7 @@ function TierPill({ tier }: { tier: Business["tier"] }) {
         bg,
       )}
     >
-      {label}
+      {TIER_LABELS[tier]}
     </span>
   )
 }
