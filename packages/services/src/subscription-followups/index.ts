@@ -11,3 +11,6 @@ export type {
   ListQueueResult,
   ListForSubscriptionOpts,
 } from "./queries"
+
+export { create } from "./mutations"
+export type { CreateResult } from "./mutations"
