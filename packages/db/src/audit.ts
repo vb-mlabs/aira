@@ -102,6 +102,29 @@ export type AuditMeta =
       title?: { from: string; to: string }
       body?: { from: string | null; to: string | null }
     }
+  // S6 — F23′ admin renewal follow-up queue. One row per call/attempt;
+  // the in-UI workflow that replaced the BusinessSubscriptions CSV
+  // chase. target.id = business_subscription.id. Per the locked
+  // 2026-06-15 review: single action kind + outcome inside metadata
+  // (matching session.revoked.reason precedent), so /admin/audit
+  // filtering by outcome means reading `metadata.outcome` rather than
+  // splitting into six action kinds.
+  //
+  // scheduled_next is non-null only when outcome === "reschedule";
+  // note is required for outcome === "called" and free for others
+  // (enforced at the validator boundary, not in the schema).
+  | {
+      kind: "business.subscription_followup"
+      outcome:
+        | "called"
+        | "voicemail"
+        | "no_answer"
+        | "refused"
+        | "paid"
+        | "reschedule"
+      note: string | null
+      scheduled_next: string | null
+    }
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults
