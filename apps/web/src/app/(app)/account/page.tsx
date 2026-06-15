@@ -1,8 +1,7 @@
 // /account — end-user account hub. Profile header + Account and Support
-// menu groups + Sign out + brand footer. Three menu items resolve to
-// real screens (/profile + mailto: + future /legal/terms); the rest are
-// placeholders rendered slightly dimmer so the page still ships before
-// notifications / privacy / about screens land.
+// menu groups + Sign out + brand footer. Every menu row resolves to a
+// real screen now: /profile, /account/notifications,
+// /account/privacy-security, mailto:, /account/terms, /account/about.
 
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -28,14 +27,16 @@ interface MenuItem {
   href: string
   label: string
   icon: React.ComponentType<{ className?: string }>
-  /** Placeholder = no real destination yet; render dimmer. */
-  placeholder?: boolean
 }
 
 const ACCOUNT_ITEMS: readonly MenuItem[] = [
   { href: "/profile", label: "Edit profile", icon: UserCog },
-  { href: "#", label: "Notifications", icon: Bell, placeholder: true },
-  { href: "#", label: "Privacy & security", icon: Lock, placeholder: true },
+  { href: "/account/notifications", label: "Notifications", icon: Bell },
+  {
+    href: "/account/privacy-security",
+    label: "Privacy & security",
+    icon: Lock,
+  },
 ] as const
 
 const SUPPORT_ITEMS: readonly MenuItem[] = [
@@ -44,8 +45,8 @@ const SUPPORT_ITEMS: readonly MenuItem[] = [
     label: "Contact us",
     icon: MessageCircle,
   },
-  { href: "#", label: "Terms & privacy", icon: ScrollText, placeholder: true },
-  { href: "#", label: `About ${brand.name}`, icon: Info, placeholder: true },
+  { href: "/account/terms", label: "Terms & privacy", icon: ScrollText },
+  { href: "/account/about", label: `About ${brand.name}`, icon: Info },
 ] as const
 
 export default async function AccountPage() {
@@ -113,21 +114,8 @@ function MenuLink({ item }: { item: MenuItem }) {
   const Icon = item.icon
   const content = (
     <>
-      <Icon
-        className={cn(
-          "size-4 flex-shrink-0",
-          item.placeholder ? "text-muted-foreground/60" : "text-primary",
-        )}
-        aria-hidden
-      />
-      <span
-        className={cn(
-          "flex-1 text-sm",
-          item.placeholder ? "text-muted-foreground" : "text-foreground",
-        )}
-      >
-        {item.label}
-      </span>
+      <Icon className="size-4 flex-shrink-0 text-primary" aria-hidden />
+      <span className="flex-1 text-sm text-foreground">{item.label}</span>
       <ChevronRight
         className="size-4 flex-shrink-0 text-muted-foreground"
         aria-hidden
