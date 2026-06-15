@@ -1,6 +1,6 @@
 import "server-only"
 
-// Admin-permission operations for the app settings domain.
+// Super_admin-permission operations for the app settings domain.
 
 import { appSettings as appSettingsService } from "@aira/services"
 import { createAudit } from "@aira/db/audit"
@@ -22,7 +22,7 @@ export const getAppSettingsOp = defineOperation({
   name: "admin.appSettings.get",
   input: z.object({}).strict(),
   output: AppSettingsOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db) => {
     const settings = await appSettingsService.getAppSettings(db)
     return { settings }
@@ -33,7 +33,7 @@ export const updateAppSettingOp = defineOperation({
   name: "admin.appSettings.update",
   input: AppSettingUpdateInputSchema,
   output: z.object({ setting: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { key, value }) => {
     const setting = await appSettingsService.updateAppSetting(db, key, value)
     return { setting }
@@ -51,7 +51,7 @@ export const getReminderScheduleOp = defineOperation({
   name: "admin.appSettings.reminderSchedule.get",
   input: z.object({}).strict(),
   output: ReminderScheduleOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db) => {
     const setting = await appSettingsService.getAppSetting(db, REMINDER_SCHEDULE_KEY)
     const rawValue = setting?.value ?? "7"
@@ -64,7 +64,7 @@ export const updateReminderScheduleOp = defineOperation({
   name: "admin.appSettings.reminderSchedule.update",
   input: ReminderScheduleUpdateInputSchema,
   output: ReminderScheduleOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, ctx, { value }) => {
     // Strict-parse at the server boundary; the client's inline validation
     // is for fast feedback, this is the guarantee.

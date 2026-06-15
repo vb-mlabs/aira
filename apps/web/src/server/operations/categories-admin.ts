@@ -1,6 +1,7 @@
 import "server-only"
 
-// Admin-permission operations for the categories domain.
+// Super_admin-permission operations for the categories domain. Categories
+// are platform-shape taxonomy; only super_admin can mutate.
 
 import { categories as categoriesService } from "@aira/services"
 import { businesses as businessesService } from "@aira/services"
@@ -20,7 +21,7 @@ export const listCategoriesAdminOp = defineOperation({
   name: "admin.categories.list",
   input: z.object({ includeInactive: z.coerce.boolean().optional() }).strict(),
   output: CategoryTreeOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { includeInactive }) => {
     const all = await categoriesService.getCategoriesByCity(db, CITY_ID, {
       includeInactive: includeInactive ?? true,
@@ -38,7 +39,7 @@ export const createCategoryOp = defineOperation({
   name: "admin.categories.create",
   input: CategoryCreateInputSchema,
   output: z.object({ category: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, input) => {
     const slug =
       input.slug ??
@@ -61,7 +62,7 @@ export const updateCategoryOp = defineOperation({
   name: "admin.categories.update",
   input: CategoryUpdateInputSchema,
   output: z.object({ category: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { id, ...data }) => {
     const category = await categoriesService.updateCategory(db, id, data)
     if (!category)
@@ -74,7 +75,7 @@ export const deactivateCategoryOp = defineOperation({
   name: "admin.categories.deactivate",
   input: z.object({ id: z.string().min(1) }).strict(),
   output: z.object({ category: z.any(), affected_businesses: z.number().int() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { id }) => {
     // Count businesses currently using this category slug
     const cat = await categoriesService.getCategoriesByCity(db, CITY_ID, {
@@ -100,7 +101,7 @@ export const reorderCategoriesOp = defineOperation({
   name: "admin.categories.reorder",
   input: CategoryReorderInputSchema,
   output: z.object({ ok: z.boolean() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { city_id, ordered_ids }) => {
     await categoriesService.reorderCategories(db, city_id, ordered_ids)
     return { ok: true }
