@@ -3,12 +3,17 @@ import "server-only"
 import { eq, and } from "drizzle-orm"
 import { membershipPlans } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
+import type { BusinessTier } from "@aira/validators/businesses"
 import type { MembershipPlan } from "@aira/validators/membership-plans"
 
 function toMembershipPlan(row: typeof membershipPlans.$inferSelect): MembershipPlan {
+  // tier is a plain `text` column at the DB layer (matches businesses.tier);
+  // the Zod boundary above narrows it to BusinessTier. Cast at the mapper
+  // so callers see the union type rather than `string`.
   return {
     ...row,
     description: row.description ?? null,
+    tier: row.tier as BusinessTier,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
   }

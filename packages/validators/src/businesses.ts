@@ -100,6 +100,12 @@ export const BusinessSchema = z.object({
 });
 export type Business = z.infer<typeof BusinessSchema>;
 
+// businesses.tier is no longer admin-writable through this surface — the
+// column is now a denormalised cache maintained by the subscription
+// service whenever an active-paid subscription set changes. See
+// .mstack/reviews/2026-06-15-membership-plan-tier.md (Task 5). Sending
+// `tier` here yields a Zod unrecognized_keys error (the schema is
+// .strict()), which is the intentional boundary feedback.
 export const BusinessUpdateInputSchema = z
   .object({
     id: z.string().min(1),
@@ -109,7 +115,6 @@ export const BusinessUpdateInputSchema = z
     phone: z.string().nullable().optional(),
     website: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
-    tier: BusinessTierSchema.optional(),
     facebook_url: z.string().nullable().optional(),
     instagram_url: z.string().nullable().optional(),
     whatsapp_number: z.string().nullable().optional(),
@@ -126,12 +131,16 @@ export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+// businesses.tier is no longer admin-writable through this surface — see
+// the same note above BusinessUpdateInputSchema. New businesses default
+// to tier3 via the DB column default; subscription activation upgrades
+// them via recomputeBusinessTier in
+// packages/services/src/business-subscriptions/service.ts.
 export const BusinessCreateInputSchema = z
   .object({
     name: z.string().min(1),
     slug: z.string().min(1).regex(slugPattern, "Slug must be lowercase kebab-case"),
     category: BusinessCategorySchema,
-    tier: BusinessTierSchema,
     description: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
     address: z.string().nullable().optional(),

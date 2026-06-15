@@ -44,7 +44,10 @@ export async function updateBusiness(
   if (data.phone !== undefined) updatePayload.phone = data.phone;
   if (data.website !== undefined) updatePayload.website = data.website;
   if (data.address !== undefined) updatePayload.address = data.address;
-  if (data.tier !== undefined) updatePayload.tier = data.tier;
+  // tier is intentionally NOT written here — the column is now a
+  // denormalised cache maintained by the subscription service via
+  // recomputeBusinessTier. The BusinessUpdateInputSchema strips the field
+  // at the validator boundary; this is defense-in-depth.
   if (data.facebook_url !== undefined) updatePayload.facebook_url = data.facebook_url;
   if (data.instagram_url !== undefined) updatePayload.instagram_url = data.instagram_url;
   if (data.whatsapp_number !== undefined) updatePayload.whatsapp_number = data.whatsapp_number;
