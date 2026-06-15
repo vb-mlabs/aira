@@ -44,45 +44,36 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
         )}
 
         <div className="p-6 sm:p-8">
-          {/* Avatar + name + verified + tier */}
-          <div className="flex items-start gap-4">
-            <div
-              aria-hidden
-              className="flex size-16 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-background text-foreground"
-            >
-              <Icon className="size-7" />
+          {/* Name + verified + rating + category + socials */}
+          <div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h1 className="font-display text-lg leading-tight text-foreground">
+                {business.name}
+              </h1>
+              {business.verified && (
+                <BadgeCheck
+                  aria-label="Verified"
+                  className="size-4 flex-shrink-0 fill-info text-info-foreground"
+                />
+              )}
+              {business.rating !== null && business.rating > 0 && (
+                <RatingPill rating={business.rating} />
+              )}
             </div>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <h1 className="font-display text-lg leading-tight text-foreground">
-                  {business.name}
-                </h1>
-                {business.verified && (
-                  <BadgeCheck
-                    aria-label="Verified"
-                    className="size-4 flex-shrink-0 fill-info text-info-foreground"
-                  />
-                )}
-                {business.rating !== null && business.rating > 0 && (
-                  <RatingPill rating={business.rating} />
-                )}
-              </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {category.displayName}
+            </p>
 
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {category.displayName}
-              </p>
-
-              <SocialLinks
-                facebook_url={business.facebook_url}
-                instagram_url={business.instagram_url}
-                whatsapp_number={business.whatsapp_number}
-                phone={business.phone}
-                website={business.website}
-                address={business.address}
-                className="mt-2"
-              />
-            </div>
+            <SocialLinks
+              facebook_url={business.facebook_url}
+              instagram_url={business.instagram_url}
+              whatsapp_number={business.whatsapp_number}
+              phone={business.phone}
+              website={business.website}
+              address={business.address}
+              className="mt-2"
+            />
           </div>
 
           {/* CTAs */}
