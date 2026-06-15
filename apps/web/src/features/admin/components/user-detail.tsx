@@ -16,6 +16,9 @@ interface UserDetailProps {
   audit: AdminAuditRow[]
   /** Currently signed-in admin id — used to disable self-targeted actions. */
   selfId: string
+  /** Currently signed-in admin's role. Only "super_admin" sees the
+   *  role-change controls; plain admins keep ban/unban/reset/notify. */
+  callerRole: string
 }
 
 type Feedback = { kind: "ok" | "error"; message: string } | null
@@ -43,9 +46,15 @@ async function runAdminCall(
   }
 }
 
-export function UserDetail({ user, audit, selfId }: UserDetailProps) {
+export function UserDetail({
+  user,
+  audit,
+  selfId,
+  callerRole,
+}: UserDetailProps) {
   const isSelf = user.id === selfId
   const banned = !!user.banned_at
+  const canChangeRole = callerRole === "super_admin"
 
   return (
     <div className="space-y-6">
@@ -58,14 +67,16 @@ export function UserDetail({ user, audit, selfId }: UserDetailProps) {
         </p>
       )}
 
-      <section className="rounded-lg border border-border bg-card">
-        <header className="border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold">Role</h2>
-        </header>
-        <div className="px-6 py-5">
-          <RoleControls user={user} disabled={isSelf} />
-        </div>
-      </section>
+      {canChangeRole && (
+        <section className="rounded-lg border border-border bg-card">
+          <header className="border-b border-border px-6 py-4">
+            <h2 className="text-base font-semibold">Role</h2>
+          </header>
+          <div className="px-6 py-5">
+            <RoleControls user={user} disabled={isSelf} />
+          </div>
+        </section>
+      )}
 
       <section
         className={cn(

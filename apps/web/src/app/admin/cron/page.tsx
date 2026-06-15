@@ -1,4 +1,5 @@
 import { apiServerFetch } from "@aira/api/server"
+import { requireSuperAdmin } from "@/lib/auth/server"
 import { listCronRunsOp } from "@/server/operations/cron-admin"
 import { AdminBadge } from "@/features/admin"
 import { AdminPageHeader } from "../_components/page-header"
@@ -33,6 +34,10 @@ function formatDateTime(iso: string): string {
 }
 
 export default async function AdminCronPage() {
+  // Cron triggering is super_admin-only — gate at the page so plain admins
+  // get notFound() instead of a 403 from apiServerFetch.
+  await requireSuperAdmin()
+
   const jobsWithRuns = await Promise.all(
     KNOWN_JOBS.map(async (job) => {
       const res = await apiServerFetch(listCronRunsOp, {

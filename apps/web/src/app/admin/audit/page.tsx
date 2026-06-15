@@ -7,6 +7,7 @@ import type {
   KnownAuditAction,
   KnownAuditTargetType,
 } from "@aira/validators/audit-meta"
+import { requireSuperAdmin } from "@/lib/auth/server"
 import { listAuditOp, listUsersOp } from "@/server/operations/admin"
 import { AuditTable, FilterBar } from "@/features/admin"
 import { AdminPageHeader } from "../_components/page-header"
@@ -45,6 +46,11 @@ function parseAction(s: string | undefined): KnownAuditAction | null {
 }
 
 export default async function AdminAuditPage({ searchParams }: PageProps) {
+  // Audit visibility is super_admin-only — gate at the page so plain admins
+  // get notFound() instead of hitting apiServerFetch and surfacing a 403.
+  // The op-level permission: "super_admin" is the API source of truth.
+  await requireSuperAdmin()
+
   const params = await searchParams
   const since = parseDate(params.since)
   const until = parseDate(params.until)
