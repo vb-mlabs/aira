@@ -27,7 +27,7 @@ import "server-only"
 import type { ZodType, ZodTypeAny } from "zod"
 import { ApiError, isApiError } from "./errors"
 import type { CallerContext, CallerSource } from "./context"
-import type { Permission } from "./permission"
+import { hasPermission, type Permission } from "./permission"
 
 /**
  * Minimal session shape the operation adapter needs. The web app's
@@ -59,13 +59,13 @@ export interface OperationDeps<DB> {
   /** Reads the caller's session from request headers. Returns null when
    *  unauthenticated; defineOperation maps that to a 401 ApiError. */
   getSession: GetSession
-  /** Optional. If provided AND the operation's permission is "admin" AND
-   *  the caller is web cookie-authed (ctx.source === "web"), invoked
-   *  immediately after the permission check passes. Throws ApiError when
-   *  the admin's cookie session has exceeded the idle-timeout window. JWT
-   *  / mobile paths skip this — JWTs are stateless and short-lived. The
-   *  composition root in apps/web wires this to the session.last_activity_at
-   *  freshness helper in lib/auth/server.ts. */
+  /** Optional. If provided AND the operation's permission is non-"user"
+   *  (admin or super_admin) AND the caller is web cookie-authed
+   *  (ctx.source === "web"), invoked immediately after the permission check
+   *  passes. Throws ApiError when the admin's cookie session has exceeded
+   *  the idle-timeout window. JWT / mobile paths skip this — JWTs are
+   *  stateless and short-lived. The composition root in apps/web wires this
+   *  to the session.last_activity_at freshness helper in lib/auth/server.ts. */
   enforceAdminFreshness?: (headers: Headers) => Promise<void>
   /** Optional. Used for unhandled-error reporting; defaults to console. */
   logger?: OperationLogger
@@ -81,7 +81,9 @@ export interface OperationSpec<DB, I, O> {
   input: ZodType<I>
   output: ZodType<O>
   /** Minimum role required to call this operation. `"user"` = any authed
-   *  caller; `"admin"` = admin only. */
+   *  caller; `"admin"` = admin or super_admin; `"super_admin"` = super_admin
+   *  only. Hierarchy enforced via `hasPermission()` — higher levels satisfy
+   *  lower required levels. */
   permission: Permission
   handler: (db: DB, ctx: CallerContext, input: I) => Promise<O>
 }
@@ -137,8 +139,7 @@ export function buildContext(opts: {
 }
 
 function meetsPermission(actual: Permission, required: Permission): boolean {
-  if (required === "user") return actual === "user" || actual === "admin"
-  return actual === required // "admin"
+  return hasPermission(actual, required)
 }
 
 function defaultRequestId(): string {
@@ -168,7 +169,7 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
     h: Headers,
   ): Promise<void> {
     if (
-      spec.permission === "admin" &&
+      spec.permission !== "user" &&
       ctx.source === "web" &&
       enforceAdminFreshness
     ) {

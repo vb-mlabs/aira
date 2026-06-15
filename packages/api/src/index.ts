@@ -6,6 +6,7 @@
 
 export type { CallerContext, CallerSource } from "./context"
 export type { Permission } from "./permission"
+export { hasPermission } from "./permission"
 export { ApiError, isApiError } from "./errors"
 export type { ApiErrorOptions } from "./errors"
 export { ApiErrorBody, ApiErrorResponse } from "@aira/validators"

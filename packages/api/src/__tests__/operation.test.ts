@@ -39,6 +39,9 @@ const userSession: OperationSession = {
 const adminSession: OperationSession = {
   user: { id: "a_1", email: "a@example.com", role: "admin" },
 }
+const superAdminSession: OperationSession = {
+  user: { id: "sa_1", email: "sa@example.com", role: "super_admin" },
+}
 
 const fakeDb = { __tag: "fakedb" as const }
 type FakeDb = typeof fakeDb
@@ -97,6 +100,55 @@ describe("defineOperation.runFromRequest", () => {
     })
     const res = await op.runFromRequest(mkRequest({}))
     expect(res.status).toBe(200)
+  })
+
+  it("returns 403 when admin caller hits a super_admin op", async () => {
+    const { defineOperation } = makeFactory(async () => adminSession)
+    const op = defineOperation({
+      name: "test.superAdminOnly",
+      input: z.object({}),
+      output: z.object({}),
+      permission: "super_admin",
+      handler: async () => ({}),
+    })
+    const res = await op.runFromRequest(mkRequest({}))
+    expect(res.status).toBe(403)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe("auth.forbidden")
+  })
+
+  it("super_admin satisfies an 'admin' permission gate (hierarchy)", async () => {
+    const { defineOperation } = makeFactory(async () => superAdminSession)
+    const op = defineOperation({
+      name: "test.adminOk",
+      input: z.object({}),
+      output: z.object({ ok: z.boolean() }),
+      permission: "admin",
+      handler: async () => ({ ok: true }),
+    })
+    const res = await op.runFromRequest(mkRequest({}))
+    expect(res.status).toBe(200)
+  })
+
+  it("fires enforceAdminFreshness for super_admin ops on web source", async () => {
+    const freshness = vi.fn(async () => {})
+    const { defineOperation: define } = createOperations<FakeDb>({
+      db: fakeDb,
+      getSession: async () => superAdminSession,
+      enforceAdminFreshness: freshness,
+      logger: { error: vi.fn() },
+      generateRequestId: () => "req-fixed",
+    })
+    const op = define({
+      name: "test.superAdminFresh",
+      input: z.object({}),
+      output: z.object({ ok: z.boolean() }),
+      permission: "super_admin",
+      handler: async () => ({ ok: true }),
+    })
+    const res = await op.runFromRequest(mkRequest({}))
+    expect(res.status).toBe(200)
+    expect(freshness).toHaveBeenCalledTimes(1)
   })
 
   it("returns 400 with field hint on input validation failure", async () => {
