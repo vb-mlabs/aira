@@ -1,0 +1,9 @@
+{
+  "id": "9",
+  "subject": "Update /account hub + /profile to wire new routes and back link",
+  "description": "Replace # hrefs and drop placeholder flag on 4 rows in /account/page.tsx. Remove SecuritySection, NotificationsSection, DangerZoneSection from /profile/page.tsx; add AccountBackLink at top.",
+  "activeForm": "Wiring hub and profile updates",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

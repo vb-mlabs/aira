@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { BusinessImage } from "@aira/validators"
 
 interface BusinessImageCarouselProps {
@@ -8,14 +8,15 @@ interface BusinessImageCarouselProps {
   businessName: string
 }
 
+const AUTO_INTERVAL_MS = 3500
+
 export function BusinessImageCarousel({
   images,
   businessName,
 }: BusinessImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const trackRef = useRef<HTMLDivElement>(null)
-
-  if (images.length === 0) return null
+  const isPausedRef = useRef(false)
 
   function scrollTo(index: number) {
     const track = trackRef.current
@@ -33,8 +34,33 @@ export function BusinessImageCarousel({
     setActiveIndex(next)
   }
 
+  // Auto-advance — paused while user hovers or touches
+  useEffect(() => {
+    if (images.length <= 1) return
+    const id = setInterval(() => {
+      if (isPausedRef.current) return
+      setActiveIndex((prev) => {
+        const next = (prev + 1) % images.length
+        const track = trackRef.current
+        if (track) {
+          const width = track.scrollWidth / images.length
+          track.scrollTo({ left: width * next, behavior: "smooth" })
+        }
+        return next
+      })
+    }, AUTO_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [images.length])
+
+  if (images.length === 0) return null
+
   return (
-    <div className="overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card)]">
+    <div
+      onMouseEnter={() => { isPausedRef.current = true }}
+      onMouseLeave={() => { isPausedRef.current = false }}
+      onTouchStart={() => { isPausedRef.current = true }}
+      onTouchEnd={() => { isPausedRef.current = false }}
+    >
       {/* Scroll track */}
       <div
         ref={trackRef}

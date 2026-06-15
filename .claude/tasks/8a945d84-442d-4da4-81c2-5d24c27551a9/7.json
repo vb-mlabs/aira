@@ -1,0 +1,9 @@
+{
+  "id": "7",
+  "subject": "Build /account/notifications page + toggle component",
+  "description": "Server page fetches getPreferencesOp via apiServerFetch; client component renders two switches; PATCH on toggle via apiClient.patch with success/error feedback.",
+  "activeForm": "Building notifications page + toggles",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

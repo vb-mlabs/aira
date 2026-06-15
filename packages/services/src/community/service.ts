@@ -509,6 +509,40 @@ export async function listInterests(
   }
 }
 
+// ─── Email-recipient lookup ─────────────────────────────────────────────────
+
+export interface PostAuthorEmailRecipient {
+  user_id: string
+  email: string
+  email_on_post_interest: boolean
+}
+
+/**
+ * Read-only helper used by addInterestOp AFTER the service-level insert
+ * commits. Returns the post author's email + email-on-post-interest pref
+ * so the op handler can decide whether to send a "someone responded"
+ * email. Returns null if the post is gone (race with delete).
+ *
+ * Pure SELECT — no auth check; the op handler already passed through
+ * addInterest's existing post-exists / self-interest guards.
+ */
+export async function getPostAuthorForEmail(
+  db: Database,
+  postId: string,
+): Promise<PostAuthorEmailRecipient | null> {
+  const [row] = await db
+    .select({
+      user_id: user.id,
+      email: user.email,
+      email_on_post_interest: user.email_on_post_interest,
+    })
+    .from(communityPost)
+    .innerJoin(user, eq(user.id, communityPost.user_id))
+    .where(eq(communityPost.id, postId))
+    .limit(1)
+  return row ?? null
+}
+
 // ─── Cron: expire stale approved posts ──────────────────────────────────────
 
 export async function expirePosts(

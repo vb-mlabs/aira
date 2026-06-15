@@ -86,9 +86,9 @@ function build(): string {
         fontSize: sizes,
         borderRadius: radius,
         fontFamily: {
-          sans: ["Geist", "System"],
-          display: ["Geist", "System"],
-          mono: ["GeistMono", "Menlo"],
+          sans: ["Lato-Regular", "System"],
+          display: ["CormorantGaramond-SemiBold", "System"],
+          mono: ["Menlo", "System"],
         },
       },
     },

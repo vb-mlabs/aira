@@ -1,0 +1,9 @@
+{
+  "id": "8",
+  "subject": "Build privacy-security, terms, about static pages",
+  "description": "privacy-security reuses SecuritySection + DangerZoneSection. terms = generic ToS + Privacy Policy sections. about = brand mission + tagline + Operated-by + version \"MVP\". All include AccountBackLink. Brand strings via {brand.*} only.",
+  "activeForm": "Building privacy/terms/about pages",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

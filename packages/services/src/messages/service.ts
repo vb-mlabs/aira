@@ -467,6 +467,44 @@ export async function getOtherParticipant(
   return { otherUser: row ?? null }
 }
 
+export interface MessageEmailRecipient {
+  user_id: string
+  email: string
+  email_on_message_received: boolean
+}
+
+/**
+ * Read-only helper used by sendMessageOp AFTER the service-level send/fan-out
+ * commits. Returns the conversation's other participants with their email
+ * address and the email-on-message-received preference toggle in one
+ * query, so the op handler can decide which recipients to email without
+ * a per-user round-trip.
+ *
+ * Pure SELECT — no auth check here; the op handler is responsible for
+ * having gone through requireParticipant via sendMessage first.
+ */
+export async function listMessageRecipientsForEmail(
+  db: Database,
+  conversationId: string,
+  excludeUserId: string,
+): Promise<MessageEmailRecipient[]> {
+  const rows = await db
+    .select({
+      user_id: user.id,
+      email: user.email,
+      email_on_message_received: user.email_on_message_received,
+    })
+    .from(conversation_participants)
+    .innerJoin(user, eq(user.id, conversation_participants.user_id))
+    .where(
+      and(
+        eq(conversation_participants.conversation_id, conversationId),
+        ne(conversation_participants.user_id, excludeUserId),
+      ),
+    )
+  return rows
+}
+
 export interface MarkConversationReadArgs {
   conversationId: string
 }

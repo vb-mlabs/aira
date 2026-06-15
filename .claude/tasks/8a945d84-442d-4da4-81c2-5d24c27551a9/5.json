@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "Add recipients-with-prefs helpers in messages + community services",
+  "description": "listMessageRecipientsForEmail returning {user_id,email,email_on_message_received}[]; getPostAuthorForEmail returning {user_id,email,email_on_post_interest}|null. Pure SELECTs, no side effects. Cover with service tests.",
+  "activeForm": "Adding email-recipient lookup helpers",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}
