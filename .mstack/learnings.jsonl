@@ -248,3 +248,5 @@
 {"ts":"2026-06-14T08:40:32Z","skill":"mlabs-qa","kind":"pattern","branch":"feat/rest-api-migration","text":"When testing filter chips that show counts, wipe the relevant table at QA setup. Otherwise leftover rows from previous runs inflate the count assertions in unpredictable ways. The QA harness already auto-deletes by user_id for personas; non-personal tables (community_post, business etc.) need their own truncate."}
 {"ts":"2026-06-15T08:04:24Z","skill":"2026-06-15","kind":"plan","branch":"feat/rest-api-migration","text":"renewal-followup-queue"}
 {"ts":"2026-06-15T08:09:22Z","skill":"2026-06-15","kind":"review","branch":"feat/rest-api-migration","text":"renewal-followup-queue"}
+{"ts":"2026-06-15T08:33:04Z","skill":"2026-06-15","kind":"code","branch":"feat/rest-api-migration","text":"renewal-followup-queue"}
+{"ts":"2026-06-15T08:33:04Z","skill":"2026-06-15","kind":"code","branch":"feat/rest-api-migration","text":"renewal-followup-queue"}

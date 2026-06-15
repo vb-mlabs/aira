@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-15
 **Slug:** renewal-followup-queue
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 
 ---
