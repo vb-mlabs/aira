@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
 import type { Category } from "@aira/validators/categories"
 import { ArchiveControl } from "./archive-control"
+import { FeatureImageSection } from "./feature-image-section"
 import { GallerySection } from "./gallery-section"
 import { PlacesAddressInput } from "./places-address-input"
 import { SubscriptionsSection } from "./subscriptions-section"
@@ -67,6 +68,7 @@ export function BusinessAdminDetail({ business, categories = [] }: BusinessAdmin
 
       <CoreFieldsSection business={business} />
       <CategorySection business={business} categories={categories} />
+      <FeatureImageSection businessId={business.id} imageUrl={business.image_url} />
       <GallerySection businessId={business.id} images={business.images} />
       <ContactSection business={business} />
       <RatingSection business={business} />
