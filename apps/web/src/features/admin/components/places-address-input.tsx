@@ -3,9 +3,9 @@
 // Google Places Autocomplete address widget.
 //
 // Requires window.google.maps.places to be loaded via the <Script> tag in
-// the admin layout (injected only when NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is
-// set). Falls back to a plain <Input> when the SDK is absent so the form
-// stays usable without a key.
+// the admin layout (injected only when GOOGLE_MAPS_API_KEY is set). Falls
+// back to a plain <Input> when the SDK is absent so the form stays usable
+// without a key.
 
 import { useEffect, useRef } from "react"
 import { Input } from "@aira/ui-web/input"

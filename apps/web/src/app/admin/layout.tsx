@@ -59,9 +59,9 @@ export default async function AdminLayout({
 
       <p className="sr-only">Signed in as admin {admin.email}</p>
 
-      {env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+      {env.GOOGLE_MAPS_API_KEY && (
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${env.GOOGLE_MAPS_API_KEY}&libraries=places`}
           strategy="afterInteractive"
         />
       )}
