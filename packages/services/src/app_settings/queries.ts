@@ -3,11 +3,6 @@ import { app_settings } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import type { AppSetting } from "@aira/validators/app_settings";
 
-export async function getAppSettings(db: Database): Promise<AppSetting[]> {
-  const rows = await db.select().from(app_settings).orderBy(app_settings.key);
-  return rows.map(toAppSetting);
-}
-
 export async function getAppSetting(
   db: Database,
   key: string,

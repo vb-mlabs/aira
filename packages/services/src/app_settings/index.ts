@@ -1,3 +1,3 @@
 // App settings domain.
 
-export { getAppSettings, getAppSetting, updateAppSetting } from "./queries";
+export { getAppSetting, updateAppSetting } from "./queries";

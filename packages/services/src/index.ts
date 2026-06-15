@@ -27,8 +27,7 @@
 //                                       createCategory, updateCategory, etc.
 //   - @aira/services/cities         — listCities, getCityBySlug,
 //                                       createCity, updateCity
-//   - @aira/services/app_settings   — getAppSettings, getAppSetting,
-//                                       updateAppSetting
+//   - @aira/services/app_settings   — getAppSetting, updateAppSetting
 
 export * as notifications from "./notifications"
 export * as messages from "./messages"

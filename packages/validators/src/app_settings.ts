@@ -16,11 +16,6 @@ export const AppSettingUpdateInputSchema = z
   .strict();
 export type AppSettingUpdateInput = z.infer<typeof AppSettingUpdateInputSchema>;
 
-export const AppSettingsOutputSchema = z.object({
-  settings: z.array(AppSettingSchema),
-});
-export type AppSettingsOutput = z.infer<typeof AppSettingsOutputSchema>;
-
 // ─── Reminder schedule (F17 — configurable renewal-reminder windows) ────────
 //
 // Persisted as a single comma-separated text value in app_setting under the
