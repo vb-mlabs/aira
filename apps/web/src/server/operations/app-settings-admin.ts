@@ -1,12 +1,18 @@
 import "server-only"
 
 // Super_admin-permission operations for the app settings domain.
+//
+// Today there's only one runtime-editable setting: reminder_schedule (the
+// F17 renewal-reminder cron windows). The generic get-all / update-by-key
+// pair that used to live here were deleted alongside the homepage CMS
+// (homepage_about_* and homepage_stat_* moved to brand.homepage). If a
+// future setting needs runtime editing, give it a dedicated typed pair the
+// way reminder-schedule has — strict Zod parsing at the boundary is the
+// pattern, not a generic key/value PATCH.
 
 import { appSettings as appSettingsService } from "@aira/services"
 import { createAudit } from "@aira/db/audit"
 import {
-  AppSettingUpdateInputSchema,
-  AppSettingsOutputSchema,
   ReminderScheduleOutputSchema,
   ReminderScheduleSchema,
   ReminderScheduleUpdateInputSchema,
@@ -17,35 +23,6 @@ import { z } from "zod"
 import { defineOperation } from "./index"
 
 const REMINDER_SCHEDULE_KEY = "reminder_schedule"
-
-export const getAppSettingsOp = defineOperation({
-  name: "admin.appSettings.get",
-  input: z.object({}).strict(),
-  output: AppSettingsOutputSchema,
-  permission: "super_admin",
-  handler: async (db) => {
-    const settings = await appSettingsService.getAppSettings(db)
-    return { settings }
-  },
-})
-
-export const updateAppSettingOp = defineOperation({
-  name: "admin.appSettings.update",
-  input: AppSettingUpdateInputSchema,
-  output: z.object({ setting: z.any() }),
-  permission: "super_admin",
-  handler: async (db, _ctx, { key, value }) => {
-    const setting = await appSettingsService.updateAppSetting(db, key, value)
-    return { setting }
-  },
-})
-
-// ─── Dedicated reminder-schedule ops (F17) ──────────────────────────────────
-//
-// These exist alongside the generic update op because the schedule value has
-// real semantics (windows, integers, range) that need Zod parsing at the
-// server boundary. The generic op accepts any string and lets the client
-// validate — fine for homepage copy, dangerous for cron config.
 
 export const getReminderScheduleOp = defineOperation({
   name: "admin.appSettings.reminderSchedule.get",
