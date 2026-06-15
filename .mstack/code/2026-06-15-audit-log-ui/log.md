@@ -1,0 +1,6 @@
+# Implementation log
+
+- **T1** ✓ (7600c3d) — extract to validators. Pre-existing fact: @aira/db's package.json didn't list @aira/validators as a workspace dep even though it now needs it for the type import. Added it + pnpm install. Compile-time `[true, true]` bidirectional assertion gates AuditMeta and KNOWN_AUDIT_ACTIONS staying in sync.
+- **T2** ✓ (3b148e3) — service filters + LEFT JOINs. Drizzle's conditional ON clause (`leftJoin(t, and(eq(target_type, X), eq(target_id, t.id)))`) compiled and typed clean; no correlated-subquery fallback needed. The Pause-if for this task didn't fire.
+- **T3** ✓ (6504604) — renderers. Self-inflicted typecheck fail: I'd added redundant `const _exhaustive: never = m.reason` guards inside the inner switches (session.revoked, user.signed_in_failed). TS already proved those inner switches exhaustive, narrowing `m.reason` to `never`, which then made the assignment fail with "Type 'any' is not assignable to type 'never'". Dropped the inner guards; outer-switch guard remains.
+- **T4** ✓ (d2723e8) — filter UI. Hit react-hooks/set-state-in-effect on the typeahead's "reset results when query empties" branch. Same fix as F23′ T9: move the setState call inside the setTimeout's async closure so it's not synchronous.
