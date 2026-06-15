@@ -1,14 +1,57 @@
 import "server-only"
 
 import { eq, lt, and } from "drizzle-orm"
-import { businessSubscriptions } from "@aira/db/schema"
+import { businesses, businessSubscriptions } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
+import type { BusinessTier } from "@aira/validators/businesses"
 import type {
   BusinessSubscription,
   BusinessSubscriptionCreateInput,
   BusinessSubscriptionUpdateInput,
 } from "@aira/validators/business-subscriptions"
-import { toSubscription, getSubscriptionById } from "./queries"
+import {
+  findActivePaidPlansForBusiness,
+  toSubscription,
+  getSubscriptionById,
+} from "./queries"
+
+// Tier-priority lookup used by recomputeBusinessTier. Lower number = better
+// placement. Kept here (not in the validators package) because it's a
+// service-layer ordering concern, not a wire-contract concern.
+const TIER_PRIORITY: Record<BusinessTier, number> = {
+  tier1: 1,
+  tier2: 2,
+  tier3: 3,
+}
+
+/**
+ * Recomputes `businesses.tier` for `businessId` from the current active-paid
+ * subscription set. Best (lowest TIER_PRIORITY) wins. Empty set → tier3.
+ *
+ * Pass `tx` (or the bare `db`) so callers can include the recompute inside
+ * the same transaction as the mutation that triggered it. Concurrent
+ * subscription mutations for the same business are serialised by the
+ * transaction (each sees the post-mutation set after its own write but
+ * commits in order; last write wins for the column, which is fine because
+ * the recompute is idempotent over the same set).
+ */
+export async function recomputeBusinessTier(
+  tx: Database,
+  businessId: string,
+): Promise<{ tier: BusinessTier }> {
+  const plans = await findActivePaidPlansForBusiness(tx, businessId)
+  let best: BusinessTier = "tier3"
+  for (const { tier } of plans) {
+    if (TIER_PRIORITY[tier] < TIER_PRIORITY[best]) {
+      best = tier
+    }
+  }
+  await tx
+    .update(businesses)
+    .set({ tier: best })
+    .where(eq(businesses.id, businessId))
+  return { tier: best }
+}
 
 export async function createSubscription(
   db: Database,
