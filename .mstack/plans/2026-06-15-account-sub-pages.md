@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-15
 **Slug:** account-sub-pages
-**Status:** reviewed
+**Status:** implemented
 **Author:** mlabs-plan
 
 ---

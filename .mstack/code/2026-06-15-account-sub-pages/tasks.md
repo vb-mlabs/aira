@@ -3,7 +3,7 @@
 **Started:** 2026-06-15
 **Review:** [2026-06-15-account-sub-pages](../../reviews/2026-06-15-account-sub-pages.md)
 **Branch:** feat/rest-api-migration
-**Status:** in_progress
+**Status:** complete
 
 ---
 
@@ -33,27 +33,27 @@
   - Commit: `ae59940`
   - Notes: Plain server component, ~19 lines.
 
-- [ ] **Task 5:** Add `listMessageRecipientsForEmail` + `getPostAuthorForEmail` helpers
-  - Files: `packages/services/src/messages/service.ts`, `packages/services/src/community/service.ts`, tests
-  - Commit: —
-  - Notes: —
+- [x] **Task 5:** Add `listMessageRecipientsForEmail` + `getPostAuthorForEmail` helpers
+  - Files: `packages/services/src/messages/service.ts`, `packages/services/src/community/service.ts`, `__tests__/recipients-helper.test.ts` (x2)
+  - Commit: `79c0bae` (service edits, auto-committed by Replit Agent as "Published your App") + `104e048` (tests, auto-committed by Replit Agent)
+  - Notes: A Replit auto-commit agent intercepted the task mid-flight and split my changes across two commits with its own messages. Functional outcome is correct: 7 new tests pass; 19 messages tests still pass.
 
-- [ ] **Task 6:** Wire email-send in `sendMessageOp` + `addInterestOp` handlers
-  - Files: `apps/web/src/server/operations/messages.ts`, `apps/web/src/server/operations/community.ts`
-  - Commit: —
-  - Notes: —
+- [x] **Task 6:** Wire email-send in `sendMessageOp` + `addInterestOp` handlers
+  - Files: `apps/web/src/server/operations/messages.ts`, `apps/web/src/server/operations/community.ts`, `apps/web/src/lib/email/index.ts` (re-export buildAppLinkUrl), service barrels (re-export helpers + types), community service (added post_title to helper) + test
+  - Commit: `f297096`
+  - Notes: Two layers of try/catch: inner around each send (PII-stripped log), outer around the lookup. Extended getPostAuthorForEmail to return post_title so the op handler can build the email body without a follow-up query.
 
-- [ ] **Task 7:** Build `/account/notifications` page + toggle component
+- [x] **Task 7:** Build `/account/notifications` page + toggle component
   - Files: `apps/web/src/app/(app)/account/notifications/page.tsx`, `apps/web/src/app/(app)/account/notifications/_components/preference-toggles.tsx`
-  - Commit: —
-  - Notes: —
+  - Commit: `3640c16`
+  - Notes: Switches built with role="switch" buttons (no ui-web Switch primitive exists). Optimistic update with revert-on-error.
 
-- [ ] **Task 8:** Build `/account/privacy-security`, `/account/terms`, `/account/about` pages
+- [x] **Task 8:** Build `/account/privacy-security`, `/account/terms`, `/account/about` pages
   - Files: three new `page.tsx` under `apps/web/src/app/(app)/account/`
-  - Commit: —
-  - Notes: —
+  - Commit: `f148432`
+  - Notes: Brand strings flow through `{brand.*}` exclusively; `no-brand-string-literal` ESLint rule passes. Terms/About marked "pre-launch drafts" / "Version: MVP".
 
-- [ ] **Task 9:** Update `/account` hub and `/profile` to wire new routes + back link
+- [x] **Task 9:** Update `/account` hub and `/profile` to wire new routes + back link
   - Files: `apps/web/src/app/(app)/account/page.tsx`, `apps/web/src/app/(app)/profile/page.tsx`
-  - Commit: —
-  - Notes: —
+  - Commit: `19d54ff`
+  - Notes: Removed the `placeholder: true` flag entirely (no more dimmed rows). `/profile` now only renders `<AccountBackLink />` + heading + `<AccountSection />`.
