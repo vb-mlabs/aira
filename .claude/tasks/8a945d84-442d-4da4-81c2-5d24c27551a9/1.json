@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Add user-prefs columns to user schema + migration",
-  "description": "Append email_on_message_received and email_on_post_interest (boolean NOT NULL DEFAULT true) to user table in packages/db/src/schema/auth.ts; run pnpm db:generate to produce migration.",
-  "activeForm": "Adding user-prefs columns and migration",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

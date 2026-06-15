@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Add Zod schemas + user-preferences service",
-  "description": "Create packages/validators/src/user-preferences.ts (UserPreferencesSchema + UpdateUserPreferencesInputSchema) and packages/services/src/user-preferences/ (service.ts, index.ts, tests).",
-  "activeForm": "Adding preferences validators and service",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

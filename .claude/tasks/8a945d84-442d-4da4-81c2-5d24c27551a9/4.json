@@ -1,9 +1,0 @@
-{
-  "id": "4",
-  "subject": "Add AccountBackLink component",
-  "description": "Create apps/web/src/app/(app)/account/_components/back-link.tsx — plain server Link with ChevronLeft + \"Account\" label.",
-  "activeForm": "Adding back-link component",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

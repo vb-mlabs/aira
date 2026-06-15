@@ -1,9 +1,0 @@
-{
-  "id": "6",
-  "subject": "Wire email-send in sendMessageOp + addInterestOp handlers",
-  "description": "After service call, op handler queries recipients-with-prefs and fires sendNotificationEmail for those with the matching boolean true. Try/catch with PII-stripped logger meta (kind, recipient_user_id, error message string only).",
-  "activeForm": "Wiring email send in op handlers",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

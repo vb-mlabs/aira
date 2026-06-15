@@ -1,9 +1,0 @@
-{
-  "id": "3",
-  "subject": "Add GET/PATCH /api/v1/profile/preferences route",
-  "description": "Create user-preferences ops file and the route.ts that exports GET = getPreferencesOp.runFromRequest, PATCH = updatePreferencesOp.runFromRequest.",
-  "activeForm": "Wiring preferences REST endpoint",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
