@@ -118,12 +118,19 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 return (
                   <tr
                     key={b.id}
-                    className={cn("hover:bg-muted/20", archived && "opacity-60")}
+                    className={cn(
+                      "relative cursor-pointer hover:bg-muted/20",
+                      archived && "opacity-60",
+                    )}
                   >
                     <td className="px-4 py-3">
+                      {/* after:* pseudo-element stretches the link across the
+                          entire row so any cell click navigates to the
+                          detail page. The actual <Link> stays in the DOM for
+                          keyboard + screen-reader navigation. */}
                       <Link
                         href={`/admin/businesses/${b.id}`}
-                        className="font-medium text-primary hover:underline"
+                        className="font-medium text-foreground after:absolute after:inset-0 after:content-['']"
                       >
                         {b.name}
                       </Link>
