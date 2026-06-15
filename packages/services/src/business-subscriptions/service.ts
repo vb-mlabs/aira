@@ -57,23 +57,30 @@ export async function createSubscription(
   db: Database,
   input: BusinessSubscriptionCreateInput,
 ): Promise<BusinessSubscription> {
-  const rows = await db
-    .insert(businessSubscriptions)
-    .values({
-      business_id: input.business_id,
-      plan_id: input.plan_id ?? null,
-      payment_status: input.payment_status,
-      start_date: new Date(input.start_date),
-      end_date: new Date(input.end_date),
-      amount_cents: input.amount_cents,
-      payment_evidence_url: input.payment_evidence_url ?? null,
-      notes: input.notes ?? null,
-      recorded_by: input.recorded_by ?? null,
-    })
-    .returning()
-  const row = rows[0]
-  if (!row) throw new Error("insert business_subscription returned no row")
-  return toSubscription(row)
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .insert(businessSubscriptions)
+      .values({
+        business_id: input.business_id,
+        plan_id: input.plan_id ?? null,
+        payment_status: input.payment_status,
+        start_date: new Date(input.start_date),
+        end_date: new Date(input.end_date),
+        amount_cents: input.amount_cents,
+        payment_evidence_url: input.payment_evidence_url ?? null,
+        notes: input.notes ?? null,
+        recorded_by: input.recorded_by ?? null,
+      })
+      .returning()
+    const row = rows[0]
+    if (!row) throw new Error("insert business_subscription returned no row")
+    // tx narrows to PgTransaction at the type level but is API-compatible
+    // with Database for the .select/.update/.insert chain recomputeBusinessTier
+    // uses. The unknown cast matches the pattern used by the messages
+    // service test mock.
+    await recomputeBusinessTier(tx as unknown as Database, row.business_id)
+    return toSubscription(row)
+  })
 }
 
 export async function updateSubscription(
@@ -85,40 +92,80 @@ export async function updateSubscription(
   if (start_date !== undefined) payload.start_date = new Date(start_date)
   if (end_date !== undefined) payload.end_date = new Date(end_date)
   if (Object.keys(payload).length === 0) return getSubscriptionById(db, id)
-  const rows = await db
-    .update(businessSubscriptions)
-    .set(payload)
-    .where(eq(businessSubscriptions.id, id))
-    .returning()
-  const row = rows[0]
-  if (!row) return null
-  return toSubscription(row)
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .update(businessSubscriptions)
+      .set(payload)
+      .where(eq(businessSubscriptions.id, id))
+      .returning()
+    const row = rows[0]
+    if (!row) return null
+    // tx narrows to PgTransaction at the type level but is API-compatible
+    // with Database for the .select/.update/.insert chain recomputeBusinessTier
+    // uses. The unknown cast matches the pattern used by the messages
+    // service test mock.
+    await recomputeBusinessTier(tx as unknown as Database, row.business_id)
+    return toSubscription(row)
+  })
 }
 
 export async function deleteSubscription(
   db: Database,
   id: string,
 ): Promise<boolean> {
-  const rows = await db
-    .delete(businessSubscriptions)
-    .where(eq(businessSubscriptions.id, id))
-    .returning({ id: businessSubscriptions.id })
-  return rows.length > 0
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .delete(businessSubscriptions)
+      .where(eq(businessSubscriptions.id, id))
+      .returning({
+        id: businessSubscriptions.id,
+        business_id: businessSubscriptions.business_id,
+      })
+    const row = rows[0]
+    if (!row) return false
+    // Recompute the affected business AFTER the delete commits inside the
+    // tx so the active-paid set query no longer sees the row we just removed.
+    // tx narrows to PgTransaction at the type level but is API-compatible
+    // with Database for the .select/.update/.insert chain recomputeBusinessTier
+    // uses. The unknown cast matches the pattern used by the messages
+    // service test mock.
+    await recomputeBusinessTier(tx as unknown as Database, row.business_id)
+    return true
+  })
 }
 
-/** Daily rollover: flip paid → overdue when end_date has passed. */
+/**
+ * Daily rollover: flip paid → overdue when end_date has passed.
+ *
+ * The `.returning({ id, business_id })` projection lets the recompute fire
+ * for every distinct business that was affected — without it we'd have to
+ * scan the entire businesses table to find what to recompute. The bulk
+ * UPDATE + the per-business recompute all share one transaction so a
+ * mid-flight failure rolls back the whole flip.
+ */
 export async function rolloverExpiredSubscriptions(
   db: Database,
 ): Promise<{ transitioned: number }> {
-  const rows = await db
-    .update(businessSubscriptions)
-    .set({ payment_status: "overdue" })
-    .where(
-      and(
-        eq(businessSubscriptions.payment_status, "paid"),
-        lt(businessSubscriptions.end_date, new Date()),
-      ),
-    )
-    .returning({ id: businessSubscriptions.id })
-  return { transitioned: rows.length }
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .update(businessSubscriptions)
+      .set({ payment_status: "overdue" })
+      .where(
+        and(
+          eq(businessSubscriptions.payment_status, "paid"),
+          lt(businessSubscriptions.end_date, new Date()),
+        ),
+      )
+      .returning({
+        id: businessSubscriptions.id,
+        business_id: businessSubscriptions.business_id,
+      })
+    // Dedupe — one business may have had multiple paid subs flip in the
+    // same run; the recompute only needs to fire once per business.
+    const businessIds = new Set(rows.map((r) => r.business_id))
+    for (const businessId of businessIds) {
+      await recomputeBusinessTier(tx as unknown as Database, businessId)
+    }
+    return { transitioned: rows.length }
+  })
 }
