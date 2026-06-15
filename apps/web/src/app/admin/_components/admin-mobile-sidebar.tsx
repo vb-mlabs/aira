@@ -9,7 +9,12 @@ import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { AdminSidebar } from "./admin-sidebar"
 
-export function AdminMobileSidebar() {
+interface AdminMobileSidebarProps {
+  /** Current admin's raw DB role — forwarded to AdminSidebar. */
+  userRole: string
+}
+
+export function AdminMobileSidebar({ userRole }: AdminMobileSidebarProps) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
@@ -67,7 +72,7 @@ export function AdminMobileSidebar() {
               aria-modal="true"
               aria-label="Admin menu"
             >
-              <AdminSidebar onClose={() => setOpen(false)} />
+              <AdminSidebar onClose={() => setOpen(false)} userRole={userRole} />
             </div>
           </div>,
           document.body,

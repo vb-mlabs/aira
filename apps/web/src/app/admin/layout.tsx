@@ -26,18 +26,19 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const admin = await requireAdmin()
+  const adminRole = (admin as { role?: string }).role ?? "admin"
 
   return (
     <div className="min-h-full">
       {/* Desktop sidebar — fixed full-height on the left. */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[280px] md:flex-col">
-        <AdminSidebar />
+        <AdminSidebar userRole={adminRole} />
       </aside>
 
       <div className="flex min-h-full flex-col md:pl-[280px]">
         {/* Mobile top header. */}
         <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
-          <AdminMobileSidebar />
+          <AdminMobileSidebar userRole={adminRole} />
           <Link
             href="/admin"
             className="font-display text-lg font-semibold text-foreground"
