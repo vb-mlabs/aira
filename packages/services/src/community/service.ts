@@ -515,13 +515,16 @@ export interface PostAuthorEmailRecipient {
   user_id: string
   email: string
   email_on_post_interest: boolean
+  /** Denormalised so the op handler can build the email subject/body
+   *  without a follow-up query. */
+  post_title: string
 }
 
 /**
  * Read-only helper used by addInterestOp AFTER the service-level insert
  * commits. Returns the post author's email + email-on-post-interest pref
- * so the op handler can decide whether to send a "someone responded"
- * email. Returns null if the post is gone (race with delete).
+ * + the post title (so the op handler can build the email body without
+ * a follow-up query). Returns null if the post is gone (race with delete).
  *
  * Pure SELECT — no auth check; the op handler already passed through
  * addInterest's existing post-exists / self-interest guards.
@@ -535,6 +538,7 @@ export async function getPostAuthorForEmail(
       user_id: user.id,
       email: user.email,
       email_on_post_interest: user.email_on_post_interest,
+      post_title: communityPost.title,
     })
     .from(communityPost)
     .innerJoin(user, eq(user.id, communityPost.user_id))

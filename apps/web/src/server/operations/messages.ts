@@ -13,7 +13,11 @@ import "server-only"
 
 import { z } from "zod"
 import { messages } from "@aira/services"
+import { sendNotificationEmail, buildAppLinkUrl } from "@/lib/email"
+import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
+
+const MESSAGE_PREVIEW_CHARS = 200
 
 const ConversationIdSchema = z.object({ id: z.string().min(1) })
 
@@ -99,6 +103,55 @@ export const sendMessageOp = defineOperation({
   }),
   output: z.object({ message: MessageRowSchema }),
   permission: "user",
-  handler: async (db, ctx, { id, body }) =>
-    messages.sendMessage(db, ctx, { conversationId: id, body }),
+  handler: async (db, ctx, { id, body }) => {
+    const result = await messages.sendMessage(db, ctx, {
+      conversationId: id,
+      body,
+    })
+
+    // After the send commits, fan out emails to recipients who haven't
+    // opted out. Each send is best-effort: a Postmark hiccup or
+    // mis-rendered template must NOT bubble up to the API caller — the
+    // message has already landed and the in-app notification has
+    // already fired. error_log meta strips PII (no body / preview /
+    // sender name beyond the kind discriminator).
+    try {
+      const recipients = await messages.listMessageRecipientsForEmail(
+        db,
+        id,
+        ctx.userId,
+      )
+      const preview =
+        result.message.body.length > MESSAGE_PREVIEW_CHARS
+          ? result.message.body.slice(0, MESSAGE_PREVIEW_CHARS)
+          : result.message.body
+      const ctaUrl = buildAppLinkUrl(`/messages/${id}`)
+      for (const r of recipients) {
+        if (!r.email_on_message_received) continue
+        try {
+          await sendNotificationEmail({
+            to: r.email,
+            title: `New message from ${result.message.sender_name}`,
+            body: preview,
+            ctaLabel: "Open conversation",
+            ctaUrl,
+          })
+        } catch (err) {
+          logger.error("email send failed", {
+            kind: "email.new_message",
+            recipient_user_id: r.user_id,
+            message: String(err),
+          })
+        }
+      }
+    } catch (err) {
+      // Recipient-lookup failure (e.g. DB hiccup) — log and move on.
+      logger.error("email recipient lookup failed", {
+        kind: "email.new_message",
+        message: String(err),
+      })
+    }
+
+    return result
+  },
 })

@@ -9,6 +9,8 @@ import "server-only"
 // respondents) lives inside @aira/services/community.
 
 import { community as communityService } from "@aira/services"
+import { sendNotificationEmail, buildAppLinkUrl } from "@/lib/email"
+import { logger } from "@/lib/logger"
 import {
   AddInterestInputSchema,
   AdminListInterestsInputSchema,
@@ -75,8 +77,48 @@ export const addInterestOp = defineOperation({
   input: AddInterestInputSchema,
   output: InterestMutationOutputSchema,
   permission: "user",
-  handler: async (db, ctx, input) =>
-    communityService.addInterest(db, ctx, input),
+  handler: async (db, ctx, input) => {
+    const result = await communityService.addInterest(db, ctx, input)
+
+    // After the interest commits, email the post author if they haven't
+    // opted out. Best-effort — addInterest already returned success, so
+    // any failure here is logged with PII-stripped meta (no body / no
+    // responder message) and swallowed.
+    try {
+      const author = await communityService.getPostAuthorForEmail(db, input.id)
+      if (author && author.email_on_post_interest) {
+        // Don't notify yourself — addInterest's own guard already
+        // rejects self-interest, but defence in depth.
+        if (author.user_id !== ctx.userId) {
+          const bodyText = input.message
+            ? `${author.post_title}\n\n${input.message}`
+            : author.post_title
+          try {
+            await sendNotificationEmail({
+              to: author.email,
+              title: "Someone responded to your post",
+              body: bodyText,
+              ctaLabel: "View response",
+              ctaUrl: buildAppLinkUrl(`/community/${input.id}`),
+            })
+          } catch (err) {
+            logger.error("email send failed", {
+              kind: "email.post_interest",
+              recipient_user_id: author.user_id,
+              message: String(err),
+            })
+          }
+        }
+      }
+    } catch (err) {
+      logger.error("email recipient lookup failed", {
+        kind: "email.post_interest",
+        message: String(err),
+      })
+    }
+
+    return result
+  },
 })
 
 export const removeInterestOp = defineOperation({

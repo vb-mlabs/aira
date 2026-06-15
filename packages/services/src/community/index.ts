@@ -18,6 +18,7 @@ export {
   editPost,
   deletePost,
   adminListInterests,
+  getPostAuthorForEmail,
 } from "./service"
 
 export type {
@@ -27,4 +28,5 @@ export type {
   CreatePostArgs,
   AddInterestArgs,
   AdminListPostsArgs,
+  PostAuthorEmailRecipient,
 } from "./service"

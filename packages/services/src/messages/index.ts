@@ -9,6 +9,7 @@ export {
   listMessages,
   sendMessage,
   markConversationRead,
+  listMessageRecipientsForEmail,
   MAX_BODY_CHARS,
 } from "./service"
 
@@ -19,6 +20,7 @@ export type {
   ListMessagesArgs,
   SendMessageArgs,
   MarkConversationReadArgs,
+  MessageEmailRecipient,
 } from "./service"
 
 export { encodeCursor, decodeCursor } from "./cursor"

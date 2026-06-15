@@ -29,11 +29,13 @@ describe("getPostAuthorForEmail", () => {
       user_id: "user-A",
       email: "a@example.test",
       email_on_post_interest: true,
+      post_title: "Need a plumber",
     })
     await expect(getPostAuthorForEmail(db, "post_1")).resolves.toEqual({
       user_id: "user-A",
       email: "a@example.test",
       email_on_post_interest: true,
+      post_title: "Need a plumber",
     })
   })
 
@@ -47,6 +49,7 @@ describe("getPostAuthorForEmail", () => {
       user_id: "user-A",
       email: "a@example.test",
       email_on_post_interest: false,
+      post_title: "Need a plumber",
     })
     const result = await getPostAuthorForEmail(db, "post_1")
     expect(result?.email_on_post_interest).toBe(false)
