@@ -178,6 +178,31 @@ export async function requireAdminJSON(
 }
 
 /**
+ * REST-friendly super_admin auth check for route handlers that can't use
+ * defineOperation. Same shape as requireAdminJSON — same idle-timeout — but
+ * rejects plain admin too. Use for endpoints that gate platform-shape
+ * controls (Setup hub assets, audit dumps, cron triggers).
+ *
+ * Usage:
+ *   const auth = await requireSuperAdminJSON(req)
+ *   if (auth instanceof Response) return auth
+ *   // auth is AuthSession["user"], guaranteed super_admin
+ */
+export async function requireSuperAdminJSON(
+  req: Request,
+): Promise<AuthSession["user"] | Response> {
+  const session = await getSessionFromHeaders(req.headers)
+  if (!session?.user) return ApiError.unauthorized().toResponse()
+  const role = (session.user as { role?: string }).role ?? "end_user"
+  if (role !== "super_admin") {
+    return ApiError.forbidden("Super admin access required").toResponse()
+  }
+  const sessionId = (session.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) return ApiError.idleTimeout().toResponse()
+  return session.user
+}
+
+/**
  * Server-component helper: enforces auth + admin role.
  *
  * Non-admin authenticated users get notFound() — same response as any
