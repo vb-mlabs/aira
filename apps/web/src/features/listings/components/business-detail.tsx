@@ -5,13 +5,12 @@ import {
   Clock,
   ExternalLink,
   Globe,
-  MapPin,
   Phone,
 } from "lucide-react"
 import { buttonVariants } from "@aira/ui-web/button"
 import { CATEGORY_META } from "../category-meta"
 import { RatingPill } from "./rating-pill"
-import { SocialLinks } from "./social-icons"
+import { SocialLinks, GoogleMapsPinIcon } from "./social-icons"
 import { BusinessImageCarousel } from "./business-image-carousel"
 import type { Business } from "../types"
 
@@ -87,7 +86,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                 rel="noopener noreferrer"
                 className={buttonVariants()}
               >
-                <MapPin className="size-4" aria-hidden />
+                <GoogleMapsPinIcon className="size-4" />
                 Get Directions
               </a>
             </div>
@@ -120,7 +119,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
         <div className="rounded-xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
           <div className="space-y-4">
             {business.address && (
-              <ContactRow icon={MapPin}>
+              <ContactRow icon={GoogleMapsPinIcon}>
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(business.address)}`}
                   target="_blank"

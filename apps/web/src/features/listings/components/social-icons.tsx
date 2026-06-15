@@ -1,4 +1,4 @@
-import { Globe, Map, Phone } from "lucide-react"
+import { Globe, Phone } from "lucide-react"
 
 interface SocialLinksProps {
   facebook_url?: string | null
@@ -144,7 +144,7 @@ export function SocialLinks({
           className={`${iconBase} hover:opacity-80`}
           style={{ backgroundColor: "#EA4335" }}
         >
-          <Map className="size-4 text-white" aria-hidden />
+          <GoogleMapsPinIcon className="size-4 text-white" />
         </a>
       ) : (
         <span
@@ -152,10 +152,28 @@ export function SocialLinks({
           className={`${iconBase} cursor-default`}
           style={{ backgroundColor: "#EA4335", opacity: 0.25 }}
         >
-          <Map className="size-4 text-white" aria-hidden />
+          <GoogleMapsPinIcon className="size-4 text-white" />
         </span>
       )}
     </div>
+  )
+}
+
+// Google-Maps-style location pin (Material "place" silhouette). Uses
+// currentColor so callers control the fill via Tailwind text-* utilities.
+// Accepts SVGProps so it works both as <Icon /> and as `icon={Icon}` for
+// components like ContactRow that expect a React.ElementType.
+export function GoogleMapsPinIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+      {...props}
+    >
+      <path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 7.06 11.5 7.36 11.76.18.16.45.16.63 0C12.94 21.5 20 15.25 20 10c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" />
+    </svg>
   )
 }
 
