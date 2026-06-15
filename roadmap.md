@@ -1,7 +1,7 @@
 # AIRA — Implementation Roadmap
 
 **Last updated:** 2026-06-15
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15.
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue).
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
@@ -16,7 +16,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 - 🟦 Apple Team ID → fill into `.well-known/apple-app-site-association`
 - 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json`
 
-**Sprint 6 — not started:** F26 mobile distribution + update prompt (includes `min_supported_build_*` seed + form), F25 mobile deep links, F22 audit log UI, F23 CSV export, TODOS.md cleanup. *Generic AppSetting admin hub deferred — see 2026-06-15 decision below.*
+**Sprint 6 — not started:** F26 mobile distribution + update prompt (includes `min_supported_build_*` seed + form), F25 mobile deep links, F22 audit log UI, F23′ in-UI renewal follow-up queue (replaces the CSV-export framing), TODOS.md cleanup. *Generic AppSetting admin hub and the rest of F23's CSV surfaces deferred — see 2026-06-15 decisions below.*
 
 **Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions.
 
@@ -338,11 +338,13 @@ Plan: `.mstack/plans/2026-06-14-community-admin-v2.md`. Polish layer on top of F
 **Features (PRD refs):**
 - ⬜ F26 — Mobile app distribution + update prompt. Includes: seed `min_supported_build_ios` / `min_supported_build_android` keys, build the admin form to edit them, and the mobile-side blocking dialog with store links when `appVersion < min`.
 - ⬜ F25 (mobile half) — Deep links wiring (Universal Links + App Links activation via .well-known files filled in S0)
-- ⬜ F22 — Audit log UI (filterable by date / actor / entity / action, search, CSV export)
-- ⬜ F23 — Full CSV export (Listings, Categories, Memberships, Sponsorships, Posts — apply current filters)
+- ⬜ F22 — Audit log UI (filterable by date / actor / entity / action, search). *CSV export deferred — see 2026-06-15 decision below.*
+- ⬜ F23′ — Renewal follow-up queue (in-UI replacement for the PRD's BusinessSubscriptions CSV). One-row-at-a-time queue of "due in N days" + "overdue" subscriptions with tap-to-call, outcome capture (called / voicemail / refused / paid / reschedule-N-days), `audit_log` row per outcome, server-side place-keeping so admin can resume mid-list. The PRD's other CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are deferred.
 - ⬜ Clear all open items from [TODOS.md](./TODOS.md) — brand strings, mobile fonts via `@expo-google-fonts/*`, dark theme client review
 
-**Deferred from S6 (2026-06-15):** generic AppSetting admin hub covering `posts_expiry_days`, `soft_delete_purge_days`, `posts_max_visible`. Defaults work for launch; one-off SQL is cheaper than building UI for knobs ops won't touch in month 1. Reopen if (a) ops asks twice to change one, or (b) we ship a second knob that needs a form anyway.
+**Deferred from S6 (2026-06-15):**
+- Generic AppSetting admin hub covering `posts_expiry_days`, `soft_delete_purge_days`, `posts_max_visible`. Defaults work for launch; one-off SQL is cheaper than building UI for knobs ops won't touch in month 1. Reopen if (a) ops asks twice to change one, or (b) we ship a second knob that needs a form anyway.
+- PRD F23's CSV exports for Listings / Categories / MembershipPlans / Sponsorships / Posts. Reframed: renewals is the only CSV use case with real launch pressure, and an in-UI queue (F23′) serves it better than a download. Other four surfaces are reachable in-app already; external-sharing asks (client/accountant) haven't materialised. Reopen surface-by-surface if a real external-sharing need shows up post-launch.
 
 **Schema additions:** none — AuditLog already exists from S2.
 
@@ -471,3 +473,4 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-14** — Audit-around-delete pattern locked: SELECT snapshot → INSERT audit → DELETE all inside one `db.transaction`. The conventional "audit BEFORE mutation" can't apply because the row is unreadable after delete. Required widening `createAudit` to accept any handle with `insert()` (Database or PgTransaction) — shipped in `Pick<Database, "insert">`. Used by F20 v2 `deletePost`; future hard-deletes should follow the same shape.
 - **2026-06-14** — `relativeTime()` helpers across the app use `toLocaleDateString()` as the >7d fallback, which silently differs between Node (server) and the browser, triggering hydration warnings on older fixture data. Fix: stable UTC `MM/DD/YYYY` formatter + `suppressHydrationWarning` on the wrapping span. Landed on `admin/community/moderation-queue.tsx` and the user-facing community card; same pattern lives in notification-item, post-form, etc. and will need the same fix if those surfaces ever render >7d-old timestamps.
 - **2026-06-15** — Generic AppSetting admin hub dropped from S6 MVP scope. *Why:* PRD F10 lists five tunable keys (`reminder_schedule`, `homepage_*`, `posts_expiry_days`, `soft_delete_purge_days`, `min_supported_build_*`). Three already have dedicated admin UI (`/admin/settings/renewal-schedule`, `/admin/settings/homepage`). Of the remaining two: `posts_expiry_days` (default 30) and `soft_delete_purge_days` (default 180) have no believable change-pressure in month 1 — a one-off Drizzle Studio edit is cheaper than building a form ops won't open. `min_supported_build_*` only matters when F26 ships, so it's folded into F26's own scope (seed + form land together with the mobile-side force-update dialog). Trade-off accepted: changes to the two deferred knobs won't appear in audit log until a UI exists, which is fine for internal-admin launch. Reopen the generic hub if ops asks twice or a third tunable knob ships.
+- **2026-06-15** — PRD F23 (CSV exports for Listings / Categories / Memberships / Sponsorships / Posts) reframed and largely deferred. *Why:* of the five surfaces, only BusinessSubscriptions has real pre-launch demand — PRD F16 leans on its CSV as the manual workaround for not having SMS reminders. But the actual operator job (phone expiring members down a list) is served *better* by an in-UI queue than by a download: outcomes (called / voicemail / refused / paid / reschedule) get captured as audit rows instead of evaporating in a spreadsheet, the admin's place persists across sessions, and phone numbers stay canonical. New scope = **F23′ renewal follow-up queue**. The other four CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are reachable in-app for internal use, and external-sharing asks haven't materialised; building those CSVs speculatively for hypothetical client/accountant emails isn't a launch-week need. Reopen surface-by-surface when a real external-sharing request hits twice. Audit log CSV export is also deferred — Drizzle Studio is sufficient for incident response by the dev, and operator-facing audit consumption is on-screen filtering.
