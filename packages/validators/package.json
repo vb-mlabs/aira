@@ -20,7 +20,8 @@
     "./sponsorship-tiers": "./src/sponsorship-tiers.ts",
     "./sponsorships": "./src/sponsorships.ts",
     "./community": "./src/community.ts",
-    "./subscription-followups": "./src/subscription-followups.ts"
+    "./subscription-followups": "./src/subscription-followups.ts",
+    "./audit-meta": "./src/audit-meta.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
