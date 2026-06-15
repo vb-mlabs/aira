@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   MapPin,
   MessageSquare,
+  PhoneCall,
   Settings2,
   Store,
   Tag,
@@ -36,6 +37,7 @@ const ADMIN_NAV: Array<{
 }> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/businesses", label: "Businesses", icon: Store },
+  { href: "/admin/renewals", label: "Renewals", icon: PhoneCall },
   { href: "/admin/categories", label: "Categories", icon: Tag },
   { href: "/admin/cities", label: "Cities", icon: MapPin },
   { href: "/admin/membership-plans", label: "Membership plans", icon: CreditCard },

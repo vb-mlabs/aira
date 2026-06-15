@@ -13,12 +13,12 @@
 // hydration lesson.
 
 import { useState } from "react"
-
 import { MessageCircle, PhoneCall } from "lucide-react"
 import { Button } from "@aira/ui-web/button"
 import { AdminBadge, type AdminBadgeVariant } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
 import type { FollowupQueueRow } from "@aira/validators/subscription-followups"
+import { FollowupModal } from "./followup-modal"
 
 interface RenewalQueueTableProps {
   items: FollowupQueueRow[]
@@ -46,10 +46,7 @@ export function RenewalQueueTable({
   total,
   withinDays,
 }: RenewalQueueTableProps) {
-  // detailId stays here so T9 can render the FollowupModal slot beneath
-  // the table without lifting state up. T8 only sets it on row click;
-  // the read branch arrives in T9.
-  const [, setDetailId] = useState<string | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
 
   if (items.length === 0) {
     return (
@@ -62,6 +59,7 @@ export function RenewalQueueTable({
   }
 
   const truncated = total > items.length
+  const detailRow = items.find((r) => r.subscription_id === detailId) ?? null
 
   return (
     <>
@@ -173,6 +171,14 @@ export function RenewalQueueTable({
           Showing first {items.length} of {total}. Narrow the window or
           act on the top of the list to surface more.
         </p>
+      )}
+
+      {detailRow && (
+        <FollowupModal
+          row={detailRow}
+          open
+          onClose={() => setDetailId(null)}
+        />
       )}
     </>
   )
