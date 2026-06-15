@@ -14,7 +14,7 @@ const TABS = [
   { href: "/admin/settings/cities", label: "Cities" },
   { href: "/admin/settings/membership-plans", label: "Membership plans" },
   { href: "/admin/settings/sponsorship-tiers", label: "Sponsorship tiers" },
-  { href: "/admin/settings/app", label: "App" },
+  { href: "/admin/settings/renewals", label: "Renewals" },
 ]
 
 export function SettingsTabs() {
