@@ -2,9 +2,10 @@
 
 **Date:** 2026-06-16
 **Slug:** category-drift-fix
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 **Reviewed:** [.mstack/reviews/2026-06-16-category-drift-fix.md](../reviews/2026-06-16-category-drift-fix.md)
+**Implemented:** [.mstack/code/2026-06-16-category-drift-fix/report.md](../code/2026-06-16-category-drift-fix/report.md)
 
 ---
 
