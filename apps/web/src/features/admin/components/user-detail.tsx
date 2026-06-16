@@ -17,7 +17,7 @@ interface UserDetailProps {
   /** Currently signed-in admin id — used to disable self-targeted actions. */
   selfId: string
   /** Currently signed-in admin's role. Only "super_admin" sees the
-   *  role-change controls; plain admins keep ban/unban/reset/notify. */
+   *  role-change controls; plain admins keep ban/unban/reset. */
   callerRole: string
 }
 
@@ -105,15 +105,6 @@ export function UserDetail({
         </header>
         <div className="px-6 py-5">
           <ResetControls user={user} />
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-border bg-card">
-        <header className="border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold">Send a notification</h2>
-        </header>
-        <div className="px-6 py-5">
-          <NotifyForm user={user} />
         </div>
       </section>
 
@@ -333,79 +324,6 @@ function ResetControls({ user }: { user: AdminUserRow }) {
       </Button>
       <Status feedback={feedback} />
     </div>
-  )
-}
-
-function NotifyForm({ user }: { user: AdminUserRow }) {
-  const router = useRouter()
-  const [title, setTitle] = useState("")
-  const [message, setMessage] = useState("")
-  const [href, setHref] = useState("")
-  const [feedback, setFeedback] = useState<Feedback>(null)
-  const [pending, startTransition] = useTransition()
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        startTransition(async () => {
-          const result = await runAdminCall(
-            () =>
-              apiClient.post<AdminResult>(
-                `/api/v1/admin/users/${user.id}/notify`,
-                {
-                  title: title.trim(),
-                  message: message.trim(),
-                  href: href.trim() || undefined,
-                },
-              ),
-            "Could not send notification.",
-          )
-          setFeedback(result)
-          if (result?.kind === "ok") {
-            setTitle("")
-            setMessage("")
-            setHref("")
-            router.refresh()
-          }
-        })
-      }}
-      className="space-y-3"
-    >
-      <div className="space-y-1.5">
-        <Label htmlFor="notif-title">Title</Label>
-        <Input
-          id="notif-title"
-          required
-          maxLength={120}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="notif-message">Message</Label>
-        <Input
-          id="notif-message"
-          required
-          maxLength={2000}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="notif-href">Link (optional)</Label>
-        <Input
-          id="notif-href"
-          placeholder="/settings"
-          value={href}
-          onChange={(e) => setHref(e.target.value)}
-        />
-      </div>
-      <Button type="submit" disabled={pending}>
-        {pending ? "Sending…" : "Send notification"}
-      </Button>
-      <Status feedback={feedback} />
-    </form>
   )
 }
 
