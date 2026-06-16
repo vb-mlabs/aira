@@ -20,9 +20,23 @@
 //                                  — local-only chatter between test users
 //
 // Usage:
-//   SOURCE_DATABASE_URL=postgresql://...local... \
+//   # Standard: source defaults to the Replit-local helium DB (the
+//   # hardcoded constant below). Just set the target.
+//   DATABASE_URL=postgresql://...target... pnpm seed:from-source --confirm
+//
+//   # Override the source explicitly if you ever want to push between
+//   # two non-local databases:
+//   SOURCE_DATABASE_URL=postgresql://...other-source... \
 //   DATABASE_URL=postgresql://...target... \
 //   pnpm seed:from-source --confirm
+
+/** Default source — the Replit-local helium Postgres. `helium` is a
+ *  workspace-local network alias provisioned by Replit; the
+ *  `postgres:password` credentials are the default for that local
+ *  service and unlock nothing outside this workspace. Override by
+ *  exporting SOURCE_DATABASE_URL. */
+const DEFAULT_SOURCE_URL =
+  "postgresql://postgres:password@helium/heliumdb?sslmode=disable"
 
 import { Pool, neonConfig } from "@neondatabase/serverless"
 import ws from "ws"
@@ -101,18 +115,19 @@ async function main() {
     console.error(
       "Refusing to run without --confirm.\n" +
         "Usage:\n" +
-        "  SOURCE_DATABASE_URL=... DATABASE_URL=... pnpm seed:from-source --confirm",
+        "  DATABASE_URL=... pnpm seed:from-source --confirm\n" +
+        "(SOURCE_DATABASE_URL defaults to the local helium DB; set it to override.)",
     )
     process.exit(2)
   }
 
   // eslint-disable-next-line no-restricted-syntax
-  const sourceUrl = process.env.SOURCE_DATABASE_URL
+  const sourceUrl = process.env.SOURCE_DATABASE_URL ?? DEFAULT_SOURCE_URL
   // eslint-disable-next-line no-restricted-syntax
   const targetUrl = process.env.DATABASE_URL
-  if (!sourceUrl || !targetUrl) {
+  if (!targetUrl) {
     console.error(
-      "Both SOURCE_DATABASE_URL and DATABASE_URL must be set in the environment.",
+      "DATABASE_URL must be set in the environment (the seed target).",
     )
     process.exit(2)
   }
