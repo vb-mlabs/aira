@@ -15,6 +15,7 @@
     "db:generate": "pnpm --filter @aira/db generate",
     "db:migrate": "pnpm --filter @aira/db migrate",
     "db:studio": "pnpm --filter @aira/db studio",
+    "seed:from-source": "tsx scripts/seed-from-source.ts",
     "verify:deeplinks": "tsx scripts/verify-deeplinks.ts",
     "email:smoke": "tsx scripts/email-smoke.ts",
     "stripe:webhook-setup": "tsx scripts/stripe-webhook-setup.ts",
