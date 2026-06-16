@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
-import { Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
+import { ChevronLeft, Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
+import Link from "next/link"
 import { ApiError } from "@aira/api"
 import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
@@ -16,7 +17,12 @@ import {
   GoogleMapsPinIcon,
   SocialLinks,
 } from "@/features/listings/components/social-icons"
+import {
+  VALID_BUSINESS_TYPES,
+  VALID_YEARS_OPERATING,
+} from "@aira/validators/businesses"
 import type { Category } from "@aira/validators/categories"
+import type { City } from "@aira/validators/cities"
 import { ArchiveControl } from "./archive-control"
 import { FeatureImageControl } from "./feature-image-section"
 import { GalleryControl } from "./gallery-section"
@@ -27,6 +33,25 @@ import { SponsorshipsSection } from "./sponsorships-section"
 interface BusinessAdminDetailProps {
   business: Business
   categories?: Category[]
+  cities?: City[]
+}
+
+// Human labels for Business profile selects. Duplicated from
+// business-create-form.tsx so the two surfaces stay self-contained;
+// extract to a shared module if a third caller needs them.
+const BUSINESS_TYPE_LABELS: Record<string, string> = {
+  storefront: "Storefront",
+  home_based: "Home-based",
+  service_at_client: "Service at client location",
+  online_only: "Online only",
+  mixed: "Mixed",
+}
+
+const YEARS_OPERATING_LABELS: Record<string, string> = {
+  under_1: "Under 1 year",
+  "1_to_3": "1–3 years",
+  "3_to_5": "3–5 years",
+  "5_plus": "5+ years",
 }
 
 type Feedback = { kind: "ok" | "error"; message: string } | null
@@ -53,10 +78,24 @@ async function runUpdate(
   }
 }
 
-export function BusinessAdminDetail({ business, categories = [] }: BusinessAdminDetailProps) {
+export function BusinessAdminDetail({
+  business,
+  categories = [],
+  cities = [],
+}: BusinessAdminDetailProps) {
   const archived = business.deleted_at !== null
   return (
     <div className="space-y-6">
+      {/* Back link to the businesses list. Sidebar nav exists too, but a
+          dedicated "<- Businesses" link is the affordance admins reach for
+          on a detail screen, matching the /account sub-page pattern. */}
+      <Link
+        href="/admin/businesses"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+        Businesses
+      </Link>
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -74,7 +113,11 @@ export function BusinessAdminDetail({ business, categories = [] }: BusinessAdmin
         <ArchiveControl business={business} />
       </header>
 
-      <CoreFieldsSection business={business} categories={categories} />
+      <CoreFieldsSection
+        business={business}
+        categories={categories}
+        cities={cities}
+      />
       <ContactSection business={business} />
       <AiraReviewSection business={business} />
       <SubscriptionsSection businessId={business.id} />
@@ -283,9 +326,11 @@ function CategoryEditModal({
 function CoreFieldsSection({
   business,
   categories,
+  cities,
 }: {
   business: Business
   categories: Category[]
+  cities: City[]
 }) {
   const [coreOpen, setCoreOpen] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
@@ -309,6 +354,7 @@ function CoreFieldsSection({
         <CoreFieldsPreview
           business={business}
           categories={categories}
+          cities={cities}
           onEditCategories={() => setCategoryOpen(true)}
         />
         {/* Gallery — additional images shown below the Feature image
@@ -332,6 +378,7 @@ function CoreFieldsSection({
       </div>
       <CoreFieldsEditModal
         business={business}
+        cities={cities}
         open={coreOpen}
         onClose={() => setCoreOpen(false)}
         onSaved={(result) => {
@@ -356,27 +403,35 @@ function CoreFieldsSection({
 function CoreFieldsPreview({
   business,
   categories,
+  cities,
   onEditCategories,
 }: {
   business: Business
   categories: Category[]
+  cities: City[]
   onEditCategories: () => void
 }) {
+  const cityName = business.city_id
+    ? cities.find((c) => c.id === business.city_id)?.name ?? null
+    : null
+  const businessTypeLabel = business.business_type
+    ? BUSINESS_TYPE_LABELS[business.business_type] ?? business.business_type
+    : null
+  const yearsOperatingLabel = business.years_operating
+    ? YEARS_OPERATING_LABELS[business.years_operating] ?? business.years_operating
+    : null
+  const hasProfileMeta =
+    cityName || businessTypeLabel || yearsOperatingLabel
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
-      <div className="w-full overflow-hidden rounded-md border border-border bg-muted/30 sm:w-48 sm:flex-shrink-0">
-        {business.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={business.image_url}
-            alt=""
-            className="aspect-[1200/630] w-full object-cover"
-          />
-        ) : (
-          <div className="flex aspect-[1200/630] w-full items-center justify-center text-[0.65rem] uppercase tracking-widest text-muted-foreground">
-            No image
-          </div>
-        )}
+      {/* Feature image — direct upload / replace / delete. The control
+          owns its own POST/DELETE + router.refresh(); no modal needed. */}
+      <div className="w-full sm:w-56 sm:flex-shrink-0">
+        <FeatureImageControl
+          businessId={business.id}
+          imageUrl={business.image_url}
+        />
       </div>
       <div className="min-w-0 flex-1 space-y-3">
         <p className="font-display text-lg text-foreground">{business.name}</p>
@@ -402,6 +457,31 @@ function CoreFieldsPreview({
         ) : (
           <p className="text-sm text-muted-foreground">No description yet.</p>
         )}
+        {/* Profile metadata — city / business type / years operating. Each
+            renders only when set; the whole block hides when all three are
+            blank so we don't show an empty row. */}
+        {hasProfileMeta && (
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-3">
+            {cityName && (
+              <div>
+                <dt className="text-muted-foreground">City</dt>
+                <dd className="text-foreground">{cityName}</dd>
+              </div>
+            )}
+            {businessTypeLabel && (
+              <div>
+                <dt className="text-muted-foreground">Type</dt>
+                <dd className="text-foreground">{businessTypeLabel}</dd>
+              </div>
+            )}
+            {yearsOperatingLabel && (
+              <div>
+                <dt className="text-muted-foreground">Operating</dt>
+                <dd className="text-foreground">{yearsOperatingLabel}</dd>
+              </div>
+            )}
+          </dl>
+        )}
       </div>
     </div>
   )
@@ -409,11 +489,13 @@ function CoreFieldsPreview({
 
 function CoreFieldsEditModal({
   business,
+  cities,
   open,
   onClose,
   onSaved,
 }: {
   business: Business
+  cities: City[]
   open: boolean
   onClose: () => void
   onSaved: (result: Feedback) => void
@@ -421,6 +503,11 @@ function CoreFieldsEditModal({
   const router = useRouter()
   const [name, setName] = useState(business.name)
   const [description, setDescription] = useState(business.description ?? "")
+  const [cityId, setCityId] = useState(business.city_id ?? "")
+  const [businessType, setBusinessType] = useState(business.business_type ?? "")
+  const [yearsOperating, setYearsOperating] = useState(
+    business.years_operating ?? "",
+  )
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -430,6 +517,9 @@ function CoreFieldsEditModal({
       const result = await runUpdate(business.id, {
         name: name.trim() || null,
         description: description.trim() || null,
+        city_id: cityId || null,
+        business_type: businessType || null,
+        years_operating: yearsOperating || null,
       })
       if (result?.kind === "error") {
         setError(result.message)
@@ -455,9 +545,10 @@ function CoreFieldsEditModal({
                 Edit core fields
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                Name, description, and the feature image (1200×630 cover). Placement
-                comes from the business&rsquo;s active paid subscription &mdash; edit
-                that in Subscriptions below.
+                Name, about copy, city, business type, and tenure. The feature
+                image, categories, and gallery are edited inline on the card.
+                Placement comes from the business&rsquo;s active paid
+                subscription &mdash; edit that in Subscriptions below.
               </Dialog.Description>
             </div>
             <Dialog.Close
@@ -469,20 +560,6 @@ function CoreFieldsEditModal({
           </div>
 
           <div className="space-y-5 overflow-y-auto px-6 py-5">
-            {/* Feature image — the control owns its own upload/remove
-                lifecycle (direct fetch + router.refresh()); the modal's
-                Save button below only persists name/description/tier. */}
-            <div className="space-y-1.5">
-              <Label>Feature image</Label>
-              <p className="text-xs text-muted-foreground">
-                Uploads and removals save immediately.
-              </p>
-              <FeatureImageControl
-                businessId={business.id}
-                imageUrl={business.image_url}
-              />
-            </div>
-
             <div className="space-y-1.5">
               <Label htmlFor="b-name">Name</Label>
               <Input
@@ -492,13 +569,69 @@ function CoreFieldsEditModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="b-description">Description</Label>
-              <Input
+              <Label htmlFor="b-description">About</Label>
+              <textarea
                 id="b-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder="Short description shown on cards and the detail page."
+                rows={6}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
               />
             </div>
+
+            {/* Business profile — fields that were create-only before but
+                naturally change over time (relocations, model changes,
+                tenure). */}
+            <div className="space-y-1.5">
+              <Label htmlFor="b-city">City</Label>
+              <select
+                id="b-city"
+                value={cityId}
+                onChange={(e) => setCityId(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— no city —</option>
+                {cities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="b-business-type">Business type</Label>
+              <select
+                id="b-business-type"
+                value={businessType}
+                onChange={(e) => setBusinessType(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— select —</option>
+                {VALID_BUSINESS_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {BUSINESS_TYPE_LABELS[t] ?? t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="b-years">Years operating</Label>
+              <select
+                id="b-years"
+                value={yearsOperating}
+                onChange={(e) => setYearsOperating(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— select —</option>
+                {VALID_YEARS_OPERATING.map((y) => (
+                  <option key={y} value={y}>
+                    {YEARS_OPERATING_LABELS[y] ?? y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}
@@ -858,8 +991,7 @@ function AddressEditModal({
                 {titleLabel}
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                Type to search Google Places. Suggestions appear when the
-                Maps API key is configured.
+                Type to search Google Places and pick a suggestion.
               </Dialog.Description>
             </div>
             <Dialog.Close
