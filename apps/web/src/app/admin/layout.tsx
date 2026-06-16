@@ -60,8 +60,11 @@ export default async function AdminLayout({
       <p className="sr-only">Signed in as admin {admin.email}</p>
 
       {env.GOOGLE_MAPS_API_KEY && (
+        // loading=async + v=weekly registers PlaceAutocompleteElement
+        // (the new <gmp-place-autocomplete> Web Component). The legacy
+        // Autocomplete constructor is in deprecation as of Mar 2025.
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${env.GOOGLE_MAPS_API_KEY}&libraries=places`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${env.GOOGLE_MAPS_API_KEY}&libraries=places&loading=async&v=weekly`}
           strategy="afterInteractive"
         />
       )}
