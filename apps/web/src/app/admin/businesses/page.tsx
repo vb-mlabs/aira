@@ -102,7 +102,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
           action={!renewing ? { label: "Add business", href: "/admin/businesses/new" } : undefined}
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/40">
               <tr>
