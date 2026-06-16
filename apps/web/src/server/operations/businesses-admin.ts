@@ -28,6 +28,8 @@ import { defineOperation } from "./index"
 
 const AdminBusinessItemSchema = BusinessSchema.extend({
   latest_payment_status: z.enum(["paid", "pending", "overdue"]).nullable(),
+  latest_subscription_end_date: z.string().nullable(),
+  latest_subscription_days_remaining: z.number().int().nullable(),
 })
 
 const AdminBusinessListInputSchema = BusinessListInputSchema.extend({
@@ -112,6 +114,14 @@ export const listAllBusinessesAdminOp = defineOperation({
       ORDER BY business_id, end_date DESC
     `)
 
+    // Pre-compute days_remaining server-side so the admin businesses
+    // caption avoids the RSC/client Date.now() hydration drift that
+    // renewal-queue-table.tsx works around with suppressHydrationWarning
+    // (2026-06-14 lesson). Mirrors business-subscriptions/queries.ts:130
+    // and subscription-followups/queries.ts:151.
+    const nowMs = Date.now()
+    const DAY_MS = 86_400_000
+
     const subMap = new Map(
       latestSubs.rows.map((r) => [r.business_id, r]),
     )
@@ -131,10 +141,17 @@ export const listAllBusinessesAdminOp = defineOperation({
       })
     }
 
-    const items = filtered.map((b) => ({
-      ...b,
-      latest_payment_status: subMap.get(b.id)?.payment_status ?? null,
-    }))
+    const items = filtered.map((b) => {
+      const sub = subMap.get(b.id)
+      return {
+        ...b,
+        latest_payment_status: sub?.payment_status ?? null,
+        latest_subscription_end_date: sub?.end_date ?? null,
+        latest_subscription_days_remaining: sub
+          ? Math.ceil((new Date(sub.end_date).getTime() - nowMs) / DAY_MS)
+          : null,
+      }
+    })
 
     return {
       items,
