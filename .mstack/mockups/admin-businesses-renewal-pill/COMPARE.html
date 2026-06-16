@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Compare — admin businesses renewal pill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:    oklch(0.22 0.03 60);
+    --surf:  oklch(0.18 0.03 60);
+    --head:  oklch(0.28 0.03 60);
+    --text:  oklch(0.94 0.02 80);
+    --muted: oklch(0.70 0.04 80);
+    --border:oklch(0.94 0.02 80 / 0.20);
+    --rule:  oklch(0.94 0.02 80 / 0.10);
+  }
+  body { margin: 0; font-family: 'Lato', system-ui, sans-serif;
+         background: var(--bg); color: var(--text); padding: 24px; }
+  h1 { font-family: 'Cormorant Garamond', Georgia, serif;
+       font-size: 1.75rem; margin: 0 0 4px; font-weight: 600; }
+  p { color: var(--muted); margin: 0 0 20px; font-size: 0.875rem; max-width: 64ch; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .frame {
+    background: var(--surf);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .frame-header {
+    padding: 10px 16px;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text);
+    background: var(--head);
+    border-bottom: 1px solid var(--rule);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .frame-header .tag { color: var(--muted); font-size: 0.65rem; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  iframe { display: block; width: 100%; height: 760px; border: 0; background: oklch(0.90 0.04 85); }
+  @media (max-width: 1200px) { .grid { grid-template-columns: 1fr; } }
+  footer { margin-top: 28px; color: var(--muted); font-size: 0.75rem; }
+  code { background: oklch(0.94 0.02 80 / 0.10); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+</style>
+</head>
+<body>
+  <h1>Renewal urgency pill — variant compare</h1>
+  <p>
+    Four explorations of how to surface renewal urgency directly on
+    <code>/admin/businesses</code> without merging the dedicated
+    <code>/admin/renewals</code> call queue. Same 7 sample rows in every variant
+    so the differences are apples-to-apples.
+  </p>
+  <div class="grid">
+    <div class="frame">
+      <div class="frame-header">
+        <span>v1 — Inline soft-escalation pill</span>
+        <span class="tag">Calmest · no row treatment</span>
+      </div>
+      <iframe src="v1/index.html" loading="lazy"></iframe>
+    </div>
+    <div class="frame">
+      <div class="frame-header">
+        <span>v2 — Stacked caption + overdue left-border</span>
+        <span class="tag">Scannable from afar</span>
+      </div>
+      <iframe src="v2/index.html" loading="lazy"></iframe>
+    </div>
+    <div class="frame">
+      <div class="frame-header">
+        <span>v3 — Single combined badge</span>
+        <span class="tag">Tightest · loses raw status</span>
+      </div>
+      <iframe src="v3/index.html" loading="lazy"></iframe>
+    </div>
+    <div class="frame">
+      <div class="frame-header">
+        <span>v4 — Pill + jump-to-call action</span>
+        <span class="tag">Most actionable · row tint</span>
+      </div>
+      <iframe src="v4/index.html" loading="lazy"></iframe>
+    </div>
+  </div>
+  <footer>
+    Each variant is also viewable standalone:
+    <code>v1/index.html</code>, <code>v2/index.html</code>,
+    <code>v3/index.html</code>, <code>v4/index.html</code>.
+    See <code>BRIEF.md</code> for the framing and each variant's
+    <code>NOTES.md</code> for the trade-offs.
+  </footer>
+</body>
+</html>
