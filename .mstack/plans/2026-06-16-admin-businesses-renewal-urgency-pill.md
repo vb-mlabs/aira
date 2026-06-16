@@ -2,11 +2,12 @@
 
 **Date:** 2026-06-16
 **Slug:** admin-businesses-renewal-urgency-pill
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 **Mockup:** `.mstack/mockups/admin-businesses-renewal-pill/` (winner: v2,
 see `FEEDBACK.md`)
 **Reviewed:** [.mstack/reviews/2026-06-16-admin-businesses-renewal-urgency-pill.md](../reviews/2026-06-16-admin-businesses-renewal-urgency-pill.md)
+**Implemented:** [.mstack/code/2026-06-16-admin-businesses-renewal-urgency-pill/report.md](../code/2026-06-16-admin-businesses-renewal-urgency-pill/report.md)
 
 ---
 
