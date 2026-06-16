@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { BadgeCheck, Phone } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
+import { TIER_LABELS } from "@aira/validators"
 import { CATEGORY_META } from "../category-meta"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
@@ -10,9 +11,9 @@ interface BusinessCardProps {
   business: Business
 }
 
-// Whole-card link via the `::after` overlay technique — keeps the inner
-// Call button independently clickable without nesting anchors. The Call
-// anchor sits at `z-10` so its hitbox wins over the overlay.
+// Whole-card link via the `::after` overlay technique — keeps inner
+// social anchors independently clickable without nesting. Each anchor
+// inside SocialLinks sits at `z-10` so its hitbox wins over the overlay.
 export function BusinessCard({ business }: BusinessCardProps) {
   const category = CATEGORY_META[business.category]
   const Icon = category.icon
@@ -57,22 +58,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
           facebook_url={business.facebook_url}
           instagram_url={business.instagram_url}
           whatsapp_number={business.whatsapp_number}
+          phone={business.phone}
+          website={business.website}
+          address={business.address}
           className="mt-1.5"
         />
       </div>
 
-      {/* Right column: chip pinned to top, phone pinned to bottom */}
-      <div className="flex flex-shrink-0 flex-col items-end justify-between self-stretch gap-2">
+      <div className="flex-shrink-0">
         <TierPill tier={business.tier} />
-        {business.phone && (
-          <a
-            href={`tel:${business.phone}`}
-            className="relative z-10 inline-flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-opacity hover:opacity-90"
-            aria-label={`Call ${business.name}`}
-          >
-            <Phone className="size-5" aria-hidden />
-          </a>
-        )}
       </div>
     </article>
   )
@@ -80,7 +74,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
 function TierPill({ tier }: { tier: Business["tier"] }) {
   if (tier === "tier3") return null
-  const label = tier === "tier1" ? "Sponsored" : "Featured"
+  // Label comes from the shared TIER_LABELS map so the badge matches the
+  // tier-section heading exactly. Previously tier2 said "Featured" here
+  // while tier-section said "Sponsored Level 2" — a long-standing
+  // inconsistency this collapses.
   const bg = tier === "tier1" ? "bg-tier1 text-tier1-foreground" : "bg-tier2 text-tier2-foreground"
   return (
     <span
@@ -89,7 +86,7 @@ function TierPill({ tier }: { tier: Business["tier"] }) {
         bg,
       )}
     >
-      {label}
+      {TIER_LABELS[tier]}
     </span>
   )
 }

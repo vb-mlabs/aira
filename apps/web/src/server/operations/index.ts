@@ -27,11 +27,18 @@ const getSession: GetSession = async (headers) => {
   // Narrow to the operation-shaped session — id/email/role only. Better
   // Auth's union includes additional fields we don't need at the boundary;
   // the cast keeps the operation's contract tight without leaking the
-  // raw shape. DB role enum is end_user|admin|super_admin; super_admin
-  // subsumes admin perms so both map to the narrow Permission "admin".
+  // raw shape. DB role enum is end_user|admin|super_admin; the operation
+  // layer's Permission union mirrors admin|super_admin (everything else
+  // collapses to "user"). defineOperation's hasPermission() enforces the
+  // hierarchy super_admin ≥ admin ≥ user so admin-permission ops still
+  // accept super_admin callers.
   const u = session.user as { id: string; email: string; role?: string }
   const role: OperationSession["user"]["role"] =
-    u.role === "admin" || u.role === "super_admin" ? "admin" : "user"
+    u.role === "super_admin"
+      ? "super_admin"
+      : u.role === "admin"
+        ? "admin"
+        : "user"
   return { user: { id: u.id, email: u.email, role } }
 }
 

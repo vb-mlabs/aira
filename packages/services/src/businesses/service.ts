@@ -44,7 +44,10 @@ export async function updateBusiness(
   if (data.phone !== undefined) updatePayload.phone = data.phone;
   if (data.website !== undefined) updatePayload.website = data.website;
   if (data.address !== undefined) updatePayload.address = data.address;
-  if (data.tier !== undefined) updatePayload.tier = data.tier;
+  // tier is intentionally NOT written here — the column is now a
+  // denormalised cache maintained by the subscription service via
+  // recomputeBusinessTier. The BusinessUpdateInputSchema strips the field
+  // at the validator boundary; this is defense-in-depth.
   if (data.facebook_url !== undefined) updatePayload.facebook_url = data.facebook_url;
   if (data.instagram_url !== undefined) updatePayload.instagram_url = data.instagram_url;
   if (data.whatsapp_number !== undefined) updatePayload.whatsapp_number = data.whatsapp_number;
@@ -134,6 +137,36 @@ export async function archiveBusiness(
   }
 
   return getBusinessByIdIncludingArchived(db, id);
+}
+
+export async function setBusinessFeatureImage(
+  db: Database,
+  id: string,
+  url: string,
+): Promise<Business | null> {
+  await db
+    .update(businesses)
+    .set({ image_url: url })
+    .where(eq(businesses.id, id));
+  return getBusinessByIdIncludingArchived(db, id);
+}
+
+export async function clearBusinessFeatureImage(
+  db: Database,
+  id: string,
+): Promise<{ oldUrl: string | null }> {
+  const [row] = await db
+    .select({ image_url: businesses.image_url })
+    .from(businesses)
+    .where(eq(businesses.id, id));
+  const oldUrl = row?.image_url ?? null;
+  if (oldUrl !== null) {
+    await db
+      .update(businesses)
+      .set({ image_url: null })
+      .where(eq(businesses.id, id));
+  }
+  return { oldUrl };
 }
 
 export async function purgeArchivedBusinesses(

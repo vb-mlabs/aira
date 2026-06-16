@@ -1,0 +1,189 @@
+{
+  "h1": {
+    "rect": {
+      "x": 400,
+      "y": -2077,
+      "w": 640,
+      "h": 124.40625
+    },
+    "font": {
+      "family": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+      "size": "51.84px",
+      "weight": "600",
+      "lineHeight": "62.208px"
+    },
+    "color": "lab(12.8561 8.04094 13.9573)",
+    "margin": "0px",
+    "padding": "0px"
+  },
+  "rootsReach": {
+    "rect": {
+      "x": 653,
+      "y": -2138,
+      "w": 134,
+      "h": 33
+    },
+    "font": {
+      "family": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+      "size": "22px",
+      "weight": "400",
+      "lineHeight": "33px"
+    },
+    "color": "lab(36.0887 7.46375 13.9522)",
+    "margin": "0px 0px 28px",
+    "padding": "0px"
+  },
+  "logo": {
+    "rect": {
+      "x": 625,
+      "y": -2348,
+      "w": 190,
+      "h": 190
+    },
+    "font": {
+      "family": "Lato, \"Lato Fallback\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400",
+      "lineHeight": "24px"
+    },
+    "color": "rgba(0, 0, 0, 0)",
+    "margin": "0px 0px 20px",
+    "padding": "0px"
+  },
+  "waitlistCard": {
+    "rect": {
+      "x": 490,
+      "y": -1769.59375,
+      "w": 460,
+      "h": 52.5
+    },
+    "font": {
+      "family": "Lato, \"Lato Fallback\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400",
+      "lineHeight": "24px"
+    },
+    "color": "lab(12.8561 8.04094 13.9573)",
+    "margin": "24px 35px 0px",
+    "padding": "0px"
+  },
+  "aboutEyebrow": {
+    "rect": {
+      "x": 710,
+      "y": -1440.09375,
+      "w": 20,
+      "h": 32
+    },
+    "font": {
+      "family": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+      "size": "24px",
+      "weight": "400",
+      "lineHeight": "32px"
+    },
+    "color": "lab(60.6311 9.58511 42.5885)",
+    "margin": "0px",
+    "padding": "0px"
+  },
+  "aboutH2": {
+    "rect": {
+      "x": 154,
+      "y": -1339.09375,
+      "w": 1132,
+      "h": 52.796875
+    },
+    "font": {
+      "family": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+      "size": "48px",
+      "weight": "600",
+      "lineHeight": "52.8px"
+    },
+    "color": "lab(12.8561 8.04094 13.9573)",
+    "margin": "16px 0px 0px",
+    "padding": "0px"
+  },
+  "aboutLead": {
+    "rect": {
+      "x": 220,
+      "y": -1222.296875,
+      "w": 460,
+      "h": 157.5
+    },
+    "font": {
+      "family": "Lato, \"Lato Fallback\", system-ui, sans-serif",
+      "size": "18px",
+      "weight": "400",
+      "lineHeight": "31.5px"
+    },
+    "color": "lab(12.8561 8.04094 13.9573)",
+    "margin": "0px",
+    "padding": "0px"
+  },
+  "appH2": {
+    "rect": {
+      "x": 792.65625,
+      "y": -598.34375,
+      "w": 493.34375,
+      "h": 92
+    },
+    "font": {
+      "family": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+      "size": "40px",
+      "weight": "600",
+      "lineHeight": "46px"
+    },
+    "color": "lab(12.8561 8.04094 13.9573)",
+    "margin": "14px 0px 0px",
+    "padding": "0px"
+  },
+  "appP": {
+    "rect": {
+      "x": 792.65625,
+      "y": -490.34375,
+      "w": 493.34375,
+      "h": 56.09375
+    },
+    "font": {
+      "family": "Lato, \"Lato Fallback\", system-ui, sans-serif",
+      "size": "17px",
+      "weight": "400",
+      "lineHeight": "28.05px"
+    },
+    "color": "lab(36.0887 7.46375 13.9522)",
+    "margin": "16px 0px 0px",
+    "padding": "0px"
+  },
+  "businessH2": {
+    "rect": {
+      "x": 154,
+      "y": 158.703125,
+      "w": 551.046875,
+      "h": 285.5625
+    },
+    "font": {
+      "family": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+      "size": "68px",
+      "weight": "700",
+      "lineHeight": "71.4px"
+    },
+    "color": "lab(93.0937 1.22419 7.58914)",
+    "margin": "16px 0px 0px",
+    "padding": "0px"
+  },
+  "businessP": {
+    "rect": {
+      "x": 154,
+      "y": 468.265625,
+      "w": 551.046875,
+      "h": 97.640625
+    },
+    "font": {
+      "family": "Lato, \"Lato Fallback\", system-ui, sans-serif",
+      "size": "21px",
+      "weight": "500",
+      "lineHeight": "32.55px"
+    },
+    "color": "lab(93.0937 1.22419 7.58914)",
+    "margin": "24px 0px 0px",
+    "padding": "0px"
+  }
+}

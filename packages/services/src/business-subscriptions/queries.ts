@@ -3,6 +3,7 @@ import "server-only"
 import { eq, and, between, inArray, sql, desc } from "drizzle-orm"
 import { businessSubscriptions, membershipPlans, businesses } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
+import type { BusinessTier } from "@aira/validators/businesses"
 import type { BusinessSubscription } from "@aira/validators/business-subscriptions"
 
 export function toSubscription(
@@ -31,6 +32,37 @@ export async function listSubscriptionsByBusiness(
     .where(eq(businessSubscriptions.business_id, businessId))
     .orderBy(desc(businessSubscriptions.end_date))
   return rows.map(toSubscription)
+}
+
+/**
+ * Returns the plan tier for every subscription whose business_id matches
+ * AND is currently active-paid (payment_status='paid' AND now() between
+ * start_date and end_date). The INNER JOIN with membership_plan implicitly
+ * drops subscriptions where plan_id IS NULL — locked decision per the
+ * review (plan-less paid subs contribute tier3, which the recompute
+ * caller represents as "empty set → tier3").
+ *
+ * Pure SELECT; no auth (the op layer + service callers gate access).
+ */
+export async function findActivePaidPlansForBusiness(
+  db: Database,
+  businessId: string,
+): Promise<Array<{ tier: BusinessTier }>> {
+  const rows = await db
+    .select({ tier: membershipPlans.tier })
+    .from(businessSubscriptions)
+    .innerJoin(
+      membershipPlans,
+      eq(businessSubscriptions.plan_id, membershipPlans.id),
+    )
+    .where(
+      and(
+        eq(businessSubscriptions.business_id, businessId),
+        eq(businessSubscriptions.payment_status, "paid"),
+        sql`now() BETWEEN ${businessSubscriptions.start_date} AND ${businessSubscriptions.end_date}`,
+      ),
+    )
+  return rows.map((r) => ({ tier: r.tier as BusinessTier }))
 }
 
 export async function getSubscriptionById(
@@ -98,6 +130,56 @@ export async function findRenewingSoon(
     days_remaining: Math.ceil(
       (r.end_date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     ),
+    contact_phone: r.contact_phone ?? null,
+    contact_email: null,
+    payment_evidence_url: r.payment_evidence_url ?? null,
+  }))
+}
+
+/**
+ * Subscriptions whose `end_date` is EXACTLY `days` days from today
+ * (date-only diff — ignores the time-of-day component). Used by the F17
+ * renewal-reminder cron to fire one labeled email per configured window.
+ *
+ * Inline-filters to `payment_status = 'paid'` so the caller doesn't have
+ * to re-filter. The cron's intent is paid-only; `findRenewingSoon` keeps
+ * the inclusive paid+overdue shape for the admin `?renewing=N` view.
+ */
+export async function findRenewingExactlyInDays(
+  db: Database,
+  opts: { days: number },
+): Promise<RenewingSoonRow[]> {
+  const days = Math.trunc(opts.days)
+  const rows = await db
+    .select({
+      subscription_id: businessSubscriptions.id,
+      business_id: businesses.id,
+      business_name: businesses.name,
+      plan_name: membershipPlans.name,
+      payment_status: businessSubscriptions.payment_status,
+      end_date: businessSubscriptions.end_date,
+      contact_phone: businesses.phone,
+      payment_evidence_url: businessSubscriptions.payment_evidence_url,
+    })
+    .from(businessSubscriptions)
+    .innerJoin(businesses, eq(businessSubscriptions.business_id, businesses.id))
+    .leftJoin(membershipPlans, eq(businessSubscriptions.plan_id, membershipPlans.id))
+    .where(
+      and(
+        eq(businessSubscriptions.payment_status, "paid"),
+        sql`(${businessSubscriptions.end_date}::date - CURRENT_DATE) = ${sql.raw(String(days))}`,
+      ),
+    )
+    .orderBy(businessSubscriptions.end_date)
+
+  return rows.map((r) => ({
+    subscription_id: r.subscription_id,
+    business_id: r.business_id,
+    business_name: r.business_name,
+    plan_name: r.plan_name ?? null,
+    payment_status: r.payment_status,
+    end_date: r.end_date.toISOString(),
+    days_remaining: days,
     contact_phone: r.contact_phone ?? null,
     contact_email: null,
     payment_evidence_url: r.payment_evidence_url ?? null,

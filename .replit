@@ -38,15 +38,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Claude bootstrap"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Start application"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Mobile (Expo Web)"
 
 # Recreates the Claude Code memory symlink so persistent memory survives
 # Replit restarts (~/.claude/ may be wiped, but the workspace persists).
@@ -71,35 +63,6 @@ waitForPort = 5000
 [workflows.workflow.metadata]
 outputType = "webview"
 
-# Separate e2e workflow that pins BETTER_AUTH_URL to http://127.0.0.1:5000
-# so Playwright's globalSetup signs cookies the live dev server can read.
-# Pinning BETTER_AUTH_URL on the default workflow has side effects on
-# regular Replit-domain browser sessions (cookies + email links point at
-# 127.0.0.1), so the split-workflow pattern keeps the default clean.
-[[workflows.workflow]]
-name = "Start application (e2e)"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "BETTER_AUTH_URL=http://127.0.0.1:5000 pnpm --filter @aira/web dev -p 5000 -H 0.0.0.0"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[workflows.workflow]]
-name = "Mobile (Expo Web)"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @aira/mobile exec expo start --web --port 8080"
-waitForPort = 8080
-
-[workflows.workflow.metadata]
-outputType = "console"
-
 [[workflows.workflow]]
 name = "Expo Go (Tunnel)"
 mode = "sequential"
@@ -108,60 +71,6 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "pnpm --filter @aira/mobile exec expo start --tunnel"
-
-# Native simulator workflow: starts Metro with the proxy env vars so the
-# bundle URLs Metro hands out resolve through the Replit HTTPS dev domain.
-# This is what lets Replit's built-in iOS/Android preview pane attach to a
-# real native bundle (not just the Expo Web build). Port 8081 must remain
-# exposed below for the simulator to reach the packager.
-[[workflows.workflow]]
-name = "Mobile (Native Simulator)"
-mode = "sequential"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN pnpm --filter @aira/mobile exec expo start"
-waitForPort = 8081
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
-name = "EAS Init"
-mode = "sequential"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @aira/mobile exec eas init"
-
-[[workflows.workflow]]
-name = "EAS Update"
-mode = "sequential"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @aira/mobile exec eas update --auto"
-
-[[workflows.workflow]]
-name = "EAS Publish Preview iOS"
-mode = "sequential"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @aira/mobile exec eas build --platform ios --profile preview"
-
-[[workflows.workflow]]
-name = "EAS Publish Preview Android"
-mode = "sequential"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @aira/mobile exec eas build --platform android --profile preview"
 
 [[ports]]
 localPort = 5000

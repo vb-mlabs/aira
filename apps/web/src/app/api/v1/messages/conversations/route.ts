@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     return ApiError.unauthorized().toResponse()
   }
   const u = session.user as { id: string; email: string; role?: string }
-  const role: "user" | "admin" = u.role === "admin" ? "admin" : "user"
+  const role: "user" | "admin" = (u.role === "admin" || u.role === "super_admin") ? "admin" : "user"
   const ctx = buildContext({
     headers: req.headers,
     session: { user: { id: u.id, email: u.email, role } },

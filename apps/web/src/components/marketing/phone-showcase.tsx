@@ -12,7 +12,7 @@ import Image from "next/image"
 
 export function PhoneShowcase() {
   return (
-    <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center pb-[120px] pt-[40px] md:pb-[120px]">
+    <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center pb-[120px] pt-[64px] md:pb-[120px] md:pt-[40px]">
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-[40px] px-6 md:grid-cols-[1.1fr_1fr] md:gap-[96px]">
         <div className="relative mx-auto flex h-[510px] w-full max-w-[400px] items-center justify-center md:h-[700px]">
           <PhoneFrame
@@ -40,8 +40,8 @@ export function PhoneShowcase() {
           </h2>
           <p className="mt-4 text-[17px] leading-[1.65] text-muted-foreground">
             Tap a category. See businesses your neighbors trust, sorted by
-            verification and quality. Call, WhatsApp, or open directions
-            &mdash; one tap each.
+            verification and quality. Call or open directions &mdash; one tap
+            each.
           </p>
           <ul className="mt-7 space-y-[14px]">
             {bullets.map((bullet) => (
@@ -65,7 +65,7 @@ export function PhoneShowcase() {
 const bullets = [
   "Search within a category — never an algorithm guessing",
   "Verified badge means we've checked — not user reports",
-  "Save listings, share to WhatsApp, get directions in one tap",
+  "Save listings, call, and get directions in one tap",
 ]
 
 function PhoneFrame({

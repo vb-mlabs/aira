@@ -16,7 +16,7 @@ export const listMembershipPlansOp = defineOperation({
   name: "admin.membership-plans.list",
   input: z.object({ includeInactive: z.coerce.boolean().optional() }).strict(),
   output: MembershipPlanListOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { includeInactive }) => {
     const items = await plansService.listMembershipPlans(db, CITY_ID, includeInactive ?? false)
     return { items }
@@ -27,7 +27,7 @@ export const createMembershipPlanOp = defineOperation({
   name: "admin.membership-plans.create",
   input: MembershipPlanCreateInputSchema.omit({ city_id: true }),
   output: z.object({ plan: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, input) => {
     const plan = await plansService.createMembershipPlan(db, { ...input, city_id: CITY_ID })
     return { plan }
@@ -38,7 +38,7 @@ export const updateMembershipPlanOp = defineOperation({
   name: "admin.membership-plans.update",
   input: MembershipPlanUpdateInputSchema,
   output: z.object({ plan: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, input) => {
     const plan = await plansService.updateMembershipPlan(db, input)
     if (!plan) throw ApiError.notFound("membership_plan.not_found", "Plan not found")
@@ -50,7 +50,7 @@ export const deactivateMembershipPlanOp = defineOperation({
   name: "admin.membership-plans.deactivate",
   input: z.object({ id: z.string().min(1) }).strict(),
   output: z.object({ plan: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { id }) => {
     const plan = await plansService.deactivateMembershipPlan(db, id)
     if (!plan) throw ApiError.notFound("membership_plan.not_found", "Plan not found")

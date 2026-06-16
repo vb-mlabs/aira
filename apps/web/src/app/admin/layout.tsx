@@ -26,18 +26,19 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const admin = await requireAdmin()
+  const adminRole = (admin as { role?: string }).role ?? "admin"
 
   return (
     <div className="min-h-full">
       {/* Desktop sidebar — fixed full-height on the left. */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[280px] md:flex-col">
-        <AdminSidebar />
+        <AdminSidebar userRole={adminRole} />
       </aside>
 
       <div className="flex min-h-full flex-col md:pl-[280px]">
         {/* Mobile top header. */}
         <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
-          <AdminMobileSidebar />
+          <AdminMobileSidebar userRole={adminRole} />
           <Link
             href="/admin"
             className="font-display text-lg font-semibold text-foreground"
@@ -58,9 +59,12 @@ export default async function AdminLayout({
 
       <p className="sr-only">Signed in as admin {admin.email}</p>
 
-      {env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
+      {env.GOOGLE_MAPS_API_KEY && (
+        // loading=async + v=weekly registers PlaceAutocompleteElement
+        // (the new <gmp-place-autocomplete> Web Component). The legacy
+        // Autocomplete constructor is in deprecation as of Mar 2025.
         <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          src={`https://maps.googleapis.com/maps/api/js?key=${env.GOOGLE_MAPS_API_KEY}&libraries=places&loading=async&v=weekly`}
           strategy="afterInteractive"
         />
       )}

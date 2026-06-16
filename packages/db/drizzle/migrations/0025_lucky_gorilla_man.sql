@@ -1,0 +1,1 @@
+ALTER TABLE "membership_plan" ADD COLUMN "tier" text DEFAULT 'tier3' NOT NULL;

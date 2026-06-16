@@ -50,7 +50,7 @@ export function CityForm({ city }: CityFormProps) {
         } else {
           await apiClient.post("/api/v1/admin/cities", { name, slug, active })
         }
-        router.push("/admin/cities")
+        router.push("/admin/settings/cities")
         router.refresh()
       } catch {
         setError("Failed to save. Please try again.")
@@ -102,7 +102,7 @@ export function CityForm({ city }: CityFormProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/admin/cities")}
+          onClick={() => router.push("/admin/settings/cities")}
         >
           Cancel
         </Button>

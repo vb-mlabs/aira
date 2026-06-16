@@ -15,7 +15,8 @@
     "./businesses": "./src/businesses/index.ts",
     "./categories": "./src/categories/index.ts",
     "./cities": "./src/cities/index.ts",
-    "./app_settings": "./src/app_settings/index.ts"
+    "./app_settings": "./src/app_settings/index.ts",
+    "./community": "./src/community/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

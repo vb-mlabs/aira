@@ -44,6 +44,22 @@ export const brand = {
     mutedForeground:   "#735239",  // oklch(0.45 0.04 60)
     border:            "#D8C9AC",  // softer than design.border for email
   },
+
+  // /home (signed-in user landing) copy. These used to live as runtime-editable
+  // app_setting rows (homepage_about_title / homepage_about_body /
+  // homepage_stat_users) — they only feed one screen and only change at fork
+  // time, so they belong in the rebrand layer like the rest of the brand
+  // copy. Forks edit here; no DB migration, no admin form.
+  homepage: {
+    aboutTitle: "A directory of Atlanta's Indian community, curated with care",
+    aboutBody:
+      "Every listing is reviewed by a person before it appears. Real businesses. Real people. The dosa place, the tabla teacher, the mandap rental — the people you'd ask a friend about.",
+    // Displayed in the Community Members stat card on /home. Default is the
+    // em-dash so fresh forks render the same placeholder they did when the
+    // value was an "auto" app_setting fallback. Override with a literal
+    // string ("500+") if a fork wants to display a real number.
+    communityMembers: "—",
+  },
 } as const
 
 export type Brand = typeof brand

@@ -1,0 +1,7 @@
+[
+  {
+    "url": "http://localhost:5000/api/v1/community/posts/88c7e7e5-feb9-4a25-91ef-bad7d0cfbd7c/interests",
+    "status": 200,
+    "body": "{\"ok\":true,\"interest_count\":1}"
+  }
+]

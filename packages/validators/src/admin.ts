@@ -9,6 +9,11 @@
 
 import { z } from "zod";
 
+import {
+  KnownAuditActionSchema,
+  KnownAuditTargetTypeSchema,
+} from "./audit-meta";
+
 export const ADMIN_PAGE_SIZE = 50;
 export const ADMIN_AUDIT_PAGE_SIZE = 100;
 
@@ -35,6 +40,13 @@ export const AdminAuditRowSchema = z.object({
   action: z.string(),
   target_type: z.string().nullable(),
   target_id: z.string().nullable(),
+  /** Resolved via LEFT JOINs on business_subscription + sponsorship in
+   *  listAudit. Non-null when target_type is business_subscription or
+   *  sponsorship (and the underlying row still exists); null
+   *  otherwise. Drives the per-row link in renderAuditTarget so a
+   *  subscription audit entry can point at the parent /admin/businesses
+   *  page rather than just a UUID. */
+  target_business_id: z.string().nullable(),
   metadata: z.unknown(),
   at: z.string(),
 });
@@ -76,6 +88,13 @@ export const ListAuditInputSchema = z
     since: z.string().optional(),
     /** ISO 8601 — exclusive. */
     until: z.string().optional(),
+    /** user.id — exact match on audit_log.actor_id. */
+    actor_id: z.string().optional(),
+    /** Closed enum — one of KNOWN_AUDIT_TARGET_TYPES. */
+    target_type: KnownAuditTargetTypeSchema.optional(),
+    /** Closed enum — one of KNOWN_AUDIT_ACTIONS (the discriminated
+     *  union's kind values). */
+    action: KnownAuditActionSchema.optional(),
   })
   .strict();
 export type ListAuditInput = z.infer<typeof ListAuditInputSchema>;

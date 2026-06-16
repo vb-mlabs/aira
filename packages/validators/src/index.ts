@@ -18,3 +18,7 @@ export * from "./membership-plans";
 export * from "./business-subscriptions";
 export * from "./sponsorship-tiers";
 export * from "./sponsorships";
+export * from "./community";
+export * from "./subscription-followups";
+export * from "./audit-meta";
+export * from "./user-preferences";

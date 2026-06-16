@@ -13,6 +13,25 @@ import { BusinessImageSchema } from "./business-image";
 export const VALID_TIERS = ["tier1", "tier2", "tier3"] as const;
 export type BusinessTier = (typeof VALID_TIERS)[number];
 
+/** Single source of truth for human-readable tier labels. Every UI surface
+ *  (admin tables, plan picker, public business card badge, tier section
+ *  header) imports from here so the labels can't drift. Mobile + web both
+ *  consume @aira/validators so they get the same map.
+ *
+ *  Why these labels:
+ *    - tier1 is the top-of-listing premium slot ("Sponsored")
+ *    - tier2 is the mid-tier paid slot ("Sponsored Level 2") — matches the
+ *      label tier-section.tsx already uses and replaces the inconsistent
+ *      "Featured" string that used to live in business-card.tsx:76
+ *    - tier3 is the unpaid default ("Regular") — public cards skip the
+ *      badge entirely for this tier, but admin surfaces still need a label
+ */
+export const TIER_LABELS: Record<BusinessTier, string> = {
+  tier1: "Sponsored",
+  tier2: "Sponsored Level 2",
+  tier3: "Regular",
+};
+
 export const VALID_BUSINESS_TYPES = [
   "storefront",
   "home_based",
@@ -81,6 +100,12 @@ export const BusinessSchema = z.object({
 });
 export type Business = z.infer<typeof BusinessSchema>;
 
+// businesses.tier is no longer admin-writable through this surface — the
+// column is now a denormalised cache maintained by the subscription
+// service whenever an active-paid subscription set changes. See
+// .mstack/reviews/2026-06-15-membership-plan-tier.md (Task 5). Sending
+// `tier` here yields a Zod unrecognized_keys error (the schema is
+// .strict()), which is the intentional boundary feedback.
 export const BusinessUpdateInputSchema = z
   .object({
     id: z.string().min(1),
@@ -90,7 +115,6 @@ export const BusinessUpdateInputSchema = z
     phone: z.string().nullable().optional(),
     website: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
-    tier: BusinessTierSchema.optional(),
     facebook_url: z.string().nullable().optional(),
     instagram_url: z.string().nullable().optional(),
     whatsapp_number: z.string().nullable().optional(),
@@ -107,12 +131,16 @@ export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+// businesses.tier is no longer admin-writable through this surface — see
+// the same note above BusinessUpdateInputSchema. New businesses default
+// to tier3 via the DB column default; subscription activation upgrades
+// them via recomputeBusinessTier in
+// packages/services/src/business-subscriptions/service.ts.
 export const BusinessCreateInputSchema = z
   .object({
     name: z.string().min(1),
     slug: z.string().min(1).regex(slugPattern, "Slug must be lowercase kebab-case"),
     category: BusinessCategorySchema,
-    tier: BusinessTierSchema,
     description: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
     address: z.string().nullable().optional(),
@@ -173,6 +201,15 @@ export const BusinessListOutputSchema = z.object({
   pageSize: z.number().int().min(1),
 });
 export type BusinessListOutput = z.infer<typeof BusinessListOutputSchema>;
+
+/** Output contract for GET /api/v1/businesses/count. Tiny by design — just
+ *  the count of active (non-archived) businesses. Used by /home's stat
+ *  card so the RSC doesn't have to import the service directly (which
+ *  would bypass the /api/v1/* boundary). */
+export const BusinessCountOutputSchema = z.object({
+  count: z.number().int().nonnegative(),
+});
+export type BusinessCountOutput = z.infer<typeof BusinessCountOutputSchema>;
 
 export const BusinessDetailInputSchema = z
   .object({ id: z.string().min(1) })

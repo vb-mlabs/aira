@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIRA · Community Requests — v3 (featured hero + dense feed)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Lato:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: oklch(0.90 0.04 85);
+      --foreground: oklch(0.25 0.04 60);
+      --card: #F3EBDD;
+      --primary: oklch(0.46 0.07 132);
+      --primary-foreground: oklch(0.94 0.02 80);
+      --muted: oklch(0.88 0.03 85);
+      --muted-foreground: oklch(0.45 0.04 60);
+      --accent: oklch(0.95 0.02 85);
+      --border: oklch(0.50 0.07 80);
+      --brand-cream-bright: oklch(0.94 0.02 80);
+      --brand-cream-muted: oklch(0.90 0.04 80);
+      --brand-gold: oklch(0.66 0.10 80);
+      --info: oklch(0.55 0.18 240);
+      --sidebar: oklch(0.42 0.06 130);
+      --sidebar-foreground: oklch(0.94 0.02 80);
+      --shadow-card: 0 2px 8px oklch(0.25 0.04 60 / 14%);
+      --shadow-card-hover: 0 6px 24px oklch(0.25 0.04 60 / 18%);
+      --shadow-primary-glow: 0 3px 5px oklch(0.46 0.07 132 / 35%);
+      --gradient-primary: linear-gradient(145deg, oklch(0.52 0.08 132) 6%, oklch(0.46 0.07 132) 94%);
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Lato', system-ui, sans-serif; }
+    .font-display { font-family: 'Cormorant Garamond', 'Georgia', serif; }
+    .bg-card { background: var(--card); }
+    .bg-primary { background: var(--primary); }
+    .bg-muted { background: var(--muted); }
+    .text-primary { color: var(--primary); }
+    .text-foreground { color: var(--foreground); }
+    .text-muted-foreground { color: var(--muted-foreground); }
+    .text-brand-gold { color: var(--brand-gold); }
+    .text-cream-bright { color: var(--brand-cream-bright); }
+    .text-cream-muted { color: var(--brand-cream-muted); }
+    .text-primary-foreground { color: var(--primary-foreground); }
+    .text-info { color: var(--info); }
+    .border-border { border-color: oklch(0.50 0.07 80 / 25%); }
+    .border-primary { border-color: var(--primary); }
+    .border-gold { border-color: var(--brand-gold); }
+    .border-cream { border-color: oklch(0.94 0.02 80 / 25%); }
+    .shadow-card { box-shadow: var(--shadow-card); }
+    .shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+    .shadow-glow { box-shadow: var(--shadow-primary-glow); }
+    .btn-primary { background-image: var(--gradient-primary); color: var(--primary-foreground); }
+    .pill-approved { background: oklch(0.46 0.07 132 / 12%); color: var(--primary); border: 1px solid oklch(0.46 0.07 132 / 30%); }
+    .pill-cream { background: oklch(0.94 0.02 80 / 15%); color: var(--brand-cream-bright); border: 1px solid oklch(0.94 0.02 80 / 30%); }
+    .paper {
+      background-image:
+        radial-gradient(oklch(0.50 0.07 80 / 0.04) 1px, transparent 1px),
+        radial-gradient(oklch(0.50 0.07 80 / 0.03) 1px, transparent 1px);
+      background-position: 0 0, 7px 9px;
+      background-size: 14px 14px, 14px 14px;
+    }
+    .sidebar-bg {
+      background: var(--sidebar);
+      background-image: linear-gradient(135deg, oklch(0.42 0.06 130) 0%, oklch(0.38 0.06 130) 100%);
+      color: var(--sidebar-foreground);
+    }
+    .featured-bg {
+      background: var(--sidebar);
+      background-image:
+        radial-gradient(at 80% 20%, oklch(0.50 0.08 130) 0%, transparent 50%),
+        linear-gradient(135deg, oklch(0.42 0.06 130) 0%, oklch(0.32 0.06 130) 100%);
+      color: var(--brand-cream-bright);
+    }
+  </style>
+</head>
+<body class="paper min-h-screen">
+
+  <!-- VIEW LABEL -->
+  <div class="mx-auto max-w-7xl px-4 py-3 text-[11px] uppercase tracking-[3px] text-muted-foreground">
+    v3 · Featured hero + dense secondary feed
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- BOARD VIEW                                                  -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <div class="mx-auto max-w-7xl px-4 pb-12">
+    <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-0">
+
+      <!-- Sidebar stub -->
+      <aside class="sidebar-bg hidden md:block min-h-[1000px] rounded-l-xl">
+        <div class="border-b border-white/15 px-5 pt-6 pb-5">
+          <p class="font-display text-2xl leading-none">AIRA</p>
+          <p class="mt-1 text-xs italic opacity-70">by Nisarga</p>
+        </div>
+        <nav class="text-sm">
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Home</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 font-bold bg-white/10">Community</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Restaurants</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Groceries</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Services</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Events</a>
+        </nav>
+      </aside>
+
+      <!-- Main column -->
+      <main class="md:rounded-r-xl">
+
+        <!-- Compact header + ask button -->
+        <header class="bg-card shadow-card md:rounded-tr-xl px-6 py-6 md:px-10 md:py-7">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-[4px] text-foreground">Community Requests</p>
+              <h1 class="mt-2 font-display text-3xl md:text-[36px] leading-tight">
+                Real people. Real asks. <em class="not-italic font-semibold text-primary">Trusted leads.</em>
+              </h1>
+            </div>
+            <button class="btn-primary inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold shadow-glow">
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Ask the community
+            </button>
+          </div>
+        </header>
+
+        <!-- FEATURED hero card -->
+        <section class="md:px-6 mt-6">
+          <div class="featured-bg shadow-card rounded-xl px-7 py-8 md:px-10 md:py-10 relative overflow-hidden">
+            <!-- Decorative tag -->
+            <span class="inline-flex items-center gap-1.5 rounded-full pill-cream px-3 py-1 text-[10px] font-bold uppercase tracking-[3px]">
+              <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Featured this week
+            </span>
+
+            <div class="mt-4 flex items-center gap-3">
+              <div class="flex size-11 items-center justify-center rounded-full bg-white/15 text-[14px] font-bold text-cream-bright">PS</div>
+              <div class="min-w-0">
+                <p class="text-[14px] font-bold leading-tight text-cream-bright">Priya S.</p>
+                <p class="text-[11px] uppercase tracking-wider text-cream-muted/80">Alpharetta &middot; 2 days ago</p>
+              </div>
+            </div>
+
+            <h2 class="mt-5 font-display text-[32px] md:text-[40px] leading-[1.1] text-cream-bright">
+              Looking for a pediatrician who takes Aetna near Alpharetta
+            </h2>
+            <p class="mt-3 max-w-2xl text-[15px] leading-relaxed text-cream-muted">
+              We just moved and our daughter is due for her 4-year checkup. Prefer someone Indian-friendly with weekend hours &mdash; both of us work and getting away mid-week is hard.
+            </p>
+
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+              <button class="inline-flex items-center justify-center gap-2 rounded-full bg-cream-bright px-5 py-2.5 text-[13px] font-bold text-primary hover:opacity-90" style="background:var(--brand-cream-bright); color:var(--primary);">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                I can help
+              </button>
+              <span class="inline-flex items-center gap-1.5 text-[13px] text-cream-muted">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                3 helping
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Search + section divider -->
+        <div class="md:px-6 mt-8 mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 class="font-display text-2xl">More requests</h2>
+          <div class="relative max-w-xs">
+            <svg class="absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input placeholder="Search requests" class="w-full rounded-full border border-border bg-card py-2 pl-9 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+        </div>
+
+        <!-- 2-column dense grid -->
+        <div class="md:px-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- mini card -->
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-5 py-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex size-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">AK</div>
+              <p class="text-[12px] font-bold">Anand K.</p>
+              <span class="text-[11px] text-muted-foreground">&middot; 5 days ago</span>
+              <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                7
+              </span>
+            </div>
+            <h3 class="mt-3 font-display text-[20px] leading-snug">
+              Need a trusted Bharatanatyam teacher for my 8&#8209;year&#8209;old (Roswell area)
+            </h3>
+            <p class="mt-2 line-clamp-2 text-[13px] text-muted-foreground">
+              Looking for a structured class, not a hobby group. She&rsquo;s done one year already and wants to take it seriously.
+            </p>
+            <button class="mt-4 w-full rounded-full border border-primary bg-white/0 px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">
+              I can help
+            </button>
+          </article>
+
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-5 py-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex size-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">MR</div>
+              <p class="text-[12px] font-bold">Meera R.</p>
+              <span class="text-[11px] text-muted-foreground">&middot; 1 week ago</span>
+              <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                2
+              </span>
+            </div>
+            <h3 class="mt-3 font-display text-[20px] leading-snug">
+              Tax advisor familiar with H1B &rarr; green card transition?
+            </h3>
+            <p class="mt-2 line-clamp-2 text-[13px] text-muted-foreground">
+              Got approved last month. Need someone who has actually navigated this for an Indian family before.
+            </p>
+            <button class="mt-4 w-full rounded-full border border-primary bg-white/0 px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">
+              I can help
+            </button>
+          </article>
+
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-5 py-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex size-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">SP</div>
+              <p class="text-[12px] font-bold">Suresh P.</p>
+              <span class="text-[11px] text-muted-foreground">&middot; 1 week ago</span>
+              <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                5
+              </span>
+            </div>
+            <h3 class="mt-3 font-display text-[20px] leading-snug">
+              Authentic South Indian caterer for 80 guests in early August
+            </h3>
+            <p class="mt-2 line-clamp-2 text-[13px] text-muted-foreground">
+              Wedding reception buffet. Open to recommendations from anyone who&rsquo;s tasted the food themselves.
+            </p>
+            <button class="mt-4 w-full rounded-full border border-primary bg-white/0 px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">
+              I can help
+            </button>
+          </article>
+
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-5 py-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex size-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">LV</div>
+              <p class="text-[12px] font-bold">Lakshmi V.</p>
+              <span class="text-[11px] text-muted-foreground">&middot; 2 weeks ago</span>
+              <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                4
+              </span>
+            </div>
+            <h3 class="mt-3 font-display text-[20px] leading-snug">
+              Anyone know a reliable Indian grocery delivery in Marietta?
+            </h3>
+            <p class="mt-2 line-clamp-2 text-[13px] text-muted-foreground">
+              Can&rsquo;t drive much these days, need someone who actually shows up when they say they will.
+            </p>
+            <button class="mt-4 w-full rounded-full border border-primary bg-white/0 px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">
+              I can help
+            </button>
+          </article>
+
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-5 py-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex size-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">RM</div>
+              <p class="text-[12px] font-bold">Rajesh M.</p>
+              <span class="text-[11px] text-muted-foreground">&middot; 3 weeks ago</span>
+              <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                1
+              </span>
+            </div>
+            <h3 class="mt-3 font-display text-[20px] leading-snug">
+              Local handyman who&rsquo;s done work with Vastu requirements
+            </h3>
+            <p class="mt-2 line-clamp-2 text-[13px] text-muted-foreground">
+              Bedroom door needs to be moved to a specific orientation. Need someone who understands what that means.
+            </p>
+            <button class="mt-4 w-full rounded-full border border-primary bg-white/0 px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">
+              I can help
+            </button>
+          </article>
+
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-5 py-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex size-8 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">KP</div>
+              <p class="text-[12px] font-bold">Kavita P.</p>
+              <span class="text-[11px] text-muted-foreground">&middot; 3 weeks ago</span>
+              <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                3
+              </span>
+            </div>
+            <h3 class="mt-3 font-display text-[20px] leading-snug">
+              Reliable mehndi artist for a 35-guest baby shower
+            </h3>
+            <p class="mt-2 line-clamp-2 text-[13px] text-muted-foreground">
+              First Saturday of next month. Need someone who can do quick, simple designs &mdash; not bridal style.
+            </p>
+            <button class="mt-4 w-full rounded-full border border-primary bg-white/0 px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">
+              I can help
+            </button>
+          </article>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-8 md:px-6 flex items-center justify-between">
+          <span class="text-[13px] text-muted-foreground">Page 1 of 4 &middot; 38 requests</span>
+          <div class="flex items-center gap-2">
+            <button disabled class="rounded-full border border-border bg-white/0 px-4 py-2 text-[12px] font-bold opacity-40">&larr; Prev</button>
+            <button class="rounded-full border border-primary bg-white/0 px-4 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">Next &rarr;</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- POST DETAIL VIEW                                            -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <div class="mx-auto max-w-7xl px-4 py-12">
+    <p class="mb-4 text-[11px] uppercase tracking-[3px] text-muted-foreground">Post detail view (featured-style hero, respondent grid below)</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-0">
+      <aside class="sidebar-bg hidden md:block min-h-[700px] rounded-l-xl opacity-50">
+        <div class="border-b border-white/15 px-5 pt-6 pb-5">
+          <p class="font-display text-2xl leading-none">AIRA</p>
+          <p class="mt-1 text-xs italic opacity-70">by Nisarga</p>
+        </div>
+      </aside>
+
+      <main class="md:px-6">
+        <a class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to community
+        </a>
+
+        <!-- Hero (dark) -->
+        <div class="featured-bg shadow-card rounded-xl px-7 py-8 md:px-10 md:py-10 mt-4">
+          <div class="flex items-center gap-3">
+            <div class="flex size-12 items-center justify-center rounded-full bg-white/15 text-[15px] font-bold text-cream-bright">PS</div>
+            <div class="min-w-0">
+              <p class="text-[14px] font-bold leading-tight text-cream-bright">Priya S.</p>
+              <p class="text-[11px] uppercase tracking-wider text-cream-muted/80">Alpharetta &middot; 2 days ago</p>
+            </div>
+            <span class="ml-auto inline-flex items-center gap-1.5 rounded-full pill-cream px-2.5 py-1 text-[11px]">
+              <span class="inline-block size-1.5 rounded-full bg-current"></span>
+              Open
+            </span>
+          </div>
+          <h1 class="mt-6 font-display text-[32px] md:text-[42px] leading-[1.1] text-cream-bright">
+            Looking for a pediatrician who takes Aetna near Alpharetta
+          </h1>
+          <p class="mt-4 text-[15px] leading-relaxed text-cream-muted">
+            We just moved to North Fulton last month and our daughter (4) is due for a checkup. We&rsquo;d love someone Indian-friendly who has weekend hours &mdash; both of us work and getting away mid-week is hard. Aetna PPO. Open to recommendations within 20 minutes of Alpharetta.
+          </p>
+        </div>
+
+        <!-- Respondents grid (author-only) -->
+        <section class="mt-6">
+          <div class="mb-4 flex items-baseline gap-3">
+            <h2 class="font-display text-2xl">3 neighbours offered to help</h2>
+            <span class="text-[12px] text-muted-foreground">(only you can see this)</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-card shadow-card rounded-xl px-5 py-5">
+              <div class="flex items-center gap-2.5">
+                <div class="flex size-10 items-center justify-center rounded-full bg-primary/15 text-[12px] font-bold text-primary">AI</div>
+                <div>
+                  <p class="text-[13px] font-bold leading-tight">Asha Iyer</p>
+                  <p class="text-[11px] text-muted-foreground">2 days ago</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[13px] leading-relaxed">
+                Dr. Mehta on Old Milton Pkwy. Family doctor for six years, takes Aetna PPO. Saturday slots.
+              </p>
+            </div>
+
+            <div class="bg-card shadow-card rounded-xl px-5 py-5">
+              <div class="flex items-center gap-2.5">
+                <div class="flex size-10 items-center justify-center rounded-full bg-primary/15 text-[12px] font-bold text-primary">VS</div>
+                <div>
+                  <p class="text-[13px] font-bold leading-tight">Vikram Shah</p>
+                  <p class="text-[11px] text-muted-foreground">1 day ago</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[13px] leading-relaxed">
+                Try Pediatric Associates in Cumming. Indian doctor on staff, wonderful with kids.
+              </p>
+            </div>
+
+            <div class="bg-card shadow-card rounded-xl px-5 py-5">
+              <div class="flex items-center gap-2.5">
+                <div class="flex size-10 items-center justify-center rounded-full bg-primary/15 text-[12px] font-bold text-primary">NP</div>
+                <div>
+                  <p class="text-[13px] font-bold leading-tight">Neha Patel</p>
+                  <p class="text-[11px] text-muted-foreground">6 hours ago</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[13px] italic text-muted-foreground">
+                No note attached &mdash; just wanted you to know they can help.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>

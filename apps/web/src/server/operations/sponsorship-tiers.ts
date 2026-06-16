@@ -19,7 +19,7 @@ export const listSponsorshipTiersOp = defineOperation({
     category_id: z.string().optional(),
   }),
   output: SponsorshipTierListOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { includeInactive, category_id }) => {
     const tiers = await tiersService.listSponsorshipTiers(db, CITY_ID, includeInactive ?? false)
     if (!category_id) return { items: tiers }
@@ -40,7 +40,7 @@ export const createSponsorshipTierOp = defineOperation({
   name: "admin.sponsorship-tiers.create",
   input: SponsorshipTierCreateInputSchema.omit({ city_id: true }),
   output: z.object({ tier: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, input) => {
     const tier = await tiersService.createSponsorshipTier(db, { ...input, city_id: CITY_ID })
     return { tier }
@@ -51,7 +51,7 @@ export const updateSponsorshipTierOp = defineOperation({
   name: "admin.sponsorship-tiers.update",
   input: SponsorshipTierUpdateInputSchema,
   output: z.object({ tier: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, input) => {
     const tier = await tiersService.updateSponsorshipTier(db, input)
     if (!tier) throw ApiError.notFound("sponsorship_tier.not_found", "Tier not found")
@@ -63,7 +63,7 @@ export const deactivateSponsorshipTierOp = defineOperation({
   name: "admin.sponsorship-tiers.deactivate",
   input: z.object({ id: z.string().min(1) }),
   output: z.object({ tier: z.any() }),
-  permission: "admin",
+  permission: "super_admin",
   handler: async (db, _ctx, { id }) => {
     const tier = await tiersService.deactivateSponsorshipTier(db, id)
     if (!tier) throw ApiError.notFound("sponsorship_tier.not_found", "Tier not found")

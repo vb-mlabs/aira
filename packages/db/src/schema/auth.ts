@@ -46,6 +46,17 @@ export const user = pgTable(
     messages_updated_at: timestamp("messages_updated_at")
       .defaultNow()
       .notNull(),
+    // Per-event email opt-outs surfaced on /account/notifications. Both
+    // default true so existing users start receiving the matching email
+    // without an explicit opt-in step; the toggle on /account/notifications
+    // is how they switch each off. See
+    // .mstack/reviews/2026-06-15-account-sub-pages.md.
+    email_on_message_received: boolean("email_on_message_received")
+      .default(true)
+      .notNull(),
+    email_on_post_interest: boolean("email_on_post_interest")
+      .default(true)
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

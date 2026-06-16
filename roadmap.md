@@ -1,10 +1,28 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-10
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09.
+**Last updated:** 2026-06-15 (S6 progress: F22 + F23′ + feature image + auth cleanup shipped)
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup).
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
+
+## What's pending (as of 2026-06-15)
+
+**Sprint 5 — engineering-ready scope is closed.** Only outstanding: F21 push broadcasts (gated on S0 EAS init + business-owner identity decision for audience targeting).
+
+**Sprint 0 — external work in motion:**
+- ⬜ Register `airabynisarga.com` domain
+- ⬜ EAS project init + Apple/Google bundle ID registration
+- 🟦 Apple Team ID → fill into `.well-known/apple-app-site-association`
+- 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json`
+
+**Sprint 6 — ✅ Done:** F22, F23′, feature image, `requireAdminJSON` cleanup, mobile fonts, super_admin narrowing all shipped. F25 deep links moved to S7 (S0-gated).
+
+**Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions.
+
+**Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI. All blocked or premature for MVP.
+
+The critical path to TestFlight runs through **S0 (Apple Team ID + Android SHA-256 + EAS init) → F21 → S6**.
 
 ---
 
@@ -32,7 +50,6 @@ This is the living tracker. Update sprint statuses, check off features as they l
 | Twilio Verify | ⏸ Deferred | OTP — Sprint 1.5 pending client confirmation |
 | Twilio Messaging | ⏸ Deferred | SMS reminders — Sprint 1.5 pending client confirmation |
 | Stripe | ⏸ Phase 2 | Self-serve subscriptions, Customer Portal |
-| Sentry | ⏸ Optional | Error tracking — Sprint 7 if budget allows |
 
 ## Status legend
 
@@ -105,6 +122,47 @@ Plan: `.mstack/plans/2026-06-10-s5-renewal-reminder-homepage-slots.md`. Three fo
 - **Sponsorship slot limits (accelerated from Phase 2):** `max_slots integer NULL` added to `sponsorship_tier` (migration `0019`). Enforced per-(tier, category) at create time — `409 sponsorship.tier_slots_full` if slot count ≥ max_slots. "Add sponsorship" dialog re-fetches tiers with slot annotation after category selection; full tiers disabled. "Max slots per category" field in tier admin form.
 
 QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-severity issue found and fixed (missing `KNOWN_JOBS` entry for `renewal-reminder` on the admin cron page).
+
+### ✅ S5 — F14 purge cron (2026-06-10)
+Plan: `.mstack/plans/2026-06-10-f14-purge-soft-deleted.md`. `purge-soft-deleted` daily job (03:00 UTC) hard-deletes businesses archived more than 180 days ago, logging the affected count to `cron_run` via the standard envelope. Registered alongside the rest of the cron suite in `apps/web/src/lib/cron/registry.ts`.
+
+### ✅ S5 — F17 configurable renewal schedule (2026-06-14)
+Plan: `.mstack/plans/2026-06-14-renewal-schedule-config.md`. Closes the F17 amendment from the S5 mini-sprint: the renewal cron now reads `app_setting.reminder_schedule` (comma-separated days list, default `"7"`, seeded via migration `0022`), loops the configured windows, and sends one `"AIRA · Expiring in N days"` email per non-empty window. Admin edits the schedule at `/admin/settings/renewal-schedule` (gated behind the new `/admin/settings` hub). Audit log captures every schedule edit via a new `app_setting.updated` `AuditMeta` variant. QA: 8/8 Playwright scenarios pass (`.mstack/qa/2026-06-14-0612/`). Per-business-owner emails remain Phase 2 — blocked on the business owner identity model (no `owner_email` / `owner_user_id` exists today).
+
+### ✅ S5 — F20 Community Requests Board (2026-06-14) — **end-to-end shipped**
+Plan: `.mstack/plans/2026-06-13-community-requests-board.md`. Review locked Option B (posts + private "I can help" intent signal) over PRD-spec posts-only. v2 editorial-cards mockup picked from `.mstack/mockups/community-requests-board/`. Implementation ledger at `.mstack/code/2026-06-13-community-requests-board/` (14 commits, atomic per task).
+
+- Two tables shipped via migration `0021` — `community_post` (id, user_id, title, body, status enum, expires_at, rejected_reason, interest_count, approved_at, created_at) and `post_interest` (unique per post_id × user_id) — plus `posts_expiry_days = 30` seeded into `app_setting`
+- `NotificationBody` discriminated union extended with a `post_interest` variant; both the web `notification-item.tsx` and mobile `notifications.tsx` renderers updated to cover the new kind
+- 8 REST endpoints under `/api/v1/community/*` and `/api/v1/admin/community/*` via `defineOperation`; auth model matches existing patterns (sidebar-gated web, bearer-gated mobile)
+- Service-layer authz: 1-active-post-per-user limit, self-interest blocked, author-only respondent list (`listInterests` 403 otherwise)
+- `expire-posts` hourly cron registered in `registry.ts` and surfaced on `/admin/cron` (caught + fixed in QA as a follow-on missed `KNOWN_JOBS` entry)
+- UI: editorial card stack on `/community` (search + paginated 10/page), Dialog "Ask the community" form, gradient "I can help" toggle, author-only respondent card on detail page, admin moderation queue at `/admin/community` with inline Approve/Reject + reason
+- Nav: Community entry added to `(app)` sidebar (above categories) and to admin sidebar's `ADMIN_NAV`; bottom-tab-bar untouched (locked at 3 tabs per V4 mockup)
+- QA: 11/11 Playwright scenarios pass (`.mstack/qa/2026-06-14-0507/`). Two issues found and fixed: (1) `expire-posts` missing from admin cron page's `KNOWN_JOBS` array (same drift as F17 caught earlier — re-recorded in learnings); (2) stale duplicate "X have offered to help" paragraph on the non-author detail-page branch removed because `InterestButton` already renders the same count and the page-level paragraph went stale until next navigation.
+
+### ✅ S5 — F20 v2 admin moderation hardening (2026-06-14)
+Plan: `.mstack/plans/2026-06-14-community-admin-v2.md`. Polish layer on top of F20 v1 — adds the moderation lifecycle that v1 deferred:
+
+- **All-status filter chips** (All / Pending / Approved / Expired / Rejected) with count badges from a single grouped COUNT query (`status_counts` on `adminListPostsOp` output). Default landing: All.
+- **Admin can edit, delete, and see respondents** for any post regardless of status. Edit fix typos without changing status; hard delete cascades through `post_interest` with a transactional snapshot audit (snapshot → audit → delete in one `db.transaction` since the row is unreadable after delete). Two new `AuditMeta` variants (`community.post_deleted`, `community.post_edited`).
+- **Admin-only respondent endpoint** at `/api/v1/admin/community/posts/[id]/interests` — bypasses the author-only guard the public route enforces. Admin permission is the ACL.
+- **Table-style queue** matching the `/admin/businesses` pattern: columns User / Request / Status / Helpers / Created / Actions. Row click opens a popup `PostDetailModal` carrying the full body, respondent list, and an inline Approve/Reject flow (no nested dialogs). Edit + Delete are icon buttons on the row itself that stop propagation so they don't fire the row click.
+- **Confirmation dialogs on every state-change action** — Approve confirms inline in the modal, Reject keeps its reason-prompt flow (which is itself a confirmation), Delete keeps its base-ui `AlertDialog`.
+- QA: 10/10 Playwright scenarios pass (`.mstack/qa/2026-06-14-0732/`).
+- Companion polish on the **user-facing** `/community` feed shipped the same day: post cards now match the listing-card density (`p-4`, single-line title + body, compact status pill + InterestButton), the hero adopts the home page's chromeless `text-center` section pattern, and clicking a card opens a `PostDetailModal` in place rather than navigating to `/community/[id]` (the detail page still exists for notification deep-links via `PostCardReadOnly`).
+
+### ✅ S6 — F23′ renewal follow-up queue (2026-06-15)
+Plan + review: `.mstack/plans/2026-06-15-renewal-followup-queue.md`. In-UI replacement for the PRD's BusinessSubscriptions CSV download. `subscription_followup` table (migration `0023`, 6-value `followup_outcome` pgEnum). Derived queue view (`listQueue` service using correlated subqueries — Drizzle has no LATERAL JOIN). WindowChips (7/14/30/60/90d window filter). `RenewalQueueTable` client component with row-click → `FollowupModal`; modal lazy-fetches history, 6-outcome `OutcomeRadioGroup`, note textarea, `Save outcome` button. Hybrid drop semantics: `refused` drops permanently from queue, `called` auto-sets `scheduled_next = now+7d` (drops temporarily), `voicemail`/`no_answer` stay in queue with Last-attempt annotation. Sidebar "Renewals" entry added between Businesses and Categories. QA 17/17 Playwright scenarios pass — 15 base + S14 (refused drops) + S15 (called auto-7d with DB assertion) — 1 medium issue found and fixed (initial prose/table semantics ambiguity resolved as hybrid Option C per user choice).
+
+### ✅ S6 — F22 audit log UI — minimal scope (2026-06-15)
+Plan + review: `.mstack/plans/2026-06-15-audit-log-ui.md`. Four tasks shipped atomically (commits `7600c3d` → `d2723e8`). `AuditMeta` union + `KNOWN_AUDIT_ACTIONS` (24 items) + `KNOWN_AUDIT_TARGET_TYPES` (7 items) moved from `@aira/db/audit` (server-only) to `@aira/validators/audit-meta` (isomorphic) so client components can import without touching `server-only`. Bidirectional compile-time assertion keeps the union and runtime array in sync. `listAudit` service extended with actor/target_type/action filters + two LEFT JOINs (`businessSubscriptions`, `sponsorships`) to resolve `target_business_id`. `RenderAuditDetail` 24-case switch (nested on `reason` for `session.revoked` and `user.signed_in_failed`; outer `never` default as exhaustiveness gate). `RenderAuditTarget` per-type link resolver. `AuditTable` wired with stable UTC formatter + `suppressHydrationWarning`. `FilterBar` + `ActorTypeahead` (300ms debounce, `pressSequentially` required in Playwright — `fill()` misses React onChange on controlled search inputs). QA 9/9 (`.mstack/qa/2026-06-15-1215/`). CSV export, ip_address column, full-text metadata search, retention cron remain explicitly deferred.
+
+### ✅ S6 — Feature image (F13 extension, 2026-06-15)
+Plan: `.mstack/plans/2026-06-15-feature-image.md`. `FeatureImageSection` admin drag-and-drop component modelled on `GallerySection` — shows current `image_url` preview + Remove button, or a drop target when null. `processAndStoreFeatureImage` pipeline function (1200×630 JPEG, replaces `image_url` on `businesses` row; best-effort deletes old storage object before writing new). `POST /api/v1/admin/businesses/[id]/feature-image` + `DELETE`. Two service functions: `setBusinessFeatureImage` + `clearBusinessFeatureImage`. Public listing detail: avatar circle `<div>` removed from identity row (`business-detail.tsx`) — category label text still shows; hero `<img>` was already full-width. No migration required (`image_url text` already existed on `businesses`).
+
+### ✅ S6 — `requireAdminJSON` auth cleanup (2026-06-15)
+Six raw route handlers (gallery image upload POST, gallery image DELETE, subscription evidence POST, feature-image POST + DELETE, renewals CSV GET, cron GET) each inlined the same 3-step admin auth block (`getSessionFromHeaders` → role check → `adminSessionIsStale`). Extracted to `requireAdminJSON(req: Request): Promise<AuthSession["user"] | Response>` in `lib/auth/server.ts`, mirroring the existing `requireUserJSON()` pattern. Each route collapsed to two lines. No behaviour change — same checks, same responses. Commit `d009ea1`.
 
 ### Other notable items
 - Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), `0017` (membership_plan + business_subscription), `0018` (sponsorship_tier + sponsorship), `0019` (sponsorship_tier.max_slots), plus waitlist extensions.
@@ -201,7 +259,7 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 ## Sprint 3 — Listings: admin CRUD + end-user browse (2 weeks)
 
-**Status:** 🟦 In flight — substantial off-roadmap progress (see Off-roadmap progress section above). Browse shell + business detail + social links + editorial fields + admin Business edit are live. Remaining S3 scope: pagination + scoped search (F7/F8), More Info modal (F10), admin star rating (F11 half), multi-category join + soft-delete/restore + gallery (F13 advanced), city-aware slugs (F25), Google Places Autocomplete (F27).
+**Status:** ✅ Done (2026-06-13) — all MVP scope shipped. F25 city-aware slugs deliberately deferred (see note below).
 
 **Goal:** Admin creates a Business with full details (Google Places address, multi-category, ≤3 gallery images, verify tick, rating). End-user opens the matching category page and sees the listing card with tap-to-call, WhatsApp, social, More Info modal.
 
@@ -209,22 +267,21 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 - ✅ F7 — Listing page pagination + A-Z sort (12/page, URL-driven; sponsored sort lands S4)
 - ✅ F8 — Scoped keyword search (in-category, debounced, URL-driven, verified filter)
 - ✅ F9 — Business Listing Card with quick actions (tel:, wa.me, social links — More Info → detail page)
-- 🟦 F10 — More Info **(detail page live — Hero, About Us, Contact, AIRA Review cards; ≤3 images carousel + directions deep-link TODO)**
+- ✅ F10 — More Info (detail page: Hero, About Us, Contact, AIRA Review cards; ≤3 image carousel via `BusinessImageCarousel`; address is a clickable Google Maps directions link — 2026-06-13)
 - ✅ F11 — Verified badge + admin star rating (RatingPill hidden when ≤ 0; 0.5-step input in admin form)
-- 🟦 F13 — Business CRUD **(soft-delete/restore + audit log + admin list Status column ✅; gallery + multi-category attach TODO — multi-category blocked on S2 category table)**
-- ⬜ F25 (web half) — City-aware slugs + deep links (`/city/category/subcategory`) — S2 unblocked
-- ⬜ F27 — Google Places Autocomplete (admin Business form)
+- ✅ F13 — Business CRUD (soft-delete/restore + audit log + admin list Status column; gallery upload via `GallerySection` + `react-dropzone` + `/api/v1/admin/businesses/[id]/images` POST/DELETE; multi-category attach via `CategorySection` + `business_category` join — all shipped)
+- ✅ F27 — Google Places Autocomplete (`PlacesAddressInput` component wired in admin Business form; falls back to plain input when `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` absent)
+- ⏸ F25 (web half) — City-aware slugs **deferred to S6** — see decision note below
 
-**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`). **TODO:** `business_image` table (gallery), `business_category` join (multi-category — `category` table now available from S2 `0016`).
+**F25 deferral note (2026-06-13):** AIRA is Atlanta-only for MVP. Adding `/atlanta/` as a URL prefix to `/listings/[category]` buys zero user benefit at this stage and introduces redirect complexity + mobile deep-link coordination. Current URLs (`/listings/[category]`) are stable and shareable. **Revisit in S6** when Universal Links / App Links activation needs a stable, city-scoped URL contract for the mobile deep-link wiring. At that point, add a single `[city]` segment, seed the Atlanta slug, and add 301 redirects from the old paths.
 
-**Libs to add:**
-- `@react-google-maps/api` OR vanilla Places SDK (admin Business form)
-- `react-dropzone` (gallery image upload UI)
-- Sharp already wired in `apps/web/src/features/avatar/server/pipeline.ts` — reuse for business image processing
+**Schema additions:** ✅ `businesses` (`0011`); ✅ social (`0012`); ✅ `hours` + `aira_review` (`0013`); ✅ `rating` (`0014`); ✅ `deleted_at` + partial index (`0015`); ✅ `business_image` (`0020` — gallery); ✅ `business_category` join (`0020` — multi-category).
 
-**Cron jobs:** none yet.
+**Libs added:** ✅ `react-dropzone` (gallery upload UI); ✅ vanilla Places SDK via `<Script>` in admin layout (no extra npm package needed).
 
-**Risk gate:** Google Places billing alarm set in GCP. Image upload pipeline handles ≤3 images with size limits.
+**Cron jobs:** none.
+
+**Risk gate:** ✅ Google Places billing alarm set in GCP. Image upload pipeline handles ≤3 images with 8 MB cap + Sharp resize to 1200×800.
 
 ---
 
@@ -257,27 +314,27 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 ## Sprint 5 — Renewals, Posts board, Broadcasts (2 weeks)
 
-**Status:** 🟦 In flight — F17 (renewal reminder, 7-day fixed window) and homepage sponsored sort shipped in the S5 mini-sprint (2026-06-10). Community Requests Board, Notifications broadcast, and purge cron remain.
+**Status:** 🟦 In flight — F14 (purge cron), F17 (full configurable schedule), homepage sponsored sort, **F20 Community Requests Board** and **F20 v2 admin moderation hardening** all shipped. **F21 push broadcasts is the only S5 work left** — and it's gated on S0 EAS init.
 
 **Goal:** Renewal reminder emails go out on the configurable schedule. Community Requests Board live with submission + moderation queue + auto-expiry. Admin broadcasts a push notification to a segment of business users and it lands on real devices.
 
 **Features (PRD refs):**
-- 🟦 F17 (amended) — Renewal reminder automation, **email-only** via Postmark. **7-day fixed window shipped** (daily cron, admin inbox, deep-link to renewing filter). Configurable schedule (`AppSetting.reminder_schedule`) and individual business-owner emails remain.
-- ⬜ F20 — Community Requests Board (submission with PENDING status, admin moderation, auto-expire after `posts_expiry_days`, search/pagination)
-- ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`.
-- ⬜ F14 — Lifecycle: `purge_soft_deleted` cron (default 180 days)
+- ✅ F17 (amended) — Renewal reminder automation, **email-only** via Postmark. Configurable schedule (`AppSetting.reminder_schedule`) shipped — cron loops the windows, sends one labelled email per non-empty window, admin edits at `/admin/settings/renewal-schedule`. Per-business-owner emails moved to Phase 2 (blocked on owner identity).
+- ✅ F20 — Community Requests Board (submission → admin moderation → approved board with search/pagination, "I can help" private intent signal, in-app notification to author, hourly expiry cron) — shipped 2026-06-14, QA 11/11
+- ✅ F20 v2 — admin moderation hardening (all-status filter + counts, edit/delete with snapshot audit, admin-only respondent visibility, table UI + popup-modal row click) — shipped 2026-06-14, QA 10/10
+- ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`. **Gated on S0 EAS init.**
+- ✅ F14 — Lifecycle: `purge_soft_deleted` cron (180 days default) — shipped in S5 mini-sprint
 
-**Schema additions:** `post`, `notification`, `notification_delivery` (optional but recommended for delivery tracking). Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
+**Schema additions:** ✅ `community_post`, `post_interest` (migration `0021`) shipped with F20. `notification`, `notification_delivery` still pending for F21 broadcast delivery tracking. Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
 
 **Libs to add:**
-- `expo-server-sdk` (push delivery from the Next.js server)
-- Postmark template additions for the 3 reminder windows
+- `expo-server-sdk` (push delivery from the Next.js server) — F21
+- Postmark template additions for the configurable reminder windows — F17 remainder
 
 **Cron jobs added:**
-- `expire_posts` (hourly): status PENDING/APPROVED with `expires_at < now` → EXPIRED
-- ✅ `renewal-reminder` (daily 08:00 UTC): query paid subscriptions expiring within 7 days, dispatch summary email to admin inbox — **shipped in S5 mini-sprint**
-- `renewal_reminders` full (daily): configurable multi-window schedule offsets + per-business-owner emails — remaining
-- `purge_soft_deleted` (daily): hard-delete businesses with `status=soft_deleted AND deleted_at > now - purge_days`
+- ✅ `expire-posts` (hourly): approved community posts past `expires_at` flip to EXPIRED — shipped with F20
+- ✅ `renewal-reminder` (daily 08:00 UTC): reads `app_setting.reminder_schedule`, loops configured windows, dispatches one labelled email per non-empty window to admin inbox — shipped (S5 mini-sprint + F17 config schedule, 2026-06-14)
+- ✅ `purge-soft-deleted` (daily 03:00 UTC): hard-delete businesses archived more than 180 days ago — shipped
 
 **Risk gate:** Push notification arrives on a real iOS device AND a real Android device. Renewal email lands in Postmark + delivers to a real inbox (not just localhost test).
 
@@ -285,17 +342,21 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 ## Sprint 6 — Mobile shipping + admin polish (2 weeks)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Done (2026-06-15) — all in-scope items shipped. F25 deep links moved to S7 (S0-gated; naturally fits the store-submission sprint).
 
 **Goal:** First TestFlight build + Play Internal Track build in QA's hands. Admin console feels finished. All TODO items from `TODOS.md` cleared.
 
 **Features (PRD refs):**
-- ⬜ F26 — Mobile app distribution + update prompt (`AppSetting.min_supported_build_*`, blocking dialog with store links if behind)
-- ⬜ F25 (mobile half) — Deep links wiring (Universal Links + App Links activation via .well-known files filled in S0)
-- ⬜ F22 — Audit log UI (filterable by date / actor / entity / action, search, CSV export)
-- ⬜ F23 — Full CSV export (Listings, Categories, Memberships, Sponsorships, Posts — apply current filters)
-- ⬜ AppSetting admin UI (reminder schedule, posts expiry, purge days, min builds, homepage counts override)
-- ⬜ Clear all open items from [TODOS.md](./TODOS.md) — brand strings, mobile fonts via `@expo-google-fonts/*`, dark theme client review
+- ✅ F25 (mobile half) — moved to S7 (see below)
+- ✅ F22 — Audit log UI — shipped 2026-06-15. FilterBar (date range + actor typeahead 300ms debounce + target-type dropdown + action dropdown with domain `<optgroup>`s) + readable English rendering for all 24 `AuditMeta.kind` variants + target-id links (user → `/admin/users/[id]`, business_subscription/sponsorship → `/admin/businesses/[business_id]` via LEFT JOIN, community_post → `/admin/community`, app_setting → full key, session → muted placeholder). URL-driven, "Clear all" button, empty-state message. QA 9/9 (`.mstack/qa/2026-06-15-1215/`). *CSV export deferred — see 2026-06-15 decision below.*
+- ✅ F23′ — Renewal follow-up queue — shipped 2026-06-15. `subscription_followup` table (migration `0023`), derived queue view, WindowChips (7/14/30/60/90d), FollowupModal with lazy-loaded history, 6-outcome radio group, hybrid drop semantics (refused: permanent drop, called: auto `scheduled_next = now+7d`, voicemail/no_answer: annotated in queue), audit row per outcome. QA 17/17 (`.mstack/qa/2026-06-15-0836/`).
+- ✅ Feature image (F13 extension) — shipped 2026-06-15. `FeatureImageSection` admin drag-and-drop component; `POST /api/v1/admin/businesses/[id]/feature-image` (1200×630 JPEG via Sharp) + `DELETE`; `setBusinessFeatureImage` / `clearBusinessFeatureImage` service functions; old storage object replaced on re-upload. Public listing detail: category-icon avatar circle removed from identity row (hero `<img>` already full-width). Plan: `.mstack/plans/2026-06-15-feature-image.md`.
+- ✅ `requireAdminJSON` auth cleanup — shipped 2026-06-15 (`d009ea1`). Six raw route handlers (gallery upload/delete, evidence upload, feature-image upload/delete, CSV export, cron list) that each inlined the same 3-step admin auth block now use a single `requireAdminJSON(req)` helper extracted to `lib/auth/server.ts`.
+- ✅ TODOS.md cleanup — brand strings resolved, mobile fonts implemented (`@expo-google-fonts/lato` + `cormorant-garamond`), super_admin narrowing fixed, tagline confirmed by client, light-only theme locked
+
+**Deferred from S6 (2026-06-15):**
+- Generic AppSetting admin hub covering `posts_expiry_days`, `soft_delete_purge_days`, `posts_max_visible`. Defaults work for launch; one-off SQL is cheaper than building UI for knobs ops won't touch in month 1. Reopen if (a) ops asks twice to change one, or (b) we ship a second knob that needs a form anyway.
+- PRD F23's CSV exports for Listings / Categories / MembershipPlans / Sponsorships / Posts. Reframed: renewals is the only CSV use case with real launch pressure, and an in-UI queue (F23′) serves it better than a download. Other four surfaces are reachable in-app already; external-sharing asks (client/accountant) haven't materialised. Reopen surface-by-surface if a real external-sharing need shows up post-launch.
 
 **Schema additions:** none — AuditLog already exists from S2.
 
@@ -312,13 +373,11 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 **Status:** ⬜ Not started
 
-**Goal:** App Store + Play Store submitted. Internal bug bash complete. Performance targets met. First review-cycle feedback addressed.
+**Goal:** App Store + Play Store submitted. E2E QA, performance tuning, and physical-device push/deep-link testing handled by the team's separate QA sprint. First review-cycle feedback addressed.
 
 **Features:**
-- ⬜ Playwright E2E pass across all critical flows (signup → verify → browse → post request → admin moderate)
-- ⬜ Performance tuning: listings page < 2s P50 on 4G; image lazy-loading; query indices verified
-- ⬜ Sentry (or alternative) instrumentation if budget allows
-- ⬜ Push notification + deep link testing on physical iOS + Android devices in TestFlight / Play Internal
+- ⬜ F26 — Force-update dialog. Seed `min_supported_build_ios` / `min_supported_build_android` into `app_setting`; admin form to raise the floor; mobile startup check against `GET /api/v1/app/version-check` — undismissable blocking dialog with store link if `buildNumber < min`. Slotted here (pre-submission) so no public user can ever be on an unblocked old build. ~3 files, ~2-3h.
+- ⬜ F25 (mobile half) — Deep links wiring (Universal Links + App Links). Fill Apple Team ID into `.well-known/apple-app-site-association` and Android SHA-256 into `.well-known/assetlinks.json` once S0 external work lands; verify associated domain entitlement in `app.config.ts`. Gated on S0.
 - ⬜ App Store metadata: app name, description, screenshots, keywords, privacy nutrition label
 - ⬜ Play Store metadata: short + full description, screenshots, content rating, data safety form
 - ⬜ Submit to App Store (expect 1-3 day initial review)
@@ -327,8 +386,7 @@ QA: 17/17 Playwright scenarios pass (`.mstack/qa/2026-06-10-0847/`). One high-se
 
 **Schema additions:** none.
 
-**Libs to add:**
-- Sentry (optional)
+**Libs to add:** none.
 
 **Cron jobs:** none new.
 
@@ -413,4 +471,20 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-09** — `@neondatabase/serverless` returns `COUNT(*)` as a JavaScript string, not a number. `Number.isFinite("12")` = false, causing the `/home` businesses stat card to render "—". Fixed by wrapping `count()` results in `Number()` in `packages/services/src/businesses/queries.ts`. *Why:* PostgreSQL `bigint` has no safe JS representation so the driver returns it as string; Drizzle's `count()` helper inherits this.
 - **2026-06-10** — Sponsorship slot limits (max_slots per category) accelerated from Phase 2 into the S5 mini-sprint. *Why:* small migration + service-layer change; admin was about to sell exclusive tiers without capacity controls, which would have required a data-fix later. Slot limits are per-(tier_id, category_id) — global limits rejected because the sponsorship model is per-category.
 - **2026-06-10** — `apps/web/src/app/admin/cron/page.tsx` uses a static `KNOWN_JOBS` array — adding a handler to the cron registry does **not** auto-surface it on the admin page. Must add an entry to `KNOWN_JOBS` (name + human schedule string) alongside every new cron job. *Why:* discovered when `renewal-reminder` was missing from the cron page despite the handler being registered; caught in QA and fixed before shipping.
+- **2026-06-13** — F25 (city-aware slugs) deferred from S3 to S6. *Why:* AIRA is Atlanta-only for MVP; `/listings/[category]` is stable and shareable; adding a `/[city]/` prefix now would require redirect handling and mobile deep-link re-coordination with no user-visible benefit. Revisit in S6 when Universal Links + App Links activation needs a stable city-scoped URL contract. At that point seed the Atlanta slug, add a `[city]` route segment, and 301 from old paths.
+- **2026-06-13** — S3 marked ✅ Done. Gallery upload (`GallerySection` + `react-dropzone` + image pipeline), multi-category attach (`CategorySection` + `business_category` join), and Google Places Autocomplete (`PlacesAddressInput`) were all shipped during the off-roadmap sprint and not reflected in the tracker. Directions deep-link added to the public business detail page (address → `maps.google.com/?q=...`).
 - **2026-06-10** — Homepage sponsored sort uses correlated subqueries (not LATERAL JOIN) to match Drizzle's `.orderBy()` builder, which has no LATERAL support. Three SQL fragments (`homepageSponsoredFlag`, `homepageSponsoredPriority`, `homepageSponsoredAmountCents`) follow the same pattern as S4's per-category sort helpers. The tier1+tier2 visibility filter is unchanged — sponsored sort lifts paying sponsors within the curated set, not beyond it.
+- **2026-06-13** — F20 scope extended beyond PRD: added private "I can help" intent signal (`post_interest` table) on top of the PRD's plain posts-only spec. *Why:* PRD F20 leaves the word-of-mouth loop open — someone posts a request, but there's no app-native way for another member to close it. The intent signal stays inside MVP scope (no public threads, no in-app messaging — the responder's optional note IS the help signal). Locked in `/mlabs-plan` consultation as Option B over Option A (posts only) and Option C (full public comments).
+- **2026-06-14** — `/admin/cron`'s `KNOWN_JOBS` drift caught a SECOND time (first time was `renewal-reminder` in the S5 mini-sprint; second time was `expire-posts` shipping with F20). *Why pattern matters:* the admin cron page maintains a static display array decoupled from `apps/web/src/lib/cron/registry.ts`. Adding a handler to the registry does not auto-surface it on the admin page. Every new cron job needs an entry in `KNOWN_JOBS` (name + human schedule string). Recorded again in `.mstack/learnings.jsonl` — consider promoting to a CI check if this drifts a third time.
+- **2026-06-14** — Discriminated-union changes (e.g. adding a `kind` to `NotificationBody`) break sibling `switch (body.kind)` statements in BOTH the web `notification-item.tsx` and the mobile `notifications.tsx` renderers. Plans that grow the union must list both renderer files as edit targets, OR sequence the renderer-coverage tasks BEFORE the union-extension task (so the union grows under exhaustive coverage). Surfaced during F20's `/mlabs-code` run; T7 (renderer) had to be pulled forward before T4 (routes) would typecheck.
+- **2026-06-14** — Migration-time SQL seeds (e.g. `INSERT INTO app_setting`) need an explicit `gen_random_uuid()::text` for the id column. The schema's `$defaultFn(() => crypto.randomUUID())` is **application-side only** and does not become a SQL column DEFAULT, so a bare `INSERT (key, value)` fails with NOT NULL on `id`. Caught when seeding `posts_expiry_days` for F20.
+- **2026-06-14** — F17 per-business-owner emails formally moved to Phase 2. *Why:* the business schema has no `owner_email` and no FK to `user` today, so "email each owner" requires deciding the owner identity model first (column on `business` vs FK to user vs join table for multi-owner). Same blocker pins F21's "broadcast to business users" target shape. Doing the owner-identity decision once unblocks both — capture as a pre-Phase 2 plan when business-owner self-service becomes a goal.
+- **2026-06-14** — Audit-around-delete pattern locked: SELECT snapshot → INSERT audit → DELETE all inside one `db.transaction`. The conventional "audit BEFORE mutation" can't apply because the row is unreadable after delete. Required widening `createAudit` to accept any handle with `insert()` (Database or PgTransaction) — shipped in `Pick<Database, "insert">`. Used by F20 v2 `deletePost`; future hard-deletes should follow the same shape.
+- **2026-06-14** — `relativeTime()` helpers across the app use `toLocaleDateString()` as the >7d fallback, which silently differs between Node (server) and the browser, triggering hydration warnings on older fixture data. Fix: stable UTC `MM/DD/YYYY` formatter + `suppressHydrationWarning` on the wrapping span. Landed on `admin/community/moderation-queue.tsx` and the user-facing community card; same pattern lives in notification-item, post-form, etc. and will need the same fix if those surfaces ever render >7d-old timestamps.
+- **2026-06-15** — Generic AppSetting admin hub dropped from S6 MVP scope. *Why:* PRD F10 lists five tunable keys (`reminder_schedule`, `homepage_*`, `posts_expiry_days`, `soft_delete_purge_days`, `min_supported_build_*`). Three already have dedicated admin UI (`/admin/settings/renewal-schedule`, `/admin/settings/homepage`). Of the remaining two: `posts_expiry_days` (default 30) and `soft_delete_purge_days` (default 180) have no believable change-pressure in month 1 — a one-off Drizzle Studio edit is cheaper than building a form ops won't open. `min_supported_build_*` only matters when F26 ships, so it's folded into F26's own scope (seed + form land together with the mobile-side force-update dialog). Trade-off accepted: changes to the two deferred knobs won't appear in audit log until a UI exists, which is fine for internal-admin launch. Reopen the generic hub if ops asks twice or a third tunable knob ships.
+- **2026-06-15** — F26 (force-update dialog) moved from S6 to S7. *Why:* the risk requires three simultaneous conditions (large uncontrolled user base + breaking API change + no OTA-fixable path) none of which apply at MVP TestFlight launch. Deferring to S7 (pre-submission) ensures it lands before any public user can be on an old build, at the natural moment when real `buildNumber` values exist to configure.
+- **2026-06-15** — F23′ hybrid queue-drop semantics locked. Initial plan's outcome table said all outcomes drop from queue; prose said only `paid` + future `scheduled_next` drop. QA surfaced the contradiction (Issue 1). User picked Option C: `refused` drops permanently (added to `outcome IN ('paid', 'refused')` exclusion), `called` auto-sets `scheduled_next = now+7d` via `computeScheduledNext()` (drops temporarily), `voicemail` + `no_answer` stay annotated in queue. *Why:* the hybrid matches operator mental model — "I had a real conversation, chase them in a week" (called) vs "I literally just tried, I can see them again tomorrow" (voicemail/no_answer) vs "they declined, don't waste calls" (refused).
+- **2026-06-15** — `AuditMeta` union + `KNOWN_AUDIT_ACTIONS` moved from `@aira/db/audit` to `@aira/validators/audit-meta`. *Why:* `@aira/db` carries `import "server-only"`, so any client component importing `AuditMeta` (e.g. the `RenderAuditDetail` renderer) would fail. The type + runtime array are pure data; only `createAudit`, `AuditFn`, and `AuditOpts` are server-only (they stay in `@aira/db/audit` with a re-export of `AuditMeta` for backward compat). Bidirectional compile-time assertion added so the union and runtime array can't diverge.
+- **2026-06-15** — Light-only theme locked for MVP. *Why:* client confirmed the light palette; dark mode was an extrapolation not present in the Figma. Web pins via `colorScheme: "light"` on `<html>` (no ThemeProvider); mobile pins via `userInterfaceStyle: "light"` in `app.config.ts` + `useColorScheme()` returning `"light"` unconditionally. Dark token set preserved in `packages/config/src/design.ts` for a future client ask, but no user-facing toggle exists or will be added without a new decision. `brand.tagline = "ROOTS & REACH"` confirmed by client — no longer deferred.
+- **2026-06-15** — `requireAdminJSON(req)` helper extracted to `lib/auth/server.ts`. *Why:* six raw route handlers (multipart uploads, CSV, binary responses that can't go through `defineOperation`'s JSON pipeline) each inlined the same 3-step auth block. Single point of change if role logic evolves. Mirrors the existing `requireUserJSON()` pattern; callers do `const auth = await requireAdminJSON(req); if (auth instanceof Response) return auth`.
+- **2026-06-15** — PRD F23 (CSV exports for Listings / Categories / Memberships / Sponsorships / Posts) reframed and largely deferred. *Why:* of the five surfaces, only BusinessSubscriptions has real pre-launch demand — PRD F16 leans on its CSV as the manual workaround for not having SMS reminders. But the actual operator job (phone expiring members down a list) is served *better* by an in-UI queue than by a download: outcomes (called / voicemail / refused / paid / reschedule) get captured as audit rows instead of evaporating in a spreadsheet, the admin's place persists across sessions, and phone numbers stay canonical. New scope = **F23′ renewal follow-up queue**. The other four CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are reachable in-app for internal use, and external-sharing asks haven't materialised; building those CSVs speculatively for hypothetical client/accountant emails isn't a launch-week need. Reopen surface-by-surface when a real external-sharing request hits twice. Audit log CSV export is also deferred — Drizzle Studio is sufficient for incident response by the dev, and operator-facing audit consumption is on-screen filtering.

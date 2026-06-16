@@ -57,13 +57,19 @@ export const env = createEnv({
     // without Stripe configured.
     STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
+    // Google Maps Places API key — admin address autocomplete (F27).
+    // Server-side: the admin layout renders the <Script> tag at request
+    // time, so the value flows into the served HTML without needing a
+    // NEXT_PUBLIC_ build-time inlining. The key STILL ends up in the
+    // browser (Google client-side JS requires it in the script URL); the
+    // real security control is restricting the key to HTTP referrers in
+    // Google Cloud Console.
+    // Optional: when unset, PlacesAddressInput falls back to a plain text
+    // input.
+    GOOGLE_MAPS_API_KEY: z.string().optional(),
   },
   client: {
     // Public env vars must be prefixed NEXT_PUBLIC_
-    // Google Maps Places API key — admin address autocomplete (F27).
-    // Optional: when unset, PlacesAddressInput falls back to a plain text input.
-    // Ensure the key is restricted to HTTP referrers before setting in production.
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -79,7 +85,7 @@ export const env = createEnv({
     REPLIT_DEV_DOMAIN: process.env.REPLIT_DEV_DOMAIN,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
   },
   // During first-deploy / fork, secrets may not be set yet. Skip validation
   // unless explicitly requested. Set SKIP_ENV_VALIDATION=1 for build steps

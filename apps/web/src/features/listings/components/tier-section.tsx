@@ -1,20 +1,21 @@
 import { Leaf, Plus, type LucideIcon } from "lucide-react"
+import { TIER_LABELS } from "@aira/validators"
 import { BusinessCard } from "./business-card"
 import type { Business, BusinessTier } from "../types"
 
-const TIER_CONFIG: Record<BusinessTier, { label: string; texture: string; Icon: LucideIcon }> = {
+// Texture + icon are presentation choices specific to the tier-section
+// heading; the label itself flows through TIER_LABELS so it stays in
+// lockstep with the badge on the business card and the admin tables.
+const TIER_PRESENTATION: Record<BusinessTier, { texture: string; Icon: LucideIcon }> = {
   tier1: {
-    label: "Sponsored",
     texture: "/textures/tier1-texture.webp",
     Icon: Leaf,
   },
   tier2: {
-    label: "Sponsored Level 2",
     texture: "/textures/tier2-texture.webp",
     Icon: Plus,
   },
   tier3: {
-    label: "Regular Listings",
     texture: "/textures/tier3-texture.webp",
     Icon: Leaf,
   },
@@ -27,7 +28,8 @@ interface TierSectionProps {
 
 export function TierSection({ tier, businesses }: TierSectionProps) {
   if (businesses.length === 0) return null
-  const { label, texture, Icon } = TIER_CONFIG[tier]
+  const { texture, Icon } = TIER_PRESENTATION[tier]
+  const label = TIER_LABELS[tier]
 
   return (
     <section>

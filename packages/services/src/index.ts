@@ -27,8 +27,7 @@
 //                                       createCategory, updateCategory, etc.
 //   - @aira/services/cities         — listCities, getCityBySlug,
 //                                       createCity, updateCity
-//   - @aira/services/app_settings   — getAppSettings, getAppSetting,
-//                                       updateAppSetting
+//   - @aira/services/app_settings   — getAppSetting, updateAppSetting
 
 export * as notifications from "./notifications"
 export * as messages from "./messages"
@@ -44,3 +43,6 @@ export * as businessSubscriptions from "./business-subscriptions"
 export * as sponsorshipTiers from "./sponsorship-tiers"
 export * as sponsorships from "./sponsorships"
 export * as cron from "./cron"
+export * as community from "./community"
+export * as subscriptionFollowups from "./subscription-followups"
+export * as userPreferences from "./user-preferences"

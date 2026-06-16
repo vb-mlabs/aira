@@ -86,7 +86,16 @@ export function CategoryTreeManager({ tree: initialTree }: CategoryTreeManagerPr
 
   return (
     <div className="space-y-4">
-      <DndContext sensors={sensors} onDragEnd={handleRootDragEnd}>
+      {/* Explicit `id` so the aria-describedby helper element dnd-kit
+          mounts gets a deterministic suffix. Without it, the nested
+          DndContexts below increment a shared internal counter whose
+          order differs between SSR and client hydration → hydration
+          mismatch warning. */}
+      <DndContext
+        id="category-tree-root"
+        sensors={sensors}
+        onDragEnd={handleRootDragEnd}
+      >
         <SortableContext
           items={tree.map((n) => n.root.id)}
           strategy={verticalListSortingStrategy}
@@ -141,7 +150,7 @@ function SortableRootRow({
         <span className="flex-1 font-medium">{node.root.name}</span>
         <ActiveBadge active={node.root.active} />
         <Link
-          href={`/admin/categories/${node.root.id}`}
+          href={`/admin/settings/categories/${node.root.id}`}
           className="ml-2 text-muted-foreground hover:text-foreground"
           aria-label={`Edit ${node.root.name}`}
         >
@@ -151,7 +160,14 @@ function SortableRootRow({
 
       {node.children.length > 0 && (
         <div className="border-t border-border bg-muted/20 px-2 pb-2">
-          <DndContext sensors={sensors} onDragEnd={onChildDragEnd}>
+          {/* Stable per-parent id keeps the dnd-kit aria-describedby
+              suffix deterministic across SSR/CSR. See the comment on
+              the outer DndContext. */}
+          <DndContext
+            id={`category-tree-${node.root.id}`}
+            sensors={sensors}
+            onDragEnd={onChildDragEnd}
+          >
             <SortableContext
               items={node.children.map((c) => c.id)}
               strategy={verticalListSortingStrategy}
@@ -195,7 +211,7 @@ function SortableChildRow({ child }: { child: Category }) {
       <span className="flex-1 text-sm text-muted-foreground">{child.name}</span>
       <ActiveBadge active={child.active} small />
       <Link
-        href={`/admin/categories/${child.id}`}
+        href={`/admin/settings/categories/${child.id}`}
         className="text-muted-foreground hover:text-foreground"
         aria-label={`Edit ${child.name}`}
       >

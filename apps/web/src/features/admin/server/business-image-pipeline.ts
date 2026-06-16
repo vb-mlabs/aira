@@ -17,6 +17,8 @@ export const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"] as const
 export const MAX_BYTES = 8 * 1024 * 1024 // 8 MB
 export const OUTPUT_WIDTH = 1200
 export const OUTPUT_HEIGHT = 800
+export const FEATURE_WIDTH = 1200
+export const FEATURE_HEIGHT = 630
 
 export type ImagePipelineErrorCode =
   | "invalid_mime"
@@ -69,6 +71,45 @@ export async function processAndStoreBusinessImage(args: {
   const image = await businessesService.addBusinessImage(db, args.businessId, url)
 
   return { image }
+}
+
+export async function processAndStoreFeatureImage(args: {
+  businessId: string
+  bytes: Buffer
+  contentType: string
+}): Promise<{ url: string }> {
+  if (!ALLOWED_MIME.includes(args.contentType as (typeof ALLOWED_MIME)[number])) {
+    throw new ImagePipelineError("invalid_mime", "Upload a JPEG, PNG, or WebP image.")
+  }
+  if (args.bytes.length > MAX_BYTES) {
+    throw new ImagePipelineError("too_large", "That image is too large. Max 8 MB.")
+  }
+
+  let resized: Buffer
+  try {
+    resized = await sharp(args.bytes)
+      .rotate()
+      .resize(FEATURE_WIDTH, FEATURE_HEIGHT, { fit: "cover", position: "centre" })
+      .jpeg({ quality: 85, mozjpeg: true })
+      .toBuffer()
+  } catch (err) {
+    logger.warn("feature image decode failed", {
+      businessId: args.businessId,
+      message: String(err),
+    })
+    throw new ImagePipelineError("decode_failed", "We couldn't read that image. Try a different file.")
+  }
+
+  const key = `businesses/${args.businessId}/feature-${crypto.randomUUID()}.jpg`
+  const { url } = await storage.upload({
+    key,
+    body: resized,
+    contentType: "image/jpeg",
+  })
+
+  await businessesService.setBusinessFeatureImage(db, args.businessId, url)
+
+  return { url }
 }
 
 /** Removes the image row and best-effort deletes the stored object. */

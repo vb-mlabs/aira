@@ -5,14 +5,55 @@
 import Link from "next/link"
 import { ArrowRight, ClipboardList, Store, Users } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
+import { requireAdmin } from "@/lib/auth/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
 import { CATEGORY_META } from "@/features/listings"
 import { AdminPageHeader } from "./_components/page-header"
+
+// Dashboard QuickLinks list — role-aware so plain admins don't see cards
+// pointing into surfaces they can't reach (e.g. Audit log, which is
+// super_admin-only and would 404 on click).
+const QUICK_LINKS: Array<{
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  description: string
+  requires: "admin" | "super_admin"
+}> = [
+  {
+    href: "/admin/businesses",
+    icon: Store,
+    title: "Businesses",
+    description: "View and edit directory listings.",
+    requires: "admin",
+  },
+  {
+    href: "/admin/users",
+    icon: Users,
+    title: "Users",
+    description: "Manage roles and access.",
+    requires: "admin",
+  },
+  {
+    href: "/admin/audit",
+    icon: ClipboardList,
+    title: "Audit log",
+    description: "Trace admin actions.",
+    requires: "super_admin",
+  },
+]
 
 export const metadata = { title: "Admin · Dashboard" }
 export const dynamic = "force-dynamic"
 
 export default async function AdminDashboardPage() {
+  const admin = await requireAdmin()
+  const callerRole = (admin as { role?: string }).role ?? "admin"
+  const isSuperAdmin = callerRole === "super_admin"
+  const visibleQuickLinks = QUICK_LINKS.filter((q) =>
+    isSuperAdmin ? true : q.requires === "admin",
+  )
+
   const res = await apiServerFetch(listBusinessesOp, { input: {} })
   const businesses = res.data?.items ?? []
 
@@ -45,24 +86,15 @@ export default async function AdminDashboardPage() {
       <section>
         <h2 className="font-display text-xl text-foreground">Manage</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <QuickLink
-            href="/admin/businesses"
-            icon={Store}
-            title="Businesses"
-            description="View and edit directory listings."
-          />
-          <QuickLink
-            href="/admin/users"
-            icon={Users}
-            title="Users"
-            description="Manage roles and access."
-          />
-          <QuickLink
-            href="/admin/audit"
-            icon={ClipboardList}
-            title="Audit log"
-            description="Trace admin actions."
-          />
+          {visibleQuickLinks.map((q) => (
+            <QuickLink
+              key={q.href}
+              href={q.href}
+              icon={q.icon}
+              title={q.title}
+              description={q.description}
+            />
+          ))}
         </div>
       </section>
 

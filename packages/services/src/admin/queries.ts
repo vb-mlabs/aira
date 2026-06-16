@@ -6,7 +6,12 @@
 // types JSDoc at @aira/validators/admin for why.
 
 import { and, desc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
-import { user as userTable, audit_log } from "@aira/db/schema";
+import {
+  user as userTable,
+  audit_log,
+  businessSubscriptions,
+  sponsorships,
+} from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
   ADMIN_PAGE_SIZE,
@@ -148,8 +153,21 @@ export async function listAudit(
   if (input.until) {
     conditions.push(sql`${audit_log.at} < ${new Date(input.until)}`);
   }
+  if (input.actor_id) {
+    conditions.push(eq(audit_log.actor_id, input.actor_id));
+  }
+  if (input.target_type) {
+    conditions.push(eq(audit_log.target_type, input.target_type));
+  }
+  if (input.action) {
+    conditions.push(eq(audit_log.action, input.action));
+  }
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
+  // Two conditional LEFT JOINs surface the parent business id for audit
+  // rows whose target is a subscription or a sponsorship. The renderer
+  // uses this to link the target id straight to the parent
+  // /admin/businesses/<id> page instead of just showing a UUID.
   const rows = await db
     .select({
       id: audit_log.id,
@@ -158,11 +176,28 @@ export async function listAudit(
       action: audit_log.action,
       target_type: audit_log.target_type,
       target_id: audit_log.target_id,
+      target_business_id: sql<
+        string | null
+      >`COALESCE(${businessSubscriptions.business_id}, ${sponsorships.business_id})`,
       metadata: audit_log.metadata,
       at: audit_log.at,
     })
     .from(audit_log)
     .leftJoin(userTable, eq(userTable.id, audit_log.actor_id))
+    .leftJoin(
+      businessSubscriptions,
+      and(
+        eq(audit_log.target_type, "business_subscription"),
+        eq(audit_log.target_id, businessSubscriptions.id),
+      ),
+    )
+    .leftJoin(
+      sponsorships,
+      and(
+        eq(audit_log.target_type, "sponsorship"),
+        eq(audit_log.target_id, sponsorships.id),
+      ),
+    )
     .where(where)
     .orderBy(desc(audit_log.at))
     .limit(ADMIN_AUDIT_PAGE_SIZE)
@@ -217,6 +252,7 @@ function toAdminAuditRow(row: {
   action: string;
   target_type: string | null;
   target_id: string | null;
+  target_business_id?: string | null;
   metadata: unknown;
   at: Date;
 }): AdminAuditRow {
@@ -227,6 +263,7 @@ function toAdminAuditRow(row: {
     action: row.action,
     target_type: row.target_type,
     target_id: row.target_id,
+    target_business_id: row.target_business_id ?? null,
     metadata: row.metadata,
     at: new Date(row.at).toISOString(),
   };

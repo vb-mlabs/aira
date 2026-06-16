@@ -6,72 +6,16 @@ import "server-only"
 // If the audit write fails, the helper throws — the caller's action does NOT
 // proceed ("audit failure is silent" was a critical gap).
 //
-// Metadata uses a typed discriminated-union allowlist. Adding a new action
-// means extending AuditMeta; no free-form strings allowed (GDPR / anonymize-
-// in-place safety: untyped jsonb could leak PII that anonymize() would miss).
+// Metadata uses a typed discriminated-union allowlist (AuditMeta).
+// AuditMeta + KNOWN_AUDIT_ACTIONS now live in @aira/validators/audit-meta
+// so client code (e.g. the /admin/audit renderer) can import them without
+// dragging this module's server-only directive into client bundles.
 
 import type { Database } from "./client"
 import { audit_log } from "./schema/audit_log"
+import type { AuditMeta } from "@aira/validators/audit-meta"
 
-// Add a new variant per action you log. Keep keys snake-cased actions matching
-// the `action` column ("user.role_changed" → corresponds to kind below).
-export type AuditMeta =
-  | { kind: "user.role_changed"; from: string; to: string }
-  | { kind: "user.banned"; reason?: string }
-  | { kind: "user.unbanned" }
-  | { kind: "user.password_reset_sent" }
-  | { kind: "user.email_changed"; from_email_hash: string }
-  | { kind: "user.deleted_anonymized" }
-  // session.revoked.reason values:
-  //   logout            — explicit user-initiated sign-out (T9).
-  //   admin             — admin-side session revocation.
-  //   password_change   — Better Auth invalidates sessions on password reset.
-  //   account_deleted   — anonymise-in-place flow cascades session deletion.
-  //   idle_timeout      — requireAdmin() forced sign-out after 30min idle (T7).
-  | { kind: "session.revoked"; reason: "logout" | "admin" | "password_change" | "account_deleted" | "idle_timeout" }
-  | { kind: "user.avatar_changed" }
-  | { kind: "user.avatar_removed" }
-  | { kind: "user.name_changed" }
-  | { kind: "user.admin_notified"; title: string }
-  // Sprint 1 — authentication-event audit trail.
-  //   user.signed_in       — successful sign-in (cookie or JWT).
-  //   user.signed_in_failed — sign-in attempt rejected. actor_id is null for
-  //                           user_not_found (we don't know who tried) and
-  //                           the user's id for bad_password / banned /
-  //                           email_unverified (the email matched a real
-  //                           account).
-  //   user.signed_up       — successful new-account creation. Bootstrap
-  //                           promotion (T6) writes a separate user.role_changed
-  //                           row alongside this one.
-  | { kind: "user.signed_in" }
-  | { kind: "user.signed_in_failed"; reason: "bad_password" | "user_not_found" | "banned" | "email_unverified" }
-  | { kind: "user.signed_up" }
-  // Admin curation of the business directory. target_id is the business.id.
-  //   business.archived — soft-delete (deleted_at stamped, public surfaces drop the row).
-  //   business.restored — soft-delete reversed (deleted_at cleared).
-  // No extra metadata fields: action + target_id + actor_id are the full story.
-  | { kind: "business.archived" }
-  | { kind: "business.restored" }
-  // S4 — subscription + sponsorship audit trail.
-  //   business.subscription_recorded — admin manually records a payment.
-  //   business.subscription_voided   — admin deletes a subscription row.
-  //   business.sponsorship_assigned  — admin assigns a category sponsorship.
-  //   business.sponsorship_cancelled — admin cancels an active/scheduled sponsorship.
-  | {
-      kind: "business.subscription_recorded"
-      payment_status: "paid" | "pending" | "overdue"
-      plan_id: string | null
-      end_date: string
-    }
-  | { kind: "business.subscription_voided" }
-  | {
-      kind: "business.sponsorship_assigned"
-      category_id: string
-      tier_id: string
-      end_date: string
-      amount_cents: number
-    }
-  | { kind: "business.sponsorship_cancelled" }
+export type { AuditMeta } from "@aira/validators/audit-meta"
 
 /** Which client surfaced the action. Derived in route
  *  handlers from the `X-Client` header set by the mobile API wrapper; defaults
@@ -89,7 +33,14 @@ export interface AuditOpts {
 
 export type AuditFn = (opts: AuditOpts) => Promise<void>
 
-export function createAudit(db: Database): AuditFn {
+/** Subset of the Database API the audit helper actually exercises. Lets
+ *  callers pass either the full Database singleton OR a PgTransaction handle
+ *  from db.transaction(async (tx) => …) without a type assertion. Used by
+ *  F20 v2 deletePost / editPost which write audit + mutation in one
+ *  transaction so a failed audit rolls back the change. */
+export type AuditDb = Pick<Database, "insert">
+
+export function createAudit(db: AuditDb): AuditFn {
   return async function audit(opts: AuditOpts): Promise<void> {
     const client: AuditClient = opts.client ?? "web"
     // metadata now always carries a discriminated body wrapped with `client` —

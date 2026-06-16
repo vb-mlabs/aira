@@ -2,9 +2,11 @@ import "server-only"
 
 // Admin operations.
 //
-// All five admin mutations route through `defineOperation` with
-// `permission: "admin"`. The service module owns the business logic + audit;
-// the op layer enforces permission and validates I/O at the wire.
+// Two tiers in this file: most ops use `permission: "admin"` (list users,
+// get user detail, ban/unban, send password reset, send notification) so
+// plain admins keep moderation powers. listAudit and changeRole tighten to
+// `permission: "super_admin"` — audit visibility and role-promotion are
+// platform-shape controls reserved for the project owner.
 //
 // sendPasswordResetToOp is the one op that does work in the handler beyond
 // dispatching to the service: it calls Better Auth's request-context API
@@ -34,8 +36,8 @@ const AdminResultSchema = z.object({
 
 // ---------------------------------------------------------------------------
 // Reads — RSC pages call these via apiServerFetch; admin tooling can curl
-// them too. permission: "admin" picks up the 30-min idle-timeout gate
-// automatically via enforceAdminFreshness at the composition root.
+// them too. Both admin and super_admin ops pick up the 30-min idle-timeout
+// gate automatically via enforceAdminFreshness at the composition root.
 
 export const listUsersOp = defineOperation({
   name: "admin.listUsers",
@@ -57,7 +59,7 @@ export const listAuditOp = defineOperation({
   name: "admin.listAudit",
   input: ListAuditInputSchema,
   output: ListAuditOutputSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: (db, _ctx, input) => admin.listAudit(db, input),
 })
 
@@ -76,7 +78,7 @@ export const changeRoleOp = defineOperation({
     role: z.enum(["end_user", "admin"]),
   }),
   output: AdminResultSchema,
-  permission: "admin",
+  permission: "super_admin",
   handler: (db, ctx, { id, role }) =>
     admin.changeRole(db, ctx, { targetId: id, role }),
 })

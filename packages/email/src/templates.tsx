@@ -55,7 +55,15 @@ export interface EmailTemplates {
   sendWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
   sendBusinessWaitlistWelcomeEmail: (opts: BaseSendOpts) => Promise<void>
   sendRenewalReminderEmail: (
-    opts: BaseSendOpts & { businesses: RenewalReminderRow[]; adminUrl: string },
+    opts: BaseSendOpts & {
+      businesses: RenewalReminderRow[]
+      adminUrl: string
+      /** Header + subject label, e.g. "Expiring in 30 days". The F17
+       *  configurable schedule sends one email per non-empty window;
+       *  this label is what tells the admin which window they're
+       *  looking at. */
+      windowLabel: string
+    },
   ) => Promise<void>
 }
 
@@ -174,6 +182,7 @@ export function createTemplates({
           {...layoutChrome}
           businesses={opts.businesses}
           adminUrl={opts.adminUrl}
+          windowLabel={opts.windowLabel}
         />
       )
       const [html, text] = await Promise.all([
@@ -182,7 +191,7 @@ export function createTemplates({
       ])
       await getDriver().send({
         to: opts.to,
-        subject: `[${brandName}] Renewal reminder — ${count} subscription${count === 1 ? "" : "s"} expiring soon`,
+        subject: `${brandName} · ${opts.windowLabel} — ${count} business${count === 1 ? "" : "es"}`,
         html,
         text,
         fromName: brandName,

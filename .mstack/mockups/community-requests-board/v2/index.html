@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIRA · Community Requests — v2 (editorial cards)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Lato:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: oklch(0.90 0.04 85);
+      --foreground: oklch(0.25 0.04 60);
+      --card: #F3EBDD;
+      --primary: oklch(0.46 0.07 132);
+      --primary-foreground: oklch(0.94 0.02 80);
+      --muted: oklch(0.88 0.03 85);
+      --muted-foreground: oklch(0.45 0.04 60);
+      --accent: oklch(0.95 0.02 85);
+      --border: oklch(0.50 0.07 80);
+      --brand-cream-bright: oklch(0.94 0.02 80);
+      --brand-gold: oklch(0.66 0.10 80);
+      --info: oklch(0.55 0.18 240);
+      --sidebar: oklch(0.42 0.06 130);
+      --sidebar-foreground: oklch(0.94 0.02 80);
+      --shadow-card: 0 2px 8px oklch(0.25 0.04 60 / 14%);
+      --shadow-card-hover: 0 6px 24px oklch(0.25 0.04 60 / 18%);
+      --shadow-primary-glow: 0 3px 5px oklch(0.46 0.07 132 / 35%);
+      --gradient-primary: linear-gradient(145deg, oklch(0.52 0.08 132) 6%, oklch(0.46 0.07 132) 94%);
+    }
+    body { background: var(--background); color: var(--foreground); font-family: 'Lato', system-ui, sans-serif; }
+    .font-display { font-family: 'Cormorant Garamond', 'Georgia', serif; }
+    .bg-card { background: var(--card); }
+    .bg-primary { background: var(--primary); }
+    .bg-muted { background: var(--muted); }
+    .text-primary { color: var(--primary); }
+    .text-foreground { color: var(--foreground); }
+    .text-muted-foreground { color: var(--muted-foreground); }
+    .text-brand-gold { color: var(--brand-gold); }
+    .text-primary-foreground { color: var(--primary-foreground); }
+    .text-info { color: var(--info); }
+    .border-border { border-color: oklch(0.50 0.07 80 / 25%); }
+    .border-primary { border-color: var(--primary); }
+    .border-gold { border-color: var(--brand-gold); }
+    .shadow-card { box-shadow: var(--shadow-card); }
+    .shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+    .shadow-glow { box-shadow: var(--shadow-primary-glow); }
+    .btn-primary { background-image: var(--gradient-primary); color: var(--primary-foreground); }
+    .pill-approved { background: oklch(0.46 0.07 132 / 12%); color: var(--primary); border: 1px solid oklch(0.46 0.07 132 / 30%); }
+    .ornament { color: var(--brand-gold); }
+    .paper {
+      background-image:
+        radial-gradient(oklch(0.50 0.07 80 / 0.04) 1px, transparent 1px),
+        radial-gradient(oklch(0.50 0.07 80 / 0.03) 1px, transparent 1px);
+      background-position: 0 0, 7px 9px;
+      background-size: 14px 14px, 14px 14px;
+    }
+    .sidebar-bg {
+      background: var(--sidebar);
+      background-image: linear-gradient(135deg, oklch(0.42 0.06 130) 0%, oklch(0.38 0.06 130) 100%);
+      color: var(--sidebar-foreground);
+    }
+    .gold-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--brand-gold);
+    }
+    .gold-divider::before, .gold-divider::after {
+      content: "";
+      flex: 1;
+      border-top: 1px solid currentColor;
+      opacity: 0.4;
+    }
+  </style>
+</head>
+<body class="paper min-h-screen">
+
+  <!-- VIEW LABEL -->
+  <div class="mx-auto max-w-7xl px-4 py-3 text-[11px] uppercase tracking-[3px] text-muted-foreground">
+    v2 · Editorial cards — magazine spread
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- BOARD VIEW                                                  -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <div class="mx-auto max-w-7xl px-4 pb-12">
+    <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-0">
+
+      <!-- Sidebar stub -->
+      <aside class="sidebar-bg hidden md:block min-h-[1100px] rounded-l-xl">
+        <div class="border-b border-white/15 px-5 pt-6 pb-5">
+          <p class="font-display text-2xl leading-none">AIRA</p>
+          <p class="mt-1 text-xs italic opacity-70">by Nisarga</p>
+        </div>
+        <nav class="text-sm">
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Home</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 font-bold bg-white/10">Community</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Restaurants</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Groceries</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Services</a>
+          <a class="block border-b border-white/10 px-5 py-3.5 opacity-80">Events</a>
+        </nav>
+      </aside>
+
+      <!-- Main column -->
+      <main class="md:rounded-r-xl">
+
+        <!-- Editorial hero header -->
+        <header class="bg-card shadow-card md:rounded-tr-xl px-8 py-10 md:px-14 md:py-14 text-center">
+          <p class="gold-divider mx-auto max-w-[280px] text-[11px] font-bold uppercase tracking-[5px]">Community Requests</p>
+          <h1 class="mx-auto mt-6 max-w-2xl font-display text-4xl md:text-[56px] leading-[1.05]">
+            Real people. Real asks.
+            <em class="block not-italic font-semibold text-primary">Trusted leads.</em>
+          </h1>
+          <p class="mx-auto mt-5 max-w-xl text-[16px] leading-relaxed text-muted-foreground">
+            Ask the community for a referral &mdash; a doctor, a teacher, a contractor &mdash; and let neighbours close the loop with someone they actually know.
+          </p>
+          <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <button class="btn-primary inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold shadow-glow">
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+              Ask the community
+            </button>
+            <div class="relative">
+              <svg class="absolute left-3 top-1/2 size-4 -translate-y-1/2 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input placeholder="Search requests" class="w-72 rounded-full border border-border bg-white/40 py-3 pl-9 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
+            </div>
+          </div>
+        </header>
+
+        <!-- Card stack -->
+        <div class="mt-6 space-y-5 md:px-6">
+
+          <!-- Card 1 -->
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-7 py-7 md:px-9 md:py-8">
+            <div class="flex items-center gap-3">
+              <div class="flex size-11 items-center justify-center rounded-full bg-primary/15 text-[14px] font-bold text-primary">PS</div>
+              <div class="min-w-0">
+                <p class="text-[14px] font-bold leading-tight">Priya S.</p>
+                <p class="text-[11px] uppercase tracking-wider text-muted-foreground">Alpharetta &middot; 2 days ago</p>
+              </div>
+              <span class="ml-auto inline-flex items-center gap-1.5 rounded-full pill-approved px-2.5 py-1 text-[11px]">
+                <span class="inline-block size-1.5 rounded-full bg-current"></span>
+                Open
+              </span>
+            </div>
+            <h3 class="mt-5 font-display text-[28px] md:text-[30px] leading-[1.18]">
+              Looking for a pediatrician who takes Aetna near Alpharetta
+            </h3>
+            <p class="mt-3 text-[15px] leading-relaxed text-foreground/85">
+              We just moved and our daughter is due for her 4-year checkup. Would love someone Indian-friendly with weekend hours &mdash; both of us work and getting away mid-week is hard.
+            </p>
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+              <button class="btn-primary inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-[13px] font-bold shadow-glow">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                I can help
+              </button>
+              <span class="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                3 neighbours have offered to help
+              </span>
+            </div>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-7 py-7 md:px-9 md:py-8">
+            <div class="flex items-center gap-3">
+              <div class="flex size-11 items-center justify-center rounded-full bg-primary/15 text-[14px] font-bold text-primary">AK</div>
+              <div class="min-w-0">
+                <p class="text-[14px] font-bold leading-tight">Anand K.</p>
+                <p class="text-[11px] uppercase tracking-wider text-muted-foreground">Roswell &middot; 5 days ago</p>
+              </div>
+              <span class="ml-auto inline-flex items-center gap-1.5 rounded-full pill-approved px-2.5 py-1 text-[11px]">
+                <span class="inline-block size-1.5 rounded-full bg-current"></span>
+                Open
+              </span>
+            </div>
+            <h3 class="mt-5 font-display text-[28px] md:text-[30px] leading-[1.18]">
+              Need a trusted Bharatanatyam teacher for my 8&#8209;year&#8209;old (Roswell area)
+            </h3>
+            <p class="mt-3 text-[15px] leading-relaxed text-foreground/85">
+              Looking for a structured class, not a hobby group. She&rsquo;s done one year already and wants to take it seriously &mdash; ideally a guru who&rsquo;s done arangetrams before.
+            </p>
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+              <button class="btn-primary inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-[13px] font-bold shadow-glow">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                I can help
+              </button>
+              <span class="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                7 neighbours have offered to help
+              </span>
+            </div>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-7 py-7 md:px-9 md:py-8">
+            <div class="flex items-center gap-3">
+              <div class="flex size-11 items-center justify-center rounded-full bg-primary/15 text-[14px] font-bold text-primary">MR</div>
+              <div class="min-w-0">
+                <p class="text-[14px] font-bold leading-tight">Meera R.</p>
+                <p class="text-[11px] uppercase tracking-wider text-muted-foreground">Sandy Springs &middot; 1 week ago</p>
+              </div>
+              <span class="ml-auto inline-flex items-center gap-1.5 rounded-full pill-approved px-2.5 py-1 text-[11px]">
+                <span class="inline-block size-1.5 rounded-full bg-current"></span>
+                Open
+              </span>
+            </div>
+            <h3 class="mt-5 font-display text-[28px] md:text-[30px] leading-[1.18]">
+              Tax advisor familiar with H1B &rarr; green card transition?
+            </h3>
+            <p class="mt-3 text-[15px] leading-relaxed text-foreground/85">
+              Got approved last month. Need someone who has actually navigated this for an Indian family before &mdash; not a generic CPA who&rsquo;ll figure it out as they go.
+            </p>
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+              <button class="btn-primary inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-[13px] font-bold shadow-glow">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                I can help
+              </button>
+              <span class="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                2 neighbours have offered to help
+              </span>
+            </div>
+          </article>
+
+          <!-- Card 4 -->
+          <article class="bg-card shadow-card hover:shadow-card-hover transition-shadow rounded-xl px-7 py-7 md:px-9 md:py-8">
+            <div class="flex items-center gap-3">
+              <div class="flex size-11 items-center justify-center rounded-full bg-primary/15 text-[14px] font-bold text-primary">SP</div>
+              <div class="min-w-0">
+                <p class="text-[14px] font-bold leading-tight">Suresh P.</p>
+                <p class="text-[11px] uppercase tracking-wider text-muted-foreground">Johns Creek &middot; 1 week ago</p>
+              </div>
+              <span class="ml-auto inline-flex items-center gap-1.5 rounded-full pill-approved px-2.5 py-1 text-[11px]">
+                <span class="inline-block size-1.5 rounded-full bg-current"></span>
+                Open
+              </span>
+            </div>
+            <h3 class="mt-5 font-display text-[28px] md:text-[30px] leading-[1.18]">
+              Authentic South Indian caterer for 80 guests in early August
+            </h3>
+            <p class="mt-3 text-[15px] leading-relaxed text-foreground/85">
+              Wedding reception buffet. Open to recommendations from anyone who&rsquo;s tasted the food themselves &mdash; reviews online aren&rsquo;t cutting it.
+            </p>
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+              <button class="btn-primary inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-[13px] font-bold shadow-glow">
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                I can help
+              </button>
+              <span class="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                5 neighbours have offered to help
+              </span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-8 flex items-center justify-between md:px-6">
+          <span class="text-[13px] text-muted-foreground">Page 1 of 4 &middot; 38 requests</span>
+          <div class="flex items-center gap-2">
+            <button disabled class="rounded-full border border-border bg-white/0 px-4 py-2 text-[12px] font-bold opacity-40">&larr; Prev</button>
+            <button class="rounded-full border border-primary bg-white/0 px-4 py-2 text-[12px] font-bold text-primary hover:bg-primary/5">Next &rarr;</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ────────────────────────────────────────────────────────── -->
+  <!-- POST DETAIL VIEW                                            -->
+  <!-- ────────────────────────────────────────────────────────── -->
+  <div class="mx-auto max-w-7xl px-4 py-12">
+    <p class="mb-4 text-[11px] uppercase tracking-[3px] text-muted-foreground">Post detail view (same editorial treatment)</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-0">
+      <aside class="sidebar-bg hidden md:block min-h-[700px] rounded-l-xl opacity-50">
+        <div class="border-b border-white/15 px-5 pt-6 pb-5">
+          <p class="font-display text-2xl leading-none">AIRA</p>
+          <p class="mt-1 text-xs italic opacity-70">by Nisarga</p>
+        </div>
+      </aside>
+
+      <main class="px-0 md:px-6">
+        <a class="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to community
+        </a>
+
+        <article class="mt-4 bg-card shadow-card rounded-xl px-7 py-8 md:px-10 md:py-10">
+          <div class="flex items-center gap-3">
+            <div class="flex size-12 items-center justify-center rounded-full bg-primary/15 text-[15px] font-bold text-primary">PS</div>
+            <div class="min-w-0">
+              <p class="text-[14px] font-bold leading-tight">Priya S.</p>
+              <p class="text-[11px] uppercase tracking-wider text-muted-foreground">Alpharetta &middot; 2 days ago</p>
+            </div>
+            <span class="ml-auto inline-flex items-center gap-1.5 rounded-full pill-approved px-2.5 py-1 text-[11px]">
+              <span class="inline-block size-1.5 rounded-full bg-current"></span>
+              Open
+            </span>
+          </div>
+          <h1 class="mt-6 font-display text-3xl md:text-[40px] leading-[1.12]">
+            Looking for a pediatrician who takes Aetna near Alpharetta
+          </h1>
+          <p class="mt-4 text-[16px] leading-relaxed">
+            We just moved to North Fulton last month and our daughter (4) is due for a checkup. We&rsquo;d love someone Indian-friendly who has weekend hours &mdash; both of us work and getting away mid-week is hard. Aetna PPO. Open to recommendations within 20 minutes of Alpharetta.
+          </p>
+        </article>
+
+        <!-- Respondents (author-only) -->
+        <section class="mt-6 bg-card shadow-card rounded-xl px-7 py-8 md:px-10 md:py-10">
+          <div class="flex items-baseline gap-3">
+            <h2 class="font-display text-2xl">Neighbours offering to help</h2>
+            <span class="text-[12px] text-muted-foreground">3 &middot; only you can see this</span>
+          </div>
+
+          <div class="mt-6 space-y-5">
+            <div class="rounded-lg bg-white/40 px-5 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex size-9 items-center justify-center rounded-full bg-primary/15 text-[12px] font-bold text-primary">AI</div>
+                <div class="min-w-0">
+                  <p class="text-[14px] font-bold leading-tight">Asha Iyer</p>
+                  <p class="text-[11px] text-muted-foreground">2 days ago</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[14px] leading-relaxed">
+                Dr. Mehta on Old Milton Pkwy &mdash; has been our family doctor for six years, takes Aetna PPO. Saturday morning slots. Tell them Asha sent you.
+              </p>
+            </div>
+
+            <div class="rounded-lg bg-white/40 px-5 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex size-9 items-center justify-center rounded-full bg-primary/15 text-[12px] font-bold text-primary">VS</div>
+                <div class="min-w-0">
+                  <p class="text-[14px] font-bold leading-tight">Vikram Shah</p>
+                  <p class="text-[11px] text-muted-foreground">1 day ago</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[14px] leading-relaxed">
+                Try Pediatric Associates in Cumming. They have an Indian doctor on staff who&rsquo;s wonderful with kids. Worth the extra 10 minutes.
+              </p>
+            </div>
+
+            <div class="rounded-lg bg-white/40 px-5 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex size-9 items-center justify-center rounded-full bg-primary/15 text-[12px] font-bold text-primary">NP</div>
+                <div class="min-w-0">
+                  <p class="text-[14px] font-bold leading-tight">Neha Patel</p>
+                  <p class="text-[11px] text-muted-foreground">6 hours ago</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[14px] italic text-muted-foreground">No note attached &mdash; just wanted you to know they can help.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,9 +1,26 @@
 import { EmptyState } from "@/lib/ui"
 import type { AdminAuditRow } from "@/features/admin/types"
+import { RenderAuditDetail } from "@/features/admin/audit/render-detail"
+import { RenderAuditTarget } from "@/features/admin/audit/render-target"
 
 interface AuditTableProps {
   rows: AdminAuditRow[]
   emptyMessage?: string
+}
+
+/** Stable UTC formatter for the When column — `toLocaleString()`
+ *  produces different text between Node and the browser, which trips
+ *  React 19 hydration warnings (2026-06-14 lesson). Stable
+ *  YYYY-MM-DD HH:MM UTC keeps the values byte-identical. */
+function formatWhen(iso: string): string {
+  const d = new Date(iso)
+  if (!Number.isFinite(d.getTime())) return iso
+  const yyyy = d.getUTCFullYear()
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0")
+  const dd = String(d.getUTCDate()).padStart(2, "0")
+  const hh = String(d.getUTCHours()).padStart(2, "0")
+  const mi = String(d.getUTCMinutes()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`
 }
 
 export function AuditTable({ rows, emptyMessage }: AuditTableProps) {
@@ -24,26 +41,41 @@ export function AuditTable({ rows, emptyMessage }: AuditTableProps) {
             <tr>
               <th className="px-4 py-3 text-left font-semibold">When</th>
               <th className="px-4 py-3 text-left font-semibold">Actor</th>
-              <th className="px-4 py-3 text-left font-semibold">Action</th>
               <th className="px-4 py-3 text-left font-semibold">Target</th>
-              <th className="px-4 py-3 text-left font-semibold">Detail</th>
+              <th className="px-4 py-3 text-left font-semibold">What happened</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((row) => (
               <tr key={row.id} className="hover:bg-muted/20">
-                <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                  {new Date(row.at).toLocaleString()}
+                <td
+                  className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground"
+                  suppressHydrationWarning
+                >
+                  {formatWhen(row.at)}
                 </td>
-                <td className="px-4 py-3">{row.actor_email ?? "system"}</td>
-                <td className="px-4 py-3 font-mono text-xs">{row.action}</td>
-                <td className="px-4 py-3 font-mono text-xs">
-                  {row.target_type && row.target_id
-                    ? `${row.target_type}:${row.target_id.slice(0, 8)}`
-                    : "—"}
+                <td className="px-4 py-3">
+                  {row.actor_email ?? (
+                    <span className="text-muted-foreground">system</span>
+                  )}
                 </td>
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                  {row.metadata ? JSON.stringify(row.metadata) : "—"}
+                <td className="px-4 py-3 align-top">
+                  {row.target_type ? (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {row.target_type}
+                      </span>
+                      <RenderAuditTarget row={row} />
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <RenderAuditDetail
+                    action={row.action}
+                    metadata={row.metadata}
+                  />
                 </td>
               </tr>
             ))}

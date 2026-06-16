@@ -152,16 +152,16 @@ module.exports = {
       },
       "fontFamily": {
         "sans": [
-          "Geist",
+          "Lato-Regular",
           "System"
         ],
         "display": [
-          "Geist",
+          "CormorantGaramond-SemiBold",
           "System"
         ],
         "mono": [
-          "GeistMono",
-          "Menlo"
+          "Menlo",
+          "System"
         ]
       }
     }

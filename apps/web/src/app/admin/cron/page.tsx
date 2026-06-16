@@ -1,4 +1,5 @@
 import { apiServerFetch } from "@aira/api/server"
+import { requireSuperAdmin } from "@/lib/auth/server"
 import { listCronRunsOp } from "@/server/operations/cron-admin"
 import { AdminBadge } from "@/features/admin"
 import { AdminPageHeader } from "../_components/page-header"
@@ -12,6 +13,12 @@ const KNOWN_JOBS = [
   { name: "sponsorship-status-rollover", schedule: "0 * * * * (hourly)" },
   { name: "renewal-reminder", schedule: "0 8 * * * (daily 08:00 UTC)" },
   { name: "purge-soft-deleted", schedule: "0 3 * * * (daily 03:00 UTC)" },
+  { name: "expire-posts", schedule: "0 * * * * (hourly)" },
+  {
+    name: "backfill-business-tiers",
+    schedule:
+      "manual only · brings every business's tier column in line with its active paid subscriptions (idempotent)",
+  },
 ]
 
 type CronStatus = "running" | "succeeded" | "failed" | "skipped"
@@ -27,6 +34,10 @@ function formatDateTime(iso: string): string {
 }
 
 export default async function AdminCronPage() {
+  // Cron triggering is super_admin-only — gate at the page so plain admins
+  // get notFound() instead of a 403 from apiServerFetch.
+  await requireSuperAdmin()
+
   const jobsWithRuns = await Promise.all(
     KNOWN_JOBS.map(async (job) => {
       const res = await apiServerFetch(listCronRunsOp, {

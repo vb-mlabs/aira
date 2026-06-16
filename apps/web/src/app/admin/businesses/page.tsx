@@ -2,6 +2,7 @@ import Link from "next/link"
 import { BadgeCheck, Download, Plus, Store } from "lucide-react"
 import { Suspense } from "react"
 import { apiServerFetch } from "@aira/api/server"
+import { TIER_LABELS, type BusinessTier } from "@aira/validators"
 import { listAllBusinessesAdminOp } from "@/server/operations/businesses-admin"
 import { AdminBadge } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
@@ -118,12 +119,19 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 return (
                   <tr
                     key={b.id}
-                    className={cn("hover:bg-muted/20", archived && "opacity-60")}
+                    className={cn(
+                      "relative cursor-pointer hover:bg-muted/20",
+                      archived && "opacity-60",
+                    )}
                   >
                     <td className="px-4 py-3">
+                      {/* after:* pseudo-element stretches the link across the
+                          entire row so any cell click navigates to the
+                          detail page. The actual <Link> stays in the DOM for
+                          keyboard + screen-reader navigation. */}
                       <Link
                         href={`/admin/businesses/${b.id}`}
-                        className="font-medium text-primary hover:underline"
+                        className="font-medium text-foreground after:absolute after:inset-0 after:content-['']"
                       >
                         {b.name}
                       </Link>
@@ -131,7 +139,9 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                     <td className="px-4 py-3 text-muted-foreground">
                       {b.category}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{b.tier}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {TIER_LABELS[b.tier as BusinessTier] ?? b.tier}
+                    </td>
                     <td className="px-4 py-3">
                       {b.latest_payment_status ? (
                         <AdminBadge

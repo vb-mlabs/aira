@@ -23,6 +23,14 @@ export const NotificationBodySchema = z.discriminatedUnion("kind", [
     sender_name: z.string(),
     preview: z.string(),
   }),
+  z.object({
+    kind: z.literal("post_interest"),
+    post_id: z.string(),
+    post_title: z.string(),
+    responder_id: z.string(),
+    responder_name: z.string(),
+    message: z.string().nullable(),
+  }),
 ]);
 export type NotificationBodyPublic = z.infer<typeof NotificationBodySchema>;
 

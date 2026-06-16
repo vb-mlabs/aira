@@ -33,5 +33,20 @@ export type NotificationBody =
        *  for the full body — this is just enough for the bell drop-down. */
       preview: string
     }
+  | {
+      kind: "post_interest"
+      /** Community post the responder offered to help with. The notification
+       *  links to /community/<post_id>; the renderer must check the post is
+       *  still readable before showing the link (cascade-delete leaves
+       *  orphans). */
+      post_id: string
+      /** Denormalised post title so the renderer doesn't need a join. */
+      post_title: string
+      responder_id: string
+      responder_name: string
+      /** Optional short note (≤300 chars). null when the responder just
+       *  tapped "I can help" without typing anything. */
+      message: string | null
+    }
 
 export type NotificationKind = NotificationBody["kind"]

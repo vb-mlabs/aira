@@ -4,8 +4,6 @@ import { useState, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useDropzone } from "react-dropzone"
 import { X, Upload, Loader2 } from "lucide-react"
-import { Button } from "@aira/ui-web/button"
-import { ApiError } from "@aira/api"
 import type { BusinessImage } from "@aira/validators"
 
 interface GallerySectionProps {
@@ -15,7 +13,12 @@ interface GallerySectionProps {
 
 const MAX_IMAGES = 3
 
-export function GallerySection({ businessId, images }: GallerySectionProps) {
+/**
+ * Self-contained gallery dropzone + thumbnail grid + delete control.
+ * No card chrome — caller composes it inside whatever section it needs.
+ * Owns its own upload / delete state.
+ */
+export function GalleryControl({ businessId, images }: GallerySectionProps) {
   const router = useRouter()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,6 +81,84 @@ export function GallerySection({ businessId, images }: GallerySectionProps) {
   }
 
   return (
+    <div className="space-y-4">
+      {images.length > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          {images.map((img) => (
+            <div key={img.id} className="group relative aspect-[3/2] overflow-hidden rounded-md border border-border">
+              <img
+                src={img.url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => handleDelete(img.id)}
+                disabled={deletingId}
+                aria-label="Remove image"
+                className="absolute right-1 top-1 rounded-full bg-background/80 p-0.5 text-foreground opacity-0 transition-opacity hover:bg-background group-hover:opacity-100 disabled:cursor-not-allowed"
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {canUpload && (
+        <div
+          {...getRootProps()}
+          className={[
+            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-sm transition-colors",
+            isDragActive
+              ? "border-primary bg-primary/5 text-primary"
+              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+            (uploading) && "pointer-events-none opacity-60",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <input {...getInputProps()} />
+          {uploading ? (
+            <>
+              <Loader2 className="size-6 animate-spin" aria-hidden />
+              <span>Uploading…</span>
+            </>
+          ) : (
+            <>
+              <Upload className="size-6" aria-hidden />
+              <span>
+                {isDragActive ? "Drop to upload" : "Drop image or click to browse"}
+              </span>
+              <span className="text-xs">JPEG, PNG or WebP · max 8 MB</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {images.length >= MAX_IMAGES && (
+        <p className="text-xs text-muted-foreground">
+          Maximum {MAX_IMAGES} images reached. Remove one to upload a new image.
+        </p>
+      )}
+
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Card-wrapped variant. Retained for backward compatibility with any
+ * caller still composing GallerySection as a standalone section. New
+ * callers should use GalleryControl directly inside whatever chrome
+ * they want.
+ */
+export function GallerySection({ businessId, images }: GallerySectionProps) {
+  return (
     <section className="rounded-lg border border-border bg-card">
       <header className="border-b border-border px-6 py-4">
         <h2 className="text-base font-semibold">Gallery</h2>
@@ -85,72 +166,8 @@ export function GallerySection({ businessId, images }: GallerySectionProps) {
           Up to {MAX_IMAGES} images · resized to 1200×800 cover JPEG on upload
         </p>
       </header>
-      <div className="space-y-4 px-6 py-5">
-        {images.length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
-            {images.map((img) => (
-              <div key={img.id} className="group relative aspect-[3/2] overflow-hidden rounded-md border border-border">
-                <img
-                  src={img.url}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleDelete(img.id)}
-                  disabled={deletingId}
-                  aria-label="Remove image"
-                  className="absolute right-1 top-1 rounded-full bg-background/80 p-0.5 text-foreground opacity-0 transition-opacity hover:bg-background group-hover:opacity-100 disabled:cursor-not-allowed"
-                >
-                  <X className="size-3.5" aria-hidden />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {canUpload && (
-          <div
-            {...getRootProps()}
-            className={[
-              "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-sm transition-colors",
-              isDragActive
-                ? "border-primary bg-primary/5 text-primary"
-                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
-              (uploading) && "pointer-events-none opacity-60",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <input {...getInputProps()} />
-            {uploading ? (
-              <>
-                <Loader2 className="size-6 animate-spin" aria-hidden />
-                <span>Uploading…</span>
-              </>
-            ) : (
-              <>
-                <Upload className="size-6" aria-hidden />
-                <span>
-                  {isDragActive ? "Drop to upload" : "Drop image or click to browse"}
-                </span>
-                <span className="text-xs">JPEG, PNG or WebP · max 8 MB</span>
-              </>
-            )}
-          </div>
-        )}
-
-        {images.length >= MAX_IMAGES && (
-          <p className="text-xs text-muted-foreground">
-            Maximum {MAX_IMAGES} images reached. Remove one to upload a new image.
-          </p>
-        )}
-
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
+      <div className="px-6 py-5">
+        <GalleryControl businessId={businessId} images={images} />
       </div>
     </section>
   )

@@ -3,4 +3,5 @@
 
 export { sendVerifyEmail, sendPasswordResetEmail, sendNotificationEmail, sendWaitlistWelcomeEmail, sendBusinessWaitlistWelcomeEmail } from "./templates"
 export { getEmailDriver, _setDriverForTesting } from "./driver"
+export { buildAppLinkUrl, buildAuthUrl } from "./url"
 export type { EmailDriver, SendArgs, SendResult } from "./types"

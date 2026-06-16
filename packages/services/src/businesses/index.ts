@@ -27,6 +27,8 @@ export {
   archiveBusiness,
   restoreBusiness,
   purgeArchivedBusinesses,
+  setBusinessFeatureImage,
+  clearBusinessFeatureImage,
 } from "./service";
 
 export {

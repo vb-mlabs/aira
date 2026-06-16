@@ -106,14 +106,19 @@ export async function getCallerContext(
   source: CallerSource = "web",
 ): Promise<CallerContext> {
   const u = await requireUser()
-  // DB role is user_role enum ("end_user" | "admin" | "super_admin"); collapse
-  // to the narrow Permission union ("user" | "admin"). super_admin gets the
-  // "admin" permission level since it subsumes all admin perms. Operations
-  // that need to enforce super_admin specifically use requireSuperAdmin() at
-  // the layout level instead of routing through Permission.
+  // DB role is user_role enum ("end_user" | "admin" | "super_admin"). Map
+  // through to the Permission union — admin and super_admin pass through
+  // unchanged so downstream ops can distinguish the two; everything else
+  // collapses to "user". The operation layer's hasPermission() enforces
+  // the hierarchy so an admin-permission op still accepts a super_admin
+  // caller.
   const dbRole = (u as { role?: string }).role
   const role: Permission =
-    dbRole === "admin" || dbRole === "super_admin" ? "admin" : "user"
+    dbRole === "super_admin"
+      ? "super_admin"
+      : dbRole === "admin"
+        ? "admin"
+        : "user"
   return {
     userId: u.id,
     user: { id: u.id, email: u.email, role },
@@ -142,6 +147,58 @@ export async function requireUserJSON(): Promise<
   if (!session?.user) {
     return ApiError.unauthorized().toResponse()
   }
+  return session.user
+}
+
+/**
+ * REST-friendly admin auth check for route handlers that can't use
+ * defineOperation (multipart uploads, CSV, binary responses).
+ *
+ * Mirrors requireAdmin() — same role check + idle-timeout — but returns
+ * a Response on failure instead of throwing redirect/notFound. Use in
+ * /api/* handlers that must serve non-JSON or non-standard responses.
+ *
+ * Usage:
+ *   const auth = await requireAdminJSON(req)
+ *   if (auth instanceof Response) return auth
+ *   // auth is AuthSession["user"]
+ */
+export async function requireAdminJSON(
+  req: Request,
+): Promise<AuthSession["user"] | Response> {
+  const session = await getSessionFromHeaders(req.headers)
+  if (!session?.user) return ApiError.unauthorized().toResponse()
+  const role = (session.user as { role?: string }).role ?? "end_user"
+  if (role !== "admin" && role !== "super_admin") {
+    return ApiError.forbidden("Admin access required").toResponse()
+  }
+  const sessionId = (session.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) return ApiError.idleTimeout().toResponse()
+  return session.user
+}
+
+/**
+ * REST-friendly super_admin auth check for route handlers that can't use
+ * defineOperation. Same shape as requireAdminJSON — same idle-timeout — but
+ * rejects plain admin too. Use for endpoints that gate platform-shape
+ * controls (Setup hub assets, audit dumps, cron triggers).
+ *
+ * Usage:
+ *   const auth = await requireSuperAdminJSON(req)
+ *   if (auth instanceof Response) return auth
+ *   // auth is AuthSession["user"], guaranteed super_admin
+ */
+export async function requireSuperAdminJSON(
+  req: Request,
+): Promise<AuthSession["user"] | Response> {
+  const session = await getSessionFromHeaders(req.headers)
+  if (!session?.user) return ApiError.unauthorized().toResponse()
+  const role = (session.user as { role?: string }).role ?? "end_user"
+  if (role !== "super_admin") {
+    return ApiError.forbidden("Super admin access required").toResponse()
+  }
+  const sessionId = (session.session as { id?: string }).id
+  if (await adminSessionIsStale(sessionId)) return ApiError.idleTimeout().toResponse()
   return session.user
 }
 
