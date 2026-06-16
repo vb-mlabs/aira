@@ -6,15 +6,20 @@ import { Loader2, Search, Store, X } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
 import { TierSection } from "./tier-section"
-import { CATEGORIES_ORDERED, VALID_TIERS } from "../index"
+import { VALID_TIERS } from "../index"
 import type { Business, BusinessTier } from "../types"
 import { apiClient } from "@/lib/api-client"
 import type { BusinessListOutput } from "@aira/validators/businesses"
+import type { Category } from "@aira/validators/categories"
 
 interface DirectoryViewProps {
   initialItems: Business[]
   total: number
   pageSize: number
+  /** Active root categories for the city — drives the category-pill
+   *  row beneath the search bar. Fetched server-side from the same
+   *  `category` DB table the admin edits via /admin/settings/categories. */
+  categories: Category[]
 }
 
 const DEBOUNCE_MS = 300
@@ -23,6 +28,7 @@ export function DirectoryView({
   initialItems,
   total: initialTotal,
   pageSize,
+  categories,
 }: DirectoryViewProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
@@ -139,13 +145,13 @@ export function DirectoryView({
         >
           All
         </span>
-        {CATEGORIES_ORDERED.map((cat) => (
+        {categories.map((cat) => (
           <button
-            key={cat.slug}
+            key={cat.id}
             onClick={() => onCategoryPill(cat.slug)}
             className="flex-shrink-0 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60"
           >
-            {cat.displayName}
+            {cat.name}
           </button>
         ))}
       </div>

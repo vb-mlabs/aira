@@ -7,8 +7,9 @@ import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
 import { Pagination } from "./pagination"
 import { TierSection } from "./tier-section"
-import { CATEGORIES_ORDERED, getCategoryMeta, VALID_TIERS } from "../index"
+import { getCategoryMeta, VALID_TIERS } from "../index"
 import type { Business, BusinessCategory, BusinessTier } from "../types"
+import type { Category } from "@aira/validators/categories"
 
 interface ListingViewProps {
   items: Business[]
@@ -18,6 +19,10 @@ interface ListingViewProps {
   q: string
   verified: boolean
   currentCategory: BusinessCategory
+  /** Active root categories for the city — drives the switcher
+   *  dropdown. Fetched server-side from the same `category` DB table
+   *  the admin edits via /admin/settings/categories. */
+  categories: Category[]
 }
 
 const DEBOUNCE_MS = 300
@@ -30,6 +35,7 @@ export function ListingView({
   q,
   verified,
   currentCategory,
+  categories,
 }: ListingViewProps) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -131,9 +137,9 @@ export function ListingView({
             aria-label="Switch category"
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           >
-            {CATEGORIES_ORDERED.map((cat) => (
-              <option key={cat.slug} value={cat.slug}>
-                {cat.displayName}
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.slug}>
+                {cat.name}
               </option>
             ))}
           </select>
