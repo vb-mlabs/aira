@@ -6,12 +6,17 @@ export function UserRow({ user }: { user: AdminUserRow }) {
   const banned = !!user.banned_at
 
   return (
-    <tr className="hover:bg-muted/20">
+    <tr className="relative cursor-pointer hover:bg-muted/20">
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
+          {/* after:* pseudo-element stretches the link across the entire
+              row so any cell click navigates to the detail page. The
+              <Link> stays in the DOM for keyboard + screen-reader
+              navigation. Mirrors the businesses + community + renewals
+              admin tables. */}
           <Link
             href={`/admin/users/${user.id}`}
-            className="font-medium text-primary hover:underline"
+            className="font-medium text-foreground after:absolute after:inset-0 after:content-['']"
           >
             {user.name}
           </Link>
