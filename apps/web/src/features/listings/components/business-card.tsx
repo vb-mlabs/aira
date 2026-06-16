@@ -26,9 +26,19 @@ export function BusinessCard({ business }: BusinessCardProps) {
     >
       <div
         aria-hidden
-        className="flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+        className="flex size-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted text-muted-foreground"
       >
-        <Icon className="size-4" />
+        {business.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={business.image_url}
+            alt=""
+            loading="lazy"
+            className="size-full object-cover"
+          />
+        ) : (
+          <Icon className="size-4" />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">
