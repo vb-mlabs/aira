@@ -2,7 +2,7 @@ import Link from "next/link"
 import { BadgeCheck } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { TIER_LABELS } from "@aira/validators"
-import { CATEGORY_META } from "../category-meta"
+import { getCategoryMeta } from "../category-meta"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
 import type { Business } from "../types"
@@ -15,7 +15,7 @@ interface BusinessCardProps {
 // social anchors independently clickable without nesting. Each anchor
 // inside SocialLinks sits at `z-10` so its hitbox wins over the overlay.
 export function BusinessCard({ business }: BusinessCardProps) {
-  const category = CATEGORY_META[business.category]
+  const category = getCategoryMeta(business.category)
   const Icon = category.icon
 
   return (

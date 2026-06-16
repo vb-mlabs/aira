@@ -8,7 +8,7 @@ import {
   Phone,
 } from "lucide-react"
 import { buttonVariants } from "@aira/ui-web/button"
-import { CATEGORY_META } from "../category-meta"
+import { getCategoryMeta } from "../category-meta"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks, GoogleMapsPinIcon } from "./social-icons"
 import { BusinessImageCarousel } from "./business-image-carousel"
@@ -19,7 +19,7 @@ interface BusinessDetailProps {
 }
 
 export function BusinessDetail({ business }: BusinessDetailProps) {
-  const category = CATEGORY_META[business.category]
+  const category = getCategoryMeta(business.category)
   const Icon = category.icon
 
   return (

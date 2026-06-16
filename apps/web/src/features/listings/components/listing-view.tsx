@@ -7,7 +7,7 @@ import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
 import { Pagination } from "./pagination"
 import { TierSection } from "./tier-section"
-import { CATEGORIES_ORDERED, CATEGORY_META, VALID_TIERS } from "../index"
+import { CATEGORIES_ORDERED, getCategoryMeta, VALID_TIERS } from "../index"
 import type { Business, BusinessCategory, BusinessTier } from "../types"
 
 interface ListingViewProps {
@@ -119,7 +119,7 @@ export function ListingView({
       <div className="mb-5">
         <div className="relative inline-flex cursor-pointer items-center gap-1">
           <h1 className="pointer-events-none font-display text-2xl font-semibold text-foreground">
-            {CATEGORY_META[currentCategory as keyof typeof CATEGORY_META]?.displayName ?? currentCategory}
+            {getCategoryMeta(currentCategory).displayName}
           </h1>
           <ChevronDown
             className="pointer-events-none size-5 flex-shrink-0 text-foreground"

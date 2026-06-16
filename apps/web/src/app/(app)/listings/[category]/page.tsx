@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { CATEGORY_META } from "@/features/listings/category-meta"
+import { getCategoryMeta } from "@/features/listings/category-meta"
 import { ListingView } from "@/features/listings/components/listing-view"
 import { apiServerFetch } from "@aira/api/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
@@ -24,8 +24,9 @@ export async function generateMetadata({
   const res = await apiServerFetch(getCategoryBySlugOp, { input: { slug: category } })
   const cat = res.data?.category
   if (!cat) return { title: "Not found" }
-  const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
-  return { title: meta?.displayName ?? cat.name }
+  // Prefer the DB row's name (admin-editable) over the static
+  // metadata's displayName when both exist.
+  return { title: cat.name ?? getCategoryMeta(cat.slug).displayName }
 }
 
 export default async function CategoryListingPage({

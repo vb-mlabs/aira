@@ -13,7 +13,7 @@ import {
   VALID_BUSINESS_TYPES,
   VALID_YEARS_OPERATING,
 } from "@aira/validators/businesses"
-import { CATEGORY_META } from "@/features/listings"
+import { getCategoryMeta } from "@/features/listings"
 import { PlacesAddressInput } from "./places-address-input"
 
 function slugify(name: string): string {
@@ -137,7 +137,7 @@ export function BusinessCreateForm({ cities }: BusinessCreateFormProps) {
           >
             {VALID_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {CATEGORY_META[c]?.displayName ?? c}
+                {getCategoryMeta(c).displayName}
               </option>
             ))}
           </select>

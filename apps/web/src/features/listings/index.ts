@@ -12,6 +12,7 @@ export { VALID_TIERS, VALID_CATEGORIES } from "./types"
 export {
   CATEGORY_META,
   CATEGORIES_ORDERED,
+  getCategoryMeta,
   type CategoryMeta,
 } from "./category-meta"
 

@@ -4,9 +4,8 @@
 // Desktop renders the same page — duplicate of sidebar nav, but harmless.
 
 import type { Metadata } from "next"
-import { Store } from "lucide-react"
 import { CategoryRow } from "@/features/listings"
-import { CATEGORY_META } from "@/features/listings/category-meta"
+import { getCategoryMeta } from "@/features/listings/category-meta"
 import { apiServerFetch } from "@aira/api/server"
 import { listCategoriesWithCountsOp, listCategoriesOp } from "@/server/operations/categories"
 
@@ -36,12 +35,14 @@ export default async function CategoriesPage() {
 
       <ul className="space-y-2">
         {dbCategories.map((cat) => {
-          const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
+          const meta = getCategoryMeta(cat.slug)
+          // Prefer the DB row's name (admin-editable) over the static
+          // displayName; fall back to a sensible description if the
+          // slug isn't in the seeded metadata.
           const categoryMeta = {
-            slug: cat.slug,
+            ...meta,
             displayName: cat.name,
-            description: meta?.description ?? `Browse ${cat.name} businesses`,
-            icon: meta?.icon ?? Store,
+            description: meta.description || `Browse ${cat.name} businesses`,
           }
           return (
             <li key={cat.id}>

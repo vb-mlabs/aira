@@ -7,7 +7,7 @@ import { ArrowRight, ClipboardList, Store, Users } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { requireAdmin } from "@/lib/auth/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
-import { CATEGORY_META } from "@/features/listings"
+import { getCategoryMeta } from "@/features/listings"
 import { AdminPageHeader } from "./_components/page-header"
 
 // Dashboard QuickLinks list — role-aware so plain admins don't see cards
@@ -124,7 +124,7 @@ export default async function AdminDashboardPage() {
                       {b.name}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {CATEGORY_META[b.category]?.displayName ?? b.category}
+                      {getCategoryMeta(b.category).displayName}
                     </p>
                   </div>
                   <ArrowRight

@@ -16,11 +16,10 @@ import {
   Mail,
   MessageSquare,
   Settings,
-  Store,
 } from "lucide-react"
 import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
-import { CATEGORIES_ORDERED, CATEGORY_META } from "@/features/listings"
+import { CATEGORIES_ORDERED, getCategoryMeta } from "@/features/listings"
 import type { Category } from "@aira/validators/categories"
 
 interface AppSidebarProps {
@@ -100,18 +99,15 @@ export function AppSidebar({ onClose, categories, isAdmin }: AppSidebarProps) {
                 active={isActive(`/listings/${cat.slug}`)}
               />
             ))
-          : categories.map((cat) => {
-              const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
-              return (
-                <SidebarRow
-                  key={cat.id}
-                  href={`/listings/${cat.slug}`}
-                  label={cat.name}
-                  icon={meta?.icon ?? Store}
-                  active={isActive(`/listings/${cat.slug}`)}
-                />
-              )
-            })}
+          : categories.map((cat) => (
+              <SidebarRow
+                key={cat.id}
+                href={`/listings/${cat.slug}`}
+                label={cat.name}
+                icon={getCategoryMeta(cat.slug).icon}
+                active={isActive(`/listings/${cat.slug}`)}
+              />
+            ))}
       </nav>
 
       {isAdmin && (
