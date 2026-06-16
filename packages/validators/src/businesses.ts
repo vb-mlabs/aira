@@ -49,16 +49,13 @@ export const VALID_YEARS_OPERATING = [
 ] as const;
 export type YearsOperating = (typeof VALID_YEARS_OPERATING)[number];
 
-export const VALID_CATEGORIES = [
-  "restaurants",
-  "education",
-  "events-entertainment",
-  "professional-services",
-  "health-wellness",
-  "real-estate",
-  "shopping",
-] as const;
-/** Legacy type kept for seeding helpers and existing tests. */
+/** Category slugs are sourced at runtime from the `category` DB table
+ *  (admin-editable via /admin/settings/categories). The hardcoded
+ *  VALID_CATEGORIES const that used to live here was removed on
+ *  2026-06-16 — see .mstack/plans/2026-06-16-category-drift-fix.md.
+ *  This stays as `string` because Zod can't validate against a runtime
+ *  catalog; the `category` table's slug uniqueness + the rename guard
+ *  in updateCategoryOp keep the contract enforced. */
 export type BusinessCategory = string;
 
 export const BusinessTierSchema = z.enum(VALID_TIERS);

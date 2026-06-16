@@ -7,13 +7,12 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { City } from "@aira/validators/cities"
+import type { Category } from "@aira/validators/categories"
 import type { Business } from "@aira/validators/businesses"
 import {
-  VALID_CATEGORIES,
   VALID_BUSINESS_TYPES,
   VALID_YEARS_OPERATING,
 } from "@aira/validators/businesses"
-import { getCategoryMeta } from "@/features/listings"
 import { PlacesAddressInput } from "./places-address-input"
 
 function slugify(name: string): string {
@@ -40,18 +39,25 @@ const YEARS_OPERATING_LABELS: Record<string, string> = {
 
 interface BusinessCreateFormProps {
   cities: City[]
+  /** Active root categories for the current city, fetched server-side
+   *  via listCategoriesOp. Source of truth for the Category dropdown
+   *  — admin-created entries appear here automatically. */
+  categories: Category[]
 }
 
 interface CreateResult {
   business: Business
 }
 
-export function BusinessCreateForm({ cities }: BusinessCreateFormProps) {
+export function BusinessCreateForm({
+  cities,
+  categories,
+}: BusinessCreateFormProps) {
   const router = useRouter()
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
-  const [category, setCategory] = useState<string>(VALID_CATEGORIES[0])
+  const [category, setCategory] = useState<string>(categories[0]?.slug ?? "")
   const [description, setDescription] = useState("")
   const [businessType, setBusinessType] = useState("")
   const [yearsOperating, setYearsOperating] = useState("")
@@ -128,19 +134,26 @@ export function BusinessCreateForm({ cities }: BusinessCreateFormProps) {
             slugify() above and POSTed as part of the create payload. */}
         <div className="space-y-1.5">
           <Label htmlFor="bc-category">Category *</Label>
-          <select
-            id="bc-category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-            required
-          >
-            {VALID_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {getCategoryMeta(c).displayName}
-              </option>
-            ))}
-          </select>
+          {categories.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No categories defined yet — create one in Settings →
+              Categories first.
+            </p>
+          ) : (
+            <select
+              id="bc-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              required
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 

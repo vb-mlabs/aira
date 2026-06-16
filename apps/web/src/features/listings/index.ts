@@ -7,7 +7,7 @@ export type {
   BusinessTier,
   BusinessCategory,
 } from "./types"
-export { VALID_TIERS, VALID_CATEGORIES } from "./types"
+export { VALID_TIERS } from "./types"
 
 export {
   CATEGORY_META,
