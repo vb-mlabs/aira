@@ -14,7 +14,7 @@ import Link from "next/link"
 import { brand } from "@aira/config"
 import { apiServerFetch } from "@aira/api/server"
 import { requireUser } from "@/lib/auth/server"
-import { listCategoriesOp } from "@/server/operations/categories"
+import { listCategoriesTreeOp } from "@/server/operations/categories"
 import { NotificationBell } from "@/features/notifications"
 import { AppSidebar } from "./_components/app-sidebar"
 import { BottomTabBar } from "./_components/bottom-tab-bar"
@@ -28,9 +28,13 @@ export default async function AppLayout({
 }) {
   const [user, categoriesRes] = await Promise.all([
     requireUser(),
-    apiServerFetch(listCategoriesOp, { input: {} }),
+    // Tree variant so the sidebar can render subcategories under their
+    // parent. listCategoriesTreeOp returns roots + children together;
+    // the prior listCategoriesOp returned roots only, which hid
+    // subcategories from end-users entirely.
+    apiServerFetch(listCategoriesTreeOp, { input: {} }),
   ])
-  const categories = categoriesRes.data?.categories ?? []
+  const categoryTree = categoriesRes.data?.tree ?? []
   const role = (user as { role?: string }).role ?? "end_user"
   const isAdmin = role === "admin" || role === "super_admin"
 
@@ -38,13 +42,13 @@ export default async function AppLayout({
     <div className="min-h-full">
       {/* Desktop sidebar — fixed full-height on the left. */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[280px] md:flex-col md:overflow-hidden">
-        <AppSidebar categories={categories} isAdmin={isAdmin} />
+        <AppSidebar tree={categoryTree} isAdmin={isAdmin} />
       </aside>
 
       <div className="flex min-h-full flex-col md:pl-[280px]">
         {/* Mobile top header. */}
         <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
-          <MobileSidebar categories={categories} isAdmin={isAdmin} />
+          <MobileSidebar tree={categoryTree} isAdmin={isAdmin} />
           <Link
             href="/home"
             className="font-display text-lg font-semibold text-foreground"

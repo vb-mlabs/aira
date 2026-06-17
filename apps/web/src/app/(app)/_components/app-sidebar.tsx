@@ -5,11 +5,18 @@
 // --sidebar surface token. Used:
 //   - As a fixed 280px column on >= md (rendered by (app)/layout.tsx)
 //   - Slid in as a drawer on < md (wrapped by MobileSidebar)
+//
+// Categories render as a tree: a root with no children renders as a
+// flat row; a root with children renders as an expandable group with
+// indented child rows below. The group auto-opens when the current
+// route lives inside it.
 
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 import {
+  ChevronDown,
   ChevronRight,
   Globe,
   Home,
@@ -20,18 +27,23 @@ import {
 import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import { CATEGORIES_ORDERED, getCategoryMeta } from "@/features/listings"
-import type { Category } from "@aira/validators/categories"
+import type {
+  Category,
+  CategoryTreeOutput,
+} from "@aira/validators/categories"
 
 interface AppSidebarProps {
   /** Render the close button in the header (mobile drawer mode). */
   onClose?: () => void
-  /** DB categories for Atlanta. When provided replaces static CATEGORIES_ORDERED. */
-  categories?: Category[]
+  /** Category tree for the current city. Each node is a root plus its
+   *  children. When omitted/empty the sidebar falls back to the static
+   *  CATEGORIES_ORDERED map (which is flat). */
+  tree?: CategoryTreeOutput["tree"]
   /** Show the Admin link at the bottom of the footer. */
   isAdmin?: boolean
 }
 
-export function AppSidebar({ onClose, categories, isAdmin }: AppSidebarProps) {
+export function AppSidebar({ onClose, tree, isAdmin }: AppSidebarProps) {
   const pathname = usePathname() ?? ""
 
   // Each row's active state is "starts-with" matching so nested listing
@@ -39,7 +51,7 @@ export function AppSidebar({ onClose, categories, isAdmin }: AppSidebarProps) {
   const isActive = (href: string) =>
     href === "/home" ? pathname === "/home" : pathname.startsWith(href)
 
-  const useFallback = !categories || categories.length === 0
+  const useFallback = !tree || tree.length === 0
 
   return (
     <aside
@@ -99,15 +111,24 @@ export function AppSidebar({ onClose, categories, isAdmin }: AppSidebarProps) {
                 active={isActive(`/listings/${cat.slug}`)}
               />
             ))
-          : categories.map((cat) => (
-              <SidebarRow
-                key={cat.id}
-                href={`/listings/${cat.slug}`}
-                label={cat.name}
-                icon={getCategoryMeta(cat.slug).icon}
-                active={isActive(`/listings/${cat.slug}`)}
-              />
-            ))}
+          : tree.map(({ root, children: subs }) =>
+              subs.length === 0 ? (
+                <SidebarRow
+                  key={root.id}
+                  href={`/listings/${root.slug}`}
+                  label={root.name}
+                  icon={getCategoryMeta(root.slug).icon}
+                  active={isActive(`/listings/${root.slug}`)}
+                />
+              ) : (
+                <CategoryGroup
+                  key={root.id}
+                  root={root}
+                  subs={subs}
+                  isActive={isActive}
+                />
+              ),
+            )}
       </nav>
 
       {isAdmin && (
@@ -176,5 +197,87 @@ function SidebarRow({ href, label, icon: Icon, active }: SidebarRowProps) {
         aria-hidden
       />
     </Link>
+  )
+}
+
+interface CategoryGroupProps {
+  root: Category
+  subs: Category[]
+  isActive: (href: string) => boolean
+}
+
+/**
+ * Collapsible parent row + indented children. The parent itself is a
+ * link (tapping the row still navigates to /listings/<parent-slug>) so
+ * users who don't care about the children can ignore the disclosure.
+ * The chevron is a separate toggle button to keep the link target and
+ * the expand affordance from overlapping.
+ */
+function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
+  const Icon = getCategoryMeta(root.slug).icon
+  const parentActive = isActive(`/listings/${root.slug}`)
+  const anyChildActive = subs.some((c) => isActive(`/listings/${c.slug}`))
+  // Auto-open when the route lives inside this group; the user can
+  // still collapse manually once mounted.
+  const [open, setOpen] = useState(parentActive || anyChildActive)
+
+  return (
+    <div>
+      <div
+        className={cn(
+          "flex items-center border-b border-sidebar-border text-sm transition-colors hover:bg-sidebar-foreground/5",
+          (parentActive || anyChildActive) && "bg-sidebar-foreground/10",
+        )}
+      >
+        <Link
+          href={`/listings/${root.slug}`}
+          className={cn(
+            "flex flex-1 items-center gap-3 px-5 py-2.5",
+            parentActive && "font-bold",
+          )}
+          aria-current={parentActive ? "page" : undefined}
+        >
+          <Icon
+            className="size-4 flex-shrink-0 opacity-90"
+            aria-hidden
+          />
+          <span className="flex-1 truncate">{root.name}</span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={open ? `Hide ${root.name} subcategories` : `Show ${root.name} subcategories`}
+          className="flex size-9 shrink-0 items-center justify-center pr-3 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+        >
+          {open ? (
+            <ChevronDown className="size-3.5" aria-hidden />
+          ) : (
+            <ChevronRight className="size-3.5" aria-hidden />
+          )}
+        </button>
+      </div>
+      {open &&
+        subs.map((sub) => {
+          const childActive = isActive(`/listings/${sub.slug}`)
+          return (
+            <Link
+              key={sub.id}
+              href={`/listings/${sub.slug}`}
+              className={cn(
+                "flex items-center gap-3 border-b border-sidebar-border py-2 pl-12 pr-5 text-xs transition-colors hover:bg-sidebar-foreground/5",
+                childActive && "bg-sidebar-foreground/10 font-bold",
+              )}
+              aria-current={childActive ? "page" : undefined}
+            >
+              <span
+                aria-hidden
+                className="size-1.5 shrink-0 rounded-full bg-sidebar-foreground/40"
+              />
+              <span className="flex-1 truncate">{sub.name}</span>
+            </Link>
+          )
+        })}
+    </div>
   )
 }
