@@ -40,6 +40,11 @@ export const NotificationBodySchema = z.discriminatedUnion("kind", [
     body_preview: z.string(),
     is_reply: z.boolean(),
   }),
+  z.object({
+    kind: z.literal("business_broadcast"),
+    title: z.string(),
+    message: z.string(),
+  }),
 ]);
 export type NotificationBodyPublic = z.infer<typeof NotificationBodySchema>;
 

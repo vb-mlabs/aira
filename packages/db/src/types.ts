@@ -67,5 +67,15 @@ export type NotificationBody =
        *  for each. */
       is_reply: boolean
     }
+  | {
+      /** G1 — admin-initiated fan-out to every linked business owner.
+       *  One row per recipient at send-time; targeting + de-dupe lives
+       *  in services/admin/sendBusinessOwnerBroadcast. href is fixed at
+       *  /account/listings (owner's hub) in G1 — no per-broadcast
+       *  customisation. */
+      kind: "business_broadcast"
+      title: string
+      message: string
+    }
 
 export type NotificationKind = NotificationBody["kind"]

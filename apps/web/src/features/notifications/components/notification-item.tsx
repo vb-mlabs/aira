@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { ApiError } from "@aira/api"
+import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import type { NotificationRow } from "@aira/validators/notifications"
 import { apiClient } from "@/lib/api-client"
@@ -111,6 +112,12 @@ function renderBody(body: NotificationRow["body"]): RenderedBody {
           : `${body.commenter_name} commented on your post`,
         message: body.body_preview,
         href: `/community/${body.post_id}`,
+      }
+    case "business_broadcast":
+      return {
+        title: `${brand.name} team: ${body.title}`,
+        message: body.message,
+        href: "/account/listings",
       }
   }
 }

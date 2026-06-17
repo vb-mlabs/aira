@@ -2,6 +2,7 @@ import * as React from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { brand } from "@aira/config";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { useToast } from "../../components/ui/Toast";
 import { EmptyNotificationsIllustration } from "../../lib/illustrations/empty-notifications";
@@ -26,6 +27,8 @@ function renderPreview(body: NotificationRow["body"]): string {
       return body.is_reply
         ? `${body.commenter_name} replied to your comment`
         : `${body.commenter_name} commented on your post`;
+    case "business_broadcast":
+      return `${brand.name} team: ${body.title}`;
   }
 }
 
