@@ -835,6 +835,216 @@ export async function deletePost(
   return { ok: true }
 }
 
+// ─── Author-side: list / edit / delete own posts ───────────────────────────
+
+/**
+ * Lists the caller's own posts across all statuses (pending + approved +
+ * expired + rejected), newest first. Returns AdminPostRow so the author
+ * sees their own rejected_reason. No pagination in v1 — most users will
+ * have 0 or 1 active post at a time given the 1-active-post limit; only
+ * historic rejected/expired rows accumulate.
+ */
+export async function listMyPosts(
+  db: Database,
+  ctx: CallerContext,
+): Promise<{ items: AdminPostRow[] }> {
+  const rows = await db
+    .select(POST_SELECT)
+    .from(communityPost)
+    .leftJoin(user, eq(user.id, communityPost.user_id))
+    .where(eq(communityPost.user_id, ctx.userId))
+    .orderBy(desc(communityPost.created_at))
+
+  return { items: rows.map(toAdminPostRow) }
+}
+
+/**
+ * Author-side edit. Subset of admin editPost: status/admin-only fields
+ * are not accepted (the validator already strips them; this is defence
+ * in depth). The big difference is the "revert to pending" rule —
+ * when an approved row is edited with at least one substantive field
+ * change, status flips back to pending and approved_at/expires_at are
+ * cleared. A separate audit row (community.post_reverted_to_pending)
+ * captures the transition; community.post_edited captures the diff.
+ * Both write inside the same transaction.
+ *
+ * Edits on expired/rejected rows are rejected (the author should
+ * delete + re-post, since those statuses imply the lifecycle is over).
+ */
+export async function editMyPost(
+  db: Database,
+  ctx: CallerContext,
+  args: {
+    id: string
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+  },
+): Promise<{ post: AdminPostRow }> {
+  const [before] = await db
+    .select({
+      title: communityPost.title,
+      body: communityPost.body,
+      phone: communityPost.phone,
+      email: communityPost.email,
+      status: communityPost.status,
+      user_id: communityPost.user_id,
+      approved_at: communityPost.approved_at,
+      expires_at: communityPost.expires_at,
+    })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!before) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+  if (before.user_id !== ctx.userId) {
+    throw new ApiError({
+      status: 403,
+      code: "community.forbidden",
+      message: "You can only edit your own posts.",
+    })
+  }
+  if (before.status === "expired" || before.status === "rejected") {
+    throw ApiError.badRequest(
+      "community.post_not_editable",
+      "Expired or rejected posts can't be edited. Delete and create a new one.",
+    )
+  }
+
+  // Field diffs — same shape as admin editPost. Trimmed-empty strings
+  // for nullable text columns normalise to null in the audit snapshot.
+  const update: {
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+    status?: "pending"
+    approved_at?: null
+    expires_at?: null
+  } = {}
+  const fields: Array<"title" | "body" | "phone" | "email"> = []
+  const meta: {
+    title?: { from: string; to: string }
+    body?: { from: string | null; to: string | null }
+    phone?: { from: string | null; to: string | null }
+    email?: { from: string | null; to: string | null }
+  } = {}
+
+  if (args.title !== undefined && args.title !== before.title) {
+    update.title = args.title
+    fields.push("title")
+    meta.title = { from: before.title, to: args.title }
+  }
+  if (args.body !== undefined) {
+    const next = args.body === null || args.body.length === 0 ? null : args.body
+    if (next !== before.body) {
+      update.body = next
+      fields.push("body")
+      meta.body = { from: before.body, to: next }
+    }
+  }
+  if (args.phone !== undefined) {
+    const next =
+      args.phone === null || args.phone.length === 0 ? null : args.phone
+    if (next !== before.phone) {
+      update.phone = next
+      fields.push("phone")
+      meta.phone = { from: before.phone, to: next }
+    }
+  }
+  if (args.email !== undefined) {
+    const next =
+      args.email === null || args.email.length === 0 ? null : args.email
+    if (next !== before.email) {
+      update.email = next
+      fields.push("email")
+      meta.email = { from: before.email, to: next }
+    }
+  }
+
+  // No substantive change → return the row as-is rather than write an
+  // audit row + flip status for nothing.
+  if (fields.length === 0) {
+    const fresh = await getAdminRow(db, args.id)
+    return { post: fresh }
+  }
+
+  const reverting = before.status === "approved"
+  if (reverting) {
+    update.status = "pending"
+    update.approved_at = null
+    update.expires_at = null
+  }
+
+  await db.transaction(async (tx) => {
+    const audit = createAudit(tx)
+    await audit({
+      actorId: ctx.userId,
+      action: "community.post_edited",
+      target: { type: "community_post", id: args.id },
+      meta: { kind: "community.post_edited", fields, ...meta },
+      client: auditClient(ctx),
+    })
+    if (reverting) {
+      await audit({
+        actorId: ctx.userId,
+        action: "community.post_reverted_to_pending",
+        target: { type: "community_post", id: args.id },
+        meta: {
+          kind: "community.post_reverted_to_pending",
+          from: "approved",
+          to: "pending",
+          prev_approved_at:
+            before.approved_at?.toISOString() ?? new Date(0).toISOString(),
+          prev_expires_at: before.expires_at?.toISOString() ?? null,
+        },
+        client: auditClient(ctx),
+      })
+    }
+    await tx
+      .update(communityPost)
+      .set(update)
+      .where(eq(communityPost.id, args.id))
+  })
+
+  return { post: await getAdminRow(db, args.id) }
+}
+
+/**
+ * Author-side delete. Thin ownership guard then delegates to deletePost
+ * (admin path) so the existing FK cascade + audit-snapshot logic stays
+ * the single source of truth. The author's own delete writes the same
+ * `community.post_deleted` audit kind — the actor on the audit row is
+ * how downstream consumers tell author-delete from admin-delete.
+ */
+export async function deleteMyPost(
+  db: Database,
+  ctx: CallerContext,
+  args: { id: string },
+): Promise<{ ok: true }> {
+  const [row] = await db
+    .select({ user_id: communityPost.user_id })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!row) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+  if (row.user_id !== ctx.userId) {
+    throw new ApiError({
+      status: 403,
+      code: "community.forbidden",
+      message: "You can only delete your own posts.",
+    })
+  }
+
+  return deletePost(db, ctx, args)
+}
+
 /**
  * Admin-only respondent list. Mirrors listInterests but skips the
  * author-only guard — the operation's `permission: "admin"` gate is the

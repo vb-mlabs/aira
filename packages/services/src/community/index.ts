@@ -19,6 +19,9 @@ export {
   deletePost,
   adminListInterests,
   getPostAuthorForEmail,
+  listMyPosts,
+  editMyPost,
+  deleteMyPost,
 } from "./service"
 
 export type {
