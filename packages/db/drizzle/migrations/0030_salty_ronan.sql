@@ -1,0 +1,3 @@
+ALTER TABLE "businesses" ADD COLUMN "owner_user_id" text;--> statement-breakpoint
+ALTER TABLE "businesses" ADD CONSTRAINT "businesses_owner_user_id_user_id_fk" FOREIGN KEY ("owner_user_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "businesses_owner_user_idx" ON "businesses" USING btree ("owner_user_id") WHERE "businesses"."owner_user_id" IS NOT NULL;

@@ -26,11 +26,22 @@
 // 5. `updated_at` uses Drizzle's `$onUpdate` so any ORM-level update
 //    refreshes the column without raw SQL triggers.
 //
+// 6. `owner_user_id` is the nullable FK to user.id used for admin
+//    reachability (G1). ON DELETE SET NULL so anonymise-in-place cleanly
+//    detaches without taking the business row. Owner mutations flow only
+//    through the audited assignBusinessOwner / unassignBusinessOwner
+//    service path; the column is intentionally NOT in
+//    BusinessUpdateInputSchema so generic admin edits cannot mutate it.
+//
 // Indexes:
 //   - businesses_category_tier_idx (category, tier) — getBusinessesByCategory
 //     does WHERE category = ? ORDER BY tier; composite covers both.
 //   - businesses_tier_idx (tier) — getFeaturedBusinesses pulls tier1+tier2
 //     across all categories.
+//   - businesses_owner_user_idx (owner_user_id, partial) — supports the
+//     "my listings" query, the admin list "Has owner" filter, and the
+//     broadcast targeting query. Partial on the linked subset since the
+//     vast majority of rows are null-owned.
 
 import {
   pgTable,
@@ -43,6 +54,7 @@ import {
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 import { cities } from "./cities"
+import { user } from "./auth"
 
 export const businesses = pgTable(
   "businesses",
@@ -78,6 +90,13 @@ export const businesses = pgTable(
     business_type: text("business_type"),
     /** One of VALID_YEARS_OPERATING — validated in Zod layer. */
     years_operating: text("years_operating"),
+    /** Nullable FK to user.id for admin reachability (G1). Owner mutations
+     *  flow only through the audited assign / unassign service path; the
+     *  column is NOT in BusinessUpdateInputSchema. ON DELETE SET NULL so
+     *  anonymise-in-place cleanly detaches. */
+    owner_user_id: text("owner_user_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
     /** Soft-delete tombstone. NULL = active; non-NULL = archived (timestamp
      *  of the archive action). Public reads filter on `IS NULL`; admin reads
      *  can opt into seeing archived rows. Hard-purge cron is S5 (F14). */
@@ -96,6 +115,12 @@ export const businesses = pgTable(
     index("businesses_active_idx")
       .on(table.category, table.tier)
       .where(sql`${table.deleted_at} IS NULL`),
+    // Partial index on the linked subset — supports the my-listings query,
+    // admin "Has owner" filter, and broadcast targeting. Most rows are
+    // null-owned, so the partial form keeps the index small.
+    index("businesses_owner_user_idx")
+      .on(table.owner_user_id)
+      .where(sql`${table.owner_user_id} IS NOT NULL`),
     check(
       "businesses_rating_check",
       sql`${table.rating} IS NULL OR (${table.rating} >= 0 AND ${table.rating} <= 5)`,
