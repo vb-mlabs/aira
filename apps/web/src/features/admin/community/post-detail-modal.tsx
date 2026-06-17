@@ -1,6 +1,6 @@
 "use client"
 
-// F20 v2 — full-detail popup shown when admin clicks a request row.
+// F20 v2 — full-detail popup shown when admin clicks a post row.
 //
 // Shows author, dates, full body, rejected reason, and the respondent
 // list (admin variant — every name + note). For pending posts the
@@ -13,7 +13,7 @@
 import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
-import { Check, MessageSquare, X } from "lucide-react"
+import { AtSign, Check, MessageSquare, Phone, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Label } from "@aira/ui-web/label"
@@ -123,7 +123,7 @@ export function PostDetailModal({
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-4">
             <div className="min-w-0">
               <Dialog.Title className="font-display text-lg text-foreground">
-                Request
+                Post
               </Dialog.Title>
               <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
                 Submitted {formatDateTime(post.created_at)} ·{" "}
@@ -154,6 +154,38 @@ export function PostDetailModal({
               </p>
             )}
 
+            {(post.phone || post.email) && (
+              <section
+                aria-labelledby="admin-contact-heading"
+                className="space-y-1.5 rounded-md border border-border bg-muted/20 px-4 py-3"
+              >
+                <h3
+                  id="admin-contact-heading"
+                  className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+                >
+                  Contact
+                </h3>
+                {post.phone && (
+                  <a
+                    href={`tel:${post.phone}`}
+                    className="flex items-center gap-2 text-sm text-foreground hover:text-primary"
+                  >
+                    <Phone className="size-4 text-muted-foreground" aria-hidden />
+                    {post.phone}
+                  </a>
+                )}
+                {post.email && (
+                  <a
+                    href={`mailto:${post.email}`}
+                    className="flex items-center gap-2 text-sm text-foreground hover:text-primary"
+                  >
+                    <AtSign className="size-4 text-muted-foreground" aria-hidden />
+                    {post.email}
+                  </a>
+                )}
+              </section>
+            )}
+
             {post.rejected_reason && (
               <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-foreground">
                 <span className="font-medium">Rejected reason: </span>
@@ -167,7 +199,7 @@ export function PostDetailModal({
                 label="Expires"
                 value={post.expires_at ? formatDate(post.expires_at) : "—"}
               />
-              <Cell label="Helpers" value={String(post.interest_count)} />
+              <Cell label="Interested" value={String(post.interest_count)} />
               <Cell
                 label="Approved"
                 value={post.approved_at ? formatDate(post.approved_at) : "—"}
@@ -312,7 +344,7 @@ export function PostDetailModal({
                       "placeholder:text-muted-foreground",
                       "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring",
                     )}
-                    placeholder="Tone is too commercial; please rephrase as a request, not an offer."
+                    placeholder="Tone is too commercial; please soften the language before resubmitting."
                   />
                   <div className="flex items-center justify-end gap-2">
                     <Button

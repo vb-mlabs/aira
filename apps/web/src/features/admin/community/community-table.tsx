@@ -32,18 +32,18 @@ const EMPTY_COPY: Record<
   { title: string; description: string }
 > = {
   all: {
-    title: "No requests yet",
+    title: "No posts yet",
     description:
-      "When a community member submits a request, it shows up here for moderation.",
+      "When a community member submits a post, it shows up here for moderation.",
   },
   pending: {
     title: "Nothing waiting for review",
     description:
-      "When a community member submits a request, it shows up here for moderation.",
+      "When a community member submits a post, it shows up here for moderation.",
   },
   approved: {
     title: "No approved posts",
-    description: "Approve a pending request to see it land here.",
+    description: "Approve a pending post to see it land here.",
   },
   expired: {
     title: "No expired posts yet",
@@ -128,7 +128,7 @@ export function CommunityTable({
                 }}
                 tabIndex={0}
                 role="button"
-                aria-label={`View request ${post.title}`}
+                aria-label={`View post ${post.title}`}
                 className="cursor-pointer hover:bg-muted/20 focus:bg-muted/30 focus:outline-none"
               >
                 <td className="px-4 py-3">
