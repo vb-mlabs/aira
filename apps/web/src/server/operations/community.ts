@@ -185,6 +185,8 @@ export const editCommunityPostOp = defineOperation({
       id: input.id,
       title: input.title,
       body: input.body,
+      phone: input.phone,
+      email: input.email,
     }),
 })
 

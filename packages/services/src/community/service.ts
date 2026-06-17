@@ -665,26 +665,37 @@ export async function getAdminPostStatusCounts(
 // ─── Admin: post edit / delete / respondent visibility (F20 v2) ────────────
 
 /**
- * Edit the title and/or body of a post regardless of status. Status is
- * intentionally NOT changed by an edit (locked review decision — keep
- * approve/reject as the only state-change actions). At least one of
- * title or body must be defined; the validator guards this at the
- * boundary.
+ * Edit the title, body, phone, and/or email of a post regardless of
+ * status. Status is intentionally NOT changed by an edit (locked review
+ * decision — keep approve/reject as the only state-change actions).
+ * At least one of the fields must be defined; the validator guards this
+ * at the boundary.
  *
- * Body of "" (empty after trim) or explicit null both clear the body.
- * Audit row written BEFORE the update inside one transaction so a failed
- * audit rolls back the change.
+ * Body/phone/email of "" (empty after trim) or explicit null all clear
+ * the field. Audit row written BEFORE the update inside one transaction
+ * so a failed audit rolls back the change.
  */
 export async function editPost(
   db: Database,
   ctx: CallerContext,
-  args: { id: string; title?: string; body?: string | null },
+  args: {
+    id: string
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+  },
 ): Promise<{ post: AdminPostRow }> {
   // Capture the row before the transaction so we can short-circuit on
   // not-found without opening a tx — and so the before/after pair has a
   // consistent snapshot to compare against.
   const [before] = await db
-    .select({ title: communityPost.title, body: communityPost.body })
+    .select({
+      title: communityPost.title,
+      body: communityPost.body,
+      phone: communityPost.phone,
+      email: communityPost.email,
+    })
     .from(communityPost)
     .where(eq(communityPost.id, args.id))
     .limit(1)
@@ -694,13 +705,20 @@ export async function editPost(
   }
 
   // Build the field set + per-field before/after pairs. The trimmed-empty
-  // body case is normalised to null here so the audit captures the canonical
-  // "cleared" state.
-  const update: { title?: string; body?: string | null } = {}
-  const fields: Array<"title" | "body"> = []
+  // string case is normalised to null here so the audit captures the
+  // canonical "cleared" state.
+  const update: {
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+  } = {}
+  const fields: Array<"title" | "body" | "phone" | "email"> = []
   const meta: {
     title?: { from: string; to: string }
     body?: { from: string | null; to: string | null }
+    phone?: { from: string | null; to: string | null }
+    email?: { from: string | null; to: string | null }
   } = {}
 
   if (args.title !== undefined && args.title !== before.title) {
@@ -715,6 +733,26 @@ export async function editPost(
       update.body = next
       fields.push("body")
       meta.body = { from: before.body, to: next }
+    }
+  }
+
+  if (args.phone !== undefined) {
+    const next =
+      args.phone === null || args.phone.length === 0 ? null : args.phone
+    if (next !== before.phone) {
+      update.phone = next
+      fields.push("phone")
+      meta.phone = { from: before.phone, to: next }
+    }
+  }
+
+  if (args.email !== undefined) {
+    const next =
+      args.email === null || args.email.length === 0 ? null : args.email
+    if (next !== before.email) {
+      update.email = next
+      fields.push("email")
+      meta.email = { from: before.email, to: next }
     }
   }
 

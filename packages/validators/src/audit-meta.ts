@@ -103,9 +103,11 @@ export type AuditMeta =
     }
   | {
       kind: "community.post_edited";
-      fields: Array<"title" | "body">;
+      fields: Array<"title" | "body" | "phone" | "email">;
       title?: { from: string; to: string };
       body?: { from: string | null; to: string | null };
+      phone?: { from: string | null; to: string | null };
+      email?: { from: string | null; to: string | null };
     }
   // S6 — F23′ admin renewal follow-up queue. One row per call/attempt.
   // target.id = business_subscription.id. Single action kind + outcome
