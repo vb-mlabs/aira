@@ -315,3 +315,79 @@ export const AdminListInterestsInputSchema = z
   .object({ id: z.string().min(1) })
   .strict();
 export type AdminListInterestsInput = z.infer<typeof AdminListInterestsInputSchema>;
+
+// ─── Comments (F20 v3 — thread-style discussion) ────────────────────────────
+
+export const COMMUNITY_COMMENT_BODY_MAX = 1000;
+
+export const CommentStatusSchema = z.enum(["visible", "hidden"]);
+export type CommentStatus = z.infer<typeof CommentStatusSchema>;
+
+/** Public wire shape for a single comment. Hidden rows project null
+ *  body + null user_id + null user_name (the body never leaves the
+ *  service layer for non-admin viewers). */
+export const CommentRowSchema = z.object({
+  id: z.string(),
+  post_id: z.string(),
+  parent_id: z.string().nullable(),
+  user_id: z.string().nullable(),
+  user_name: z.string().nullable(),
+  body: z.string().nullable(),
+  status: CommentStatusSchema,
+  /** ISO 8601 */
+  created_at: z.string(),
+});
+export type CommentRow = z.infer<typeof CommentRowSchema>;
+
+export const CommentThreadNodeSchema = CommentRowSchema.extend({
+  replies: z.array(CommentRowSchema),
+});
+export type CommentThreadNode = z.infer<typeof CommentThreadNodeSchema>;
+
+export const ListCommentsInputSchema = z
+  .object({ post_id: z.string().min(1) })
+  .strict();
+export type ListCommentsInput = z.infer<typeof ListCommentsInputSchema>;
+
+export const ListCommentsOutputSchema = z.object({
+  items: z.array(CommentThreadNodeSchema),
+});
+export type ListCommentsOutput = z.infer<typeof ListCommentsOutputSchema>;
+
+export const CreateCommentInputSchema = z
+  .object({
+    post_id: z.string().min(1),
+    body: z.string().trim().min(1).max(COMMUNITY_COMMENT_BODY_MAX),
+    parent_id: z.string().min(1).optional(),
+  })
+  .strict();
+export type CreateCommentInput = z.infer<typeof CreateCommentInputSchema>;
+
+export const CreateCommentOutputSchema = z.object({
+  comment: CommentRowSchema,
+});
+export type CreateCommentOutput = z.infer<typeof CreateCommentOutputSchema>;
+
+export const DeleteCommentInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type DeleteCommentInput = z.infer<typeof DeleteCommentInputSchema>;
+
+export const DeleteCommentOutputSchema = z.object({
+  ok: z.literal(true),
+});
+export type DeleteCommentOutput = z.infer<typeof DeleteCommentOutputSchema>;
+
+export const AdminModerateCommentInputSchema = z
+  .object({
+    id: z.string().min(1),
+    action: z.enum(["hide", "restore"]),
+  })
+  .strict();
+export type AdminModerateCommentInput = z.infer<typeof AdminModerateCommentInputSchema>;
+
+export const AdminModerateCommentOutputSchema = z.object({
+  ok: z.literal(true),
+  status: CommentStatusSchema,
+});
+export type AdminModerateCommentOutput = z.infer<typeof AdminModerateCommentOutputSchema>;
