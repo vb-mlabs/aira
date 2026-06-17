@@ -24,6 +24,8 @@ import {
   UserDetailOutputSchema,
   ListAuditInputSchema,
   ListAuditOutputSchema,
+  BusinessOwnerBroadcastInputSchema,
+  BusinessOwnerBroadcastOutputSchema,
 } from "@aira/validators/admin"
 import { auth } from "@/lib/auth"
 import { logger } from "@/lib/logger"
@@ -149,4 +151,16 @@ export const sendAdminNotificationOp = defineOperation({
       message,
       href,
     }),
+})
+
+/** G1 — fan out one in-app notification to every linked, non-banned
+ *  business owner. In-app only (no Postmark for broadcasts in this
+ *  sprint). Empty recipient sets still leave an audit row. */
+export const sendBusinessOwnerBroadcastOp = defineOperation({
+  name: "admin.businesses.broadcast",
+  input: BusinessOwnerBroadcastInputSchema,
+  output: BusinessOwnerBroadcastOutputSchema,
+  permission: "admin",
+  handler: (db, ctx, args) =>
+    admin.sendBusinessOwnerBroadcast(db, ctx, args),
 })
