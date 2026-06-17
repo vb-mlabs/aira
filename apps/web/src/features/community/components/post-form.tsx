@@ -1,9 +1,11 @@
 "use client"
 
-// "Post on AIRA" form. Mounted from the board page as a Dialog when
-// the user taps "Post on AIRA". Submits to POST
-// /api/v1/community/posts. Surfaces the 1-active-post limit error (409)
-// inline so the user understands why their submit was rejected.
+// "Post on AIRA" create form. Mounted from the board page as a Dialog.
+// Submits to POST /api/v1/community/posts and redirects the author to
+// /account/posts?just_posted=1 so they see their new pending row with a
+// "Waiting for moderation" banner.
+//
+// Shares the four field rows with PostEditForm via <PostFields>.
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
@@ -12,24 +14,18 @@ import { Plus, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
-import { Input } from "@aira/ui-web/input"
-import { Label } from "@aira/ui-web/label"
-import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
 import type { PostRow } from "../types"
+import { PostFields } from "./post-fields"
 
-const TITLE_MAX = 120
-const BODY_MAX = 1000
-const PHONE_MAX = 30
-
-interface PostFormProps {
+interface PostCreateFormProps {
   /** Optional trigger label; defaults to "Post on <brand>". */
   triggerLabel?: string
 }
 
-export function PostForm({
+export function PostCreateForm({
   triggerLabel = `Post on ${brand.name}`,
-}: PostFormProps) {
+}: PostCreateFormProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
@@ -65,6 +61,10 @@ export function PostForm({
         })
         reset()
         setOpen(false)
+        // Land on /account/posts so the new pending row is immediately
+        // visible — solves the "did my post submit?" gap that prompted
+        // this feature.
+        router.push("/account/posts?just_posted=1")
         router.refresh()
       } catch (err) {
         if (err instanceof ApiError) {
@@ -117,73 +117,18 @@ export function PostForm({
             noValidate
             className="space-y-5 overflow-y-auto px-6 py-5"
           >
-            <div className="space-y-1.5">
-              <Label htmlFor="community-post-title">Title</Label>
-              <Input
-                id="community-post-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={TITLE_MAX}
-                placeholder="Room for rent in Sandy Springs, weekend tutoring, looking for a paediatrician…"
-                autoFocus
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                {title.length} / {TITLE_MAX}
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="community-post-body">
-                Description (optional)
-              </Label>
-              <textarea
-                id="community-post-body"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                maxLength={BODY_MAX}
-                rows={4}
-                className={cn(
-                  "block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs",
-                  "placeholder:text-muted-foreground",
-                  "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring",
-                )}
-                placeholder="Any extra detail neighbours should know — price, availability, what you're looking for…"
-              />
-              <p className="text-xs text-muted-foreground">
-                {body.length} / {BODY_MAX}
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="community-post-phone">Phone (optional)</Label>
-                <Input
-                  id="community-post-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  maxLength={PHONE_MAX}
-                  placeholder="(404) 555-0100"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Visible to other signed-in members.
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="community-post-email">Email (optional)</Label>
-                <Input
-                  id="community-post-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Visible to other signed-in members.
-                </p>
-              </div>
-            </div>
+            <PostFields
+              idPrefix="community-post"
+              title={title}
+              body={body}
+              phone={phone}
+              email={email}
+              onTitle={setTitle}
+              onBody={setBody}
+              onPhone={setPhone}
+              onEmail={setEmail}
+              autoFocusTitle
+            />
 
             {error && (
               <p role="alert" className="text-sm text-destructive">
@@ -213,3 +158,7 @@ export function PostForm({
     </Dialog.Root>
   )
 }
+
+// Backwards-compat alias — `apps/web/src/app/(app)/community/page.tsx`
+// and any other call sites that imported `PostForm` keep working.
+export { PostCreateForm as PostForm }
