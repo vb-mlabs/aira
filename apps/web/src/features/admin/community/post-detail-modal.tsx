@@ -23,6 +23,7 @@ import type {
   AdminPostRow,
   InterestRow,
 } from "@aira/validators/community"
+import { CommentModeration } from "./comment-moderation"
 
 interface PostDetailModalProps {
   post: AdminPostRow
@@ -261,6 +262,8 @@ export function PostDetailModal({
                 </ul>
               )}
             </section>
+
+            <CommentModeration postId={post.id} />
           </div>
 
           {isPending && (
