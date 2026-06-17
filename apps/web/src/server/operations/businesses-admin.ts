@@ -10,6 +10,7 @@ import "server-only"
 import { and, desc, eq, gte, lte, inArray, sql } from "drizzle-orm"
 import { businessSubscriptions } from "@aira/db/schema"
 import { businesses as businessesService } from "@aira/services"
+import { brand } from "@aira/config"
 import {
   BusinessCreateInputSchema,
   BusinessUpdateInputSchema,
@@ -21,15 +22,25 @@ import {
   BusinessDetailInputSchema,
   BusinessDetailOutputSchema,
   BusinessSchema,
+  BusinessOwnerSchema,
+  BusinessAdminDetailOutputSchema,
+  AssignBusinessOwnerInputSchema,
+  UnassignBusinessOwnerInputSchema,
 } from "@aira/validators/businesses"
 import { z } from "zod"
 import { ApiError } from "@aira/api"
+import { sendNotificationEmail, buildAuthUrl } from "@/lib/email"
+import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
 
 const AdminBusinessItemSchema = BusinessSchema.extend({
   latest_payment_status: z.enum(["paid", "pending", "overdue"]).nullable(),
   latest_subscription_end_date: z.string().nullable(),
   latest_subscription_days_remaining: z.number().int().nullable(),
+  /** Resolved owner record via getBusinessOwnerLookup. null when
+   *  owner_user_id is null OR when the referenced user has been
+   *  deleted/anonymised (INNER JOIN drops those rows). */
+  owner: BusinessOwnerSchema.nullable(),
 })
 
 const AdminBusinessListInputSchema = BusinessListInputSchema.extend({
@@ -141,6 +152,14 @@ export const listAllBusinessesAdminOp = defineOperation({
       })
     }
 
+    // Resolve owner records for the page in one batched query. Returns
+    // an empty Map when no business on the page has an owner; getOwner
+    // defaults to null below.
+    const ownerLookup = await businessesService.getBusinessOwnerLookup(
+      db,
+      filtered.map((b) => b.id),
+    )
+
     const items = filtered.map((b) => {
       const sub = subMap.get(b.id)
       return {
@@ -150,6 +169,7 @@ export const listAllBusinessesAdminOp = defineOperation({
         latest_subscription_days_remaining: sub
           ? Math.ceil((new Date(sub.end_date).getTime() - nowMs) / DAY_MS)
           : null,
+        owner: ownerLookup.get(b.id) ?? null,
       }
     })
 
@@ -163,18 +183,98 @@ export const listAllBusinessesAdminOp = defineOperation({
 })
 
 /** Admin detail — bypasses the soft-delete filter so the edit page
- *  loads archived rows (for Restore). Public consumers use
- *  getBusinessByIdOp from operations/businesses.ts. */
+ *  loads archived rows (for Restore). Returns the joined owner record
+ *  alongside the business so the detail page's Owner section can render
+ *  in one fetch. Public consumers use getBusinessByIdOp from
+ *  operations/businesses.ts (no owner field — opaque FK only). */
 export const getBusinessByIdAdminOp = defineOperation({
   name: "admin.businesses.getById",
   input: BusinessDetailInputSchema,
-  output: BusinessDetailOutputSchema,
+  output: BusinessAdminDetailOutputSchema,
   permission: "admin",
   handler: async (db, _ctx, { id }) => {
-    const business = await businessesService.getBusinessByIdIncludingArchived(
+    const [business, owner] = await Promise.all([
+      businessesService.getBusinessByIdIncludingArchived(db, id),
+      businessesService.getBusinessOwner(db, id),
+    ])
+    return { business, owner }
+  },
+})
+
+// ─── G1: owner assignment ─────────────────────────────────────────────────
+
+/** Compose the in-app notification body for the link event. Brand
+ *  interpolation lives at the apps/web boundary (the service stays
+ *  config-free). Kept as a local helper so the strings can't drift
+ *  between the notification body and the email body. */
+function ownerAssignmentCopy(businessName: string): {
+  title: string
+  message: string
+  href: string
+} {
+  return {
+    title: "You've been listed as a business owner",
+    message: `An admin at ${brand.name} has listed you as the owner of ${businessName}.`,
+    href: "/account/listings",
+  }
+}
+
+export const assignBusinessOwnerOp = defineOperation({
+  name: "admin.businesses.assignOwner",
+  input: AssignBusinessOwnerInputSchema,
+  output: z.object({ owner: BusinessOwnerSchema }),
+  permission: "admin",
+  handler: async (db, ctx, { id, owner_user_id }) => {
+    // Pre-fetch the business name for the notification + email copy. The
+    // service will re-check existence, but we need the name *before* we
+    // call so the strings are correct.
+    const biz = await businessesService.getBusinessByIdIncludingArchived(
       db,
       id,
     )
-    return { business }
+    if (!biz) {
+      throw ApiError.notFound("businesses.not_found", "Business not found")
+    }
+    const copy = ownerAssignmentCopy(biz.name)
+
+    const result = await businessesService.assignBusinessOwner(db, ctx, {
+      id,
+      ownerUserId: owner_user_id,
+      notification: copy,
+    })
+
+    // Best-effort email — assignment is already committed, audit + bell
+    // row are already written. A Postmark failure logs to error_log and
+    // does NOT roll back the assignment. Matches the post_interest + new
+    // message email patterns.
+    try {
+      await sendNotificationEmail({
+        to: result.owner.email,
+        title: copy.title,
+        body: copy.message,
+        ctaLabel: "View your listings",
+        ctaUrl: buildAuthUrl("/account/listings"),
+      })
+    } catch (err) {
+      logger.error("email send failed", {
+        kind: "email.business_owner_assigned",
+        recipient_user_id: result.owner.id,
+        business_id: id,
+        message: String(err),
+      })
+    }
+
+    return { owner: result.owner }
+  },
+})
+
+export const unassignBusinessOwnerOp = defineOperation({
+  name: "admin.businesses.unassignOwner",
+  input: UnassignBusinessOwnerInputSchema,
+  output: z.object({ ok: z.literal(true) }),
+  permission: "admin",
+  handler: async (db, ctx, { id }) => {
+    await businessesService.unassignBusinessOwner(db, ctx, { id })
+    return { ok: true as const }
   },
 })
