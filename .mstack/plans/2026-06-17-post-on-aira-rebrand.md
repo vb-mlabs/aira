@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-17
 **Slug:** 2026-06-17-post-on-aira-rebrand
-**Status:** reviewed
+**Status:** implemented
 **Author:** Claude (mlabs-plan)
 
 ---
