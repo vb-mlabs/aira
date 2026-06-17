@@ -45,6 +45,11 @@ const AdminBusinessItemSchema = BusinessSchema.extend({
 
 const AdminBusinessListInputSchema = BusinessListInputSchema.extend({
   renewing: z.coerce.number().int().min(1).max(365).optional(),
+  /** "has" → only businesses with a linked owner; "none" → only businesses
+   *  with owner_user_id IS NULL; undefined → all. Filtered in-memory after
+   *  the page hydrates owner records — cheap because admin lists are
+   *  bounded (<a few hundred rows). */
+  owner: z.enum(["has", "none"]).optional(),
 })
 
 const AdminBusinessListOutputSchema = z.object({
@@ -160,7 +165,7 @@ export const listAllBusinessesAdminOp = defineOperation({
       filtered.map((b) => b.id),
     )
 
-    const items = filtered.map((b) => {
+    const allItemsWithOwner = filtered.map((b) => {
       const sub = subMap.get(b.id)
       return {
         ...b,
@@ -172,6 +177,12 @@ export const listAllBusinessesAdminOp = defineOperation({
         owner: ownerLookup.get(b.id) ?? null,
       }
     })
+
+    const items = input.owner
+      ? allItemsWithOwner.filter((b) =>
+          input.owner === "has" ? b.owner !== null : b.owner === null,
+        )
+      : allItemsWithOwner
 
     return {
       items,

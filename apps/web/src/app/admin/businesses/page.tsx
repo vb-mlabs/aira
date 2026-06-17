@@ -5,10 +5,12 @@ import { apiServerFetch } from "@aira/api/server"
 import { TIER_LABELS, type BusinessTier } from "@aira/validators"
 import { listAllBusinessesAdminOp } from "@/server/operations/businesses-admin"
 import { AdminBadge } from "@/features/admin"
+import { BusinessBroadcastButton } from "@/features/admin/components/business-broadcast-modal"
 import { expiryLabel } from "@/features/admin/renewals/expiry-label"
 import { EmptyState } from "@/lib/ui"
 import { cn } from "@aira/ui-web/utils"
 import { AdminPageHeader } from "../_components/page-header"
+import { OwnerFilter } from "./_components/owner-filter"
 import { RenewingFilter } from "./_components/renewing-filter"
 
 export const metadata = { title: "Admin · Businesses" }
@@ -17,17 +19,24 @@ export const dynamic = "force-dynamic"
 type PaymentStatus = "paid" | "pending" | "overdue"
 
 interface PageProps {
-  searchParams: Promise<{ archived?: string; renewing?: string }>
+  searchParams: Promise<{
+    archived?: string
+    renewing?: string
+    owner?: string
+  }>
 }
 
 export default async function AdminBusinessesPage({ searchParams }: PageProps) {
   const sp = await searchParams
   const includeArchived = sp.archived === "1"
   const renewing = sp.renewing ? parseInt(sp.renewing, 10) : undefined
+  const owner: "has" | "none" | undefined =
+    sp.owner === "has" ? "has" : sp.owner === "none" ? "none" : undefined
   const res = await apiServerFetch(listAllBusinessesAdminOp, {
     input: {
       includeArchived: includeArchived || undefined,
       renewing: renewing || undefined,
+      owner,
     },
   })
   const businesses = res.data?.items ?? []
@@ -52,6 +61,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 Download CSV
               </a>
             )}
+            <BusinessBroadcastButton />
             <Link
               href="/admin/businesses/new"
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -92,6 +102,12 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
         <Suspense>
           <RenewingFilter />
         </Suspense>
+
+        <div className="h-4 w-px bg-border" />
+
+        <Suspense>
+          <OwnerFilter />
+        </Suspense>
       </div>
 
       {businesses.length === 0 ? (
@@ -110,6 +126,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left font-semibold">Category</th>
                 <th className="px-4 py-3 text-left font-semibold">Tier</th>
                 <th className="px-4 py-3 text-left font-semibold">Subscription</th>
+                <th className="px-4 py-3 text-left font-semibold">Owner</th>
                 <th className="px-4 py-3 text-left font-semibold">Verified</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
               </tr>
@@ -176,6 +193,15 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                         </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {b.owner ? (
+                        <span className="block truncate">
+                          {b.owner.name || b.owner.email}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
