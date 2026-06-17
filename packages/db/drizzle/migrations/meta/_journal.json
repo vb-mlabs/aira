@@ -204,6 +204,13 @@
       "when": 1781689257092,
       "tag": "0028_gray_sasquatch",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1781700117427,
+      "tag": "0029_aberrant_lord_hawal",
+      "breakpoints": true
     }
   ]
 }
