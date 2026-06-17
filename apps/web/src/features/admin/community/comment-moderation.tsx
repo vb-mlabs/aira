@@ -136,11 +136,8 @@ export function CommentModeration({ postId }: CommentModerationProps) {
     items?.reduce((sum, node) => sum + 1 + node.replies.length, 0) ?? 0
 
   return (
-    <section
-      aria-label="Comment moderation"
-      className="space-y-3"
-    >
-      <header className="flex items-center gap-2">
+    <section aria-label="Comment moderation" className="space-y-3">
+      <header className="flex items-center gap-2 border-t border-border pt-4">
         <MessageSquare
           className="size-4 text-muted-foreground"
           aria-hidden

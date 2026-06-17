@@ -127,7 +127,7 @@ export default async function CommunityPostPage({
                   doesn't always reconcile the page-level closure during the
                   same tick. Source of truth: the button's own local count. */}
 
-      <div className="mt-6">
+      <div className="mt-6 rounded-xl bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
         <CommentThread
           postId={post.id}
           acceptsComments={post.status === "approved"}

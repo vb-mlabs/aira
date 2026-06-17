@@ -124,16 +124,16 @@ export function CommentThread({
     items?.reduce((sum, node) => sum + 1 + node.replies.length, 0) ?? 0
 
   return (
-    <section
-      aria-label="Comments"
-      className="space-y-4 rounded-xl bg-card p-5 shadow-[var(--shadow-card)]"
-    >
-      <header className="flex items-center gap-2">
+    // No card wrapper here — the modal / page container already owns
+    // the surface. A bg-card section nested inside another bg-card
+    // container reads as a stacked card-on-card.
+    <section aria-label="Comments" className="space-y-3">
+      <header className="flex items-center gap-2 border-t border-border pt-4">
         <MessageCircle
           className="size-4 text-muted-foreground"
           aria-hidden
         />
-        <h3 className="font-display text-lg">
+        <h3 className="font-display text-base">
           {items === null
             ? "Loading comments…"
             : total === 0
