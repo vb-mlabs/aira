@@ -155,6 +155,24 @@ export function CommentThread({
         </p>
       )}
 
+      {/* Composer up top so it's always visible — long threads would
+          otherwise push it off-screen and force the viewer to scroll
+          past every existing comment before they can add one. */}
+      {acceptsComments && currentUserId !== null ? (
+        <CommentComposer postId={postId} onPosted={handlePosted} />
+      ) : !acceptsComments ? (
+        <p className="text-xs italic text-muted-foreground">
+          This post isn&rsquo;t accepting comments yet.
+        </p>
+      ) : (
+        // currentUserId === null shouldn't happen on /community/(authed)
+        // routes, but a hard guard keeps the affordance from rendering
+        // for unauth viewers if the surrounding layout ever changes.
+        <p className="text-xs italic text-muted-foreground">
+          Sign in to join the conversation.
+        </p>
+      )}
+
       {items !== null && items.length > 0 && (
         <ul className="divide-y divide-border">
           {items.map((node) => (
@@ -209,21 +227,6 @@ export function CommentThread({
             </li>
           ))}
         </ul>
-      )}
-
-      {acceptsComments && currentUserId !== null ? (
-        <CommentComposer postId={postId} onPosted={handlePosted} />
-      ) : !acceptsComments ? (
-        <p className="text-xs italic text-muted-foreground">
-          This post isn&rsquo;t accepting comments yet.
-        </p>
-      ) : (
-        // currentUserId === null shouldn't happen on /community/(authed)
-        // routes, but a hard guard keeps the affordance from rendering
-        // for unauth viewers if the surrounding layout ever changes.
-        <p className="text-xs italic text-muted-foreground">
-          Sign in to join the conversation.
-        </p>
       )}
     </section>
   )
