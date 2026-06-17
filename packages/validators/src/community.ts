@@ -33,6 +33,10 @@ export const PostRowSchema = z.object({
    *  already publicly visible, so the id is no more sensitive. */
   user_id: z.string(),
   author_name: z.string(),
+  /** Optional contact details surfaced to any signed-in viewer so they can
+   *  reach the author directly. Both nullable (post may opt out of either). */
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
   interest_count: z.number().int().nonnegative(),
   /** ISO 8601, null when the post is pending (no expiry set yet). */
   expires_at: z.string().nullable(),
@@ -51,6 +55,8 @@ export const AdminPostRowSchema = z.object({
   user_id: z.string(),
   author_name: z.string(),
   author_email: z.string().nullable(),
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
   rejected_reason: z.string().nullable(),
   interest_count: z.number().int().nonnegative(),
   expires_at: z.string().nullable(),
@@ -94,10 +100,17 @@ export type ListPostsOutput = z.infer<typeof ListPostsOutputSchema>;
 
 // ─── Create post ────────────────────────────────────────────────────────────
 
+/** Lenient phone shape — trimmed string ≤ 30 chars. Matches how
+ *  businesses.phone is stored today; intentionally avoids libphonenumber
+ *  per the Post-on-AIRA review's locked decision. */
+export const COMMUNITY_POST_PHONE_MAX = 30;
+
 export const CreatePostInputSchema = z
   .object({
     title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX),
     body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).optional(),
+    phone: z.string().trim().max(COMMUNITY_POST_PHONE_MAX).optional(),
+    email: z.email("Enter a valid email").optional(),
   })
   .strict();
 export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
@@ -216,11 +229,25 @@ export const EditPostInputSchema = z
     id: z.string().min(1),
     title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX).optional(),
     body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).nullable().optional(),
+    phone: z
+      .string()
+      .trim()
+      .max(COMMUNITY_POST_PHONE_MAX)
+      .nullable()
+      .optional(),
+    email: z
+      .union([z.email("Enter a valid email"), z.null()])
+      .optional(),
   })
   .strict()
-  .refine((v) => v.title !== undefined || v.body !== undefined, {
-    message: "Nothing to update.",
-  });
+  .refine(
+    (v) =>
+      v.title !== undefined ||
+      v.body !== undefined ||
+      v.phone !== undefined ||
+      v.email !== undefined,
+    { message: "Nothing to update." },
+  );
 export type EditPostInput = z.infer<typeof EditPostInputSchema>;
 
 export const EditPostOutputSchema = z.object({
