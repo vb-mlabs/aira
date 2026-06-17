@@ -109,6 +109,19 @@ export type AuditMeta =
       phone?: { from: string | null; to: string | null };
       email?: { from: string | null; to: string | null };
     }
+  // Self-service edit on an approved community post sends the row back
+  // for re-moderation. Written alongside community.post_edited in the
+  // same transaction so the audit trail shows both the diff AND the
+  // status transition (keeps each audit kind single-purpose). Captures
+  // the previous approved_at + expires_at so admins can reason about
+  // the timeline if a post bounces between states.
+  | {
+      kind: "community.post_reverted_to_pending";
+      from: "approved";
+      to: "pending";
+      prev_approved_at: string;
+      prev_expires_at: string | null;
+    }
   // S6 — F23′ admin renewal follow-up queue. One row per call/attempt.
   // target.id = business_subscription.id. Single action kind + outcome
   // inside metadata (mirrors session.revoked.reason precedent).
@@ -159,6 +172,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "app_setting.updated",
   "community.post_deleted",
   "community.post_edited",
+  "community.post_reverted_to_pending",
   "business.subscription_followup",
 ] as const;
 export type KnownAuditAction = (typeof KNOWN_AUDIT_ACTIONS)[number];
@@ -209,6 +223,7 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.subscription_voided": "Subscription voided",
     "community.post_deleted": "Post deleted",
     "community.post_edited": "Post edited",
+    "community.post_reverted_to_pending": "Post reverted to pending",
     "app_setting.updated": "Setting updated",
   };
 

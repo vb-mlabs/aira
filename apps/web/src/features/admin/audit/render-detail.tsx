@@ -169,6 +169,13 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           Edited post fields: {m.fields.join(", ")}
         </>
       )
+    case "community.post_reverted_to_pending":
+      return (
+        <>
+          Post returned to moderation queue (was approved on{" "}
+          {formatDate(m.prev_approved_at)})
+        </>
+      )
 
     // ─── exhaustiveness gate ─────────────────────────────────────────
     default: {
