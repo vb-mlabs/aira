@@ -46,7 +46,7 @@ export const listCommunityCommentsOp = defineOperation({
     const viewerIsAdmin =
       ctx.user.role === "admin" || ctx.user.role === "super_admin"
     return communityService.listComments(db, ctx, {
-      post_id: input.post_id,
+      post_id: input.id,
       viewerIsAdmin,
     })
   },
@@ -59,7 +59,7 @@ export const createCommunityCommentOp = defineOperation({
   permission: "user",
   handler: async (db, ctx, input) => {
     const result = await communityService.createComment(db, ctx, {
-      post_id: input.post_id,
+      post_id: input.id,
       body: input.body,
       parent_id: input.parent_id,
     })

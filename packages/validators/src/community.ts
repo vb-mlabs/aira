@@ -344,8 +344,11 @@ export const CommentThreadNodeSchema = CommentRowSchema.extend({
 });
 export type CommentThreadNode = z.infer<typeof CommentThreadNodeSchema>;
 
+/** `id` here is the POST id (matches the Next route segment
+ *  `/posts/[id]/comments`). The service-layer arg is post_id; the
+ *  op handler does the rename. Same convention as AddInterestInputSchema. */
 export const ListCommentsInputSchema = z
-  .object({ post_id: z.string().min(1) })
+  .object({ id: z.string().min(1) })
   .strict();
 export type ListCommentsInput = z.infer<typeof ListCommentsInputSchema>;
 
@@ -354,9 +357,11 @@ export const ListCommentsOutputSchema = z.object({
 });
 export type ListCommentsOutput = z.infer<typeof ListCommentsOutputSchema>;
 
+/** `id` here is the POST id (matches the Next route segment). The
+ *  op handler renames to post_id for the service call. */
 export const CreateCommentInputSchema = z
   .object({
-    post_id: z.string().min(1),
+    id: z.string().min(1),
     body: z.string().trim().min(1).max(COMMUNITY_COMMENT_BODY_MAX),
     parent_id: z.string().min(1).optional(),
   })
