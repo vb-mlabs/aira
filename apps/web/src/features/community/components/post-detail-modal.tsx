@@ -14,6 +14,7 @@ import { AtSign, MessageSquare, Phone, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { apiClient } from "@/lib/api-client"
 import type { InterestRow, PostRow } from "../types"
+import { CommentThread } from "./comment-thread"
 import { InterestButton } from "./interest-button"
 
 interface PostDetailModalProps {
@@ -205,6 +206,12 @@ export function PostDetailModal({
                 )}
               </section>
             )}
+
+            <CommentThread
+              postId={post.id}
+              acceptsComments={post.status === "approved"}
+              currentUserId={currentUserId}
+            />
           </div>
 
           {!isAuthor && (

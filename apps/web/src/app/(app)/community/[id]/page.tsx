@@ -15,7 +15,7 @@ import {
   getCommunityPostOp,
   listInterestsOp,
 } from "@/server/operations/community"
-import { PostCardReadOnly } from "@/features/community"
+import { CommentThread, PostCardReadOnly } from "@/features/community"
 import type { InterestRow } from "@/features/community"
 
 export const dynamic = "force-dynamic"
@@ -126,6 +126,14 @@ export default async function CommunityPostPage({
                   went stale until the next navigation because router.refresh()
                   doesn't always reconcile the page-level closure during the
                   same tick. Source of truth: the button's own local count. */}
+
+      <div className="mt-6">
+        <CommentThread
+          postId={post.id}
+          acceptsComments={post.status === "approved"}
+          currentUserId={user.id}
+        />
+      </div>
 
       <div className="mt-8">
         <Link
