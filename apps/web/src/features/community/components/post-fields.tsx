@@ -78,8 +78,11 @@ export function PostFields({
           maxLength={BODY_MAX}
           rows={4}
           className={cn(
-            "block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs",
-            "placeholder:text-muted-foreground",
+            // Match the <Input> primitive: rounded-2xl + transparent bg
+            // + border-input + same focus ring so this body field and
+            // the title/phone/email rows feel like the same control set.
+            "block w-full min-w-0 rounded-2xl border border-input bg-transparent px-3 py-2 text-sm transition-colors",
+            "placeholder:text-muted-foreground md:text-sm dark:border-input/30",
             "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring",
           )}
           placeholder="Any extra detail neighbours should know — price, availability, what you're looking for…"

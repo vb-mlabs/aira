@@ -168,12 +168,9 @@ export function CommentModeration({ postId }: CommentModerationProps) {
       )}
 
       {items !== null && items.length > 0 && (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border">
           {items.map((node) => (
-            <li
-              key={node.id}
-              className="rounded-md border border-border bg-background/40 px-3 py-2"
-            >
+            <li key={node.id} className="py-3 first:pt-0 last:pb-0">
               <CommentRowAdmin
                 row={node}
                 onModerate={handleModerate}
@@ -181,9 +178,9 @@ export function CommentModeration({ postId }: CommentModerationProps) {
                 pending={pending}
               />
               {node.replies.length > 0 && (
-                <ul className="mt-2 space-y-2 border-l-2 border-border pl-3">
+                <ul className="mt-2 space-y-3 border-l-2 border-border pl-4">
                   {node.replies.map((reply) => (
-                    <li key={reply.id} className="pl-1">
+                    <li key={reply.id}>
                       <CommentRowAdmin
                         row={reply}
                         onModerate={handleModerate}

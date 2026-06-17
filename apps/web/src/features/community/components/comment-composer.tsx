@@ -82,13 +82,7 @@ export function CommentComposer({
   const fieldId = isReply ? `reply-${parentId ?? "x"}` : `comment-${postId}`
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className={cn(
-        "space-y-2",
-        isReply && "rounded-md border border-border bg-muted/20 p-3",
-      )}
-    >
+    <form onSubmit={onSubmit} className="space-y-2">
       <Label htmlFor={fieldId} className="sr-only">
         {isReply ? "Reply" : "Add a comment"}
       </Label>
@@ -102,8 +96,11 @@ export function CommentComposer({
           isReply ? "Write a reply…" : "Share your thoughts or ask a question…"
         }
         className={cn(
-          "block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs",
-          "placeholder:text-muted-foreground",
+          // Mirror the <Input> primitive (rounded-2xl, transparent bg,
+          // border-input, ring-ring/50 focus) so the composer reads as
+          // the same input family as every other field in the app.
+          "block w-full min-w-0 rounded-2xl border border-input bg-transparent px-3 py-2 text-sm transition-colors",
+          "placeholder:text-muted-foreground md:text-sm dark:border-input/30",
           "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:border-ring",
         )}
         autoFocus={isReply}
