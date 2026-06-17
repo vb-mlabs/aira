@@ -19,6 +19,10 @@ export const communityPost = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     body: text("body"),
+    /** Optional contact details surfaced on the public board so signed-in
+     *  viewers can reach the author directly (Post-on-AIRA rebrand). */
+    phone: text("phone"),
+    email: text("email"),
     status: communityPostStatusEnum("status").notNull().default("pending"),
     /** Set on approval to now() + posts_expiry_days. NULL while pending/rejected. */
     expires_at: timestamp("expires_at"),
