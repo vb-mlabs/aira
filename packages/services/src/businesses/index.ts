@@ -32,6 +32,12 @@ export {
   purgeArchivedBusinesses,
   setBusinessFeatureImage,
   clearBusinessFeatureImage,
+  assignBusinessOwner,
+  unassignBusinessOwner,
+} from "./service";
+export type {
+  AssignBusinessOwnerArgs,
+  AssignBusinessOwnerResult,
 } from "./service";
 
 export {

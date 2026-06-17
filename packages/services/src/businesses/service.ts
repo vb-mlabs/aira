@@ -14,15 +14,21 @@ import "server-only";
 // (worse).
 
 import { and, eq, inArray, isNotNull, isNull, lt, notInArray } from "drizzle-orm";
-import { businesses, businessCategories } from "@aira/db/schema";
+import { businesses, businessCategories, user as userTable } from "@aira/db/schema";
 import { createAudit } from "@aira/db/audit";
 import type { Database } from "@aira/db/client";
 import type { CallerContext } from "@aira/api/context";
 import { ApiError } from "@aira/api";
-import type { Business, BusinessUpdateInput } from "@aira/validators/businesses";
+import type {
+  Business,
+  BusinessOwner,
+  BusinessUpdateInput,
+} from "@aira/validators/businesses";
+import { createNotification } from "../notifications";
 import {
   createBusiness,
   getBusinessByIdIncludingArchived,
+  getBusinessOwner,
 } from "./queries";
 
 type UpdateData = Omit<BusinessUpdateInput, "id">;
@@ -211,3 +217,186 @@ export async function restoreBusiness(
 
   return getBusinessByIdIncludingArchived(db, id);
 }
+
+// ─── G1: Owner assignment ───────────────────────────────────────────────────
+//
+// The op layer composes the in-app notification copy (brand.name lives at
+// the apps/web boundary via @aira/config). The service receives ready-to-
+// use strings and decides the recipient. Email send-out also lives at the
+// op layer — best-effort, post-commit; an email failure must NOT roll back
+// the assignment.
+
+export interface AssignBusinessOwnerArgs {
+  id: string;
+  ownerUserId: string;
+  /** Pre-composed notification copy. Op layer interpolates brand.name +
+   *  business.name; service stays config-free. */
+  notification: {
+    title: string;
+    message: string;
+    href?: string;
+  };
+}
+
+export interface AssignBusinessOwnerResult {
+  business: Business;
+  owner: BusinessOwner;
+  /** null on first-time assignment; non-null when a re-assign overwrote
+   *  an existing FK. Used by the op layer to write the audit meta
+   *  correctly and (later) to skip emailing the previous owner. */
+  previousOwnerUserId: string | null;
+}
+
+export async function assignBusinessOwner(
+  db: Database,
+  ctx: CallerContext,
+  args: AssignBusinessOwnerArgs,
+): Promise<AssignBusinessOwnerResult> {
+  const { id, ownerUserId, notification } = args;
+
+  // Resolve the business (404 if not found OR archived — owners can't be
+  // assigned to deleted rows).
+  const [biz] = await db
+    .select({
+      id: businesses.id,
+      owner_user_id: businesses.owner_user_id,
+      deleted_at: businesses.deleted_at,
+    })
+    .from(businesses)
+    .where(eq(businesses.id, id))
+    .limit(1);
+  if (!biz) {
+    throw ApiError.notFound("businesses.not_found", "Business not found");
+  }
+  if (biz.deleted_at !== null) {
+    throw ApiError.badRequest(
+      "businesses.archived",
+      "Cannot assign an owner to an archived business",
+    );
+  }
+
+  // Resolve the target user (404 if not found). Email is needed for the
+  // audit meta and the email payload upstream.
+  const [target] = await db
+    .select({
+      id: userTable.id,
+      name: userTable.name,
+      email: userTable.email,
+    })
+    .from(userTable)
+    .where(eq(userTable.id, ownerUserId))
+    .limit(1);
+  if (!target) {
+    throw ApiError.notFound("admin.user_not_found", "User not found");
+  }
+
+  const previousOwnerUserId = biz.owner_user_id;
+
+  // Audit BEFORE mutation — same convention as archiveBusiness /
+  // restoreBusiness. A failed audit blocks the assignment so the trail
+  // stays authoritative.
+  const audit = createAudit(db);
+  await audit({
+    actorId: ctx.userId,
+    action: "business.owner_assigned",
+    target: { type: "business", id },
+    meta: {
+      kind: "business.owner_assigned",
+      owner_user_id: target.id,
+      owner_email: target.email,
+      prev_owner_user_id: previousOwnerUserId,
+    },
+    client: auditClient(ctx),
+  });
+
+  await db
+    .update(businesses)
+    .set({ owner_user_id: target.id })
+    .where(eq(businesses.id, id));
+
+  // In-app notification — fired AFTER the FK write so a notification
+  // failure can't roll back the assignment (createNotification has its
+  // own retry/best-effort semantics for the row insert). Mirrors how
+  // messages.service fans out: assignment success is recoverable even
+  // if the bell stays empty for a moment.
+  await createNotification(db, ctx, {
+    userId: target.id,
+    body: {
+      kind: "generic",
+      title: notification.title,
+      message: notification.message,
+      href: notification.href,
+    },
+  });
+
+  const fresh = await getBusinessByIdIncludingArchived(db, id);
+  if (!fresh) {
+    // Vanishingly unlikely (we just updated this row) but the type
+    // contract demands a value. A concurrent archive between our update
+    // and re-read is the only way here.
+    throw ApiError.notFound("businesses.not_found", "Business disappeared");
+  }
+  return {
+    business: fresh,
+    owner: { id: target.id, name: target.name, email: target.email },
+    previousOwnerUserId,
+  };
+}
+
+export async function unassignBusinessOwner(
+  db: Database,
+  ctx: CallerContext,
+  args: { id: string },
+): Promise<{ business: Business; previousOwnerUserId: string | null }> {
+  const { id } = args;
+
+  const [biz] = await db
+    .select({
+      id: businesses.id,
+      owner_user_id: businesses.owner_user_id,
+    })
+    .from(businesses)
+    .where(eq(businesses.id, id))
+    .limit(1);
+  if (!biz) {
+    throw ApiError.notFound("businesses.not_found", "Business not found");
+  }
+
+  // Idempotent: unassigning a business that has no owner is a successful
+  // no-op. No audit row written — there's nothing to record.
+  if (biz.owner_user_id === null) {
+    const fresh = await getBusinessByIdIncludingArchived(db, id);
+    if (!fresh) {
+      throw ApiError.notFound("businesses.not_found", "Business not found");
+    }
+    return { business: fresh, previousOwnerUserId: null };
+  }
+
+  const previousOwnerUserId = biz.owner_user_id;
+  const audit = createAudit(db);
+  await audit({
+    actorId: ctx.userId,
+    action: "business.owner_unassigned",
+    target: { type: "business", id },
+    meta: {
+      kind: "business.owner_unassigned",
+      prev_owner_user_id: previousOwnerUserId,
+    },
+    client: auditClient(ctx),
+  });
+
+  await db
+    .update(businesses)
+    .set({ owner_user_id: null })
+    .where(eq(businesses.id, id));
+
+  const fresh = await getBusinessByIdIncludingArchived(db, id);
+  if (!fresh) {
+    throw ApiError.notFound("businesses.not_found", "Business disappeared");
+  }
+  return { business: fresh, previousOwnerUserId };
+}
+
+// Re-export getBusinessOwner for callers (admin op) that import from the
+// public surface — it's a query but it sits in the owner-assignment story.
+export { getBusinessOwner };
