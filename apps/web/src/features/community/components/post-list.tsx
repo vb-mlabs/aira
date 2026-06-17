@@ -9,6 +9,7 @@ import { Search, Sparkles } from "lucide-react"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { ApiError } from "@aira/api"
+import { brand } from "@aira/config"
 import { apiClient } from "@/lib/api-client"
 import { EmptyState } from "@/lib/ui"
 import type { PostRow } from "../types"
@@ -25,7 +26,7 @@ interface ListResponse {
 interface PostListProps {
   initial: ListResponse
   /** id of the current viewer so PostCard knows when to suppress the
-   *  "I can help" button (post author). null when unknown. */
+   *  "I'm interested" button (post author). null when unknown. */
   currentUserId: string | null
 }
 
@@ -101,12 +102,12 @@ export function PostList({ initial, currentUserId }: PostListProps) {
           title={
             activeQuery
               ? "No posts match that search"
-              : "Be the first to post on AIRA"
+              : `Be the first to post on ${brand.name}`
           }
           description={
             activeQuery
               ? "Try a shorter keyword or clear the search."
-              : "Tap “Post on AIRA” above to share a post — a moderator will review it before it goes live."
+              : `Tap “Post on ${brand.name}” above to share a post — a moderator will review it before it goes live.`
           }
         />
       ) : (

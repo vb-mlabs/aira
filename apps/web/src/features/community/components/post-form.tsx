@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
 import { Plus, X } from "lucide-react"
 import { ApiError } from "@aira/api"
+import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
@@ -22,11 +23,13 @@ const BODY_MAX = 1000
 const PHONE_MAX = 30
 
 interface PostFormProps {
-  /** Optional trigger label; defaults to "Post on AIRA". */
+  /** Optional trigger label; defaults to "Post on <brand>". */
   triggerLabel?: string
 }
 
-export function PostForm({ triggerLabel = "Post on AIRA" }: PostFormProps) {
+export function PostForm({
+  triggerLabel = `Post on ${brand.name}`,
+}: PostFormProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
@@ -93,7 +96,7 @@ export function PostForm({ triggerLabel = "Post on AIRA" }: PostFormProps) {
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
             <div>
               <Dialog.Title className="font-display text-xl text-foreground">
-                Post on AIRA
+                Post on {brand.name}
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
                 Share something with the community — an offer, a request,

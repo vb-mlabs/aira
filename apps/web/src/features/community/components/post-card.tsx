@@ -14,7 +14,7 @@ import { InterestButton } from "./interest-button"
 
 interface PostCardProps {
   post: PostRow
-  /** Current session user id, when known. Used to suppress "I can help"
+  /** Current session user id, when known. Used to suppress "I'm interested"
    *  on a post the viewer authored. */
   currentUserId?: string | null
   /** Whether the current session has already offered to help on this post. */

@@ -21,9 +21,9 @@ interface PostDetailModalProps {
   open: boolean
   onClose: () => void
   /** Current session user id. Drives the author-only respondent fetch
-   *  and suppresses the "I can help" button on the viewer's own posts. */
+   *  and suppresses the "I'm interested" button on the viewer's own posts. */
   currentUserId: string | null
-  /** Whether the current session has already offered to help. */
+  /** Whether the current session has already shown interest. */
   alreadyHelped?: boolean
 }
 
