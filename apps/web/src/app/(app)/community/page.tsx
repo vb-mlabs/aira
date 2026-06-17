@@ -32,17 +32,17 @@ export default async function CommunityPage() {
     <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
       <section className="text-center">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">
-          Community Requests
+          Community Posts
         </p>
         <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">
-          Real people. Real asks.{" "}
+          Real neighbours. Real posts.{" "}
           <em className="not-italic font-semibold text-primary">
             Trusted leads.
           </em>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-foreground/80 sm:text-base">
-          Ask the community for a referral — a doctor, a teacher, a contractor —
-          and let neighbours close the loop with someone they actually know.
+          Post anything — a room for rent, a kids&rsquo; bike to sell, a
+          contractor you trust, or a question you&rsquo;d ask a neighbour.
         </p>
         <div className="mt-6 flex justify-center">
           <PostForm />

@@ -1,8 +1,8 @@
-// /community/[id] — single community request.
+// /community/[id] — single community post.
 //
 // RSC. Fetches the post via apiServerFetch and (only when the viewer is
-// the author) the list of "I can help" respondents. Non-authors see the
-// post + a public count; the named respondent list never leaves the
+// the author) the list of "I'm interested" respondents. Non-authors see
+// the post + a public count; the named respondent list never leaves the
 // API for them.
 
 import Link from "next/link"
@@ -72,7 +72,7 @@ export default async function CommunityPostPage({
         >
           <div className="flex items-baseline gap-3">
             <h2 id="respondents-heading" className="font-display text-2xl">
-              Neighbours offering to help
+              Neighbours who are interested
             </h2>
             <span className="text-xs text-muted-foreground">
               {interests.length === 0
@@ -83,7 +83,7 @@ export default async function CommunityPostPage({
 
           {interests.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">
-              When someone taps “I can help”, you’ll see their name and any
+              When someone taps “I’m interested”, you’ll see their name and any
               note they leave right here.
             </p>
           ) : (
@@ -113,7 +113,7 @@ export default async function CommunityPostPage({
                     <p className="mt-3 text-sm leading-relaxed">{r.message}</p>
                   ) : (
                     <p className="mt-3 text-sm italic text-muted-foreground">
-                      No note attached — just wanted you to know they can help.
+                      No note attached — just letting you know they&rsquo;re interested.
                     </p>
                   )}
                 </li>
