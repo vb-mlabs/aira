@@ -11,10 +11,11 @@
 //   - When the SDK loads, `<gmp-place-autocomplete>` registers itself as a
 //     custom element. We poll `customElements.whenDefined(...)` and fall
 //     back to a plain <Input> after 4 s if registration never completes.
-//   - Existing addresses are surfaced as a small "Current: <addr>" hint
-//     below the picker so admins know what's stored without us trying to
-//     pre-populate the custom element's internal input (the element has
-//     no controlled-value API — it's deliberately uncontrolled).
+//   - On mount we reach into the element's internal <input> to seed it
+//     with the existing value so editors see what's stored rather than an
+//     empty field. The element has no documented controlled-value API,
+//     but the input is rendered in the light DOM and is reachable via
+//     `querySelector('input')`.
 
 import { useEffect, useRef, useState } from "react"
 import { Input } from "@aira/ui-web/input"
@@ -136,10 +137,24 @@ export function PlacesAddressInput({
     el.setAttribute("placeholder", placeholder)
     container.appendChild(el)
 
+    // Seed the internal input with the existing value. The element
+    // renders its <input> in the light DOM on the next tick after
+    // append, so wait one frame before reaching for it.
+    if (value) {
+      requestAnimationFrame(() => {
+        const input = el.querySelector("input")
+        if (input && !input.value) input.value = value
+      })
+    }
+
     function handleSelect(event: Event) {
-      const detail = (event as CustomEvent<{ placePrediction: PlacePredictionLike }>)
-        .detail
-      const place = detail.placePrediction.toPlace()
+      // The `gmp-select` event puts `placePrediction` directly on the
+      // event object (per Google's samples), not under `event.detail`.
+      const placePrediction = (event as unknown as {
+        placePrediction?: PlacePredictionLike
+      }).placePrediction
+      if (!placePrediction) return
+      const place = placePrediction.toPlace()
       place
         .fetchFields({ fields: ["formattedAddress"] })
         .then(() => {
@@ -157,6 +172,9 @@ export function PlacesAddressInput({
       // Don't clear container.innerHTML on cleanup — React strict-mode
       // double-mount would race against the next mount.
     }
+    // `value` intentionally omitted from deps — it's only used as a
+    // one-shot seed on mount; updating it shouldn't rebuild the element.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sdkState, id, placeholder, onChange])
 
   // SDK absent → identical UX to pre-migration: plain controlled input.
@@ -172,6 +190,9 @@ export function PlacesAddressInput({
     )
   }
 
+  // Styling for the `<gmp-place-autocomplete>` host + its internal input
+  // lives in apps/web/src/app/globals.css — Google ships internal CSS for
+  // the element that needs !important to override.
   return (
     <div className="space-y-1.5">
       <div ref={containerRef} />
