@@ -39,13 +39,13 @@ export function AboutEditorial() {
             </p>
           </div>
           <div className="space-y-[22px]">
-            <p className="text-lg leading-[1.75] text-muted-foreground">
+            <p className="text-lg leading-[1.75] text-foreground">
               We started in Atlanta because that&rsquo;s where Nisarga began.
               We&rsquo;re staying small on purpose. Trusted neighborhoods take
               time to build, and the Indian community in Atlanta is one of
               those neighborhoods.
             </p>
-            <p className="text-lg leading-[1.75] text-muted-foreground">
+            <p className="text-lg leading-[1.75] text-foreground">
               The dosa place, the tabla teacher, the mandap rental, the
               immigration lawyer who actually picks up the phone &mdash; the
               people you&rsquo;d ask a friend about before you Googled it.

@@ -31,6 +31,14 @@ declare global {
       >
     }
   }
+
+  interface Window {
+    google?: {
+      maps?: {
+        importLibrary?: (name: string) => Promise<unknown>
+      }
+    }
+  }
 }
 
 /** Minimal shape of `google.maps.places.PlacePrediction` we touch — typing
@@ -61,11 +69,16 @@ export function PlacesAddressInput({
     "loading",
   )
 
-  // Probe for the custom element. If it doesn't register within 4 s, give
-  // up and surface a plain text input — that's the same fallback the
-  // legacy widget used when the key was missing. The set-state-in-effect
-  // rule's preferred pattern is for prop-mirroring; we're synchronising
-  // with an external SDK load, so direct setState is the right shape.
+  // Probe for the custom element. With `loading=async` the Maps script
+  // returns just a bootstrap loader — the places library + element
+  // registration only happen when something calls
+  // `google.maps.importLibrary("places")`. Without that call,
+  // `customElements.whenDefined("gmp-place-autocomplete")` would hang
+  // forever and the 4 s timeout fired, dropping us to the plain input.
+  //
+  // Flow: wait for the loader stub → import the places library → wait
+  // for the custom element to register → mark ready. Falls back to a
+  // plain controlled input if any step times out.
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined" || typeof customElements === "undefined") {
@@ -76,12 +89,25 @@ export function PlacesAddressInput({
       setSdkState("ready")
       return
     }
+
     let cancelled = false
     const timeout = setTimeout(() => {
       if (!cancelled) setSdkState("absent")
-    }, 4000)
-    customElements
-      .whenDefined("gmp-place-autocomplete")
+    }, 8000)
+
+    async function load() {
+      const start = performance.now()
+      while (!window.google?.maps?.importLibrary) {
+        if (performance.now() - start > 6000) {
+          throw new Error("Google Maps loader did not appear")
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50))
+      }
+      await window.google.maps.importLibrary("places")
+      await customElements.whenDefined("gmp-place-autocomplete")
+    }
+
+    load()
       .then(() => {
         if (cancelled) return
         clearTimeout(timeout)
@@ -90,6 +116,7 @@ export function PlacesAddressInput({
       .catch(() => {
         if (!cancelled) setSdkState("absent")
       })
+
     return () => {
       cancelled = true
       clearTimeout(timeout)

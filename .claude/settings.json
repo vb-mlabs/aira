@@ -73,6 +73,7 @@
       "Read(./.env.*.local)"
     ]
   },
+  "model": "claude-opus-4-7",
   "theme": "dark",
   "skipAutoPermissionPrompt": true
 }

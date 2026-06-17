@@ -7,6 +7,8 @@
 //
 // No pricing copy — admin-configurable, finalized Sprint 4+ per roadmap.
 
+import { BusinessCard } from "@/features/listings"
+import type { Business } from "@/features/listings"
 import { BusinessCtaPair } from "./business-cta-pair"
 
 const perks = [
@@ -46,8 +48,11 @@ export function BusinessPanel() {
             </em>
           </h2>
           <p className="mt-6 text-[21px] font-medium leading-[1.55] text-brand-cream-bright">
-            Get in front of a curated, growing audience. Verified businesses
-            get the blue tick. Sponsored placement puts you at the top of your
+            Get in front of a curated, growing audience. AIRA membership lists
+            your business in the regular category listings for the selected
+            duration. Sponsorship and trust features are optional add-ons for
+            stronger visibility and credibility. Verified businesses get the
+            blue tick. Sponsored placement puts you at the top of your
             category.
           </p>
 
@@ -79,43 +84,42 @@ export function BusinessPanel() {
   )
 }
 
-// A non-interactive mock of the listing card pattern from the app. Shows
-// the verified blue tick + tier-orange "More info" pill so the business
-// owner can see exactly what a listing looks like.
+// Uses the real BusinessCard component from features/listings so the
+// preview matches whatever the live directory currently renders. The
+// business object is a static mock — no DB call from the marketing page.
+const PREVIEW_BUSINESS: Business = {
+  id: "preview",
+  name: "Urbanroots FL",
+  slug: "urbanroots-fl",
+  category: "restaurants",
+  description: null,
+  phone: "+14041234567",
+  website: "https://example.com",
+  address: "Atlanta, GA",
+  image_url: null,
+  facebook_url: "https://facebook.com/urbanrootsfl",
+  instagram_url: "https://instagram.com/urbanrootsfl",
+  whatsapp_number: "+14041234567",
+  hours: null,
+  aira_review: null,
+  rating: 4.6,
+  tier: "tier1",
+  verified: true,
+  city_id: null,
+  business_type: null,
+  years_operating: null,
+  deleted_at: null,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+  images: [],
+  extra_category_ids: [],
+}
+
 function ListingCardPreview() {
   return (
     <div className="px-2">
-      <div className="mx-auto flex max-w-[380px] items-center gap-[14px] rounded-2xl bg-card p-5 text-card-foreground shadow-[0_20px_40px_-20px_oklch(0.25_0.04_60_/_25%)]">
-        <div className="flex size-14 flex-shrink-0 items-center justify-center rounded-[10px] bg-muted font-display text-[22px] font-bold text-muted-foreground">
-          U
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="text-base font-bold">Urbanroots FL</span>
-            <span
-              aria-hidden="true"
-              className="flex size-[18px] items-center justify-center rounded-full bg-[color:var(--info)] text-[11px] font-bold text-[color:var(--info-foreground)]"
-            >
-              ✓
-            </span>
-          </div>
-          <div className="mt-0.5 text-xs text-muted-foreground">★ 4.6</div>
-          <div className="mt-2 flex gap-1.5">
-            {[0, 1, 2, 3].map((i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                className="size-6 rounded-full bg-muted"
-              />
-            ))}
-          </div>
-        </div>
-        <button
-          type="button"
-          className="flex-shrink-0 rounded-full bg-[image:var(--gradient-tier2)] px-3 py-1.5 text-[11px] font-bold text-brand-cream-bright"
-        >
-          More info
-        </button>
+      <div className="mx-auto max-w-[380px]">
+        <BusinessCard business={PREVIEW_BUSINESS} />
       </div>
       <p className="mt-3.5 text-center font-display text-sm italic text-brand-cream-muted">
         A listing on AIRA &mdash; verified tick, quick actions, sponsored
