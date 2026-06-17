@@ -108,9 +108,8 @@ export function CommunityTable({
           <thead className="border-b border-border bg-muted/40">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">User</th>
-              <th className="px-4 py-3 text-left font-semibold">Request</th>
+              <th className="px-4 py-3 text-left font-semibold">Post</th>
               <th className="px-4 py-3 text-left font-semibold">Status</th>
-              <th className="px-4 py-3 text-left font-semibold">Helpers</th>
               <th className="px-4 py-3 text-left font-semibold">Created</th>
               <th className="px-4 py-3 text-right font-semibold">Actions</th>
             </tr>
@@ -152,9 +151,6 @@ export function CommunityTable({
                     variant={STATUS_VARIANT[post.status]}
                     label={STATUS_LABEL[post.status]}
                   />
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {post.interest_count}
                 </td>
                 <td
                   className="px-4 py-3 text-muted-foreground"

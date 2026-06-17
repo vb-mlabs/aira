@@ -4,28 +4,24 @@
 //
 // Opened when the viewer taps a card in /community. Shows the full body,
 // status, author + relative time, optional contact (tel:/mailto:), and
-// (for the post author only) the list of respondents — non-authors see
-// a public count. The "I'm interested" button lives in the footer for
-// non-authors; authors see a read-only summary instead.
+// the comment thread. The pinned comment composer at the top of the
+// thread is now the primary engagement signal — the older "I'm
+// interested" affordance was removed because comments cover the same
+// ground with richer expression.
 
-import { useEffect, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
-import { AtSign, MessageSquare, Phone, X } from "lucide-react"
-import { ApiError } from "@aira/api"
-import { apiClient } from "@/lib/api-client"
-import type { InterestRow, PostRow } from "../types"
+import { AtSign, Phone, X } from "lucide-react"
+import type { PostRow } from "../types"
 import { CommentThread } from "./comment-thread"
-import { InterestButton } from "./interest-button"
 
 interface PostDetailModalProps {
   post: PostRow
   open: boolean
   onClose: () => void
-  /** Current session user id. Drives the author-only respondent fetch
-   *  and suppresses the "I'm interested" button on the viewer's own posts. */
+  /** Current session user id. Drives the Comment-vs-self distinction on
+   *  the surrounding card and the comment-thread's per-row delete
+   *  affordance. */
   currentUserId: string | null
-  /** Whether the current session has already shown interest. */
-  alreadyHelped?: boolean
 }
 
 export function PostDetailModal({
@@ -33,40 +29,7 @@ export function PostDetailModal({
   open,
   onClose,
   currentUserId,
-  alreadyHelped = false,
 }: PostDetailModalProps) {
-  const isAuthor = currentUserId !== null && currentUserId === post.user_id
-
-  const [interests, setInterests] = useState<InterestRow[] | null>(null)
-  const [interestsError, setInterestsError] = useState<string | null>(null)
-
-  // Only the author can see the respondent list (server enforces 403 for
-  // everyone else). Lazy-fetch on open; refetches on reopen to stay
-  // current after a back-end mutation.
-  useEffect(() => {
-    if (!open || !isAuthor) return
-    setInterestsError(null)
-    let cancelled = false
-    void (async () => {
-      try {
-        const res = await apiClient.get<{ items: InterestRow[] }>(
-          `/api/v1/community/posts/${encodeURIComponent(post.id)}/interests`,
-        )
-        if (!cancelled) setInterests(res.data?.items ?? [])
-      } catch (err) {
-        if (!cancelled) {
-          setInterestsError(
-            err instanceof ApiError
-              ? err.message
-              : "Couldn't load helpers.",
-          )
-        }
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [open, isAuthor, post.id])
 
   function handleOpenChange(next: boolean) {
     if (!next) onClose()
@@ -148,82 +111,12 @@ export function PostDetailModal({
               </section>
             )}
 
-            {isAuthor && (
-              <section>
-                <header className="flex items-center gap-2">
-                  <MessageSquare
-                    className="size-4 text-muted-foreground"
-                    aria-hidden
-                  />
-                  <h3 className="font-display text-base">
-                    {interests === null
-                      ? "Loading respondents…"
-                      : interests.length === 0
-                        ? "No one is interested yet"
-                        : interests.length === 1
-                          ? "1 neighbour is interested"
-                          : `${interests.length} neighbours are interested`}
-                  </h3>
-                </header>
-                {interestsError && (
-                  <p
-                    role="alert"
-                    className="mt-2 text-xs text-destructive"
-                  >
-                    {interestsError}
-                  </p>
-                )}
-                {interests !== null && interests.length > 0 && (
-                  <ul className="mt-3 space-y-2.5">
-                    {interests.map((r) => (
-                      <li
-                        key={r.id}
-                        className="rounded-md bg-background/40 px-3 py-2"
-                      >
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-sm font-bold leading-tight">
-                            {r.responder_name}
-                          </p>
-                          <p
-                            className="text-[11px] text-muted-foreground"
-                            suppressHydrationWarning
-                          >
-                            · {relativeTime(r.created_at)}
-                          </p>
-                        </div>
-                        {r.message ? (
-                          <p className="mt-1 text-sm leading-relaxed">
-                            {r.message}
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-xs italic text-muted-foreground">
-                            No note attached.
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            )}
-
             <CommentThread
               postId={post.id}
               acceptsComments={post.status === "approved"}
               currentUserId={currentUserId}
             />
           </div>
-
-          {!isAuthor && (
-            <div className="shrink-0 border-t border-border bg-muted/20 px-5 py-3">
-              <InterestButton
-                postId={post.id}
-                initialActive={alreadyHelped}
-                initialCount={post.interest_count}
-                showCount
-              />
-            </div>
-          )}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

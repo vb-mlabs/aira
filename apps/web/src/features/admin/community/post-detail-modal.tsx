@@ -10,19 +10,16 @@
 // Edit + Delete live on the table row itself; the modal stays focused
 // on "read everything, then approve or reject."
 
-import { useEffect, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
-import { AtSign, Check, MessageSquare, Phone, X } from "lucide-react"
+import { AtSign, Check, Phone, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { Button } from "@aira/ui-web/button"
 import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
-import type {
-  AdminPostRow,
-  InterestRow,
-} from "@aira/validators/community"
+import type { AdminPostRow } from "@aira/validators/community"
 import { CommentModeration } from "./comment-moderation"
 
 interface PostDetailModalProps {
@@ -45,39 +42,10 @@ export function PostDetailModal({
   onModerated,
 }: PostDetailModalProps) {
   const router = useRouter()
-  const [interests, setInterests] = useState<InterestRow[] | null>(null)
-  const [interestsError, setInterestsError] = useState<string | null>(null)
   const [stage, setStage] = useState<ConfirmStage>("idle")
   const [rejectReason, setRejectReason] = useState("")
   const [actionError, setActionError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
-
-  // Lazy-fetch respondents when the modal opens; refetches if the admin
-  // closes + reopens to keep state fresh after a backend mutation.
-  useEffect(() => {
-    if (!open) return
-    setInterestsError(null)
-    let cancelled = false
-    void (async () => {
-      try {
-        const res = await apiClient.get<{ items: InterestRow[] }>(
-          `/api/v1/admin/community/posts/${encodeURIComponent(post.id)}/interests`,
-        )
-        if (!cancelled) setInterests(res.data?.items ?? [])
-      } catch (err) {
-        if (!cancelled) {
-          setInterestsError(
-            err instanceof ApiError
-              ? err.message
-              : "Couldn't load respondents.",
-          )
-        }
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [open, post.id])
 
   function handleOpenChange(next: boolean) {
     if (!next) {
@@ -194,74 +162,17 @@ export function PostDetailModal({
               </p>
             )}
 
-            <dl className="grid grid-cols-2 gap-3 rounded-md bg-background/40 px-4 py-3 text-xs sm:grid-cols-4">
+            <dl className="grid grid-cols-3 gap-3 rounded-md bg-background/40 px-4 py-3 text-xs">
               <Cell label="Status" value={post.status} />
               <Cell
                 label="Expires"
                 value={post.expires_at ? formatDate(post.expires_at) : "—"}
               />
-              <Cell label="Interested" value={String(post.interest_count)} />
               <Cell
                 label="Approved"
                 value={post.approved_at ? formatDate(post.approved_at) : "—"}
               />
             </dl>
-
-            <section>
-              <header className="flex items-center gap-2">
-                <MessageSquare
-                  className="size-4 text-muted-foreground"
-                  aria-hidden
-                />
-                <h3 className="font-display text-base">
-                  {interests === null
-                    ? "Loading respondents…"
-                    : interests.length === 0
-                      ? "No one has offered to help yet"
-                      : interests.length === 1
-                        ? "1 neighbour offered to help"
-                        : `${interests.length} neighbours offered to help`}
-                </h3>
-              </header>
-
-              {interestsError && (
-                <p
-                  role="alert"
-                  className="mt-2 text-xs text-destructive"
-                >
-                  {interestsError}
-                </p>
-              )}
-
-              {interests !== null && interests.length > 0 && (
-                <ul className="mt-3 space-y-2.5">
-                  {interests.map((r) => (
-                    <li
-                      key={r.id}
-                      className="rounded-md bg-background/40 px-3 py-2"
-                    >
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-sm font-bold leading-tight">
-                          {r.responder_name}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          · {formatDateTime(r.created_at)}
-                        </p>
-                      </div>
-                      {r.message ? (
-                        <p className="mt-1 text-sm leading-relaxed">
-                          {r.message}
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-xs italic text-muted-foreground">
-                          No note attached.
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
 
             <CommentModeration postId={post.id} />
           </div>

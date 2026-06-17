@@ -12,7 +12,6 @@ import {
   CalendarClock,
   CheckCircle2,
   Clock,
-  HeartHandshake,
   Pencil,
   Sparkles,
   Trash2,
@@ -142,13 +141,6 @@ export function MyPostsList({ initialItems }: MyPostsListProps) {
                   <span suppressHydrationWarning>
                     {relativeTime(post.created_at)}
                   </span>
-                  {post.interest_count > 0 && (
-                    <span className="inline-flex items-center gap-1">
-                      <HeartHandshake className="size-3" aria-hidden />
-                      {post.interest_count}{" "}
-                      {post.interest_count === 1 ? "interested" : "interested"}
-                    </span>
-                  )}
                 </div>
                 {post.body && (
                   <p className="mt-2 line-clamp-2 text-sm text-foreground/85">
@@ -195,8 +187,8 @@ export function MyPostsList({ initialItems }: MyPostsListProps) {
             {confirmDelete === post.id && (
               <div className="mt-3 flex flex-wrap items-center justify-end gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2">
                 <p className="mr-auto text-xs text-foreground">
-                  Delete this post? Replies, comments, and interest will
-                  all be removed.
+                  Delete this post? All comments and replies will be
+                  removed too.
                 </p>
                 <Button
                   type="button"

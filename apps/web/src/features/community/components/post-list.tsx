@@ -25,8 +25,9 @@ interface ListResponse {
 
 interface PostListProps {
   initial: ListResponse
-  /** id of the current viewer so PostCard knows when to suppress the
-   *  "I'm interested" button (post author). null when unknown. */
+  /** id of the current viewer so PostCard can render "Your post" on
+   *  the viewer's own rows instead of the Comment CTA. null when
+   *  unknown. */
   currentUserId: string | null
 }
 
