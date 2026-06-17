@@ -158,6 +158,26 @@ export type AuditMeta =
         | "reschedule";
       note: string | null;
       scheduled_next: string | null;
+    }
+  // G1 — business owner reachability. target.id = business.id for assign /
+  // unassign; broadcast_sent has no target (admin action with N recipients
+  // counted in meta).
+  | {
+      kind: "business.owner_assigned";
+      owner_user_id: string;
+      owner_email: string;
+      /** Previous owner_user_id when this was a re-assign (overwrite).
+       *  null on first assignment. */
+      prev_owner_user_id: string | null;
+    }
+  | {
+      kind: "business.owner_unassigned";
+      prev_owner_user_id: string;
+    }
+  | {
+      kind: "business.broadcast_sent";
+      title: string;
+      recipient_count: number;
     };
 
 // ─── Known actions / target types ───────────────────────────────────────────
@@ -199,6 +219,9 @@ export const KNOWN_AUDIT_ACTIONS = [
   "community.comment_restored",
   "community.comment_deleted",
   "business.subscription_followup",
+  "business.owner_assigned",
+  "business.owner_unassigned",
+  "business.broadcast_sent",
 ] as const;
 export type KnownAuditAction = (typeof KNOWN_AUDIT_ACTIONS)[number];
 
@@ -253,6 +276,9 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "community.comment_restored": "Comment restored",
     "community.comment_deleted": "Comment deleted",
     "app_setting.updated": "Setting updated",
+    "business.owner_assigned": "Owner assigned",
+    "business.owner_unassigned": "Owner unassigned",
+    "business.broadcast_sent": "Broadcast sent",
   };
 
 /** Convert an action kind string into a humanised dropdown label.

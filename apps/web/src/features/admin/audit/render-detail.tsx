@@ -137,6 +137,27 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           ) : null}
         </>
       )
+    case "business.owner_assigned":
+      return m.prev_owner_user_id ? (
+        <>
+          Reassigned owner to <code>{m.owner_email}</code> (replaced previous
+          owner)
+        </>
+      ) : (
+        <>
+          Assigned <code>{m.owner_email}</code> as owner
+        </>
+      )
+    case "business.owner_unassigned":
+      return <>Unassigned business owner</>
+    case "business.broadcast_sent":
+      return (
+        <>
+          Broadcast &ldquo;{truncate(m.title, 60)}&rdquo; to{" "}
+          {m.recipient_count}{" "}
+          {m.recipient_count === 1 ? "owner" : "owners"}
+        </>
+      )
 
     // ─── app_setting.* ───────────────────────────────────────────────
     case "app_setting.updated":
