@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
-import { ChevronLeft, Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
+import { BadgeCheck, ChevronLeft, Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
 import Link from "next/link"
 import { ApiError } from "@aira/api"
 import { brand } from "@aira/config"
@@ -62,7 +62,7 @@ interface UpdateResult {
 
 async function runUpdate(
   id: string,
-  data: Record<string, string | number | null | string[]>,
+  data: Record<string, string | number | boolean | null | string[]>,
 ): Promise<Feedback> {
   try {
     await apiClient.patch<UpdateResult>(
@@ -1045,7 +1045,18 @@ function AiraReviewSection({ business }: { business: Business }) {
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">{brand.name} Review</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold">{brand.name} Review</h2>
+          {business.verified && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+              title={`${brand.name} verified business`}
+            >
+              <BadgeCheck className="size-3.5" aria-hidden />
+              Verified
+            </span>
+          )}
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -1246,6 +1257,7 @@ function AiraReviewEditModal({
     business.rating === null ? "" : business.rating.toString(),
   )
   const [airaReview, setAiraReview] = useState(business.aira_review ?? "")
+  const [verified, setVerified] = useState(business.verified)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -1255,6 +1267,7 @@ function AiraReviewEditModal({
       const result = await runUpdate(business.id, {
         rating: rating === "" ? null : Number(rating),
         aira_review: airaReview.trim() || null,
+        verified,
       })
       if (result?.kind === "error") {
         setError(result.message)
@@ -1301,6 +1314,25 @@ function AiraReviewEditModal({
               </p>
               <AiraReviewPreview rating={previewRating} review={airaReview} />
             </div>
+
+            <label className="flex items-start gap-3 rounded-md border border-border bg-muted/20 px-4 py-3 cursor-pointer transition-colors hover:bg-muted/30">
+              <input
+                type="checkbox"
+                checked={verified}
+                onChange={(e) => setVerified(e.target.checked)}
+                className="mt-0.5 size-4 cursor-pointer accent-primary"
+              />
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  <BadgeCheck className="size-4 text-primary" aria-hidden />
+                  Verified by {brand.name}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Surfaces the blue-tick badge on cards and the public detail
+                  page. Use only after confirming the business is authentic.
+                </p>
+              </div>
+            </label>
 
             <div className="space-y-1.5">
               <Label>Star rating</Label>

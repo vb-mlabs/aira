@@ -118,6 +118,7 @@ export const BusinessUpdateInputSchema = z
     hours: z.string().nullable().optional(),
     aira_review: z.string().nullable().optional(),
     rating: z.number().min(0).max(5).nullable().optional(),
+    verified: z.boolean().optional(),
     extra_category_ids: z.string().array().optional(),
     city_id: z.string().nullable().optional(),
     business_type: z.string().nullable().optional(),

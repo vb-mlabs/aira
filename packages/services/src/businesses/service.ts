@@ -54,6 +54,7 @@ export async function updateBusiness(
   if (data.hours !== undefined) updatePayload.hours = data.hours;
   if (data.aira_review !== undefined) updatePayload.aira_review = data.aira_review;
   if (data.rating !== undefined) updatePayload.rating = data.rating;
+  if (data.verified !== undefined) updatePayload.verified = data.verified;
   if (data.city_id !== undefined) updatePayload.city_id = data.city_id;
   if (data.business_type !== undefined) updatePayload.business_type = data.business_type;
   if (data.years_operating !== undefined) updatePayload.years_operating = data.years_operating;
