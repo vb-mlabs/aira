@@ -3,14 +3,14 @@
 // User-facing post detail popup.
 //
 // Opened when the viewer taps a card in /community. Shows the full body,
-// status, author + relative time, and (for the post author only) the list
-// of respondents — non-authors see a public count. The "I can help"
-// button lives in the footer for non-authors; authors see a read-only
-// summary instead.
+// status, author + relative time, optional contact (tel:/mailto:), and
+// (for the post author only) the list of respondents — non-authors see
+// a public count. The "I'm interested" button lives in the footer for
+// non-authors; authors see a read-only summary instead.
 
 import { useEffect, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
-import { MessageSquare, X } from "lucide-react"
+import { AtSign, MessageSquare, Phone, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { apiClient } from "@/lib/api-client"
 import type { InterestRow, PostRow } from "../types"
@@ -115,6 +115,38 @@ export function PostDetailModal({
               </p>
             )}
 
+            {(post.phone || post.email) && (
+              <section
+                aria-labelledby="contact-heading"
+                className="space-y-1.5 rounded-md border border-border bg-muted/20 px-4 py-3"
+              >
+                <h3
+                  id="contact-heading"
+                  className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+                >
+                  Contact
+                </h3>
+                {post.phone && (
+                  <a
+                    href={`tel:${post.phone}`}
+                    className="flex items-center gap-2 text-sm text-foreground hover:text-primary"
+                  >
+                    <Phone className="size-4 text-muted-foreground" aria-hidden />
+                    {post.phone}
+                  </a>
+                )}
+                {post.email && (
+                  <a
+                    href={`mailto:${post.email}`}
+                    className="flex items-center gap-2 text-sm text-foreground hover:text-primary"
+                  >
+                    <AtSign className="size-4 text-muted-foreground" aria-hidden />
+                    {post.email}
+                  </a>
+                )}
+              </section>
+            )}
+
             {isAuthor && (
               <section>
                 <header className="flex items-center gap-2">
@@ -124,12 +156,12 @@ export function PostDetailModal({
                   />
                   <h3 className="font-display text-base">
                     {interests === null
-                      ? "Loading helpers…"
+                      ? "Loading respondents…"
                       : interests.length === 0
-                        ? "No one has offered to help yet"
+                        ? "No one is interested yet"
                         : interests.length === 1
-                          ? "1 neighbour offered to help"
-                          : `${interests.length} neighbours offered to help`}
+                          ? "1 neighbour is interested"
+                          : `${interests.length} neighbours are interested`}
                   </h3>
                 </header>
                 {interestsError && (

@@ -7,6 +7,7 @@
 // PostDetailModal inline. The InterestButton sits at z-10 so its hitbox
 // wins over the row's click handler.
 
+import { AtSign, Phone } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import type { PostRow } from "../types"
 import { InterestButton } from "./interest-button"
@@ -82,14 +83,17 @@ export function PostCard({
       </div>
 
       <div className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch">
-        <StatusPill status={post.status} />
+        <div className="flex items-center gap-1.5">
+          <ContactPill phone={post.phone} email={post.email} />
+          <StatusPill status={post.status} />
+        </div>
         {isAuthor ? (
           <p className="text-[11px] text-muted-foreground">
             {post.interest_count === 0
-              ? "No offers yet"
+              ? "No interest yet"
               : post.interest_count === 1
-                ? "1 helper"
-                : `${post.interest_count} helpers`}
+                ? "1 interested"
+                : `${post.interest_count} interested`}
           </p>
         ) : (
           <div
@@ -107,6 +111,37 @@ export function PostCard({
         )}
       </div>
     </article>
+  )
+}
+
+/**
+ * Tiny icon-only chip that signals "this post has contact details" without
+ * eating card density. The actual tel:/mailto: links live in the detail
+ * modal where there's room for them.
+ */
+function ContactPill({
+  phone,
+  email,
+}: {
+  phone: string | null
+  email: string | null
+}) {
+  if (!phone && !email) return null
+  const label =
+    phone && email
+      ? "Phone + email available"
+      : phone
+        ? "Phone available"
+        : "Email available"
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-info/30 bg-info/10 px-1.5 py-0.5 text-info-foreground"
+    >
+      {phone && <Phone className="size-3" aria-hidden />}
+      {email && <AtSign className="size-3" aria-hidden />}
+    </span>
   )
 }
 
@@ -138,7 +173,10 @@ export function PostCardReadOnly({ post }: { post: PostRow }) {
           </p>
         )}
       </div>
-      <StatusPill status={post.status} />
+      <div className="flex items-center gap-1.5">
+        <ContactPill phone={post.phone} email={post.email} />
+        <StatusPill status={post.status} />
+      </div>
     </article>
   )
 }
