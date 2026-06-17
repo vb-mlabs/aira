@@ -179,15 +179,19 @@ export async function getFeaturedBusinesses(
   db: Database,
   limit = 6,
 ): Promise<Business[]> {
+  // Any active business with an active-paid subscription is eligible —
+  // premium tiers (tier1 / tier2) just rank first via TIER_ORDER.
+  //
+  // History: this used to gate strictly to tier1+tier2 (see the membership-
+  // plan-tier review on 2026-06-15), but that hides the section entirely
+  // whenever the directory has no premium customer, which made /home feel
+  // empty. The tier ordering preserves the "premium first" intent without
+  // hiding everyone else.
   const rows = await db
     .select()
     .from(businesses)
     .where(
-      and(
-        inArray(businesses.tier, ["tier1", "tier2"]),
-        isNull(businesses.deleted_at),
-        IS_PAID_ACTIVE,
-      ),
+      and(isNull(businesses.deleted_at), IS_PAID_ACTIVE),
     )
     .orderBy(
       homepageSponsoredFlag,
