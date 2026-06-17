@@ -138,7 +138,6 @@ export function AppSidebar({ onClose, tree, isAdmin }: AppSidebarProps) {
         >
           <Settings className="size-4 flex-shrink-0 opacity-90" aria-hidden />
           <span className="flex-1">Admin Panel</span>
-          <ChevronRight className="size-3.5 flex-shrink-0 opacity-55" aria-hidden />
         </Link>
       )}
 
@@ -192,10 +191,6 @@ function SidebarRow({ href, label, icon: Icon, active }: SidebarRowProps) {
         aria-hidden
       />
       <span className="flex-1 truncate">{label}</span>
-      <ChevronRight
-        className="size-3.5 flex-shrink-0 opacity-55"
-        aria-hidden
-      />
     </Link>
   )
 }

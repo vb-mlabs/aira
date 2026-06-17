@@ -15,7 +15,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  ChevronRight,
   ClipboardList,
   Clock,
   LayoutDashboard,
@@ -179,10 +178,6 @@ function SidebarRow({
     >
       <Icon className="size-5 flex-shrink-0 opacity-90" aria-hidden />
       <span className="flex-1 truncate">{label}</span>
-      <ChevronRight
-        className="size-4 flex-shrink-0 opacity-55"
-        aria-hidden
-      />
     </Link>
   )
 }
