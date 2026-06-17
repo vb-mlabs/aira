@@ -13,6 +13,7 @@ import {
   Lock,
   MessageCircle,
   ScrollText,
+  Store,
   UserCog,
 } from "lucide-react"
 import { brand } from "@aira/config"
@@ -33,6 +34,7 @@ interface MenuItem {
 const ACCOUNT_ITEMS: readonly MenuItem[] = [
   { href: "/profile", label: "Edit profile", icon: UserCog },
   { href: "/account/posts", label: "My posts", icon: FileText },
+  { href: "/account/listings", label: "My listings", icon: Store },
   { href: "/account/notifications", label: "Notifications", icon: Bell },
   {
     href: "/account/privacy-security",

@@ -38,6 +38,9 @@ so the missing config doesn't silently brick admin access.
 | `unbanUser` | Clears `banned_at`. User must sign in again. |
 | `sendPasswordResetTo` | Calls Better Auth's `forgetPassword` server-side. |
 | `sendAdminNotification` | Validates title/message non-empty; creates a `generic`-kind notification on the target. |
+| `assignBusinessOwner` | Resolves the target user (404 if missing) and the business (404 if archived). Audits BEFORE the FK write; fires an in-app notification + a best-effort Postmark email on the link event. Overwriting an existing owner records `prev_owner_user_id` in audit meta. |
+| `unassignBusinessOwner` | Idempotent — nulling an already-null FK is a successful no-op with no audit row. Silent (no email). |
+| `sendBusinessOwnerBroadcast` | Fan-out: in-app notifications to every linked, non-banned owner of an active business. Single audit row with `recipient_count` in meta; empty recipient sets still leave the row. In-app only — no Postmark for G1. |
 
 Banned users:
 
