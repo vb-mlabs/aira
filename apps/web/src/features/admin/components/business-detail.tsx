@@ -20,10 +20,12 @@ import {
 import {
   VALID_BUSINESS_TYPES,
   VALID_YEARS_OPERATING,
+  type BusinessOwner,
 } from "@aira/validators/businesses"
 import type { Category } from "@aira/validators/categories"
 import type { City } from "@aira/validators/cities"
 import { ArchiveControl } from "./archive-control"
+import { BusinessOwnerSection } from "./business-owner-section"
 import { FeatureImageControl } from "./feature-image-section"
 import { GalleryControl } from "./gallery-section"
 import { PlacesAddressInput } from "./places-address-input"
@@ -32,6 +34,7 @@ import { SponsorshipsSection } from "./sponsorships-section"
 
 interface BusinessAdminDetailProps {
   business: Business
+  owner?: BusinessOwner | null
   categories?: Category[]
   cities?: City[]
 }
@@ -80,6 +83,7 @@ async function runUpdate(
 
 export function BusinessAdminDetail({
   business,
+  owner = null,
   categories = [],
   cities = [],
 }: BusinessAdminDetailProps) {
@@ -113,6 +117,11 @@ export function BusinessAdminDetail({
         <ArchiveControl business={business} />
       </header>
 
+      <BusinessOwnerSection
+        businessId={business.id}
+        businessName={business.name}
+        owner={owner}
+      />
       <CoreFieldsSection
         business={business}
         categories={categories}
