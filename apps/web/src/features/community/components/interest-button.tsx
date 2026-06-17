@@ -1,6 +1,6 @@
 "use client"
 
-// "I can help" toggle button. Calls POST / DELETE
+// "I'm interested" toggle button. Calls POST / DELETE
 // /api/v1/community/posts/[id]/interests. Disabled for the post author
 // (parent decides) and for unauthed visitors (parent renders a link to
 // /login instead). On 409 (already interested) we flip the local state
@@ -16,7 +16,7 @@ import { apiClient } from "@/lib/api-client"
 
 interface InterestButtonProps {
   postId: string
-  /** Has the current session already offered to help? Drives the toggle. */
+  /** Has the current session already shown interest? Drives the toggle. */
   initialActive: boolean
   /** Used by parent to show the live count next to the button. */
   initialCount: number
@@ -91,22 +91,22 @@ export function InterestButton({
         {active ? (
           <>
             <HeartHandshake aria-hidden />
-            Offered to help
+            Interested
           </>
         ) : (
           <>
             <Heart aria-hidden />
-            I can help
+            I&rsquo;m interested
           </>
         )}
       </Button>
       {showCount && (
         <span className="text-sm text-muted-foreground">
           {count === 0
-            ? "Be the first to offer help"
+            ? "Be the first to show interest"
             : count === 1
-              ? "1 neighbour has offered to help"
-              : `${count} neighbours have offered to help`}
+              ? "1 neighbour is interested"
+              : `${count} neighbours are interested`}
         </span>
       )}
       {error && (

@@ -100,7 +100,7 @@ function renderBody(body: NotificationRow["body"]): RenderedBody {
       }
     case "post_interest":
       return {
-        title: `${body.responder_name} can help with your request`,
+        title: `${body.responder_name} is interested in your post`,
         message: body.message ?? `Re: ${body.post_title}`,
         href: `/community/${body.post_id}`,
       }
