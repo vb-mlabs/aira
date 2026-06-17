@@ -300,10 +300,26 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
             res.headers.set("X-Request-Id", requestId)
             return res
           }
+          // Surface enough detail to debug post-mortem:
+          //   - err.message      — the top-level message (Drizzle dumps the
+          //                        full SQL here for query failures, which
+          //                        crowds out the actual cause)
+          //   - err.stack        — call site
+          //   - err.cause.message — underlying driver error (Postgres code +
+          //                        diagnostic message live here)
+          const cause = (err as { cause?: unknown }).cause
+          const causeMessage =
+            cause instanceof Error
+              ? cause.message
+              : typeof cause === "string"
+                ? cause
+                : undefined
           log.error?.("operation.unhandled", {
             op: spec.name,
             requestId,
             error: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+            cause: causeMessage,
           })
           const fallback = ApiError.internal(
             "internal.unhandled",
