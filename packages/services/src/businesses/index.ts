@@ -15,6 +15,9 @@ export {
   getBusinessById,
   getBusinessByIdIncludingArchived,
   countActiveBusinesses,
+  getBusinessOwner,
+  getBusinessesOwnedBy,
+  getBusinessOwnerLookup,
 } from "./queries";
 export type {
   PagedBusinessesInput,

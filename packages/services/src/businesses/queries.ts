@@ -5,12 +5,13 @@
 // singletons. Mirrors the rest of the @aira/services convention.
 
 import { and, asc, count, desc, eq, getTableColumns, ilike, inArray, isNull, or, sql } from "drizzle-orm";
-import { businesses, businessImages, businessCategories, categories, businessSubscriptions } from "@aira/db/schema";
+import { businesses, businessImages, businessCategories, categories, businessSubscriptions, user } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import {
   VALID_TIERS,
   type Business,
   type BusinessCreateInput,
+  type BusinessOwner,
   type BusinessTier,
   type BusinessImage,
 } from "@aira/validators";
@@ -398,6 +399,77 @@ export async function countActiveBusinesses(db: Database): Promise<number> {
     .from(businesses)
     .where(isNull(businesses.deleted_at));
   return Number(row?.value ?? 0);
+}
+
+// ─── Owner-side queries (G1) ────────────────────────────────────────────────
+
+/** Resolve the owner record for a single business. Returns null when the
+ *  business has no linked owner OR the referenced user has been deleted
+ *  (the FK SET NULLs on user delete, so the second case also yields null
+ *  via the JOIN). Used by the admin business-detail op to populate the
+ *  Owner section alongside the business itself. */
+export async function getBusinessOwner(
+  db: Database,
+  businessId: string,
+): Promise<BusinessOwner | null> {
+  const [row] = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    })
+    .from(businesses)
+    .innerJoin(user, eq(user.id, businesses.owner_user_id))
+    .where(eq(businesses.id, businessId))
+    .limit(1);
+  return row ?? null;
+}
+
+/** Return every business linked to a user — active and archived. Drives
+ *  the read-only /account/listings page. Empty array when the user owns
+ *  nothing. Archived rows are surfaced with the deleted_at timestamp so
+ *  the UI can label them. */
+export async function getBusinessesOwnedBy(
+  db: Database,
+  userId: string,
+): Promise<Business[]> {
+  const rows = await db
+    .select()
+    .from(businesses)
+    .where(eq(businesses.owner_user_id, userId))
+    .orderBy(asc(businesses.name));
+  return attachRelations(db, rows);
+}
+
+/** Batch lookup — given a set of business ids, return a Map keyed by
+ *  business id with the resolved owner record. Businesses with no
+ *  owner are absent from the map (callers default to null via
+ *  `map.get(id) ?? null`). Used by the admin list page to populate the
+ *  Owner column without doing N+1 lookups. */
+export async function getBusinessOwnerLookup(
+  db: Database,
+  businessIds: string[],
+): Promise<Map<string, BusinessOwner>> {
+  if (businessIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      business_id: businesses.id,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    })
+    .from(businesses)
+    .innerJoin(user, eq(user.id, businesses.owner_user_id))
+    .where(inArray(businesses.id, businessIds));
+  const out = new Map<string, BusinessOwner>();
+  for (const row of rows) {
+    out.set(row.business_id, {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+    });
+  }
+  return out;
 }
 
 // ─── Mappers ─────────────────────────────────────────────────────────────────
