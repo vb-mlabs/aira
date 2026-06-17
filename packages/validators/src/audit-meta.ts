@@ -122,6 +122,28 @@ export type AuditMeta =
       prev_approved_at: string;
       prev_expires_at: string | null;
     }
+  // Comment thread moderation. Admin hides/restores a comment without
+  // hard-deleting (the body is preserved in the DB but never projected
+  // to the wire while hidden). Cascade-delete via FK takes care of
+  // replies when the top-level is hard-deleted, so the audit row only
+  // captures the parent. body_snapshot is the verbatim body at the
+  // time of the moderation action.
+  | {
+      kind: "community.comment_hidden";
+      post_id: string;
+      body_snapshot: string;
+    }
+  | {
+      kind: "community.comment_restored";
+      post_id: string;
+    }
+  | {
+      kind: "community.comment_deleted";
+      post_id: string;
+      author_id: string;
+      body_snapshot: string;
+      was_reply: boolean;
+    }
   // S6 — F23′ admin renewal follow-up queue. One row per call/attempt.
   // target.id = business_subscription.id. Single action kind + outcome
   // inside metadata (mirrors session.revoked.reason precedent).
@@ -173,6 +195,9 @@ export const KNOWN_AUDIT_ACTIONS = [
   "community.post_deleted",
   "community.post_edited",
   "community.post_reverted_to_pending",
+  "community.comment_hidden",
+  "community.comment_restored",
+  "community.comment_deleted",
   "business.subscription_followup",
 ] as const;
 export type KnownAuditAction = (typeof KNOWN_AUDIT_ACTIONS)[number];
@@ -224,6 +249,9 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "community.post_deleted": "Post deleted",
     "community.post_edited": "Post edited",
     "community.post_reverted_to_pending": "Post reverted to pending",
+    "community.comment_hidden": "Comment hidden",
+    "community.comment_restored": "Comment restored",
+    "community.comment_deleted": "Comment deleted",
     "app_setting.updated": "Setting updated",
   };
 

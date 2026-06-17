@@ -176,6 +176,21 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           {formatDate(m.prev_approved_at)})
         </>
       )
+    case "community.comment_hidden":
+      return (
+        <>
+          Hid comment &ldquo;{truncate(m.body_snapshot, 60)}&rdquo;
+        </>
+      )
+    case "community.comment_restored":
+      return <>Restored a previously hidden comment</>
+    case "community.comment_deleted":
+      return (
+        <>
+          Deleted {m.was_reply ? "reply" : "top-level comment"} &ldquo;
+          {truncate(m.body_snapshot, 60)}&rdquo;
+        </>
+      )
 
     // ─── exhaustiveness gate ─────────────────────────────────────────
     default: {
