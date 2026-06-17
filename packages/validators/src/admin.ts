@@ -106,3 +106,27 @@ export const ListAuditOutputSchema = z.object({
   pageSize: z.number().int().min(1),
 });
 export type ListAuditOutput = z.infer<typeof ListAuditOutputSchema>;
+
+/** G1 — Notify all linked business owners. title bounds keep the bell
+ *  drop-down legible (≤120 chars), message bounds the body without being
+ *  artificially short (2000 chars covers any realistic announcement). */
+export const BusinessOwnerBroadcastInputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    message: z.string().trim().min(1).max(2000),
+  })
+  .strict();
+export type BusinessOwnerBroadcastInput = z.infer<
+  typeof BusinessOwnerBroadcastInputSchema
+>;
+
+export const BusinessOwnerBroadcastOutputSchema = z.object({
+  ok: z.literal(true),
+  /** Number of recipients targeted by the targeting query. 0 is legal —
+   *  no notifications written, but the audit row is still persisted so the
+   *  attempt leaves a trace. */
+  recipient_count: z.number().int().nonnegative(),
+});
+export type BusinessOwnerBroadcastOutput = z.infer<
+  typeof BusinessOwnerBroadcastOutputSchema
+>;

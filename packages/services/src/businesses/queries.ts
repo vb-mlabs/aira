@@ -451,6 +451,7 @@ function toBusiness(
     city_id: row.city_id ?? null,
     business_type: row.business_type ?? null,
     years_operating: row.years_operating ?? null,
+    owner_user_id: row.owner_user_id ?? null,
     deleted_at: row.deleted_at ? row.deleted_at.toISOString() : null,
     created_at: new Date(row.created_at).toISOString(),
     updated_at: new Date(row.updated_at).toISOString(),

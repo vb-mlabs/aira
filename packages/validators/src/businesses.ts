@@ -84,6 +84,12 @@ export const BusinessSchema = z.object({
   city_id: z.string().nullable(),
   business_type: z.string().nullable(),
   years_operating: z.string().nullable(),
+  /** Opaque FK to user.id — the business owner. Surfaced on the public
+   *  schema so the admin extension can project it; carries no PII on its
+   *  own. Mutated only via the audited assignBusinessOwner /
+   *  unassignBusinessOwner service path; deliberately NOT included in
+   *  BusinessUpdateInputSchema so generic admin edits cannot mutate it. */
+  owner_user_id: z.string().nullable(),
   /** ISO 8601; NULL = active, non-NULL = archived at this moment. */
   deleted_at: z.string().nullable(),
   /** ISO 8601 */
@@ -96,6 +102,47 @@ export const BusinessSchema = z.object({
   extra_category_ids: z.string().array().default([]),
 });
 export type Business = z.infer<typeof BusinessSchema>;
+
+/** Business owner — denormalised user projection returned from
+ *  getBusinessOwner. Used by the admin business-detail op output and by
+ *  the admin list page's per-row Owner column. Carries user PII (name,
+ *  email) so callers must scope this to admin surfaces only. */
+export const BusinessOwnerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
+export type BusinessOwner = z.infer<typeof BusinessOwnerSchema>;
+
+/** Admin owner-assignment input. owner_user_id is the picked user;
+ *  business id comes from the [id] route param. */
+export const AssignBusinessOwnerInputSchema = z
+  .object({
+    id: z.string().min(1),
+    owner_user_id: z.string().min(1),
+  })
+  .strict();
+export type AssignBusinessOwnerInput = z.infer<
+  typeof AssignBusinessOwnerInputSchema
+>;
+
+export const UnassignBusinessOwnerInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type UnassignBusinessOwnerInput = z.infer<
+  typeof UnassignBusinessOwnerInputSchema
+>;
+
+/** Admin detail output — extends the public BusinessDetail shape with a
+ *  separately-fetched owner record. owner is null when owner_user_id is
+ *  null or when the referenced user has been deleted/anonymised. */
+export const BusinessAdminDetailOutputSchema = z.object({
+  business: BusinessSchema.nullable(),
+  owner: BusinessOwnerSchema.nullable(),
+});
+export type BusinessAdminDetailOutput = z.infer<
+  typeof BusinessAdminDetailOutputSchema
+>;
 
 // businesses.tier is no longer admin-writable through this surface — the
 // column is now a denormalised cache maintained by the subscription
