@@ -47,14 +47,23 @@ export function BusinessOwnerPicker({
   const [error, setError] = useState<string | null>(null)
   const inflight = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    const trimmed = q.trim()
-    if (trimmed.length < MIN_QUERY_LEN) {
+  // Resets happen in the input handler (event-driven) so the effect body
+  // never synchronously sets state on the "query too short" path — keeps
+  // react-hooks/set-state-in-effect happy.
+  function handleQueryChange(next: string) {
+    setQ(next)
+    if (next.trim().length < MIN_QUERY_LEN) {
+      inflight.current?.abort()
+      inflight.current = null
       setResults([])
       setPending(false)
       setError(null)
-      return
     }
+  }
+
+  useEffect(() => {
+    const trimmed = q.trim()
+    if (trimmed.length < MIN_QUERY_LEN) return
     const handle = setTimeout(async () => {
       inflight.current?.abort()
       const ctrl = new AbortController()
@@ -104,7 +113,7 @@ export function BusinessOwnerPicker({
           type="search"
           autoComplete="off"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           placeholder="Min. 2 characters"
           className="mt-1.5 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none"
         />
