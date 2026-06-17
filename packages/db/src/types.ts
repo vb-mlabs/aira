@@ -48,5 +48,24 @@ export type NotificationBody =
        *  tapped "I can help" without typing anything. */
       message: string | null
     }
+  | {
+      kind: "post_comment"
+      /** Community post the comment was left on. The notification links
+       *  to /community/<post_id>. */
+      post_id: string
+      /** Denormalised post title so the renderer doesn't need a join. */
+      post_title: string
+      commenter_id: string
+      commenter_name: string
+      /** Truncated body preview (≤140 chars). The thread is the source of
+       *  truth for the full body — this is just enough for the bell
+       *  drop-down. */
+      body_preview: string
+      /** True when the comment is a reply to another comment (notifies
+       *  the parent commenter). False when it's a top-level comment
+       *  (notifies the post author). The renderer picks distinct copy
+       *  for each. */
+      is_reply: boolean
+    }
 
 export type NotificationKind = NotificationBody["kind"]

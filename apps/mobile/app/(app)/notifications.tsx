@@ -12,8 +12,8 @@ import {
 import type { NotificationRow } from "../../features/notifications/api";
 
 /** Resolve the row's body to a short display string. The wire shape is a
- *  discriminated union (generic | message | post_interest); every kind
- *  carries enough copy to fit in the list-row preview slot. */
+ *  discriminated union (generic | message | post_interest | post_comment);
+ *  every kind carries enough copy to fit in the list-row preview slot. */
 function renderPreview(body: NotificationRow["body"]): string {
   switch (body.kind) {
     case "generic":
@@ -21,7 +21,11 @@ function renderPreview(body: NotificationRow["body"]): string {
     case "message":
       return `${body.sender_name}: ${body.preview}`;
     case "post_interest":
-      return `${body.responder_name} can help with your request`;
+      return `${body.responder_name} is interested in your post`;
+    case "post_comment":
+      return body.is_reply
+        ? `${body.commenter_name} replied to your comment`
+        : `${body.commenter_name} commented on your post`;
   }
 }
 

@@ -104,6 +104,14 @@ function renderBody(body: NotificationRow["body"]): RenderedBody {
         message: body.message ?? `Re: ${body.post_title}`,
         href: `/community/${body.post_id}`,
       }
+    case "post_comment":
+      return {
+        title: body.is_reply
+          ? `${body.commenter_name} replied to your comment`
+          : `${body.commenter_name} commented on your post`,
+        message: body.body_preview,
+        href: `/community/${body.post_id}`,
+      }
   }
 }
 
