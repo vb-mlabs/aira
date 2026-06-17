@@ -42,6 +42,8 @@ interface DbPostRow {
   status: CommunityPostStatus
   user_id: string
   author_name: string
+  phone: string | null
+  email: string | null
   interest_count: number
   expires_at: Date | null
   approved_at: Date | null
@@ -58,6 +60,8 @@ function toPostRow(row: DbPostRow): PostRow {
     status: row.status,
     user_id: row.user_id,
     author_name: row.author_name,
+    phone: row.phone,
+    email: row.email,
     interest_count: row.interest_count,
     expires_at: row.expires_at?.toISOString() ?? null,
     created_at: row.created_at.toISOString(),
@@ -73,6 +77,8 @@ function toAdminPostRow(row: DbPostRow): AdminPostRow {
     user_id: row.user_id,
     author_name: row.author_name,
     author_email: row.author_email,
+    phone: row.phone,
+    email: row.email,
     rejected_reason: row.rejected_reason,
     interest_count: row.interest_count,
     expires_at: row.expires_at?.toISOString() ?? null,
@@ -89,6 +95,8 @@ const POST_SELECT = {
   user_id: communityPost.user_id,
   author_name: sql<string>`COALESCE(${user.name}, ${user.email})`,
   author_email: user.email,
+  phone: communityPost.phone,
+  email: communityPost.email,
   interest_count: communityPost.interest_count,
   expires_at: communityPost.expires_at,
   approved_at: communityPost.approved_at,
@@ -197,6 +205,8 @@ export async function getPost(
 export interface CreatePostArgs {
   title: string
   body?: string | undefined
+  phone?: string | undefined
+  email?: string | undefined
 }
 
 export async function createPost(
@@ -225,8 +235,8 @@ export async function createPost(
       code: "community.active_post_exists",
       message:
         existing.status === "pending"
-          ? "You already have a request awaiting moderation."
-          : "You already have an active request. Wait for it to expire or be resolved before posting another.",
+          ? "You already have a post awaiting moderation."
+          : "You already have an active post. Wait for it to expire or be resolved before posting another.",
     })
   }
 
@@ -236,6 +246,8 @@ export async function createPost(
       user_id: ctx.userId,
       title: args.title,
       body: args.body && args.body.length > 0 ? args.body : null,
+      phone: args.phone && args.phone.length > 0 ? args.phone : null,
+      email: args.email && args.email.length > 0 ? args.email : null,
       status: "pending",
     })
     .returning({ id: communityPost.id })
@@ -364,14 +376,14 @@ export async function addInterest(
   if (post.status !== "approved") {
     throw ApiError.badRequest(
       "community.post_not_active",
-      "This request is no longer accepting offers to help.",
+      "This post is no longer accepting interest.",
     )
   }
   if (post.user_id === ctx.userId) {
     throw new ApiError({
       status: 409,
       code: "community.self_interest",
-      message: "You can't offer to help on your own request.",
+      message: "You can't show interest in your own post.",
     })
   }
 
@@ -390,7 +402,7 @@ export async function addInterest(
       throw new ApiError({
         status: 409,
         code: "community.already_interested",
-        message: "You've already offered to help on this request.",
+        message: "You've already shown interest in this post.",
       })
     }
     throw err
