@@ -6,7 +6,7 @@
 // AdminPostRow. When the source row is approved, a yellow banner
 // surfaces that saving will send the post back for re-moderation.
 
-import { useEffect, useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { Dialog } from "@base-ui/react/dialog"
 import { X } from "lucide-react"
 import { ApiError } from "@aira/api"
@@ -35,17 +35,11 @@ export function PostEditForm({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  // Reset state when the modal opens for a different post (rare —
-  // MyPostsList only keeps one edit modal open at a time — but cheap
-  // insurance against stale prefilled values).
-  useEffect(() => {
-    if (!open) return
-    setTitle(post.title)
-    setBody(post.body ?? "")
-    setPhone(post.phone ?? "")
-    setEmail(post.email ?? "")
-    setError(null)
-  }, [open, post.id, post.title, post.body, post.phone, post.email])
+  // MyPostsList only mounts this form when a row is being edited (and
+  // unmounts it on close), so useState defaults capture the right
+  // initial values without an effect-driven reset. Switching rows
+  // unmounts/remounts the component because the conditional render
+  // toggles on `editing`.
 
   const titleChanged = title.trim() !== post.title.trim()
   const bodyChanged = useMemo(() => {

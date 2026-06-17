@@ -39,7 +39,7 @@ export default async function MyPostsPage() {
           My posts
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Edit or delete any post you've shared with the community.
+          Edit or delete any post you&rsquo;ve shared with the community.
           Editing an approved post sends it back for re-moderation.
         </p>
       </header>

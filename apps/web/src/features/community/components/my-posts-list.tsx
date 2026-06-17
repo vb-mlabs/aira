@@ -103,8 +103,8 @@ export function MyPostsList({ initialItems }: MyPostsListProps) {
           <div className="flex-1">
             <p className="font-medium">Your post is waiting for moderation.</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              A moderator will review it shortly. It'll appear on the
-              board once approved.
+              A moderator will review it shortly. It&rsquo;ll appear on
+              the board once approved.
             </p>
           </div>
           <button
