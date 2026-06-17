@@ -120,6 +120,48 @@ export const CreatePostOutputSchema = z.object({
 });
 export type CreatePostOutput = z.infer<typeof CreatePostOutputSchema>;
 
+// ─── Author-side edit / delete (user owns the row) ─────────────────────────
+
+/** What the author can change via the self-service path. Subset of the
+ *  admin EditPostInputSchema — no status, no admin-only fields. The
+ *  service rejects edits on expired/rejected rows; an edit on an
+ *  approved row reverts status to pending (locked review decision). */
+export const EditMyPostInputSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX).optional(),
+    body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).nullable().optional(),
+    phone: z
+      .string()
+      .trim()
+      .max(COMMUNITY_POST_PHONE_MAX)
+      .nullable()
+      .optional(),
+    email: z
+      .union([z.email("Enter a valid email"), z.null()])
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (v) =>
+      v.title !== undefined ||
+      v.body !== undefined ||
+      v.phone !== undefined ||
+      v.email !== undefined,
+    { message: "Nothing to update." },
+  );
+export type EditMyPostInput = z.infer<typeof EditMyPostInputSchema>;
+
+/** Author's own posts, regardless of status. Re-uses AdminPostRowSchema
+ *  so the author sees rejected_reason on their own row. */
+export const MyPostsListInputSchema = z.object({}).strict();
+export type MyPostsListInput = z.infer<typeof MyPostsListInputSchema>;
+
+export const MyPostsListOutputSchema = z.object({
+  items: z.array(AdminPostRowSchema),
+});
+export type MyPostsListOutput = z.infer<typeof MyPostsListOutputSchema>;
+
 // ─── Get post (detail) ──────────────────────────────────────────────────────
 
 export const GetPostInputSchema = z
