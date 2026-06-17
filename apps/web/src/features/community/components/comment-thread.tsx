@@ -7,9 +7,8 @@
 // under a tombstone keep rendering normally.
 
 import { useEffect, useState, useTransition } from "react"
-import { MessageCircle, Trash2 } from "lucide-react"
+import { Check, MessageCircle, Trash2, X } from "lucide-react"
 import { ApiError } from "@aira/api"
-import { Button } from "@aira/ui-web/button"
 import { cn } from "@aira/ui-web/utils"
 import type {
   CommentRow,
@@ -249,6 +248,7 @@ function CommentRowView({
   const canDelete =
     !isHidden &&
     ((currentUserId !== null && row.user_id === currentUserId) || isAdmin)
+  const [confirming, setConfirming] = useState(false)
 
   if (isHidden) {
     return (
@@ -259,36 +259,73 @@ function CommentRowView({
   }
   return (
     <div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-sm font-bold leading-tight">
-          {row.user_name ?? "Unknown"}
-        </span>
-        <span
-          className="text-[11px] text-muted-foreground"
-          suppressHydrationWarning
-        >
-          {relativeTime(row.created_at)}
-        </span>
+      <div className="flex items-baseline justify-between gap-2">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className="text-sm font-bold leading-tight">
+            {row.user_name ?? "Unknown"}
+          </span>
+          <span
+            className="text-[11px] text-muted-foreground"
+            suppressHydrationWarning
+          >
+            {relativeTime(row.created_at)}
+          </span>
+        </div>
+        {canDelete && (
+          <div className="flex shrink-0 items-center gap-1">
+            {confirming ? (
+              <>
+                <span className="text-[11px] text-muted-foreground">
+                  Delete?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onDelete(row.id)}
+                  disabled={pending}
+                  aria-label="Confirm delete"
+                  title="Confirm delete"
+                  className={cn(
+                    "inline-flex size-6 items-center justify-center rounded-md text-destructive transition-colors",
+                    "hover:bg-destructive/10 disabled:pointer-events-none disabled:opacity-50",
+                  )}
+                >
+                  <Check className="size-3.5" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirming(false)}
+                  disabled={pending}
+                  aria-label="Cancel delete"
+                  title="Cancel"
+                  className={cn(
+                    "inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors",
+                    "hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50",
+                  )}
+                >
+                  <X className="size-3.5" aria-hidden />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirming(true)}
+                disabled={pending}
+                aria-label="Delete this comment"
+                title="Delete this comment"
+                className={cn(
+                  "inline-flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors",
+                  "hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-50",
+                )}
+              >
+                <Trash2 className="size-3.5" aria-hidden />
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground/85">
         {row.body}
       </p>
-      {canDelete && (
-        <div className="mt-1.5">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => onDelete(row.id)}
-            disabled={pending}
-            className={cn("h-7 px-2 text-xs text-destructive")}
-            title="Delete this comment"
-          >
-            <Trash2 className="size-3" aria-hidden />
-            Delete
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
