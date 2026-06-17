@@ -17,8 +17,13 @@ import "server-only"
 // keeps the log authoritative on partial failures). Cross-domain notification
 // fan-out goes through the public surface at @aira/services/notifications.
 
-import { eq, sql } from "drizzle-orm"
-import { user as userTable, session as sessionTable } from "@aira/db/schema"
+import { and, eq, inArray, isNull, sql } from "drizzle-orm"
+import {
+  user as userTable,
+  session as sessionTable,
+  businesses,
+  notifications as notificationsTable,
+} from "@aira/db/schema"
 import { createAudit } from "@aira/db/audit"
 import type { Database } from "@aira/db/client"
 import { ApiError } from "@aira/api"
@@ -267,4 +272,87 @@ export async function sendAdminNotification(
   })
 
   return { ok: true, message: "Notification sent." }
+}
+
+// ─── G1: Business-owner fan-out broadcast ─────────────────────────────────
+//
+// Targets every active business with a linked, non-banned owner. Distinct
+// on user.id so a user who owns two businesses receives one notification.
+// Empty recipient sets STILL leave an audit row (recipient_count: 0) —
+// auditability beats noise per the locked review decision.
+
+export interface BusinessOwnerBroadcastArgs {
+  title: string
+  message: string
+}
+
+export interface BusinessOwnerBroadcastResult {
+  ok: true
+  recipient_count: number
+}
+
+export async function sendBusinessOwnerBroadcast(
+  db: Database,
+  ctx: CallerContext,
+  args: BusinessOwnerBroadcastArgs,
+): Promise<BusinessOwnerBroadcastResult> {
+  const { title, message } = args
+
+  // Targeting: distinct user.id from active businesses with a linked,
+  // non-banned owner. Pulling user.id off the JOIN gives us a free
+  // banned-status filter via the WHERE clause.
+  const rows = await db
+    .selectDistinct({ id: userTable.id })
+    .from(businesses)
+    .innerJoin(userTable, eq(userTable.id, businesses.owner_user_id))
+    .where(
+      and(
+        isNull(businesses.deleted_at),
+        isNull(userTable.banned_at),
+      ),
+    )
+
+  const recipientIds = rows.map((r) => r.id)
+  const recipient_count = recipientIds.length
+
+  // Audit BEFORE the fan-out — same convention as every other admin
+  // action. recipient_count is captured in meta so empty broadcasts
+  // leave a trace.
+  const audit = createAudit(db)
+  await audit({
+    actorId: ctx.userId,
+    action: "business.broadcast_sent",
+    // Broadcast has no single target — it's a fan-out to N owners.
+    // target stays undefined so target_type / target_id are NULL in the
+    // audit_log row. Recipient list is captured by recipient_count + the
+    // existing user.id index on notifications.
+    target: undefined,
+    meta: {
+      kind: "business.broadcast_sent",
+      title,
+      recipient_count,
+    },
+    client: auditClient(ctx),
+  })
+
+  if (recipient_count === 0) {
+    return { ok: true, recipient_count: 0 }
+  }
+
+  // Bulk-insert in one statement; createNotification is 1:1 and would
+  // round-trip N times here. Mirrors the body shape from
+  // packages/db/src/types.ts NotificationBody business_broadcast variant.
+  await db.insert(notificationsTable).values(
+    recipientIds.map((userId) => ({
+      user_id: userId,
+      type: "business_broadcast",
+      body: {
+        kind: "business_broadcast" as const,
+        title,
+        message,
+      },
+    })),
+  )
+
+  return { ok: true, recipient_count }
 }
