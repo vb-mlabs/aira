@@ -4,18 +4,29 @@ import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import { TIER_LABELS } from "@aira/validators"
 import { getCategoryMeta } from "../category-meta"
+import { FavoriteButton } from "./favorite-button"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks } from "./social-icons"
 import type { Business } from "../types"
 
 interface BusinessCardProps {
   business: Business
+  /** Anonymous callers get no heart at all. Defaults false so existing
+   *  call sites that don't yet pipe through the session continue to
+   *  render the card without the new control. */
+  isSignedIn?: boolean
+  /** Initial favorited state for the FavoriteButton. Defaults false. */
+  isFavorited?: boolean
 }
 
 // Whole-card link via the `::after` overlay technique — keeps inner
 // social anchors independently clickable without nesting. Each anchor
 // inside SocialLinks sits at `z-10` so its hitbox wins over the overlay.
-export function BusinessCard({ business }: BusinessCardProps) {
+export function BusinessCard({
+  business,
+  isSignedIn = false,
+  isFavorited = false,
+}: BusinessCardProps) {
   const category = getCategoryMeta(business.category)
   const Icon = category.icon
 
@@ -80,6 +91,11 @@ export function BusinessCard({ business }: BusinessCardProps) {
       </div>
 
       <div className="flex flex-shrink-0 flex-col items-end gap-2">
+        <FavoriteButton
+          businessId={business.id}
+          isFavorited={isFavorited}
+          isSignedIn={isSignedIn}
+        />
         <TierPill tier={business.tier} />
         <Link
           href={`/listings/${business.category}/${business.id}`}
