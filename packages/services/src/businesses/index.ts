@@ -18,6 +18,10 @@ export {
   getBusinessOwner,
   getBusinessesOwnedBy,
   getBusinessOwnerLookup,
+  // Public projection helpers — exported so sibling services (e.g. favorites)
+  // can hydrate Business rows without duplicating the mapper / N+1 logic.
+  attachRelations,
+  toBusiness,
 } from "./queries";
 export type {
   PagedBusinessesInput,

@@ -160,7 +160,7 @@ type BusinessRowWithVisibility = typeof businesses.$inferSelect & {
   is_paid_active?: boolean;
 };
 
-async function attachRelations(
+export async function attachRelations(
   db: Database,
   rows: BusinessRowWithVisibility[],
 ): Promise<Business[]> {
@@ -518,7 +518,7 @@ function toImage(row: typeof businessImages.$inferSelect): BusinessImage {
   };
 }
 
-function toBusiness(
+export function toBusiness(
   row: BusinessRowWithVisibility,
   images: BusinessImage[],
   extra_category_ids: string[],
