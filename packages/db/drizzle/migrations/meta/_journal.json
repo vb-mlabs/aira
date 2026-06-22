@@ -225,6 +225,13 @@
       "when": 1782127264839,
       "tag": "0031_shiny_anita_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1782135776014,
+      "tag": "0032_moaning_marvel_boy",
+      "breakpoints": true
     }
   ]
 }
