@@ -1,14 +1,14 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-15 (S6 progress: F22 + F23′ + feature image + auth cleanup shipped)
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup).
+**Last updated:** 2026-06-22 (G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix + contact-person + edit-categories subs + favorites all shipped post-S6)
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
 
-## What's pending (as of 2026-06-15)
+## What's pending (as of 2026-06-22)
 
-**Sprint 5 — engineering-ready scope is closed.** Only outstanding: F21 push broadcasts (gated on S0 EAS init + business-owner identity decision for audience targeting).
+**Sprint 5 — engineering-ready scope is closed.** Only outstanding: F21 push broadcasts (gated on S0 EAS init). The business-owner identity blocker that previously also gated F21's audience targeting is now resolved — G1 shipped `businesses.owner_user_id` + assignment/broadcast plumbing 2026-06-16, so F21 inherits a real owner targeting model the moment EAS comes online.
 
 **Sprint 0 — external work in motion:**
 - ⬜ Register `airabynisarga.com` domain
@@ -20,9 +20,11 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 **Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions.
 
+**Post-S6 polish + ancillary scope shipped 2026-06-16 → 2026-06-22 (all off-roadmap, none blocking):** G1 business-owner reachability (owner FK + assign/unassign + admin column + broadcast + /account/listings), community v2 (author edit/delete + comments + /account/posts), "Post on AIRA" rebrand (sidebar + board copy + community page) including phone/email contact fields on posts, category drift fix (DB-driven everywhere, VALID_CATEGORIES const deleted), admin businesses renewal urgency caption + overdue row stripe, QA test accounts seed script, admin Edit Categories now shows level-2 subcategories, admin **Listing Contact Person** field (nullable text on businesses with split BusinessAdminSchema, audited diff), listing **Favorites** (new `business_favorite` table + 4 ops + heart on cards/detail/account page).
+
 **Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI. All blocked or premature for MVP.
 
-The critical path to TestFlight runs through **S0 (Apple Team ID + Android SHA-256 + EAS init) → F21 → S6**.
+The critical path to TestFlight runs through **S0 (Apple Team ID + Android SHA-256 + EAS init) → F21 → S7**.
 
 ---
 
@@ -160,6 +162,268 @@ Plan + review: `.mstack/plans/2026-06-15-audit-log-ui.md`. Four tasks shipped at
 
 ### ✅ S6 — Feature image (F13 extension, 2026-06-15)
 Plan: `.mstack/plans/2026-06-15-feature-image.md`. `FeatureImageSection` admin drag-and-drop component modelled on `GallerySection` — shows current `image_url` preview + Remove button, or a drop target when null. `processAndStoreFeatureImage` pipeline function (1200×630 JPEG, replaces `image_url` on `businesses` row; best-effort deletes old storage object before writing new). `POST /api/v1/admin/businesses/[id]/feature-image` + `DELETE`. Two service functions: `setBusinessFeatureImage` + `clearBusinessFeatureImage`. Public listing detail: avatar circle `<div>` removed from identity row (`business-detail.tsx`) — category label text still shows; hero `<img>` was already full-width. No migration required (`image_url text` already existed on `businesses`).
+
+### ✅ Post-S6 — G1 Business owner reachability (2026-06-16)
+Plan + review: `.mstack/plans/2026-06-17-business-owner-reachability.md`. Solves the
+identity blocker that previously gated F17 per-business-owner emails AND F21
+audience targeting. Twelve atomic commits, layered bottom-up:
+
+- **Schema (`c047c0e`):** `businesses.owner_user_id` nullable FK to `user.id`
+  with `ON DELETE SET NULL` (anonymise-in-place cleanly detaches). Partial
+  index on the linked subset so the my-listings query, the "Has owner" admin
+  filter, and broadcast targeting stay fast as null-owned rows dominate.
+- **Audit + notifications:** three new `AuditMeta` kinds
+  (`business.owner_assigned`, `business.owner_unassigned`,
+  `business.broadcast_sent`) and a `business_broadcast` notification body
+  variant — `NotificationBody.kind` union widened with sibling renderer
+  updates on both web + mobile per the F20 lesson.
+- **Validators + services (`fdfab6c` → `10d9317` → `e70ad6d`):** `BusinessOwner`
+  schema (denormalised user projection for admin surfaces),
+  `getBusinessOwner`, `getBusinessesOwnedBy`, `getBusinessOwnerLookup` (batch
+  Map for admin list page),
+  `assignBusinessOwner`/`unassignBusinessOwner` (audit BEFORE mutation,
+  in-app notification AFTER), `sendBusinessOwnerBroadcast` (fan-out
+  to all distinct owner user ids with one notification each).
+- **Ops + REST endpoints (`d68d187`):** `assignBusinessOwnerOp` (auditor +
+  best-effort email post-commit), `unassignBusinessOwnerOp`, `listMyBusinessesOp`,
+  `sendBusinessOwnerBroadcastOp`. Routes under `/api/v1/admin/businesses/[id]/owner`,
+  `/api/v1/admin/businesses/broadcast`, `/api/v1/businesses/mine`.
+- **Sidebar UX side-quest (`89571a2`):** subcategories surfaced under their
+  parent in the `(app)` sidebar — uses `listCategoriesTreeOp` (returns roots +
+  children together).
+- **Admin UI (`f5f5dd9` → `f9a0ee1`):** `BusinessOwnerSection` card on
+  business detail (picker + assign + unassign + audit indicator); Owner column
+  + `OwnerFilter` (`has`/`none`/all) on the `/admin/businesses` table;
+  "Notify all owners" broadcast modal launched from the businesses list
+  toolbar (subject + message + filter to "all linked owners" with count
+  preview).
+- **End-user surface (`43eb6c9`):** new `/account/listings` page (RSC,
+  requireUser, `apiServerFetch(listMyBusinessesOp)`, EmptyState fallback,
+  `MyListingsCard` rows linking to public detail for active rows + an
+  unlinked Archived label for soft-deleted ones). New menu entry in
+  `ACCOUNT_ITEMS`. README updates.
+- **QA (`a0e136b`):** Playwright run validated the full assign → notify →
+  /account/listings → unassign → audit-log path on both web + mobile RSCs.
+
+Two follow-on stability fixes after the QA pass: `2e31ec3` dropped a stray
+trailing chevron from flat nav rows in the sidebar, `b133768` moved a picker
+state-clear out of an effect body (React-hooks lint flagged a cascading-
+render risk).
+
+### ✅ Post-S6 — Operation logging hardening (2026-06-16, `353bcb7`)
+`defineOperation`'s "unhandled" error path now logs `err.stack` AND
+`err.cause.message` alongside the message. Surfaced the actual stack trace
+on the production red-card error during a G1 troubleshoot; previous log
+emitted only `String(err)` which truncated wrapped errors. Companion
+`recent-errors.ts` diagnostic script under `packages/db/scripts/` for fast
+incident triage (`576be51`).
+
+### ✅ Post-S6 — Featured tile widening (2026-06-16, `369c947`)
+`getFeaturedBusinesses` was hard-gated to `tier IN ('tier1','tier2')`, which
+hid the `/home` Featured section whenever no premium customer existed —
+made the page feel empty. Eligibility widened to "any active business with
+an active-paid subscription" while keeping the premium-first intent via
+`TIER_ORDER` in the sort key. The Featured section now hydrates with paid
+tier3 listings until premium customers show up.
+
+### ✅ Post-S6 — QA test accounts seed (2026-06-17, `8a9d8a2`)
+One-time `seed-qa-accounts.ts` script under `packages/db/scripts/` for
+spinning up deterministic admin / end-user / business-owner fixtures
+against a fresh DB branch. Idempotent (uses fixed UUIDs); intended for
+Playwright + manual QA.
+
+### ✅ Post-S6 — Community v2: author controls + comments + Post on AIRA rebrand (2026-06-17 → 2026-06-19)
+Two adjacent plans landed back-to-back:
+
+**Author controls + comments** (plan: `.mstack/plans/2026-06-17-community-author-controls-and-comments.md`):
+post authors can now edit / delete their own pending or approved posts;
+approved-row edits revert status to pending via a new
+`community.post_reverted_to_pending` audit kind (`b770791`). New
+`/account/posts` page (`83e8b14`) lists author's own posts across statuses.
+Comments shipped (`6bcf6ce`): top-level `<CommentThread>` + `<CommentComposer>`
+on the standalone detail page, with a 1-level reply cap enforced
+server-side. Admin moderation strip (`10862c3`) for hide / restore / delete
+on the comment level. Author-side service entries
+(`listMyPosts` / `editMyPost` / `deleteMyPost`) at `b30e153`. Several
+post-ship polish commits tightened the visual: `54b8a59` aligned textareas,
+`f88048b` dropped a card-on-card around the comment thread, `093af63`
+pinned the composer to the top of the thread, `6851a22` swapped the
+delete button to icon-only + inline confirm.
+
+**Post on AIRA rebrand** (plan: `.mstack/plans/2026-06-17-post-on-aira-rebrand.md`):
+the "I'm interested" intent signal was retired (`b19ca47`) in favour of the
+new comment thread as the canonical engagement loop. Two phone + email
+contact fields added to `community_post` (migration `0028` via `7aaa6bb`)
+so a poster can show how they want to be reached without giving away their
+inbox by default. Admin can edit phone/email; the
+`community.post_edited` audit kind expanded its `fields` discriminator to
+cover all four (`f91e761`). UI sweep renamed "Community Requests" →
+"Post on AIRA" across the board / sidebar entry / standalone detail / admin
+queue (`5370192` → `4d931aa`). The card CTA changed from "I'm interested"
+to "Comment" (`33b6fad`). Implementation report at `370570d`.
+
+### ✅ Post-S6 — Category drift fix (2026-06-16, plan + ship)
+Plan + review: `.mstack/plans/2026-06-16-category-drift-fix.md`. The hardcoded
+`VALID_CATEGORIES` const in `@aira/validators/businesses` had drifted from
+the DB `category` table (admin could create a slug that immediately failed
+listing-page validation). Two-part fix:
+
+- `BusinessCategorySchema` widened to `z.string().min(1)` (`5990b00`), with
+  `BusinessCreateForm` and the listing's category switcher both reading
+  from the DB (`78e5345`). The `category` table's slug uniqueness +
+  a new slug-rename guard on `updateCategoryOp` (`136df87`) keep the
+  contract enforced.
+- Migration `0027` (`5016c0c`) hard-renames any orphaned `businesses.category`
+  string to the closest DB slug, with corrective snapshot-chain pointers
+  applied in `4c63f22` after a mid-flight collision (Drizzle's snapshot
+  format detected the cleanup as a column-rename and overwrote 0026's
+  metadata; fix was manual chain stitching). Companion sweep at `a647300`
+  added a defensive `getCategoryMeta(slug)` helper across 9 consumers so
+  unknown slugs fall back to a generic icon instead of crashing.
+
+### ✅ Post-S6 — Admin businesses renewal urgency pill (2026-06-16)
+Plan: `.mstack/plans/2026-06-16-admin-businesses-renewal-urgency-pill.md`. On the
+`/admin/businesses` list, the Subscription cell now carries a small caption
+under the payment-status pill showing days-remaining or days-overdue against
+the latest subscription's `end_date`. Critical (≤3d) renders in destructive
+foreground; overdue rows get a 3px left stripe + tinted hover. Shared
+`expiryLabel` helper extracted with Vitest unit (`f1d30c7`).
+Companion narrow-viewport fix at `41285d3` (table → horizontal scroll
+container, caught in QA).
+
+### ✅ Post-S6 — Admin polish cluster (2026-06-17 → 2026-06-21)
+A series of small polish commits that didn't earn their own plan docs:
+
+- `bf0f487` Places autocomplete crash fix + initial-value handling on the
+  admin Business form.
+- `aa246eb` "Mark business verified" inline action wired into the
+  AIRA Review admin section.
+- `0cdf87e` Category parent edit + surface real server error (was being
+  swallowed by a generic ApiError fallthrough).
+- `2884295` Playwright URL-only assertion gotcha appended to learnings.
+- `49ca4e5` Whole-row click on `/admin/users` table (matches the
+  businesses/community/renewals row-click convention).
+- `85db7f6` Hide Send-a-notification card on user detail (not used).
+- `035a484` Collapse Role/Ban/Reset into an Account-actions card with
+  confirm modals.
+
+### ✅ 2026-06-22 polish cluster (one-day session)
+A single-session sweep of brand + copy + UI tweaks driven by client
+feedback, all sub-plan-sized:
+
+- Marketing footer + sidebar Contact Us website link → `nisargacorp.com`
+  (away from the canonical `airabynisarga.com` brand URL).
+- Founding Launch Offer modal — sub-titles ("AIRA Verified Badge",
+  membership plan names, sponsorship tier headings) all flipped to bold
+  italic to match the section heads.
+- `/home` brand hierarchy polish: logo bumped to 140px desktop; AIRA
+  wordmark renders with a vertical gold gradient via `bg-clip-text`;
+  ROOTS · REACH tagline darkened to `text-foreground` and bumped a size.
+- Businesses Listed stat card now renders `N+` instead of `N` so the
+  number reads as a floor rather than a literal count.
+- Blue verified tick bumped in size on both `BusinessCard` (`size-4 → size-5`)
+  and the detail page (`size-5 md:size-6 → size-6 md:size-7`).
+- Sidebar "Community" menu row → "Post on AIRA" (matches the board
+  rebrand).
+- `/community` page copy: H1 changed to "Post on AIRA" and the
+  description rewritten to "Post a request for something you need —
+  services, recommendations, items, or local help."
+- Social-icon order on cards + detail: Website (Globe) moved between
+  WhatsApp and Phone so contact channels read in a clearer order.
+- Listing card "More Info" pill — dropped the arrow suffix.
+- "AIRA Stars" label inserted before the rating pill on both cards and
+  the detail page.
+
+### ✅ Post-S6 — Admin: Manage listings rename + owner card reorder (2026-06-22)
+Admin sidebar nav row, dashboard tile, and page header all renamed
+"Businesses" → "Manage listings" (`/admin/businesses` route unchanged).
+`BusinessOwnerSection` initially hidden during the contact-person ship
+then restored and reordered to sit AFTER `CoreFieldsSection` so the
+first card a user lands on is the editable identity surface.
+
+### ✅ Post-S6 — Listing Contact Person field (2026-06-22)
+Plan + review + report under `.mstack/plans/2026-06-22-listing-contact-person.md`,
+`.mstack/reviews/...`, `.mstack/code/2026-06-22-listing-contact-person/`.
+Admin-only free-text "Contact person" field on every business listing —
+the lighter-weight replacement for the linked-user owner card (which
+remains, but is now ancillary to this field for ops day-to-day). Ten
+atomic commits across:
+
+- New nullable `contact_person` text column on `businesses` (migration
+  `0031`).
+- **Schema split:** new `BusinessAdminSchema` extends the public
+  `BusinessSchema` with `contact_person`; admin output shapes
+  (`AdminBusinessItemSchema`, `BusinessAdminDetailOutputSchema`,
+  `BusinessUpdateOutputSchema`) all switch to the admin shape. Public ops
+  continue to project plain `BusinessSchema` — defense-in-depth so the
+  PII never reaches an unauthenticated payload.
+- **Service-layer fork:** new `toBusinessAdmin` + `attachRelationsAdmin`
+  helpers project `contact_person` only on admin-only paths
+  (`getBusinessByIdIncludingArchived`, `getAllBusinesses`,
+  `createBusiness`). Public mappers untouched.
+- **Audit:** new `business.contact_person_changed` `AuditMeta` kind with
+  `{ from, to }` payload. Emitted only on a real diff. `updateBusiness`
+  signature widened to `(db, ctx, id, data)` to carry the caller
+  context — matches `archiveBusiness` / `restoreBusiness`.
+- **UI:** input row in the Add Business modal between Name and Category;
+  preview row in `CoreFieldsPreview` + edit input in `CoreFieldsEditModal`;
+  new column on the `/admin/businesses` list table between Owner and
+  Verified (truncates at 150px).
+
+### ✅ Post-S6 — Admin Edit Categories shows subcategories (2026-06-22)
+Plan + review under `.mstack/plans/2026-06-22-admin-edit-categories-subs.md`.
+Two-line bug fix: `listCategoriesOp` (roots-only) was feeding the admin
+Edit Categories modal, so level-2 subs could never be selected as Primary
+or Additional. Swapped the admin business detail page to
+`listCategoriesTreeOp` and pipe a new `categoryTree` prop alongside the
+existing flat list. The modal now renders root → `<optgroup label>` of
+children in the Primary dropdown, and indented `pl-6` rows with a "↳ "
+prefix in the Additional checkbox grid. Active-only filter applied at the
+page boundary; inactive branches drop wholesale.
+
+### ✅ Post-S6 — Listing Favorites (2026-06-22) — **net-new feature**
+Plan + review + report under `.mstack/plans/2026-06-22-listing-favorites.md`,
+`.mstack/reviews/...`, `.mstack/code/2026-06-22-listing-favorites/`.
+Signed-in users can save businesses to a personal favorites list and
+revisit them from `/account/favorites`. Eleven atomic commits across:
+
+- **New `business_favorite` join table** (`(business_id, user_id)` with
+  cascade on both FKs, unique index for `ON CONFLICT DO NOTHING`
+  idempotency, secondary `(user_id, created_at)` index for the
+  most-recent-first sort). Migration `0032`.
+- **Four ops** (`addFavoriteOp`, `removeFavoriteOp`, `listMyFavoritesOp`,
+  `listMyFavoriteIdsOp`). Both mutations fully idempotent — silent on
+  duplicates, no audit (decision locked at review: favorites are personal
+  preferences with no second party who needs the trail).
+- **Two read shapes by design:** `listMyFavoritesOp` returns hydrated
+  `Business[]` for `/account/favorites`; `listMyFavoriteIdsOp` returns a
+  slim `string[]` that listing pages call in parallel to decorate cards
+  with their fav state. The public listings ops stay user-agnostic and
+  cacheable; per-user state rides on a separate request.
+- **`FavoriteButton` client island** with optimistic UI — single-click
+  toggle (NOT the user-requested double-click, locked at plan after
+  surfacing the a11y + mobile-tap concerns), failure reverts state +
+  shows a small red-dot indicator (no toast, no notification bell).
+  Hidden entirely when `!isSignedIn`.
+- **Wired into both card + detail page** (small heart on the right-column
+  stack above the Tier pill; large heart in the detail header next to the
+  BadgeCheck).
+- **`/account/favorites` page** mirroring `/account/listings` layout +
+  EmptyState fallback with a "Browse the directory" CTA.
+- **My favorites menu row** added to `ACCOUNT_ITEMS` between
+  My listings and Notifications.
+- **Page-level wiring:** `/home`, `/directory`, `/listings/[category]`,
+  and the business detail page each fetch the session once and
+  parallel-fetch `listMyFavoriteIdsOp` when signed-in (skip when
+  anonymous) — passed through `ListingView` / `DirectoryView` /
+  `TierSection` into each `BusinessCard`.
+
+One bug shipped to prod and was fixed within minutes (`1162b33`): the
+FavoriteButton was calling `apiClient.post(path, { body: {...} })` but
+the client's signature is `post(path, body, init?)` — the wrapping
+`{ body: ... }` was JSON-stringified as the literal request body and
+the strict Zod schema rejected the unknown `body` key with 400. Fix
+unwrapped the body to a single positional arg. Learning logged.
 
 ### ✅ S6 — `requireAdminJSON` auth cleanup (2026-06-15)
 Six raw route handlers (gallery image upload POST, gallery image DELETE, subscription evidence POST, feature-image POST + DELETE, renewals CSV GET, cron GET) each inlined the same 3-step admin auth block (`getSessionFromHeaders` → role check → `adminSessionIsStale`). Extracted to `requireAdminJSON(req: Request): Promise<AuthSession["user"] | Response>` in `lib/auth/server.ts`, mirroring the existing `requireUserJSON()` pattern. Each route collapsed to two lines. No behaviour change — same checks, same responses. Commit `d009ea1`.
@@ -487,4 +751,12 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-15** — `AuditMeta` union + `KNOWN_AUDIT_ACTIONS` moved from `@aira/db/audit` to `@aira/validators/audit-meta`. *Why:* `@aira/db` carries `import "server-only"`, so any client component importing `AuditMeta` (e.g. the `RenderAuditDetail` renderer) would fail. The type + runtime array are pure data; only `createAudit`, `AuditFn`, and `AuditOpts` are server-only (they stay in `@aira/db/audit` with a re-export of `AuditMeta` for backward compat). Bidirectional compile-time assertion added so the union and runtime array can't diverge.
 - **2026-06-15** — Light-only theme locked for MVP. *Why:* client confirmed the light palette; dark mode was an extrapolation not present in the Figma. Web pins via `colorScheme: "light"` on `<html>` (no ThemeProvider); mobile pins via `userInterfaceStyle: "light"` in `app.config.ts` + `useColorScheme()` returning `"light"` unconditionally. Dark token set preserved in `packages/config/src/design.ts` for a future client ask, but no user-facing toggle exists or will be added without a new decision. `brand.tagline = "ROOTS & REACH"` confirmed by client — no longer deferred.
 - **2026-06-15** — `requireAdminJSON(req)` helper extracted to `lib/auth/server.ts`. *Why:* six raw route handlers (multipart uploads, CSV, binary responses that can't go through `defineOperation`'s JSON pipeline) each inlined the same 3-step auth block. Single point of change if role logic evolves. Mirrors the existing `requireUserJSON()` pattern; callers do `const auth = await requireAdminJSON(req); if (auth instanceof Response) return auth`.
+- **2026-06-16** — G1 Business owner reachability shipped — `businesses.owner_user_id` FK + `ON DELETE SET NULL` + partial index on the linked subset; `assignBusinessOwner`/`unassignBusinessOwner` (audit-before-mutation + post-commit in-app notification); admin `OwnerFilter` (`has`/`none`/all) + Notify-all-owners broadcast modal + Owner column on the businesses table; `/account/listings` read-only owner-side surface. *Why now (vs Phase 2):* F17 per-business-owner emails AND F21 audience targeting were both blocked on the owner identity model; doing it once unblocks both — F21 inherits a real target shape as soon as EAS comes online. Discriminated-union renderer-coverage lesson from F20 applied: `NotificationBody.kind` added `business_broadcast` with sibling web + mobile renderer updates in the same plan; `AuditMeta.kind` added three new variants (`business.owner_assigned`, `business.owner_unassigned`, `business.broadcast_sent`) with the `KNOWN_AUDIT_ACTIONS` parity check + `RenderAuditDetail` switch updated alongside. F17 per-owner emails remain Phase 2 — schema's there now, but the templating + opt-out controls are a Phase 2 plan, not a launch-blocker.
+- **2026-06-16** — `getFeaturedBusinesses` widened from hard `tier IN ('tier1','tier2')` filter to "any active-paid subscription, sorted premium-first". *Why:* the strict filter hid the entire `/home` Featured section whenever no premium customer existed (early-launch directory state) and made the page feel empty. The `TIER_ORDER` sort key already lifts tier1+tier2 to the top, so widening eligibility preserves the premium-first intent without the empty-page failure mode.
+- **2026-06-16** — Drizzle snapshot chain collision recovery procedure: when migration generation immediately after a manual SQL migration produces a column-rename detection that overwrites a sibling snapshot's pointer, fix is manual stitching of `_journal.json` + the affected `00XX_snapshot.json` `prevId` field — not regen. Surfaced during category drift cleanup (0027 detected as a rename of 0026's column).
+- **2026-06-17** — Post-on-AIRA rebrand drops the "I'm interested" intent signal in favour of comments as the canonical engagement loop. *Why:* the intent signal was a private one-tap signal designed for a board with no thread; comments make the same intent public and contextual, AND scale to multi-respondent discussions. The two phone/email contact fields added to `community_post` cover the "reach me out of band" case without requiring the responder to be on the platform. Migration `0028` ships both columns NULLable so legacy posts pass through unchanged.
+- **2026-06-22** — Listing **Favorites** mutation semantics: BOTH `addFavorite` and `removeFavorite` are fully idempotent (silent on duplicates). *Why:* favorites are personal preferences with no second party who needs the trail (unlike `community.post_interest`, which throws on duplicate add because the post author needs to know who responded). The unique `(business_id, user_id)` index + `ON CONFLICT DO NOTHING` insert makes this one-line. No audit log for the same reason: no compliance, no dispute scenario, no second party. Diverges from the post_interest precedent on purpose — when following a precedent table for a new join entity, verify the semantic match, not just the table shape.
+- **2026-06-22** — Listing Favorites UI: single-click toggle (NOT the user's originally-requested double-click-to-remove). *Why:* double-click as a remove gesture is engineer-intuitive (dblclick fires after click) but discoverability-hostile to users — they don't know to try it; on touch it conflicts with browser double-tap-to-zoom; screen-reader and keyboard users can't reliably double-click. Standard pattern across Pinterest/Spotify/Apple is the single-click toggle with the icon state telegraphing direction. Surfaced as a Concern at /mlabs-plan; user picked the toggle once the tradeoffs were on the table.
+- **2026-06-22** — `BusinessSchema` deliberately stays `z.object()` (not `.strict()`) because the admin extension pattern (`BusinessAdminSchema = BusinessSchema.extend(...)`) and the public-payload leakage check rely on different mechanics: the public ops project the public mapper, the admin ops project the admin mapper. Verification of "no PII leakage" is by raw-body inspection of `/api/v1/businesses` responses, NOT by Zod-parse — Zod's `safeParse` on a non-strict schema silently strips unknown keys, so the test would always pass whether or not the field leaked. Adding `.strict()` globally is a separate plan if anyone wants belt-and-braces.
+- **2026-06-22** — `apiClient.post(path, body, init?)` and `.patch(path, body, init?)` take the request body as the SECOND POSITIONAL argument, NOT as `{ body }` inside an init object. Mis-copying the fetch `{ body }` shape sends `{"body":{...}}` as the literal request body and strict Zod schemas reject it with 400. `.delete(path, init?)` has no body arg. Caught the FavoriteButton ship within minutes via user report ("red dot, no favorites in My Favorites"); fix unwrapped the body to a positional arg. Lesson logged.
 - **2026-06-15** — PRD F23 (CSV exports for Listings / Categories / Memberships / Sponsorships / Posts) reframed and largely deferred. *Why:* of the five surfaces, only BusinessSubscriptions has real pre-launch demand — PRD F16 leans on its CSV as the manual workaround for not having SMS reminders. But the actual operator job (phone expiring members down a list) is served *better* by an in-UI queue than by a download: outcomes (called / voicemail / refused / paid / reschedule) get captured as audit rows instead of evaporating in a spreadsheet, the admin's place persists across sessions, and phone numbers stay canonical. New scope = **F23′ renewal follow-up queue**. The other four CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are reachable in-app for internal use, and external-sharing asks haven't materialised; building those CSVs speculatively for hypothetical client/accountant emails isn't a launch-week need. Reopen surface-by-surface when a real external-sharing request hits twice. Audit log CSV export is also deferred — Drizzle Studio is sufficient for incident response by the dev, and operator-facing audit consumption is on-screen filtering.
