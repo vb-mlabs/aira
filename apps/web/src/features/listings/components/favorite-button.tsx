@@ -59,7 +59,7 @@ function FavoriteButtonInner({
     try {
       if (next) {
         await apiClient.post("/api/v1/favorites", {
-          body: { business_id: businessId },
+          business_id: businessId,
         })
       } else {
         await apiClient.delete(`/api/v1/favorites/${businessId}`)
