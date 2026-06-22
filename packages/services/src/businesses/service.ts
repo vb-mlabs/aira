@@ -21,6 +21,7 @@ import type { CallerContext } from "@aira/api/context";
 import { ApiError } from "@aira/api";
 import type {
   Business,
+  BusinessAdmin,
   BusinessOwner,
   BusinessUpdateInput,
 } from "@aira/validators/businesses";
@@ -39,9 +40,10 @@ function auditClient(ctx: CallerContext): "web" | "mobile" {
 
 export async function updateBusiness(
   db: Database,
+  ctx: CallerContext,
   id: string,
   data: UpdateData,
-): Promise<Business | null> {
+): Promise<BusinessAdmin | null> {
   const updatePayload: Partial<typeof businesses.$inferInsert> = {};
 
   if (data.name !== undefined) updatePayload.name = data.name;
@@ -64,12 +66,41 @@ export async function updateBusiness(
   if (data.city_id !== undefined) updatePayload.city_id = data.city_id;
   if (data.business_type !== undefined) updatePayload.business_type = data.business_type;
   if (data.years_operating !== undefined) updatePayload.years_operating = data.years_operating;
+  if (data.contact_person !== undefined) updatePayload.contact_person = data.contact_person;
 
   const hasBusinessUpdate = Object.keys(updatePayload).length > 0;
   const hasCategoryUpdate = data.extra_category_ids !== undefined;
 
   if (!hasBusinessUpdate && !hasCategoryUpdate) {
     return getBusinessByIdIncludingArchived(db, id);
+  }
+
+  // contact_person diff audit. Read the old value before the mutation;
+  // emit business.contact_person_changed only when it actually changes.
+  // Audit BEFORE the mutation (matches archive/restore convention so a
+  // failed audit blocks the write).
+  if (data.contact_person !== undefined) {
+    const [existing] = await db
+      .select({ contact_person: businesses.contact_person })
+      .from(businesses)
+      .where(eq(businesses.id, id))
+      .limit(1);
+    const oldValue = existing?.contact_person ?? null;
+    const newValue = data.contact_person;
+    if (oldValue !== newValue) {
+      const audit = createAudit(db);
+      await audit({
+        actorId: ctx.userId,
+        action: "business.contact_person_changed",
+        target: { type: "business", id },
+        meta: {
+          kind: "business.contact_person_changed",
+          from: oldValue,
+          to: newValue,
+        },
+        client: auditClient(ctx),
+      });
+    }
   }
 
   await db.transaction(async (tx) => {
