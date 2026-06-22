@@ -9,6 +9,7 @@ import {
   Bell,
   ChevronRight,
   FileText,
+  Heart,
   Info,
   Lock,
   MessageCircle,
@@ -35,6 +36,7 @@ const ACCOUNT_ITEMS: readonly MenuItem[] = [
   { href: "/profile", label: "Edit profile", icon: UserCog },
   { href: "/account/posts", label: "My posts", icon: FileText },
   { href: "/account/listings", label: "My listings", icon: Store },
+  { href: "/account/favorites", label: "My favorites", icon: Heart },
   { href: "/account/notifications", label: "Notifications", icon: Bell },
   {
     href: "/account/privacy-security",
