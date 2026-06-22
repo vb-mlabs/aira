@@ -260,6 +260,38 @@ sometimes loses the input stream.
 
 Fallback: use `EXPO_TOKEN` env var (see Authentication above).
 
+### Build fails with "EACCES: permission denied, rmdir" during tarball upload
+
+Replit-specific cache contention. EAS CLI compresses the project to a
+tarball under `/tmp/runner/eas-cli-nodejs/<uuid>-shallow-clone/` and
+during cleanup tries to `rmdir` a `.cache/dotslash/.../React Native
+DevTools-linux-x64` subdir. Replit's `/tmp/runner` permissions block
+the rmdir, the cleanup fails, and the build aborts before reaching
+EAS Build compute. **No billing impact** — the upload never
+finished.
+
+EAS-side state (channels, branches, generated keystores, uploaded
+credentials) persists across the failed attempt. You don't need to
+redo anything; just retry the build command after clearing the
+cache.
+
+Fix:
+```bash
+# Wipe the stuck cache:
+rm -rf /tmp/runner/eas-cli-nodejs 2>/dev/null
+# If rm fails with permission denied:
+chmod -R u+w /tmp/runner/eas-cli-nodejs 2>/dev/null
+rm -rf /tmp/runner/eas-cli-nodejs
+
+# Also defensive (rarely needed):
+rm -rf ~/.eas-cli 2>/dev/null
+rm -rf /tmp/eas-build-*  2>/dev/null
+
+# Then re-run:
+cd apps/mobile
+pnpm dlx eas-cli@latest build --platform all --profile preview
+```
+
 ### Build fails with "package.json: expo-updates not found"
 
 The `expo-updates` package was added in T3 — confirm `pnpm install`
