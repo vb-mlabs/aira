@@ -19,6 +19,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   // is the deliberate ceremony at every store release. See
   // docs/operations/eas-build-runbook.md (S7 launch sequence).
   runtimeVersion: { policy: "appVersion" },
+  // EAS Update endpoint — paired with the projectId in `extra.eas` below.
+  // Written by `eas update:configure` (2026-06-22) but pasted manually
+  // because Expo can't auto-mutate a function-form config.
+  updates: {
+    url: "https://u.expo.dev/21065081-2afd-43d4-aef7-7ce10de55a8b",
+  },
   orientation: "portrait",
   userInterfaceStyle: "light",
   icon: "./assets/icon.png",
