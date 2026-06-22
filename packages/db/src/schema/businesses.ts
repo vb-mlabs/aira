@@ -70,6 +70,10 @@ export const businesses = pgTable(
     phone: text("phone"),
     website: text("website"),
     address: text("address"),
+    /** Free-text name of the person AIRA ops should contact about this
+     *  listing (owner, manager, whoever picks up the phone). Admin-only —
+     *  surfaced via BusinessAdminSchema, never on the public BusinessSchema. */
+    contact_person: text("contact_person"),
     image_url: text("image_url"),
     facebook_url: text("facebook_url"),
     instagram_url: text("instagram_url"),
