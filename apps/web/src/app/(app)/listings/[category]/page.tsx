@@ -3,8 +3,10 @@ import { notFound } from "next/navigation"
 import { getCategoryMeta } from "@/features/listings/category-meta"
 import { ListingView } from "@/features/listings/components/listing-view"
 import { apiServerFetch } from "@aira/api/server"
+import { getSession } from "@/lib/auth/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
 import { getCategoryBySlugOp, listCategoriesOp } from "@/server/operations/categories"
+import { listMyFavoriteIdsOp } from "@/server/operations/favorites"
 
 const PAGE_SIZE = 12
 
@@ -41,11 +43,14 @@ export default async function CategoryListingPage({
   const page = Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1
   const verified = sp.verified === "1" || sp.verified === "true"
 
-  // Parallel fetch: this category (for 404), the businesses in it, and
-  // the full active-category list (drives the switcher dropdown in
-  // ListingView — pulled from the same `category` DB table the admin
-  // edits via /admin/settings/categories).
-  const [catRes, res, categoriesRes] = await Promise.all([
+  const session = await getSession()
+  const isSignedIn = !!session
+
+  // Parallel fetch: this category (for 404), the businesses in it, the
+  // full active-category list (drives the switcher dropdown in
+  // ListingView), and — when signed in — the caller's favorite ids so
+  // each card mounts with the correct heart state.
+  const [catRes, res, categoriesRes, favIdsRes] = await Promise.all([
     apiServerFetch(getCategoryBySlugOp, { input: { slug: category } }),
     apiServerFetch(listBusinessesOp, {
       input: {
@@ -57,6 +62,9 @@ export default async function CategoryListingPage({
       },
     }),
     apiServerFetch(listCategoriesOp, { input: {} }),
+    isSignedIn
+      ? apiServerFetch(listMyFavoriteIdsOp, { input: {} })
+      : Promise.resolve(null),
   ])
 
   if (!catRes.data?.category) notFound()
@@ -66,6 +74,7 @@ export default async function CategoryListingPage({
   const responsePage = res.data?.page ?? page
   const responsePageSize = res.data?.pageSize ?? PAGE_SIZE
   const categories = categoriesRes.data?.categories ?? []
+  const favIds = favIdsRes?.data?.ids ?? []
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
@@ -78,6 +87,8 @@ export default async function CategoryListingPage({
         verified={verified}
         currentCategory={category}
         categories={categories}
+        isSignedIn={isSignedIn}
+        favIds={favIds}
       />
     </div>
   )

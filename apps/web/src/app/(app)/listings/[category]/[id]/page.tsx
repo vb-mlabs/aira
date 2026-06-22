@@ -8,7 +8,9 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { BusinessDetail } from "@/features/listings"
 import { apiServerFetch } from "@aira/api/server"
+import { getSession } from "@/lib/auth/server"
 import { getBusinessByIdOp } from "@/server/operations/businesses"
+import { listMyFavoriteIdsOp } from "@/server/operations/favorites"
 
 interface PageProps {
   params: Promise<{ category: string; id: string }>
@@ -28,16 +30,30 @@ export async function generateMetadata({
 
 export default async function BusinessDetailPage({ params }: PageProps) {
   const { id } = await params
-  const res = await apiServerFetch(getBusinessByIdOp, {
-    input: { id },
-    pathParams: { id },
-  })
+  const session = await getSession()
+  const isSignedIn = !!session
+
+  const [res, favIdsRes] = await Promise.all([
+    apiServerFetch(getBusinessByIdOp, {
+      input: { id },
+      pathParams: { id },
+    }),
+    isSignedIn
+      ? apiServerFetch(listMyFavoriteIdsOp, { input: {} })
+      : Promise.resolve(null),
+  ])
   const business = res.data?.business ?? null
   if (!business) notFound()
 
+  const favIds = new Set(favIdsRes?.data?.ids ?? [])
+
   return (
     <div className="mx-auto w-full max-w-4xl px-5 py-8 sm:px-8 sm:py-10">
-      <BusinessDetail business={business} />
+      <BusinessDetail
+        business={business}
+        isSignedIn={isSignedIn}
+        isFavorited={favIds.has(business.id)}
+      />
     </div>
   )
 }

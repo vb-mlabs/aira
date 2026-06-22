@@ -12,10 +12,12 @@ import Link from "next/link"
 import { brand } from "@aira/config"
 import { BusinessCard, StatCard } from "@/features/listings"
 import { apiServerFetch } from "@aira/api/server"
+import { getSession } from "@/lib/auth/server"
 import {
   countActiveBusinessesOp,
   listBusinessesOp,
 } from "@/server/operations/businesses"
+import { listMyFavoriteIdsOp } from "@/server/operations/favorites"
 
 export const metadata: Metadata = {
   title: "Home",
@@ -24,14 +26,23 @@ export const metadata: Metadata = {
 const TAGLINE_CAPTION = brand.tagline.split(" & ").join(" · ")
 
 export default async function HomePage() {
-  const [featuredRes, countRes] = await Promise.all([
+  const session = await getSession()
+  const isSignedIn = !!session
+
+  const [featuredRes, countRes, favIdsRes] = await Promise.all([
     apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 6 } }),
     apiServerFetch(countActiveBusinessesOp, { input: {} }),
+    // Skip the user-scoped fetch entirely when anonymous — the cards just
+    // render without a heart.
+    isSignedIn
+      ? apiServerFetch(listMyFavoriteIdsOp, { input: {} })
+      : Promise.resolve(null),
   ])
 
   const featured = featuredRes.data?.items ?? []
   const bizCount = countRes.data?.count ?? 0
   const bizCountDisplay = bizCount > 0 ? `${bizCount}+` : "—"
+  const favIds = new Set(favIdsRes?.data?.ids ?? [])
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
@@ -85,7 +96,11 @@ export default async function HomePage() {
           <ul className="mx-auto mt-4 max-w-2xl space-y-3">
             {featured.map((b) => (
               <li key={b.id}>
-                <BusinessCard business={b} />
+                <BusinessCard
+                  business={b}
+                  isSignedIn={isSignedIn}
+                  isFavorited={favIds.has(b.id)}
+                />
               </li>
             ))}
           </ul>

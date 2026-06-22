@@ -20,6 +20,10 @@ interface DirectoryViewProps {
    *  row beneath the search bar. Fetched server-side from the same
    *  `category` DB table the admin edits via /admin/settings/categories. */
   categories: Category[]
+  /** Anonymous callers get no FavoriteButton on any card. */
+  isSignedIn?: boolean
+  /** Ids the caller has already favorited. */
+  favIds?: ReadonlyArray<string>
 }
 
 const DEBOUNCE_MS = 300
@@ -29,7 +33,10 @@ export function DirectoryView({
   total: initialTotal,
   pageSize,
   categories,
+  isSignedIn = false,
+  favIds,
 }: DirectoryViewProps) {
+  const favIdSet = favIds ? new Set(favIds) : undefined
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [items, setItems] = useState<Business[]>(initialItems)
@@ -185,6 +192,8 @@ export function DirectoryView({
                 key={tier}
                 tier={tier}
                 businesses={byTier[tier]}
+                isSignedIn={isSignedIn}
+                favIds={favIdSet}
               />
             ))}
           </div>

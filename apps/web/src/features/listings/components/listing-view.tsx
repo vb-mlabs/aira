@@ -23,6 +23,11 @@ interface ListingViewProps {
    *  dropdown. Fetched server-side from the same `category` DB table
    *  the admin edits via /admin/settings/categories. */
   categories: Category[]
+  /** Anonymous callers get no FavoriteButton on any card. */
+  isSignedIn?: boolean
+  /** Ids the caller has favorited; cards in this set render with a
+   *  filled heart on mount. */
+  favIds?: ReadonlyArray<string>
 }
 
 const DEBOUNCE_MS = 300
@@ -36,7 +41,10 @@ export function ListingView({
   verified,
   currentCategory,
   categories,
+  isSignedIn = false,
+  favIds,
 }: ListingViewProps) {
+  const favIdSet = favIds ? new Set(favIds) : undefined
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   // Controlled input keeps a local mirror so typing feels instant; the
@@ -229,6 +237,8 @@ export function ListingView({
                 key={tier}
                 tier={tier}
                 businesses={byTier[tier]}
+                isSignedIn={isSignedIn}
+                favIds={favIdSet}
               />
             ))}
           </div>
