@@ -26,6 +26,7 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
     apiServerFetch(listCitiesAdminOp, { input: {} }),
   ])
   const business = bizRes.data?.business
+  const owner = bizRes.data?.owner ?? null
 
   if (!business) notFound()
 
@@ -35,6 +36,7 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
   return (
     <BusinessAdminDetail
       business={business}
+      owner={owner}
       categories={categories}
       cities={cities}
     />
