@@ -219,6 +219,27 @@ have 2, you can't create a third. Either:
 - **Revoke** a stale key from Apple Developer portal → Keys, then
   create a new one.
 
+### `eas init` finishes with "Cannot automatically write to dynamic config"
+
+Misleading error message — the project IS created on Expo's side. The
+exit code is non-zero but the URL it printed (`expo.dev/accounts/.../projects/<slug>`)
+resolves to a real project record. EAS just can't auto-write to
+`app.config.ts` because it's a function (dynamic) form, not static
+JSON.
+
+Fix: copy the suggested `extra.eas.projectId` block from the CLI output
+and paste it into `app.config.ts` manually. Format:
+
+```ts
+extra: {
+  eas: {
+    projectId: "<uuid>",
+  },
+},
+```
+
+Subsequent `eas` commands read this value and work normally.
+
 ### `eas init` writes to `app.json` instead of `app.config.ts`
 
 There's a stray `app.json` confusing the CLI. We use `app.config.ts`
