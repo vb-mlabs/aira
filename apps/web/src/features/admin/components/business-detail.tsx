@@ -12,6 +12,7 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
+import type { BusinessAdmin } from "@aira/validators/businesses"
 import { RatingPill } from "@/features/listings/components/rating-pill"
 import {
   GoogleMapsPinIcon,
@@ -31,7 +32,7 @@ import { SubscriptionsSection } from "./subscriptions-section"
 import { SponsorshipsSection } from "./sponsorships-section"
 
 interface BusinessAdminDetailProps {
-  business: Business
+  business: BusinessAdmin
   categories?: Category[]
   cities?: City[]
 }
@@ -328,7 +329,7 @@ function CoreFieldsSection({
   categories,
   cities,
 }: {
-  business: Business
+  business: BusinessAdmin
   categories: Category[]
   cities: City[]
 }) {
@@ -406,7 +407,7 @@ function CoreFieldsPreview({
   cities,
   onEditCategories,
 }: {
-  business: Business
+  business: BusinessAdmin
   categories: Category[]
   cities: City[]
   onEditCategories: () => void
@@ -420,8 +421,9 @@ function CoreFieldsPreview({
   const yearsOperatingLabel = business.years_operating
     ? YEARS_OPERATING_LABELS[business.years_operating] ?? business.years_operating
     : null
+  const contactPerson = business.contact_person ?? null
   const hasProfileMeta =
-    cityName || businessTypeLabel || yearsOperatingLabel
+    cityName || businessTypeLabel || yearsOperatingLabel || contactPerson
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
@@ -480,6 +482,12 @@ function CoreFieldsPreview({
                 <dd className="text-foreground">{yearsOperatingLabel}</dd>
               </div>
             )}
+            {contactPerson && (
+              <div>
+                <dt className="text-muted-foreground">Contact person</dt>
+                <dd className="text-foreground">{contactPerson}</dd>
+              </div>
+            )}
           </dl>
         )}
       </div>
@@ -494,7 +502,7 @@ function CoreFieldsEditModal({
   onClose,
   onSaved,
 }: {
-  business: Business
+  business: BusinessAdmin
   cities: City[]
   open: boolean
   onClose: () => void
@@ -503,6 +511,9 @@ function CoreFieldsEditModal({
   const router = useRouter()
   const [name, setName] = useState(business.name)
   const [description, setDescription] = useState(business.description ?? "")
+  const [contactPerson, setContactPerson] = useState(
+    business.contact_person ?? "",
+  )
   const [cityId, setCityId] = useState(business.city_id ?? "")
   const [businessType, setBusinessType] = useState(business.business_type ?? "")
   const [yearsOperating, setYearsOperating] = useState(
@@ -517,6 +528,7 @@ function CoreFieldsEditModal({
       const result = await runUpdate(business.id, {
         name: name.trim() || null,
         description: description.trim() || null,
+        contact_person: contactPerson.trim() || null,
         city_id: cityId || null,
         business_type: businessType || null,
         years_operating: yearsOperating || null,
@@ -566,6 +578,16 @@ function CoreFieldsEditModal({
                 id="b-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="b-contact-person">Contact person</Label>
+              <Input
+                id="b-contact-person"
+                value={contactPerson}
+                onChange={(e) => setContactPerson(e.target.value)}
+                placeholder="e.g. Priya Krishnamurthy"
+                maxLength={120}
               />
             </div>
             <div className="space-y-1.5">
