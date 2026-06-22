@@ -10,6 +10,7 @@ import type { Database } from "@aira/db/client";
 import {
   VALID_TIERS,
   type Business,
+  type BusinessAdmin,
   type BusinessCreateInput,
   type BusinessOwner,
   type BusinessTier,
@@ -173,6 +174,29 @@ async function attachRelations(
   );
 }
 
+// Admin variant — same shape as attachRelations but emits BusinessAdmin
+// rows (i.e. with contact_person). Used exclusively by admin-only queries
+// (getBusinessByIdIncludingArchived, getAllBusinesses, createBusiness).
+// Public read paths must continue to use attachRelations so contact_person
+// never reaches an unauthenticated payload.
+async function attachRelationsAdmin(
+  db: Database,
+  rows: BusinessRowWithVisibility[],
+): Promise<BusinessAdmin[]> {
+  const ids = rows.map((r) => r.id);
+  const [imagesMap, catsMap] = await Promise.all([
+    fetchImages(db, ids),
+    fetchExtraCategoryIds(db, ids),
+  ]);
+  return rows.map((row) =>
+    toBusinessAdmin(
+      row,
+      imagesMap.get(row.id) ?? [],
+      catsMap.get(row.id) ?? [],
+    ),
+  );
+}
+
 // ─── Public queries ──────────────────────────────────────────────────────────
 
 export async function getFeaturedBusinesses(
@@ -230,18 +254,19 @@ export async function getBusinessesByCategory(
 
 /** Admin-only: returns ALL businesses (or only active when includeArchived
  *  is false). No pagination — admin's a small audience and the table
- *  doesn't grow that fast. */
+ *  doesn't grow that fast. Returns BusinessAdmin (with contact_person);
+ *  public callers must NOT route through this. */
 export async function getAllBusinesses(
   db: Database,
   opts: { includeArchived: boolean } = { includeArchived: false },
-): Promise<Business[]> {
+): Promise<BusinessAdmin[]> {
   const where = opts.includeArchived ? undefined : isNull(businesses.deleted_at);
   const builder = db
     .select()
     .from(businesses)
     .orderBy(TIER_ORDER, asc(businesses.name));
   const rows = await (where ? builder.where(where) : builder);
-  return attachRelations(db, rows);
+  return attachRelationsAdmin(db, rows);
 }
 
 export interface PagedBusinessesInput {
@@ -382,18 +407,19 @@ export async function getBusinessById(
 
 /** Admin-only sibling: bypasses the soft-delete filter so the admin edit
  *  page can load (and Restore) an archived row. Public consumers use
- *  getBusinessById which still 404s on archived. */
+ *  getBusinessById which still 404s on archived. Returns BusinessAdmin
+ *  (with contact_person); the public sibling deliberately doesn't. */
 export async function getBusinessByIdIncludingArchived(
   db: Database,
   id: string,
-): Promise<Business | null> {
+): Promise<BusinessAdmin | null> {
   const [row] = await db
     .select()
     .from(businesses)
     .where(eq(businesses.id, id))
     .limit(1);
   if (!row) return null;
-  const [result] = await attachRelations(db, [row]);
+  const [result] = await attachRelationsAdmin(db, [row]);
   return result ?? null;
 }
 
@@ -536,10 +562,23 @@ function toBusiness(
   };
 }
 
+// Admin row → BusinessAdmin. Spreads the public projection so the field
+// list stays in lock-step with toBusiness, then appends contact_person.
+function toBusinessAdmin(
+  row: BusinessRowWithVisibility,
+  images: BusinessImage[],
+  extra_category_ids: string[],
+): BusinessAdmin {
+  return {
+    ...toBusiness(row, images, extra_category_ids),
+    contact_person: row.contact_person ?? null,
+  };
+}
+
 export async function createBusiness(
   db: Database,
   input: BusinessCreateInput,
-): Promise<Business> {
+): Promise<BusinessAdmin> {
   const existing = await db
     .select({ id: businesses.id })
     .from(businesses)
@@ -569,9 +608,10 @@ export async function createBusiness(
       facebook_url: input.facebook_url ?? null,
       website: input.website ?? null,
       whatsapp_number: input.whatsapp_number ?? null,
+      contact_person: input.contact_person ?? null,
     })
     .returning();
   if (!row) throw new Error("Insert returned no row");
-  const [result] = await attachRelations(db, [row]);
+  const [result] = await attachRelationsAdmin(db, [row]);
   return result!;
 }
