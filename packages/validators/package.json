@@ -11,6 +11,7 @@
     "./api-error": "./src/api-error.ts",
     "./admin": "./src/admin.ts",
     "./businesses": "./src/businesses.ts",
+    "./favorites": "./src/favorites.ts",
     "./categories": "./src/categories.ts",
     "./cities": "./src/cities.ts",
     "./app_settings": "./src/app_settings.ts",
