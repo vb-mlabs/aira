@@ -127,6 +127,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left font-semibold">Tier</th>
                 <th className="px-4 py-3 text-left font-semibold">Subscription</th>
                 <th className="px-4 py-3 text-left font-semibold">Owner</th>
+                <th className="px-4 py-3 text-left font-semibold">Contact person</th>
                 <th className="px-4 py-3 text-left font-semibold">Verified</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
               </tr>
@@ -199,6 +200,15 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                       {b.owner ? (
                         <span className="block truncate">
                           {b.owner.name || b.owner.email}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {b.contact_person ? (
+                        <span className="block max-w-[150px] truncate">
+                          {b.contact_person}
                         </span>
                       ) : (
                         <span className="text-muted-foreground/60">—</span>
