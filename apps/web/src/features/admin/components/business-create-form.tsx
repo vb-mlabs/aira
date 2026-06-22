@@ -57,6 +57,7 @@ export function BusinessCreateForm({
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
+  const [contactPerson, setContactPerson] = useState("")
   const [category, setCategory] = useState<string>(categories[0]?.slug ?? "")
   const [description, setDescription] = useState("")
   const [businessType, setBusinessType] = useState("")
@@ -87,6 +88,7 @@ export function BusinessCreateForm({
           {
             name: name.trim(),
             slug: slug.trim(),
+            contact_person: contactPerson.trim() || null,
             category,
             description: description.trim() || null,
             phone: phone.trim() || null,
@@ -132,6 +134,16 @@ export function BusinessCreateForm({
         </div>
         {/* Slug is hidden from the form — auto-derived from name via
             slugify() above and POSTed as part of the create payload. */}
+        <div className="space-y-1.5">
+          <Label htmlFor="bc-contact-person">Contact person</Label>
+          <Input
+            id="bc-contact-person"
+            value={contactPerson}
+            onChange={(e) => setContactPerson(e.target.value)}
+            placeholder="e.g. Priya Krishnamurthy"
+            maxLength={120}
+          />
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="bc-category">Category *</Label>
           {categories.length === 0 ? (
