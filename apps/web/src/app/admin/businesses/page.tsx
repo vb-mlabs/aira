@@ -10,7 +10,6 @@ import { expiryLabel } from "@/features/admin/renewals/expiry-label"
 import { EmptyState } from "@/lib/ui"
 import { cn } from "@aira/ui-web/utils"
 import { AdminPageHeader } from "../_components/page-header"
-import { OwnerFilter } from "./_components/owner-filter"
 import { RenewingFilter } from "./_components/renewing-filter"
 
 export const metadata = { title: "Admin · Businesses" }
@@ -22,7 +21,6 @@ interface PageProps {
   searchParams: Promise<{
     archived?: string
     renewing?: string
-    owner?: string
   }>
 }
 
@@ -30,13 +28,10 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
   const sp = await searchParams
   const includeArchived = sp.archived === "1"
   const renewing = sp.renewing ? parseInt(sp.renewing, 10) : undefined
-  const owner: "has" | "none" | undefined =
-    sp.owner === "has" ? "has" : sp.owner === "none" ? "none" : undefined
   const res = await apiServerFetch(listAllBusinessesAdminOp, {
     input: {
       includeArchived: includeArchived || undefined,
       renewing: renewing || undefined,
-      owner,
     },
   })
   const businesses = res.data?.items ?? []
@@ -101,12 +96,6 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
 
         <Suspense>
           <RenewingFilter />
-        </Suspense>
-
-        <div className="h-4 w-px bg-border" />
-
-        <Suspense>
-          <OwnerFilter />
         </Suspense>
       </div>
 
