@@ -75,4 +75,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
   },
+  // Bound to the @million-labs Expo org by `eas init` (2026-06-22). EAS
+  // can't auto-write to a dynamic config (function form), so the projectId
+  // is committed by hand. Future `eas` commands read this value.
+  extra: {
+    eas: {
+      projectId: "21065081-2afd-43d4-aef7-7ce10de55a8b",
+    },
+  },
 });
