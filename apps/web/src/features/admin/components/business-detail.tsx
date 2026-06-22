@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { Fragment, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
 import { BadgeCheck, ChevronLeft, Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
@@ -40,7 +40,7 @@ interface BusinessAdminDetailProps {
   /** Active root→children tree used by CategoryEditModal to render
    *  <optgroup>s. Pre-filtered upstream (page) so inactive branches
    *  are already dropped — see /admin/businesses/[id]/page.tsx. */
-  categoryTree?: CategoryTreeOutput["tree"]
+  categoryTree: CategoryTreeOutput["tree"]
   cities?: City[]
 }
 
@@ -90,6 +90,7 @@ export function BusinessAdminDetail({
   business,
   owner = null,
   categories = [],
+  categoryTree,
   cities = [],
 }: BusinessAdminDetailProps) {
   const archived = business.deleted_at !== null
@@ -125,6 +126,7 @@ export function BusinessAdminDetail({
       <CoreFieldsSection
         business={business}
         categories={categories}
+        categoryTree={categoryTree}
         cities={cities}
       />
       <BusinessOwnerSection
@@ -179,12 +181,14 @@ function CategoryPreview({
 function CategoryEditModal({
   business,
   categories,
+  categoryTree,
   open,
   onClose,
   onSaved,
 }: {
   business: Business
   categories: Category[]
+  categoryTree: CategoryTreeOutput["tree"]
   open: boolean
   onClose: () => void
   onSaved: (result: Feedback) => void
@@ -273,41 +277,61 @@ function CategoryEditModal({
                 onChange={(e) => setCategory(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
               >
-                {categories.length === 0 && (
+                {categoryTree.length === 0 && (
                   <option value={category}>{category}</option>
                 )}
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.name}
-                  </option>
+                {categoryTree.map(({ root, children }) => (
+                  <Fragment key={root.id}>
+                    <option value={root.slug}>{root.name}</option>
+                    {children.length > 0 && (
+                      <optgroup label={root.name}>
+                        {children.map((child) => (
+                          <option key={child.id} value={child.slug}>
+                            {child.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </Fragment>
                 ))}
               </select>
             </div>
 
-            {categories.length > 0 && (
+            {categoryTree.length > 0 && (
               <div className="space-y-1.5">
                 <Label>Additional categories</Label>
                 <p className="text-xs text-muted-foreground">
                   Business appears in listings for each checked category.
                 </p>
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  {categories.map((c) => {
-                    const isExtra = extraIds.includes(c.id)
-                    return (
+                  {categoryTree.flatMap(({ root, children }) => [
+                    <label
+                      key={root.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={extraIds.includes(root.id)}
+                        onChange={() => toggleExtra(root.id)}
+                        className="h-3.5 w-3.5 rounded border-input accent-primary"
+                      />
+                      <span>{root.name}</span>
+                    </label>,
+                    ...children.map((child) => (
                       <label
-                        key={c.id}
-                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                        key={child.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 pl-6 text-sm hover:bg-accent"
                       >
                         <input
                           type="checkbox"
-                          checked={isExtra}
-                          onChange={() => toggleExtra(c.id)}
+                          checked={extraIds.includes(child.id)}
+                          onChange={() => toggleExtra(child.id)}
                           className="h-3.5 w-3.5 rounded border-input accent-primary"
                         />
-                        <span>{c.name}</span>
+                        <span>↳ {child.name}</span>
                       </label>
-                    )
-                  })}
+                    )),
+                  ])}
                 </div>
               </div>
             )}
@@ -340,10 +364,12 @@ function CategoryEditModal({
 function CoreFieldsSection({
   business,
   categories,
+  categoryTree,
   cities,
 }: {
   business: BusinessAdmin
   categories: Category[]
+  categoryTree: CategoryTreeOutput["tree"]
   cities: City[]
 }) {
   const [coreOpen, setCoreOpen] = useState(false)
@@ -403,6 +429,7 @@ function CoreFieldsSection({
       <CategoryEditModal
         business={business}
         categories={categories}
+        categoryTree={categoryTree}
         open={categoryOpen}
         onClose={() => setCategoryOpen(false)}
         onSaved={(result) => {
