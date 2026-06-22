@@ -21,6 +21,17 @@
         "buildType": "apk"
       },
       "channel": "preview"
+    },
+    "production": {
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": "buildNumber",
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   }
 }
