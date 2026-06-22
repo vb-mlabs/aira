@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-22
 **Slug:** 2026-06-22-listing-favorites
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
