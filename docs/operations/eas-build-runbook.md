@@ -248,6 +248,33 @@ ran cleanly after the dependency was added. From repo root:
 pnpm install
 ```
 
+### `eas init` rejects eas.json: "autoIncrement must be a boolean"
+
+EAS Build's schema for `autoIncrement` at the profile top level is a
+**boolean** (`true`/`false`), not a string. The `"buildNumber"` and
+`"versionCode"` string forms are only valid one level deeper:
+
+```jsonc
+// WRONG — fails at eas init:
+"production": {
+  "autoIncrement": "buildNumber"
+}
+
+// RIGHT — increments both platforms automatically:
+"production": {
+  "autoIncrement": true
+}
+
+// ALSO RIGHT — per-platform string form:
+"production": {
+  "ios":     { "autoIncrement": "buildNumber" },
+  "android": { "autoIncrement": "versionCode" }
+}
+```
+
+We picked the simple `true` form because `appVersionSource: "remote"`
+gives EAS full control over both counters anyway.
+
 ### Build fails with "missing native config"
 
 EAS Build creates the native iOS/Android project on-the-fly from
