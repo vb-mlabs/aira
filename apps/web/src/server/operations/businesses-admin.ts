@@ -21,7 +21,7 @@ import {
   BusinessListOutputSchema,
   BusinessDetailInputSchema,
   BusinessDetailOutputSchema,
-  BusinessSchema,
+  BusinessAdminSchema,
   BusinessOwnerSchema,
   BusinessAdminDetailOutputSchema,
   AssignBusinessOwnerInputSchema,
@@ -33,7 +33,7 @@ import { sendNotificationEmail, buildAuthUrl } from "@/lib/email"
 import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
 
-const AdminBusinessItemSchema = BusinessSchema.extend({
+const AdminBusinessItemSchema = BusinessAdminSchema.extend({
   latest_payment_status: z.enum(["paid", "pending", "overdue"]).nullable(),
   latest_subscription_end_date: z.string().nullable(),
   latest_subscription_days_remaining: z.number().int().nullable(),
@@ -62,7 +62,7 @@ const AdminBusinessListOutputSchema = z.object({
 export const createBusinessAdminOp = defineOperation({
   name: "admin.businesses.create",
   input: BusinessCreateInputSchema,
-  output: z.object({ business: BusinessSchema }),
+  output: z.object({ business: BusinessAdminSchema }),
   permission: "admin",
   handler: async (db, _ctx, input) => {
     const business = await businessesService.createBusiness(db, input)
@@ -75,8 +75,8 @@ export const updateBusinessOp = defineOperation({
   input: BusinessUpdateInputSchema,
   output: BusinessUpdateOutputSchema,
   permission: "admin",
-  handler: async (db, _ctx, { id, ...data }) => {
-    const business = await businessesService.updateBusiness(db, id, data)
+  handler: async (db, ctx, { id, ...data }) => {
+    const business = await businessesService.updateBusiness(db, ctx, id, data)
     if (!business) throw ApiError.notFound("businesses.not_found", "Business not found")
     return { business }
   },
