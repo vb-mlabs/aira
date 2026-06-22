@@ -9,6 +9,7 @@ export * from "./api-error";
 export * from "./auth";
 export * from "./business-image";
 export * from "./businesses";
+export * from "./favorites";
 export * from "./categories";
 export * from "./cities";
 export * from "./app_settings";
