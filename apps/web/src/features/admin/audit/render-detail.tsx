@@ -109,6 +109,24 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
       return <>Archived business</>
     case "business.restored":
       return <>Restored business</>
+    case "business.contact_person_changed":
+      return (
+        <>
+          Changed contact person:{" "}
+          {m.from !== null ? (
+            <>
+              <code>{truncate(m.from, 40)}</code> →{" "}
+            </>
+          ) : (
+            <>(empty) → </>
+          )}
+          {m.to !== null ? (
+            <code>{truncate(m.to, 40)}</code>
+          ) : (
+            <>(empty)</>
+          )}
+        </>
+      )
     case "business.subscription_recorded":
       return (
         <>

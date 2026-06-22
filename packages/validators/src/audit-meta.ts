@@ -61,6 +61,14 @@ export type AuditMeta =
   // Admin curation of the business directory. target_id is the business.id.
   | { kind: "business.archived" }
   | { kind: "business.restored" }
+  // Admin edit of the free-text contact_person field on a business listing.
+  // from/to are the values before/after the edit; null encodes an unset
+  // value. Emitted only when old !== new (no-op edits don't write).
+  | {
+      kind: "business.contact_person_changed";
+      from: string | null;
+      to: string | null;
+    }
   // S4 — subscription + sponsorship audit trail.
   | {
       kind: "business.subscription_recorded";
@@ -207,6 +215,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "user.signed_up",
   "business.archived",
   "business.restored",
+  "business.contact_person_changed",
   "business.subscription_recorded",
   "business.subscription_voided",
   "business.sponsorship_assigned",
@@ -279,6 +288,7 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.owner_assigned": "Owner assigned",
     "business.owner_unassigned": "Owner unassigned",
     "business.broadcast_sent": "Broadcast sent",
+    "business.contact_person_changed": "Contact person changed",
   };
 
 /** Convert an action kind string into a humanised dropdown label.
