@@ -23,7 +23,7 @@ import {
   VALID_YEARS_OPERATING,
   type BusinessOwner,
 } from "@aira/validators/businesses"
-import type { Category } from "@aira/validators/categories"
+import type { Category, CategoryTreeOutput } from "@aira/validators/categories"
 import type { City } from "@aira/validators/cities"
 import { ArchiveControl } from "./archive-control"
 import { BusinessOwnerSection } from "./business-owner-section"
@@ -37,6 +37,10 @@ interface BusinessAdminDetailProps {
   business: BusinessAdmin
   owner?: BusinessOwner | null
   categories?: Category[]
+  /** Active root→children tree used by CategoryEditModal to render
+   *  <optgroup>s. Pre-filtered upstream (page) so inactive branches
+   *  are already dropped — see /admin/businesses/[id]/page.tsx. */
+  categoryTree?: CategoryTreeOutput["tree"]
   cities?: City[]
 }
 

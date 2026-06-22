@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { apiServerFetch } from "@aira/api/server"
 import { getBusinessByIdAdminOp } from "@/server/operations/businesses-admin"
-import { listCategoriesOp } from "@/server/operations/categories"
+import { listCategoriesTreeOp } from "@/server/operations/categories"
 import { listCitiesAdminOp } from "@/server/operations/cities-admin"
 import { BusinessAdminDetail } from "@/features/admin/components/business-detail"
 
@@ -22,7 +22,7 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
   const { id } = await params
   const [bizRes, catRes, cityRes] = await Promise.all([
     apiServerFetch(getBusinessByIdAdminOp, { input: { id } }),
-    apiServerFetch(listCategoriesOp, { input: {} }),
+    apiServerFetch(listCategoriesTreeOp, { input: {} }),
     apiServerFetch(listCitiesAdminOp, { input: {} }),
   ])
   const business = bizRes.data?.business
@@ -30,7 +30,23 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
 
   if (!business) notFound()
 
-  const categories = catRes.data?.categories ?? []
+  const tree = catRes.data?.tree ?? []
+
+  // Unfiltered flat list — used by CategoryPreview's name lookup so a
+  // listing whose primary slug points to a deactivated category still
+  // resolves to a label (no UI gap on stale references).
+  const categories = tree.flatMap(({ root, children }) => [root, ...children])
+
+  // Active-filtered tree — fed into the Edit categories modal. Drop a
+  // root entirely when it's inactive (carries its children with it);
+  // drop individually-inactive children otherwise.
+  const categoryTree = tree
+    .filter(({ root }) => root.active)
+    .map(({ root, children }) => ({
+      root,
+      children: children.filter((c) => c.active),
+    }))
+
   const cities = cityRes.data?.cities ?? []
 
   return (
@@ -38,6 +54,7 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
       business={business}
       owner={owner}
       categories={categories}
+      categoryTree={categoryTree}
       cities={cities}
     />
   )
