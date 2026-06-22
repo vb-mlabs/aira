@@ -10,6 +10,7 @@ import {
 import { brand } from "@aira/config"
 import { buttonVariants } from "@aira/ui-web/button"
 import { getCategoryMeta } from "../category-meta"
+import { FavoriteButton } from "./favorite-button"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks, GoogleMapsPinIcon } from "./social-icons"
 import { BusinessImageCarousel } from "./business-image-carousel"
@@ -17,9 +18,18 @@ import type { Business } from "../types"
 
 interface BusinessDetailProps {
   business: Business
+  /** Anonymous callers get no heart at all (default false so existing
+   *  call sites without the new piping still render). */
+  isSignedIn?: boolean
+  /** Initial favorited state for the FavoriteButton. Defaults false. */
+  isFavorited?: boolean
 }
 
-export function BusinessDetail({ business }: BusinessDetailProps) {
+export function BusinessDetail({
+  business,
+  isSignedIn = false,
+  isFavorited = false,
+}: BusinessDetailProps) {
   const category = getCategoryMeta(business.category)
   const Icon = category.icon
 
@@ -56,6 +66,12 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                   className="size-6 flex-shrink-0 fill-info text-info-foreground md:size-7"
                 />
               )}
+              <FavoriteButton
+                businessId={business.id}
+                isFavorited={isFavorited}
+                isSignedIn={isSignedIn}
+                size="lg"
+              />
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
