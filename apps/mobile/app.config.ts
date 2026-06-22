@@ -14,6 +14,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: "aira-mobile",
   scheme: "aira",
   version: "0.1.0",
+  // EAS Update OTA scope. Updates only flow within the same marketing
+  // `version` string — bumping `version` invalidates in-flight OTAs and
+  // is the deliberate ceremony at every store release. See
+  // docs/operations/eas-build-runbook.md (S7 launch sequence).
+  runtimeVersion: { policy: "appVersion" },
   orientation: "portrait",
   userInterfaceStyle: "light",
   icon: "./assets/icon.png",
