@@ -7,6 +7,7 @@ import {
   Globe,
   Phone,
 } from "lucide-react"
+import { brand } from "@aira/config"
 import { buttonVariants } from "@aira/ui-web/button"
 import { getCategoryMeta } from "../category-meta"
 import { RatingPill } from "./rating-pill"
@@ -52,7 +53,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
               {business.verified && (
                 <BadgeCheck
                   aria-label="Verified"
-                  className="size-5 flex-shrink-0 fill-info text-info-foreground md:size-6"
+                  className="size-6 flex-shrink-0 fill-info text-info-foreground md:size-7"
                 />
               )}
             </div>
@@ -62,7 +63,10 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                 {category.displayName}
               </p>
               {business.rating !== null && business.rating > 0 && (
-                <RatingPill rating={business.rating} />
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  {brand.name} Stars
+                  <RatingPill rating={business.rating} />
+                </span>
               )}
             </div>
 

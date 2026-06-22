@@ -32,6 +32,11 @@ import type {
   CategoryTreeOutput,
 } from "@aira/validators/categories"
 
+// Parent-entity website — the Globe icon in the sidebar Contact strip points
+// to the Nisarga corporate site rather than brand.url (the AIRA marketing
+// site users are already inside).
+const NISARGA_WEBSITE_URL = "https://nisargacorp.com"
+
 interface AppSidebarProps {
   /** Render the close button in the header (mobile drawer mode). */
   onClose?: () => void
@@ -97,7 +102,7 @@ export function AppSidebar({ onClose, tree, isAdmin }: AppSidebarProps) {
         />
         <SidebarRow
           href="/community"
-          label="Community"
+          label={`Post on ${brand.name}`}
           icon={MessageSquare}
           active={isActive("/community")}
         />
@@ -152,11 +157,11 @@ export function AppSidebar({ onClose, tree, isAdmin }: AppSidebarProps) {
             <Mail className="size-4" />
           </a>
           <a
-            href={brand.url}
+            href={NISARGA_WEBSITE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex size-9 items-center justify-center rounded-full border border-sidebar-border bg-sidebar-foreground/10 text-sidebar-foreground transition-colors hover:bg-sidebar-foreground/20"
-            aria-label="Visit website"
+            aria-label={`${brand.legalEntity} website`}
           >
             <Globe className="size-4" />
           </a>

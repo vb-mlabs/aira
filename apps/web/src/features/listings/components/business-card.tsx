@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { BadgeCheck } from "lucide-react"
+import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import { TIER_LABELS } from "@aira/validators"
 import { getCategoryMeta } from "../category-meta"
@@ -52,7 +53,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           {business.verified && (
             <BadgeCheck
               aria-label="Verified"
-              className="size-4 flex-shrink-0 fill-info text-info-foreground"
+              className="size-5 flex-shrink-0 fill-info text-info-foreground"
             />
           )}
         </div>
@@ -61,7 +62,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
             {category.displayName}
           </p>
           {business.rating !== null && business.rating > 0 && (
-            <RatingPill rating={business.rating} showValue={false} />
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              {brand.name} Stars
+              <RatingPill rating={business.rating} showValue={false} />
+            </span>
           )}
         </div>
         <SocialLinks
@@ -75,8 +79,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
         />
       </div>
 
-      <div className="flex-shrink-0">
+      <div className="flex flex-shrink-0 flex-col items-end gap-2">
         <TierPill tier={business.tier} />
+        <Link
+          href={`/listings/${business.category}/${business.id}`}
+          aria-label={`More info about ${business.name}`}
+          className="relative z-10 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          More Info
+        </Link>
       </div>
     </article>
   )

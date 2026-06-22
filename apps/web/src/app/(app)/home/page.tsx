@@ -31,7 +31,7 @@ export default async function HomePage() {
 
   const featured = featuredRes.data?.items ?? []
   const bizCount = countRes.data?.count ?? 0
-  const bizCountDisplay = bizCount > 0 ? String(bizCount) : "—"
+  const bizCountDisplay = bizCount > 0 ? `${bizCount}+` : "—"
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
@@ -39,15 +39,15 @@ export default async function HomePage() {
         <Image
           src="/marketing-images/logo.png"
           alt={`${brand.name} tree-of-life logo`}
-          width={88}
-          height={88}
+          width={140}
+          height={140}
           priority
-          className="mx-auto mb-4 size-16 sm:size-[88px]"
+          className="mx-auto mb-5 size-24 sm:size-[140px]"
         />
-        <h1 className="font-display text-4xl text-foreground sm:text-5xl">
+        <h1 className="bg-[linear-gradient(180deg,oklch(0.42_0.09_80)_0%,oklch(0.66_0.10_80)_100%)] bg-clip-text font-display text-5xl font-bold text-transparent sm:text-6xl">
           {brand.name}
         </h1>
-        <p className="mt-1 text-xs font-bold uppercase tracking-[0.3em] text-primary">
+        <p className="mt-2 text-sm font-bold uppercase tracking-[0.3em] text-foreground sm:text-base">
           {TAGLINE_CAPTION}
         </p>
       </section>

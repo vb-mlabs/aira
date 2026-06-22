@@ -95,25 +95,6 @@ export function SocialLinks({
         </span>
       )}
 
-      {phone ? (
-        <a
-          href={`tel:${phone}`}
-          aria-label="Call"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#16A34A" }}
-        >
-          <Phone className="size-4 text-white" aria-hidden />
-        </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#16A34A", opacity: 0.25 }}
-        >
-          <Phone className="size-4 text-white" aria-hidden />
-        </span>
-      )}
-
       {website ? (
         <a
           href={website}
@@ -132,6 +113,25 @@ export function SocialLinks({
           style={{ backgroundColor: "#6366F1", opacity: 0.25 }}
         >
           <Globe className="size-4 text-white" aria-hidden />
+        </span>
+      )}
+
+      {phone ? (
+        <a
+          href={`tel:${phone}`}
+          aria-label="Call"
+          className={`${iconBase} hover:opacity-80`}
+          style={{ backgroundColor: "#16A34A" }}
+        >
+          <Phone className="size-4 text-white" aria-hidden />
+        </a>
+      ) : (
+        <span
+          aria-hidden
+          className={`${iconBase} cursor-default`}
+          style={{ backgroundColor: "#16A34A", opacity: 0.25 }}
+        >
+          <Phone className="size-4 text-white" aria-hidden />
         </span>
       )}
 

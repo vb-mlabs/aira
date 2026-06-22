@@ -408,7 +408,7 @@ export function BusinessCtaPair() {
                       <span className="font-sans text-[14px] font-extrabold text-foreground">
                         {perk.highlight}
                       </span>{" "}
-                      <span className="font-sans text-[14px] font-bold text-foreground">
+                      <span className="font-sans text-[14px] font-bold italic text-foreground">
                         {perk.title}
                       </span>
                       {perk.detail ? (
@@ -450,7 +450,7 @@ export function BusinessCtaPair() {
                     >
                       {plan.icon}
                     </span>
-                    <span className="flex-1 font-sans text-[14px] font-bold text-foreground">
+                    <span className="flex-1 font-sans text-[14px] font-bold italic text-foreground">
                       {plan.title}
                     </span>
                     <span className="font-sans text-[15px] font-extrabold text-foreground">
@@ -481,7 +481,7 @@ export function BusinessCtaPair() {
                     >
                       {col.icon}
                     </span>
-                    <p className="mt-1.5 font-display text-[14.5px] font-bold text-foreground">
+                    <p className="mt-1.5 font-display text-[14.5px] font-bold italic text-foreground">
                       {col.heading}
                     </p>
                     <ul className="mt-2 w-full space-y-1.5 text-left">

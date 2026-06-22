@@ -12,7 +12,7 @@ import { brand } from "@aira/config"
 
 // TODO: replace with the real Nisarga LinkedIn URL once it exists.
 const NISARGA_LINKEDIN_URL = "#"
-const NISARGA_WEBSITE_URL = "https://nisargagroup.com"
+const NISARGA_WEBSITE_URL = "https://nisargacorp.com"
 
 const forUsersLinks = [
   { href: "#notify", label: "Get notified at launch" },
