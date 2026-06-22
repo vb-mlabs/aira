@@ -103,6 +103,17 @@ export const BusinessSchema = z.object({
 });
 export type Business = z.infer<typeof BusinessSchema>;
 
+/** Admin-extended business shape — adds the contact_person field (free-text
+ *  name of the admin's point of contact for the listing). Used on every
+ *  admin output (admin list, admin detail, admin create/update outputs).
+ *  Public BusinessSchema deliberately omits contact_person so the value
+ *  cannot reach unauthenticated callers via /api/v1/businesses; the data
+ *  layer also strips it on public projections (see queries.ts). */
+export const BusinessAdminSchema = BusinessSchema.extend({
+  contact_person: z.string().nullable(),
+});
+export type BusinessAdmin = z.infer<typeof BusinessAdminSchema>;
+
 /** Business owner — denormalised user projection returned from
  *  getBusinessOwner. Used by the admin business-detail op output and by
  *  the admin list page's per-row Owner column. Carries user PII (name,
@@ -137,7 +148,7 @@ export type UnassignBusinessOwnerInput = z.infer<
  *  separately-fetched owner record. owner is null when owner_user_id is
  *  null or when the referenced user has been deleted/anonymised. */
 export const BusinessAdminDetailOutputSchema = z.object({
-  business: BusinessSchema.nullable(),
+  business: BusinessAdminSchema.nullable(),
   owner: BusinessOwnerSchema.nullable(),
 });
 export type BusinessAdminDetailOutput = z.infer<
@@ -170,6 +181,12 @@ export const BusinessUpdateInputSchema = z
     city_id: z.string().nullable().optional(),
     business_type: z.string().nullable().optional(),
     years_operating: z.string().nullable().optional(),
+    contact_person: z
+      .string()
+      .trim()
+      .max(120)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
@@ -196,12 +213,18 @@ export const BusinessCreateInputSchema = z
     facebook_url: z.string().nullable().optional(),
     website: z.string().nullable().optional(),
     whatsapp_number: z.string().nullable().optional(),
+    contact_person: z
+      .string()
+      .trim()
+      .max(120)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type BusinessCreateInput = z.infer<typeof BusinessCreateInputSchema>;
 
 export const BusinessUpdateOutputSchema = z.object({
-  business: BusinessSchema,
+  business: BusinessAdminSchema,
 });
 export type BusinessUpdateOutput = z.infer<typeof BusinessUpdateOutputSchema>;
 
