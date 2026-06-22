@@ -23,7 +23,7 @@ const QUICK_LINKS: Array<{
   {
     href: "/admin/businesses",
     icon: Store,
-    title: "Businesses",
+    title: "Manage listings",
     description: "View and edit directory listings.",
     requires: "admin",
   },

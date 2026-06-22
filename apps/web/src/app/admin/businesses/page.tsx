@@ -48,7 +48,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Businesses"
+        title="Manage listings"
         subtitle="View and edit directory listings."
         actions={
           <>

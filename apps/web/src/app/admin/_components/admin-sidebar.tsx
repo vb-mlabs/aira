@@ -49,7 +49,7 @@ type NavRow = {
 const ADMIN_NAV: NavRow[] = [
   // Operate
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, requires: "admin" },
-  { href: "/admin/businesses", label: "Businesses", icon: Store, requires: "admin" },
+  { href: "/admin/businesses", label: "Manage listings", icon: Store, requires: "admin" },
   { href: "/admin/renewals", label: "Renewals", icon: PhoneCall, requires: "admin" },
   { href: "/admin/community", label: "Community", icon: MessageSquare, requires: "admin" },
   { href: "/admin/users", label: "Users", icon: Users, requires: "admin" },
