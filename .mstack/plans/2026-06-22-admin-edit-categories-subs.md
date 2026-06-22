@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-22
 **Slug:** 2026-06-22-admin-edit-categories-subs
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
