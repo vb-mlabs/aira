@@ -85,6 +85,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "AIRA needs access to your photos to set your profile picture.",
       },
     ],
+    // expo-notifications config plugin — wires the iOS push entitlement
+    // + the Android FCM receiver at build time. Adding this is a
+    // native-code change; production builds installed before this commit
+    // will NOT receive push even with OS permission granted. A new EAS
+    // production build is required for both platforms after T12 lands.
+    "expo-notifications",
   ],
   experiments: {
     typedRoutes: true,
