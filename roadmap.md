@@ -1,7 +1,7 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-23 (F21 push broadcasts shipped end-to-end — `user_device` + `notification_delivery` tables, `expo-server-sdk` orchestrator with 60s AbortController + partial-success counters, mobile pre-prompt + account-hub trigger, audience picker with live count in the admin modal. S5 closed. EAS production rebuild required to activate push on real devices.)
-**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22, S0 EAS init shipped 2026-06-23, F21 push broadcasts shipped 2026-06-23.
+**Last updated:** 2026-06-23 (F21 push broadcasts shipped end-to-end + Expo SDK 55 → 54 downgrade for Expo Go iteration compatibility. S5 closed. EAS production rebuild required to activate push on real devices AND ship the SDK 54 native runtime.)
+**Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22, S0 EAS init shipped 2026-06-23, F21 push broadcasts shipped 2026-06-23, Expo SDK 54 downgrade shipped 2026-06-23.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
@@ -548,6 +548,56 @@ Internal Testing builds won't receive push without the rebuild.
 Net commits: 18 implementation commits (T1–T17 + the precursor
 plan/review/EAS-init-code-artifacts bundle).
 
+### ✅ Post-S6 — Expo SDK 55 → 54 downgrade (2026-06-23)
+Plan + review under `.mstack/plans/2026-06-23-expo-sdk-54-downgrade.md`
+and the matching review. The S0 init pinned SDK 55; loading the dev
+server via Expo Go errored with "incompatible version" because the
+publicly-shipped Expo Go bundles SDK 54 right now. The scan-the-QR
+iteration loop is the team's preferred mode (locked as a feedback
+memory at
+`.claude/projects/-home-runner-workspace/memory/feedback_expo_sdk_for_iteration.md`),
+so the call was to downgrade rather than build a custom Dev Client.
+
+What changed:
+
+- `apps/mobile/package.json` — every Expo-curated peer rewritten by
+  `npx expo install --fix` against the SDK 54 base.
+  `expo@~54.0.0`, `expo-router@~6.0.24`,
+  `@expo/metro-runtime@~6.1.2`, `react@19.1.0`,
+  `react-native@0.81.5`, etc. The explicit `react-native-worklets`
+  pin was dropped; reanimated 4.1.7's peer range (0.5–0.8) is
+  satisfied by the existing 0.7.4 hoist so no re-pin needed.
+- `expo-notifications` resolution is now correctly version-aligned
+  with SDK 54 (`~0.32.x` is what SDK 54 ships per
+  `bundledNativeModules.json`). The F21 T12 mistake — manually
+  pinning `~0.32.13` when SDK 55 actually wanted `~55.0.22` — is
+  locked-in as a never-hand-pick rule in the runbook + decision
+  log.
+- Workspace types unification: `@base-ui/react` in web hard-pins
+  to `@types/react@^19.2`, conflicting with mobile's tightened
+  `~19.1.17`. Fixed via root `pnpm.overrides` forcing
+  `@types/react@~19.1.17` + `@types/react-dom@~19.1.11`
+  workspace-wide. Web's own pins were tightened to match.
+- `app.config.ts` left byte-identical — every SDK-sensitive field
+  (`runtimeVersion`, `plugins[]` shapes, `infoPlist`,
+  `intentFilters`, `extra.eas.projectId`) has stable syntax across
+  both majors.
+- Marketing `version` stayed `0.1.0` — no real-device users yet,
+  so the OTA-cohort split isn't worth a bump (locked Q1 in
+  pre-review consultation).
+- `whatwg-fetch` direct dep + `.npmrc` `node-linker=hoisted`
+  workarounds untouched — they're a pnpm-isolated-store quirk,
+  not a SDK-version quirk (locked Q2).
+
+**EAS rebuild required (same one F21 already needed).** The
+`apps/mobile/` native runtime is now SDK 54; existing TestFlight +
+Play Internal Testing builds are SDK 55-pinned and become orphaned
+once the next production build ships. No real-device user impact —
+no testers on the SDK 55 builds yet.
+
+Net commits: 5 implementation commits (T1, T2, T4–T6; T3 was a
+no-op verify) + the precursor plan/review bundle.
+
 ### ✅ Post-S6 — Listing Favorites (2026-06-22) — **net-new feature**
 Plan + review + report under `.mstack/plans/2026-06-22-listing-favorites.md`,
 `.mstack/reviews/...`, `.mstack/code/2026-06-22-listing-favorites/`.
@@ -941,5 +991,8 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-23** — F21 `notification_delivery.status` stays `text` with Zod validation at the service boundary, not a Postgres enum. *Why:* matches the codebase pattern — `notifications.type` is also text with the same Zod-at-boundary discipline. Postgres-level enum is a one-line migration if it ever matters; right now it'd be a deviation just for symmetry.
 - **2026-06-23** — F21 by_categories audience targets through the new `business_category` N:M join table, NOT the legacy `businesses.category` text column the review T4 sample SQL hinted at. *Why:* the admin modal's category picker draws from `listCategoriesTreeOp` which returns `categories.id` values. Joining through the legacy text column would require a name → id map admins don't have. Surfaced during T4 code-time; documented as a deliberate review deviation in the F21 implementation report.
 - **2026-06-23** — F21 receipt polling deferred to a small follow-up plan (NOT a TODO comment). *Why:* receipts upgrade `notification_delivery.status` from `pending` → `ok` ~15min after send and are the only way to confirm actual delivery. The follow-up needs a node-cron job + a service function + storage of the ~24h-valid ticket IDs; clean as a tiny self-contained plan rather than smeared into F21 v1. Q-E in the F21 review locked this.
+- **2026-06-23** — AIRA mobile pinned to Expo SDK 54 (was 55, S0-init pinned just hours earlier). *Why:* the publicly-shipped Expo Go on App Store + Play Store tracks one SDK at a time, and matching it gives the scan-the-QR iteration loop. User explicitly preferred this over building a custom Dev Client. Trade-off: AIRA misses any SDK 55-only feature (currently none affecting MVP scope). Re-evaluate when SDK 56 ships and Expo Go updates. Implementation: `expo install --fix` against `expo@~54.0.0` rewrote every Expo-curated peer; workspace types unified via root `pnpm.overrides`. See `.mstack/reviews/2026-06-23-expo-sdk-54-downgrade.md`.
+- **2026-06-23** — Never hand-pick a peer version under `apps/mobile/`. Always defer to `npx expo install --fix`. *Why:* F21 T12 manually picked `expo-notifications: ~0.32.13` for SDK 55 — Expo's resolver actually wanted `~55.0.22` (the version-aligned release where `expo-*` packages adopt the SDK major as their major). pnpm happily resolved the wrong line; F21 code happened to work but was never the version SDK 55 intended. Locked policy: the resolver picks; you don't.
+- **2026-06-23** — Workspace-wide `pnpm.overrides` for `@types/react@~19.1.17` + `@types/react-dom@~19.1.11`. *Why:* SDK 54's React types pin (`~19.1.17`) conflicts with `@base-ui/react`'s peer-dep on `@types/react@^19.2`. The override forces a single types version across every workspace package so tsc sees one Ref type per file. Web's React runtime is on 19.2.x — types being a minor version behind is fine because React's minor-version type additions don't surface in this app's code.
 - **2026-06-22** — `apiClient.post(path, body, init?)` and `.patch(path, body, init?)` take the request body as the SECOND POSITIONAL argument, NOT as `{ body }` inside an init object. Mis-copying the fetch `{ body }` shape sends `{"body":{...}}` as the literal request body and strict Zod schemas reject it with 400. `.delete(path, init?)` has no body arg. Caught the FavoriteButton ship within minutes via user report ("red dot, no favorites in My Favorites"); fix unwrapped the body to a positional arg. Lesson logged.
 - **2026-06-15** — PRD F23 (CSV exports for Listings / Categories / Memberships / Sponsorships / Posts) reframed and largely deferred. *Why:* of the five surfaces, only BusinessSubscriptions has real pre-launch demand — PRD F16 leans on its CSV as the manual workaround for not having SMS reminders. But the actual operator job (phone expiring members down a list) is served *better* by an in-UI queue than by a download: outcomes (called / voicemail / refused / paid / reschedule) get captured as audit rows instead of evaporating in a spreadsheet, the admin's place persists across sessions, and phone numbers stay canonical. New scope = **F23′ renewal follow-up queue**. The other four CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are reachable in-app for internal use, and external-sharing asks haven't materialised; building those CSVs speculatively for hypothetical client/accountant emails isn't a launch-week need. Reopen surface-by-surface when a real external-sharing request hits twice. Audit log CSV export is also deferred — Drizzle Studio is sufficient for incident response by the dev, and operator-facing audit consumption is on-screen filtering.
