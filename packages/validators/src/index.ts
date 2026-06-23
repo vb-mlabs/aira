@@ -23,3 +23,4 @@ export * from "./community";
 export * from "./subscription-followups";
 export * from "./audit-meta";
 export * from "./user-preferences";
+export * from "./devices";
