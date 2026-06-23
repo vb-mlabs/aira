@@ -42,6 +42,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     bundleIdentifier: "com.airabynisarga.app",
     associatedDomains: ["applinks:airabynisarga.com"],
+    // App Store export-compliance declaration. AIRA uses only the
+    // platform's standard cryptography (HTTPS, OS keychain) — no
+    // proprietary crypto. Setting this to false skips the App Store
+    // export-compliance prompt on every submission. Confirmed at the
+    // first EAS Build during S0 init (2026-06-23).
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     package: "com.airabynisarga.app",

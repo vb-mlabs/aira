@@ -1,0 +1,70 @@
+# Workspace-root .easignore for eas-cli's monorepo-mode clone.
+#
+# When eas-cli detects a monorepo (via pnpm-workspace.yaml here), it walks
+# UP from apps/mobile/ to the workspace root and clones from there — so a
+# project-scoped .easignore at apps/mobile/.easignore can't exclude paths
+# OUTSIDE that dir. This file covers the workspace-root paths Replit
+# clutters with sandbox state.
+#
+# Three failure modes this prevents (all hit during S0 init on Replit):
+#   1. EACCES rmdir on .cache/dotslash/.../React Native DevTools-linux-x64
+#      — dotslash unpacks binaries with 555 perms; cleanup fails.
+#   2. Unknown system error -122 (filesystem error) copying .local/share/
+#      pnpm/store/ — Replit puts the pnpm content-addressable store INSIDE
+#      the workspace, so eas-cli tries to copy gigabytes of cached packages
+#      into the shallow clone.
+#   3. Replit-specific config (.replit, replit.nix, .config/) leaking into
+#      mobile builds.
+
+# ── pnpm + npm state (the -122 culprit) ─────────────────────────────
+.local/
+.npm/
+.npmrc
+node_modules/
+**/node_modules/
+
+# ── Build caches ────────────────────────────────────────────────────
+.cache/
+.expo/
+.turbo/
+.next/
+.dotslash-cache/
+.maestro-cache/
+**/.cache/
+**/.expo/
+**/.turbo/
+**/.next/
+
+# ── Replit shell + config (the -122 + sandbox cruft) ────────────────
+.config/
+.sudo_motd
+.eas-tmp/
+.replit
+replit.nix
+.fork-config.json
+
+# ── Editor + tooling ────────────────────────────────────────────────
+.claude/
+.claude.json
+.agents/
+.lefthook/
+.mstack/
+.github/
+attached_assets/
+
+# ── App scopes we don't want in the mobile bundle ───────────────────
+# (KEEP packages/ — mobile imports @aira/api, @aira/config, @aira/validators
+#  as workspace:* — excluding packages/ would break the monorepo dependency
+#  resolution on EAS Build's cloud runner.)
+apps/web/
+docs/
+scripts/
+tooling/
+
+# ── OS noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Git state (eas-cli usually skips, but defensive) ────────────────
+.git/
+.gitignore
