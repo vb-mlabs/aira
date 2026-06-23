@@ -16,7 +16,8 @@ import "server-only"
 import { headers } from "next/headers"
 import { z } from "zod"
 import { ApiError } from "@aira/api"
-import { admin } from "@aira/services"
+import { admin, notifications } from "@aira/services"
+import { env } from "@/config/env"
 import {
   AdminUsersFiltersSchema,
   ListUsersOutputSchema,
@@ -153,14 +154,18 @@ export const sendAdminNotificationOp = defineOperation({
     }),
 })
 
-/** G1 — fan out one in-app notification to every linked, non-banned
- *  business owner. In-app only (no Postmark for broadcasts in this
- *  sprint). Empty recipient sets still leave an audit row. */
+/** G1 + F21 — fan out the broadcast: audit + in-app notifications
+ *  (bell icon — bulletproof, runs even if Expo is down) plus push
+ *  delivery via the Expo Push Service for the audience's registered
+ *  devices. Audience picker lives in the validator (defaults to
+ *  all_linked_owners). Empty recipient sets still leave an audit row. */
 export const sendBusinessOwnerBroadcastOp = defineOperation({
   name: "admin.businesses.broadcast",
   input: BusinessOwnerBroadcastInputSchema,
   output: BusinessOwnerBroadcastOutputSchema,
   permission: "admin",
   handler: (db, ctx, args) =>
-    admin.sendBusinessOwnerBroadcast(db, ctx, args),
+    notifications.sendPushBroadcast(db, ctx, args, {
+      expoAccessToken: env.EXPO_ACCESS_TOKEN,
+    }),
 })
