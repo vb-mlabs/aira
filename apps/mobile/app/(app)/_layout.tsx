@@ -4,6 +4,8 @@ import { Text, View } from "react-native";
 import { useMe } from "../../features/auth/hooks";
 import { useUnreadCount } from "../../features/notifications/hooks";
 import { useConversations } from "../../features/messages/hooks";
+import { NotificationsPrePrompt } from "../../components/NotificationsPrePrompt";
+import { hasSeenPushPrePrompt } from "../../lib/push";
 
 /**
  * Bottom tab bar — 4 tabs, icon + label always visible (Pass-4 design spec).
@@ -66,6 +68,24 @@ export default function AppLayout() {
   const me = useMe();
   const unread = useUnreadCount();
   const conversations = useConversations();
+  const [prePromptVisible, setPrePromptVisible] = React.useState(false);
+
+  // F21 pre-prompt gate. Checks both flags (registration done OR explicit
+  // dismiss); shows the modal on the first post-login render where neither
+  // is set. Subsequent sign-ins skip it. The manual "Enable notifications"
+  // row in the account hub re-triggers the flow without touching this
+  // layout.
+  React.useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (!me.data?.emailVerified) return;
+      const seen = await hasSeenPushPrePrompt();
+      if (!cancelled && !seen) setPrePromptVisible(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [me.data?.emailVerified]);
 
   if (me.isPending && !me.isFetched) return null;
   if (me.isError || !me.data?.emailVerified) {
@@ -75,6 +95,11 @@ export default function AppLayout() {
   const unreadConvos = (conversations.data ?? []).filter((c) => c.unread).length;
 
   return (
+    <>
+    <NotificationsPrePrompt
+      visible={prePromptVisible}
+      onClose={() => setPrePromptVisible(false)}
+    />
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -126,5 +151,6 @@ export default function AppLayout() {
         }}
       />
     </Tabs>
+    </>
   );
 }
