@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-23
 **Slug:** 2026-06-23-f21-push-broadcasts
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
