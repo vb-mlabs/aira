@@ -18,3 +18,6 @@ export type {
   MarkResult,
   CreateNotificationArgs,
 } from "./service"
+
+export { sendPushBroadcast } from "./push"
+export type { SendPushBroadcastOptions } from "./push"
