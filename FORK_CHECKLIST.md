@@ -42,7 +42,13 @@ at the bottom for the happy-path flow.
 ## F21 push broadcasts (shipped 2026-06-23)
 
 - [x] Generate an Expo access token at <https://expo.dev/settings/access-tokens> scoped to the org that owns the EAS project (e.g. `million-labs`). Set `EXPO_ACCESS_TOKEN` in Replit prod secrets. Without it the broadcast modal still writes audit + in-app notifications, but the push fan-out throws `Push delivery requires EXPO_ACCESS_TOKEN`. _(set in Replit prod env)_
-- [ ] After T12 added `expo-notifications` to `app.config.ts.plugins[]`, fire a new EAS production build for both platforms (`eas build --profile production --platform all`) and submit (`eas submit --profile production --platform all`). The plugin is a native-code change — TestFlight/Play builds installed before the rebuild won't receive push even with OS permission granted.
+- [ ] After T12 added `expo-notifications` to `app.config.ts.plugins[]`, fire a new EAS production build for both platforms (`eas build --profile production --platform all`) and submit (`eas submit --profile production --platform all`). The plugin is a native-code change — TestFlight/Play builds installed before the rebuild won't receive push even with OS permission granted. The rebuild also picks up the SDK 54 native runtime (see below).
+
+## Expo SDK pin (shipped 2026-06-23)
+
+AIRA mobile is pinned to **Expo SDK 54**, matching the publicly-shipped Expo Go on App Store + Play Store so the scan-the-QR iteration loop works without sideloading a Dev Client. Future forks should match the SDK Expo Go ships (currently 54; whatever it bundles when you read this) unless there's a specific feature need from a higher SDK. Background: feedback memory `.claude/projects/-home-runner-workspace/memory/feedback_expo_sdk_for_iteration.md` + decision log entries in `roadmap.md` + the runbook section "SDK pin policy" at `docs/operations/eas-build-runbook.md`.
+
+- Never hand-pick a peer version. `npx expo install --fix` is the only authoritative resolver — F21 T12's manual `expo-notifications: ~0.32.13` pin was wrong (SDK 55 actually wanted `~55.0.22`) and only got fixed during the SDK 54 downgrade.
 
 ## Verify the rename worked
 
