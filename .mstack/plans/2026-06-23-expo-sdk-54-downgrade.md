@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-23
 **Slug:** 2026-06-23-expo-sdk-54-downgrade
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
