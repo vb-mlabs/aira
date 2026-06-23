@@ -17,9 +17,12 @@
 #      mobile builds.
 
 # ── pnpm + npm state (the -122 culprit) ─────────────────────────────
+# (KEEP .npmrc — it sets node-linker=hoisted + shamefully-hoist=true which
+#  Metro requires to find deep deps like whatwg-fetch from @expo/metro-runtime.
+#  Without it, Android bundling fails with "Unable to resolve module" during
+#  Prebuild on EAS's cloud runner. Caught at first production build.)
 .local/
 .npm/
-.npmrc
 node_modules/
 **/node_modules/
 
