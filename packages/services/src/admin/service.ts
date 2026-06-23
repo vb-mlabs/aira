@@ -22,12 +22,14 @@ import {
   user as userTable,
   session as sessionTable,
   businesses,
+  businessCategories,
   notifications as notificationsTable,
 } from "@aira/db/schema"
 import { createAudit } from "@aira/db/audit"
 import type { Database } from "@aira/db/client"
 import { ApiError } from "@aira/api"
 import type { CallerContext } from "@aira/api/context"
+import type { BroadcastTarget } from "@aira/validators"
 import { createNotification } from "../notifications"
 
 export type AdminResult = {
@@ -276,19 +278,97 @@ export async function sendAdminNotification(
 
 // ─── G1: Business-owner fan-out broadcast ─────────────────────────────────
 //
-// Targets every active business with a linked, non-banned owner. Distinct
-// on user.id so a user who owns two businesses receives one notification.
+// Targets distinct linked non-banned owners of active businesses. F21
+// added the audience picker on top of this — resolveTargetUserIds is the
+// shared SELECT every audience branch routes through; the by_city /
+// by_categories / by_businesses branches just add WHERE clauses to the
+// all_linked_owners base query.
+//
+// `business_category` is the source of truth for category targeting (the
+// new normalized N:M from the admin Edit Categories work). The legacy
+// `businesses.category` text column is intentionally not used here — the
+// broadcast modal's category picker draws from listCategoriesTreeOp which
+// returns categories.id values.
+//
 // Empty recipient sets STILL leave an audit row (recipient_count: 0) —
 // auditability beats noise per the locked review decision.
+
+export async function resolveTargetUserIds(
+  db: Database,
+  target: BroadcastTarget,
+): Promise<string[]> {
+  const activeOwner = and(
+    isNull(businesses.deleted_at),
+    isNull(userTable.banned_at),
+  )
+
+  switch (target.kind) {
+    case "all_linked_owners": {
+      const rows = await db
+        .selectDistinct({ id: userTable.id })
+        .from(businesses)
+        .innerJoin(userTable, eq(userTable.id, businesses.owner_user_id))
+        .where(activeOwner)
+      return rows.map((r) => r.id)
+    }
+    case "by_city": {
+      const rows = await db
+        .selectDistinct({ id: userTable.id })
+        .from(businesses)
+        .innerJoin(userTable, eq(userTable.id, businesses.owner_user_id))
+        .where(and(activeOwner, eq(businesses.city_id, target.city_id)))
+      return rows.map((r) => r.id)
+    }
+    case "by_categories": {
+      const rows = await db
+        .selectDistinct({ id: userTable.id })
+        .from(businesses)
+        .innerJoin(userTable, eq(userTable.id, businesses.owner_user_id))
+        .innerJoin(
+          businessCategories,
+          eq(businessCategories.business_id, businesses.id),
+        )
+        .where(
+          and(
+            activeOwner,
+            inArray(businessCategories.category_id, target.category_ids),
+          ),
+        )
+      return rows.map((r) => r.id)
+    }
+    case "by_businesses": {
+      const rows = await db
+        .selectDistinct({ id: userTable.id })
+        .from(businesses)
+        .innerJoin(userTable, eq(userTable.id, businesses.owner_user_id))
+        .where(
+          and(activeOwner, inArray(businesses.id, target.business_ids)),
+        )
+      return rows.map((r) => r.id)
+    }
+  }
+}
 
 export interface BusinessOwnerBroadcastArgs {
   title: string
   message: string
+  target: BroadcastTarget
 }
 
 export interface BusinessOwnerBroadcastResult {
   ok: true
   recipient_count: number
+  /** F21 — devices_* placeholders zeroed by the in-app-only fan-out path.
+   *  sendPushBroadcast (task 6) wraps this and populates the real counters
+   *  after the Expo Push Service round-trip. */
+  devices_attempted: number
+  devices_completed: number
+  devices_pending: number
+  /** F21 — user_id → notification_id map for the rows inserted by this
+   *  broadcast. sendPushBroadcast joins this against the device list to
+   *  emit one notification_delivery row per (user, device). Empty on
+   *  zero-recipient broadcasts. */
+  notifications: Array<{ user_id: string; notification_id: string }>
 }
 
 export async function sendBusinessOwnerBroadcast(
@@ -296,23 +376,9 @@ export async function sendBusinessOwnerBroadcast(
   ctx: CallerContext,
   args: BusinessOwnerBroadcastArgs,
 ): Promise<BusinessOwnerBroadcastResult> {
-  const { title, message } = args
+  const { title, message, target } = args
 
-  // Targeting: distinct user.id from active businesses with a linked,
-  // non-banned owner. Pulling user.id off the JOIN gives us a free
-  // banned-status filter via the WHERE clause.
-  const rows = await db
-    .selectDistinct({ id: userTable.id })
-    .from(businesses)
-    .innerJoin(userTable, eq(userTable.id, businesses.owner_user_id))
-    .where(
-      and(
-        isNull(businesses.deleted_at),
-        isNull(userTable.banned_at),
-      ),
-    )
-
-  const recipientIds = rows.map((r) => r.id)
+  const recipientIds = await resolveTargetUserIds(db, target)
   const recipient_count = recipientIds.length
 
   // Audit BEFORE the fan-out — same convention as every other admin
@@ -336,23 +402,44 @@ export async function sendBusinessOwnerBroadcast(
   })
 
   if (recipient_count === 0) {
-    return { ok: true, recipient_count: 0 }
+    return {
+      ok: true,
+      recipient_count: 0,
+      devices_attempted: 0,
+      devices_completed: 0,
+      devices_pending: 0,
+      notifications: [],
+    }
   }
 
   // Bulk-insert in one statement; createNotification is 1:1 and would
-  // round-trip N times here. Mirrors the body shape from
-  // packages/db/src/types.ts NotificationBody business_broadcast variant.
-  await db.insert(notificationsTable).values(
-    recipientIds.map((userId) => ({
-      user_id: userId,
-      type: "business_broadcast",
-      body: {
-        kind: "business_broadcast" as const,
-        title,
-        message,
-      },
-    })),
-  )
+  // round-trip N times here. .returning gives sendPushBroadcast the
+  // per-user notification ids it needs for the delivery log without a
+  // second SELECT.
+  const inserted = await db
+    .insert(notificationsTable)
+    .values(
+      recipientIds.map((userId) => ({
+        user_id: userId,
+        type: "business_broadcast",
+        body: {
+          kind: "business_broadcast" as const,
+          title,
+          message,
+        },
+      })),
+    )
+    .returning({
+      notification_id: notificationsTable.id,
+      user_id: notificationsTable.user_id,
+    })
 
-  return { ok: true, recipient_count }
+  return {
+    ok: true,
+    recipient_count,
+    devices_attempted: 0,
+    devices_completed: 0,
+    devices_pending: 0,
+    notifications: inserted,
+  }
 }

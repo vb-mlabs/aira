@@ -9,6 +9,7 @@ export {
   preparePasswordReset,
   sendAdminNotification,
   sendBusinessOwnerBroadcast,
+  resolveTargetUserIds,
 } from "./service"
 
 export type {
