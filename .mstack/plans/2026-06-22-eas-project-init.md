@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-22
 **Slug:** 2026-06-22-eas-project-init
-**Status:** reviewed
+**Status:** implemented (T14 deferred)
 **Author:** framer@millionlabs.co.uk
 
 ---
