@@ -39,6 +39,11 @@ at the bottom for the happy-path flow.
 - [x] `pnpm db:migrate` against the new Neon database. _(migrations 0001–0013 applied)_
 - [x] First-boot smoke: `pnpm dev`, sign up, verify email lands.
 
+## F21 push broadcasts (shipped 2026-06-23)
+
+- [ ] Generate an Expo access token at <https://expo.dev/settings/access-tokens> scoped to the org that owns the EAS project (e.g. `million-labs`). Set `EXPO_ACCESS_TOKEN` in Replit prod secrets. Without it the broadcast modal still writes audit + in-app notifications, but the push fan-out throws `Push delivery requires EXPO_ACCESS_TOKEN`.
+- [ ] After T12 added `expo-notifications` to `app.config.ts.plugins[]`, fire a new EAS production build for both platforms (`eas build --profile production --platform all`) and submit (`eas submit --profile production --platform all`). The plugin is a native-code change — TestFlight/Play builds installed before the rebuild won't receive push even with OS permission granted.
+
 ## Verify the rename worked
 
 ```

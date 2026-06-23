@@ -1,6 +1,6 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-23 (S0 EAS init shipped — first iOS IPA in TestFlight + first Android AAB in Play Internal Testing under "AIRA by Nisarga"; Team ID substituted into `.well-known`; F21 push broadcasts unblocked.)
+**Last updated:** 2026-06-23 (F21 push broadcasts shipped end-to-end — `user_device` + `notification_delivery` tables, `expo-server-sdk` orchestrator with 60s AbortController + partial-success counters, mobile pre-prompt + account-hub trigger, audience picker with live count in the admin modal. S5 closed. EAS production rebuild required to activate push on real devices.)
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
@@ -8,23 +8,24 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 ## What's pending (as of 2026-06-23)
 
-**Sprint 5 — F21 push broadcasts now fully unblocked.** EAS came online + Apple Push Key (.p8) registered during the S0 init flow + G1's owner targeting model already shipped → F21 is the next code-only feature. No external blocker remaining; it ships when a contributor picks it up.
+**Sprint 5 — ✅ Done (2026-06-23).** F14 + F17 + F20 + F20 v2 + F21 all shipped. S5 closed.
 
-**Sprint 0 — most items shipped 2026-06-23:**
+**Sprint 0 — most items shipped 2026-06-23; two follow-ups outstanding:**
 - ⬜ Register `airabynisarga.com` domain (still pending — needed for live `.well-known` verification + production deploy URL)
 - ✅ EAS project init + Apple/Google bundle ID registration
 - ✅ Apple Team ID → filled into `.well-known/apple-app-site-association` (`C529274M9Y`)
 - 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json` (deferred until Play Console App Signing fingerprint is captured)
+- 🟦 EAS production rebuild for both platforms (after F21's `expo-notifications` config-plugin add). Required before push works on real devices; `eas build --profile production --platform all` + `eas submit --profile production --platform all`. Runbook: `docs/operations/eas-build-runbook.md`.
 
 **Sprint 6 — ✅ Done:** F22, F23′, feature image, `requireAdminJSON` cleanup, mobile fonts, super_admin narrowing all shipped. F25 deep links moved to S7 (S0-gated).
 
-**Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions.
+**Sprint 7 — not started:** Playwright E2E pass, perf tuning, physical-device push + deep-link testing, store metadata, App Store + Play Store submissions. F21 receipt-polling follow-up plan (Q-E from review) also fits here.
 
 **Post-S6 polish + ancillary scope shipped 2026-06-16 → 2026-06-22 (all off-roadmap, none blocking):** G1 business-owner reachability (owner FK + assign/unassign + admin column + broadcast + /account/listings), community v2 (author edit/delete + comments + /account/posts), "Post on AIRA" rebrand (sidebar + board copy + community page) including phone/email contact fields on posts, category drift fix (DB-driven everywhere, VALID_CATEGORIES const deleted), admin businesses renewal urgency caption + overdue row stripe, QA test accounts seed script, admin Edit Categories now shows level-2 subcategories, admin **Listing Contact Person** field (nullable text on businesses with split BusinessAdminSchema, audited diff), listing **Favorites** (new `business_favorite` table + 4 ops + heart on cards/detail/account page).
 
 **Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI. All blocked or premature for MVP.
 
-The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** Next critical path: F21 push broadcast implementation (now purely code work) → S7 store submissions.
+The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** F21 push broadcasts is code-complete; an EAS production rebuild + submit gets the `expo-notifications` config plugin onto real devices and closes the loop for end-to-end push. Next critical path: domain registration + S7 store submissions.
 
 ---
 
@@ -460,6 +461,93 @@ The work surfaced a meaningful learning catalogue: 8 entries added to
 interactions. Net commits on this S0 ship: 12 implementation commits
 plus the plan/review/report docs.
 
+### ✅ S5 — F21 push broadcasts (2026-06-23) — **closes Sprint 5**
+Plan + review at `.mstack/plans/2026-06-23-f21-push-broadcasts.md` /
+`.mstack/reviews/...` / `.mstack/code/2026-06-23-f21-push-broadcasts/`.
+The last open S5 feature. Layered Expo Push delivery on top of the
+existing G1 in-app fan-out so the audit + bell-icon path stays
+bulletproof even when the Expo Push Service is unreachable.
+
+- **Schema (migration 0033)**: `user_device` (one row per registered
+  Expo Push Token per user, unique on `(user_id, expo_push_token)`)
+  + `notification_delivery` (per-device push attempt log;
+  `status: text` with Zod-validated values, ticket_id for ok rows,
+  error_code for rejected rows). Cascade on every FK so user
+  anonymization sweeps both tables clean.
+- **Service layer**: `resolveTargetUserIds` extracted from the
+  existing `sendBusinessOwnerBroadcast` so all four audience
+  branches (all_linked_owners, by_city, by_categories, by_businesses)
+  share one active-only SELECT. New `sendPushBroadcast` orchestrator
+  composes audit + in-app + push: chunks via `expo-server-sdk`'s
+  `chunkPushNotifications` (≤100 per request), sends under a 60s
+  `AbortController` with partial-success counting, inserts one
+  `notification_delivery` row per ticket, and deletes
+  DeviceNotRegistered devices OUTSIDE the broadcast transaction
+  (best-effort, idempotent — F21 review decision 9).
+- **API surface**: POST + DELETE
+  `/api/v1/profile/push-token` for mobile registration (kept under
+  the existing `/profile/*` namespace, not a sibling `/me/*` —
+  review decision 1). The broadcast op
+  (`/api/v1/admin/businesses/broadcast`) now routes through
+  `sendPushBroadcast` + accepts the new `target` field; default
+  stays `{ kind: "all_linked_owners" }` so the existing one-click
+  flow is binary-compatible. New
+  `previewBroadcastRecipientCountOp` backs the live audience
+  count in the admin modal.
+- **Env**: `EXPO_ACCESS_TOKEN` declared optional in
+  `apps/web/src/config/env.ts`; the app boots without it, push
+  fan-out throws a clear error at send-time when devices exist
+  but no token is set.
+- **Admin UI**: broadcast modal extended with the four-radio
+  audience picker (city dropdown / category checkbox list /
+  business checkbox list reveal on demand), 400ms-debounced
+  live count below the picker driven by the new preview op,
+  Send disabled when count is 0, sent step shows
+  `devices_completed / devices_attempted` plus an "in flight"
+  callout when 60s cap fired with pending tickets.
+- **Mobile**: `expo-notifications` added (`~0.32.13`) + registered as
+  config plugin in `app.config.ts`. `lib/push.ts`'s
+  `requestPermissionAndRegister` covers the full
+  permission-check → token-fetch → POST flow. Pre-prompt modal
+  ("Stay in the loop") fires once after first sign-in via a
+  layout gate on `push.registrationCompleted` +
+  `push.prePromptDismissed` secure-store flags. Account-hub now
+  has an always-visible "Enable notifications" row that
+  re-triggers the same flow for the OS-blocked / change-of-mind
+  paths.
+- **Locked decisions (10)**: route under `/profile/*`; 60s
+  AbortController cap with partial-success reporting;
+  `expo-server-sdk` in `packages/services`; active-only audience
+  filter; push `data` carries full NotificationBody; receipt-polling
+  follow-up plan written as part of this report (not a code TODO);
+  no v1 preview-push button; no explicit re-prompt UI on mobile;
+  cleanup outside broadcast txn; `notification_delivery.status`
+  stays `text` with Zod validation.
+
+**Deviation from the review's literal SQL hint:** the `by_categories`
+branch joins through the `business_category` N:M table (from the
+recent admin Edit Categories work) rather than the legacy
+`businesses.category` text column the review T4 sample SQL
+suggested. The audience picker draws from `listCategoriesTreeOp`
+which returns `categories.id` values; the join through
+`business_category` is the only path that matches those IDs.
+
+**Operational follow-up (deferred to a small follow-up plan, NOT a
+TODO comment):** receipt polling at ~15-min intervals to upgrade
+`notification_delivery.status` from `pending` → `ok` once Expo
+confirms actual delivery. Decision locked in the F21 review under
+Q-E.
+
+**EAS rebuild required.** Adding `expo-notifications` to
+`app.config.ts.plugins[]` is a native-code change. After this commit,
+fire `eas build --profile production --platform all` followed by
+`eas submit --profile production --platform all` (`docs/operations/eas-build-runbook.md`)
+to get push working on real devices. Existing TestFlight + Play
+Internal Testing builds won't receive push without the rebuild.
+
+Net commits: 18 implementation commits (T1–T17 + the precursor
+plan/review/EAS-init-code-artifacts bundle).
+
 ### ✅ Post-S6 — Listing Favorites (2026-06-22) — **net-new feature**
 Plan + review + report under `.mstack/plans/2026-06-22-listing-favorites.md`,
 `.mstack/reviews/...`, `.mstack/code/2026-06-22-listing-favorites/`.
@@ -657,7 +745,7 @@ Six raw route handlers (gallery image upload POST, gallery image DELETE, subscri
 
 ## Sprint 5 — Renewals, Posts board, Broadcasts (2 weeks)
 
-**Status:** 🟦 In flight — F14 (purge cron), F17 (full configurable schedule), homepage sponsored sort, **F20 Community Requests Board** and **F20 v2 admin moderation hardening** all shipped. **F21 push broadcasts is the only S5 work left** — and it's gated on S0 EAS init.
+**Status:** ✅ Done (2026-06-23) — F14 (purge cron), F17 (full configurable schedule), homepage sponsored sort, **F20 Community Requests Board**, **F20 v2 admin moderation hardening**, and **F21 push broadcasts** all shipped. S5 closed.
 
 **Goal:** Renewal reminder emails go out on the configurable schedule. Community Requests Board live with submission + moderation queue + auto-expiry. Admin broadcasts a push notification to a segment of business users and it lands on real devices.
 
@@ -665,13 +753,14 @@ Six raw route handlers (gallery image upload POST, gallery image DELETE, subscri
 - ✅ F17 (amended) — Renewal reminder automation, **email-only** via Postmark. Configurable schedule (`AppSetting.reminder_schedule`) shipped — cron loops the windows, sends one labelled email per non-empty window, admin edits at `/admin/settings/renewal-schedule`. Per-business-owner emails moved to Phase 2 (blocked on owner identity).
 - ✅ F20 — Community Requests Board (submission → admin moderation → approved board with search/pagination, "I can help" private intent signal, in-app notification to author, hourly expiry cron) — shipped 2026-06-14, QA 11/11
 - ✅ F20 v2 — admin moderation hardening (all-status filter + counts, edit/delete with snapshot audit, admin-only respondent visibility, table UI + popup-modal row click) — shipped 2026-06-14, QA 10/10
-- ⬜ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Log to `Notification` + `NotificationDelivery`. **Gated on S0 EAS init.**
+- ✅ F21 — Notifications broadcast to business users (audience: city / categories / specific businesses; channel: Expo Push). Logs to `notifications` (in-app) + `notification_delivery` (per-device push attempts) — shipped 2026-06-23.
 - ✅ F14 — Lifecycle: `purge_soft_deleted` cron (180 days default) — shipped in S5 mini-sprint
 
-**Schema additions:** ✅ `community_post`, `post_interest` (migration `0021`) shipped with F20. `notification`, `notification_delivery` still pending for F21 broadcast delivery tracking. Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
+**Schema additions:** ✅ `community_post`, `post_interest` (migration `0021`) shipped with F20. ✅ `user_device`, `notification_delivery` (migration `0033`) shipped with F21. Note: `sponsorship_tier.max_slots` (migration `0019`) shipped in S5 mini-sprint.
 
 **Libs to add:**
-- `expo-server-sdk` (push delivery from the Next.js server) — F21
+- ✅ `expo-server-sdk` (push delivery from the Next.js server) — F21, lives in `packages/services`
+- ✅ `expo-notifications` (mobile token + permission) — F21, registered as config plugin in `apps/mobile/app.config.ts`
 - Postmark template additions for the configurable reminder windows — F17 remainder
 
 **Cron jobs added:**
@@ -843,5 +932,14 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-23** — `sharp@0.34.5` moved from `dependencies` to `optionalDependencies` on `apps/web/package.json`. *Why:* EAS's iOS cloud runner (macOS arm64) couldn't install sharp during the workspace-root `pnpm install --frozen-lockfile` — prebuilt binary failed to download and the node-gyp source-build fallback also failed, aborting the install. Sharp only matters for the web's server-side image pipelines (avatar, feature image, evidence); mobile doesn't import it. `optionalDependencies` makes pnpm log a warning + continue when the cloud install fails on a platform where sharp's prebuilts don't land — Replit + web prod both install it cleanly. Trade-off: if sharp ever fails on Replit or web prod, the failure becomes a silent warning instead of a loud error. Web has end-to-end tests for image upload that would catch this.
 - **2026-06-23** — `apps/mobile/package.json` carries a direct dep on `whatwg-fetch`. *Why:* `@expo/metro-runtime` (a transitive dep of `expo-router`) imports `whatwg-fetch` at the source level, but pnpm's strict isolated-store layout hides it from Metro's resolver (Metro only checks `node_modules` and `../../node_modules`, not the deep `.pnpm/...` paths). Even with `node-linker=hoisted` + `shamefully-hoist=true` in `.npmrc`, EAS's cloud install didn't reliably hoist whatwg-fetch to where Metro looks. Explicit direct dep forces pnpm's hand. Same pattern is likely to recur with other peer-deps-via-pnpm-hoisting; first occurrence locked here.
 - **2026-06-23** — Apple Push Key (.p8 for APNs) set up during EAS init flow rather than deferred to F21. *Why:* the credential setup is a one-shot portal trip; bundling it now means F21 push broadcasts (server-side fan-out via `expo-server-sdk`, mobile-side Expo Push Token registration) becomes purely code work with no waiting on Apple. Per-team key, reusable across apps, doesn't expire — zero ongoing maintenance cost.
+- **2026-06-23** — F21 push broadcasts: route lives at `/api/v1/profile/push-token`, NOT a new `/api/v1/me/*` namespace. *Why:* the existing `/profile/*` surface already holds current-user resource mutations (password, email, preferences). Sibling namespaces for the same conceptual scope are a cognitive split with no upside. Mirrors `/profile/password` + `/profile/email`.
+- **2026-06-23** — F21 sync fan-out cap at 60 seconds via `AbortController`, with partial-success counters in the response shape and admin UI. *Why:* no cap = up to ~120s tail latency on Expo Push Service outages, leaving admins watching a spinner. 30s loses partial visibility. 60s covers ~95% of Expo's documented tail; tickets still in flight at the cap surface as `devices_pending` so the admin sees what's incomplete and the receipt-polling follow-up can reconcile.
+- **2026-06-23** — `expo-server-sdk` lives in `packages/services/package.json`, not `apps/web/package.json`. *Why:* matches how Postmark + Stripe primitives are scoped to the service layer; future cron-triggered server-side push uses (renewal-reminder escalation to push, e.g.) inherit access without a second dep.
+- **2026-06-23** — F21 audience targeting filters active-only businesses (`isNull(businesses.deleted_at)`) across all four audience branches. *Why:* the existing G1 query already excluded archived businesses, and there's no operator scenario where pushing to the owner of an archived listing makes sense. Inherited at the `resolveTargetUserIds` helper level so every branch gets the filter for free.
+- **2026-06-23** — F21 push payload `data` carries the full `NotificationBody.business_broadcast` object, not just the discriminator. *Why:* well within Expo's 4KB limit and gives F25 deep-link wiring a clean route — the mobile app's onPress handler reads the same body shape as the in-app bell notification.
+- **2026-06-23** — F21 `DeviceNotRegistered` cleanup runs OUTSIDE the broadcast transaction. *Why:* the broadcast spans the in-app fan-out (DB tx) AND the Expo Push HTTP call (no tx). Rolling back the broadcast on a Push Service error would be wrong — the audit + bell-icon work is the source of truth. Cleanup is best-effort, idempotent; a failed delete leaves the row for the next fan-out to retry-then-delete. Harmless.
+- **2026-06-23** — F21 `notification_delivery.status` stays `text` with Zod validation at the service boundary, not a Postgres enum. *Why:* matches the codebase pattern — `notifications.type` is also text with the same Zod-at-boundary discipline. Postgres-level enum is a one-line migration if it ever matters; right now it'd be a deviation just for symmetry.
+- **2026-06-23** — F21 by_categories audience targets through the new `business_category` N:M join table, NOT the legacy `businesses.category` text column the review T4 sample SQL hinted at. *Why:* the admin modal's category picker draws from `listCategoriesTreeOp` which returns `categories.id` values. Joining through the legacy text column would require a name → id map admins don't have. Surfaced during T4 code-time; documented as a deliberate review deviation in the F21 implementation report.
+- **2026-06-23** — F21 receipt polling deferred to a small follow-up plan (NOT a TODO comment). *Why:* receipts upgrade `notification_delivery.status` from `pending` → `ok` ~15min after send and are the only way to confirm actual delivery. The follow-up needs a node-cron job + a service function + storage of the ~24h-valid ticket IDs; clean as a tiny self-contained plan rather than smeared into F21 v1. Q-E in the F21 review locked this.
 - **2026-06-22** — `apiClient.post(path, body, init?)` and `.patch(path, body, init?)` take the request body as the SECOND POSITIONAL argument, NOT as `{ body }` inside an init object. Mis-copying the fetch `{ body }` shape sends `{"body":{...}}` as the literal request body and strict Zod schemas reject it with 400. `.delete(path, init?)` has no body arg. Caught the FavoriteButton ship within minutes via user report ("red dot, no favorites in My Favorites"); fix unwrapped the body to a positional arg. Lesson logged.
 - **2026-06-15** — PRD F23 (CSV exports for Listings / Categories / Memberships / Sponsorships / Posts) reframed and largely deferred. *Why:* of the five surfaces, only BusinessSubscriptions has real pre-launch demand — PRD F16 leans on its CSV as the manual workaround for not having SMS reminders. But the actual operator job (phone expiring members down a list) is served *better* by an in-UI queue than by a download: outcomes (called / voicemail / refused / paid / reschedule) get captured as audit rows instead of evaporating in a spreadsheet, the admin's place persists across sessions, and phone numbers stay canonical. New scope = **F23′ renewal follow-up queue**. The other four CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are reachable in-app for internal use, and external-sharing asks haven't materialised; building those CSVs speculatively for hypothetical client/accountant emails isn't a launch-week need. Reopen surface-by-surface when a real external-sharing request hits twice. Audit log CSV export is also deferred — Drizzle Studio is sufficient for incident response by the dev, and operator-facing audit consumption is on-screen filtering.
