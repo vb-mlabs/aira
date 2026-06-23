@@ -56,10 +56,14 @@ attached_assets/
 # (KEEP packages/ — mobile imports @aira/api, @aira/config, @aira/validators
 #  as workspace:* — excluding packages/ would break the monorepo dependency
 #  resolution on EAS Build's cloud runner.)
+# (KEEP tooling/ — packages/api, packages/config, packages/validators all
+#  declare @aira/tsconfig as a workspace:* devDep; excluding tooling/ breaks
+#  `pnpm install` on the cloud runner with an unresolved workspace dep,
+#  surfacing as the iOS "Install dependencies" + Android "Prebuild"
+#  failures from the first production run.)
 apps/web/
 docs/
 scripts/
-tooling/
 
 # ── OS noise ────────────────────────────────────────────────────────
 .DS_Store
