@@ -28,13 +28,13 @@ at the bottom for the happy-path flow.
   - [x] `ios.bundleIdentifier`: `com.airabynisarga.app`.
   - [x] `android.package`: `com.airabynisarga.app`.
   - [x] `ios.associatedDomains`: `applinks:airabynisarga.com`.
-- [ ] Edit `apps/web/public/.well-known/apple-app-site-association`:
-  - [ ] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID. **(waiting on Apple Developer registration)**
+- [x] Edit `apps/web/public/.well-known/apple-app-site-association`:
+  - [x] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID. _(C529274M9Y — Nisarga Group LLC, filled 2026-06-23)_
   - [x] iOS bundle ID filled: `com.airabynisarga.app`.
 - [ ] Edit `apps/web/public/.well-known/assetlinks.json`:
   - [x] Android package filled: `com.airabynisarga.app`.
-  - [ ] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. **(waiting on Play Console signing setup)**
-- [ ] `eas init` to bind this fork to a new EAS project.
+  - [ ] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. **(deferred — Play Console App Signing fingerprint to be pasted after Internal Testing release lands)**
+- [x] `eas init` to bind this fork to a new EAS project. _(million-labs org, project `aira-mobile`, projectId `21065081-2afd-43d4-aef7-7ce10de55a8b`, 2026-06-23)_
 - [x] Set GitHub repo secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL`. _(set in Replit prod env)_
 - [x] `pnpm db:migrate` against the new Neon database. _(migrations 0001–0013 applied)_
 - [x] First-boot smoke: `pnpm dev`, sign up, verify email lands.
@@ -62,5 +62,5 @@ Both should come back clean (the grep should print nothing).
 - [ ] Update `README.md` brand, badges, screenshots.
 - [ ] Audit `apps/web/src/app/(auth)/` + onboarding copy beyond the auto-renamed display name.
 - [ ] Configure Sentry / observability for `aira`.
-- [ ] Set production EAS channel + `runtimeVersion` policy (the SDK 55 native build differs from earlier SDKs — see `apps/mobile/eas.json`).
-- [ ] Replace placeholder assets at `apps/mobile/assets/{icon,splash,splash-dark}.png`.
+- [x] Set production EAS channel + `runtimeVersion` policy (the SDK 55 native build differs from earlier SDKs — see `apps/mobile/eas.json`). _(production profile + `runtimeVersion: { policy: "appVersion" }` shipped 2026-06-23 via the EAS init plan.)_
+- [ ] Replace placeholder assets at `apps/mobile/assets/{icon,splash,splash-dark}.png`. _(deferred to S7 store-submission alongside screenshots + listing metadata.)_
