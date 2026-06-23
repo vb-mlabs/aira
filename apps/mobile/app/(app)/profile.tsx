@@ -8,6 +8,7 @@ import { useToast } from "../../components/ui/Toast";
 import { useMe, useSignOut } from "../../features/auth/hooks";
 import { usePickAndUploadAvatar } from "../../features/avatar/hooks";
 import { useDeleteAccount } from "../../features/profile/hooks";
+import { requestPermissionAndRegister } from "../../lib/push";
 
 /**
  * Profile screen — iOS Settings pattern. Grouped rows with hairline dividers
@@ -140,6 +141,30 @@ export default function ProfileScreen() {
             value={me.data?.email}
             onPress={() => {
               /* email change requires verify flow — v2 */
+            }}
+          />
+        </View>
+
+        <SectionHeader>Notifications</SectionHeader>
+        <View className="overflow-hidden">
+          <Row
+            label="Enable notifications"
+            accessibilityHint="Opens the system prompt and registers this device for push"
+            onPress={async () => {
+              const result = await requestPermissionAndRegister();
+              if (result.granted) {
+                toast.show({
+                  message: "Notifications enabled",
+                  kind: "success",
+                });
+              } else {
+                toast.show({
+                  message:
+                    result.error ??
+                    "Enable in Settings → AIRA → Notifications",
+                  kind: "error",
+                });
+              }
             }}
           />
         </View>
