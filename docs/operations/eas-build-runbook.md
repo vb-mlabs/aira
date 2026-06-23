@@ -1,9 +1,11 @@
 # EAS build runbook
 
 Operational reference for producing iOS + Android builds via EAS Build
-against the **`million-labs`** Expo org. Drafted speculatively against
-Expo SDK 55 / EAS CLI ≥ 12.0 at the time of S0 init; revise after the
-first end-to-end run.
+against the **`million-labs`** Expo org. Originally drafted against
+Expo SDK 55 at the time of S0 init (2026-06-23); flipped to
+**Expo SDK 54** later that same day per the SDK downgrade plan at
+`.mstack/plans/2026-06-23-expo-sdk-54-downgrade.md`. EAS CLI ≥ 12.0
+either way.
 
 > **Companion docs:**
 > - [eas-keystore-backup.md](./eas-keystore-backup.md) — one-shot
@@ -347,6 +349,41 @@ First builds (TestFlight Internal + Play Internal Testing) ship with
 — these came with the template. Real AIRA art swap is part of S7
 (see the roadmap S7 section). Internal testers see placeholder art
 which is fine for this stage.
+
+## SDK pin policy
+
+AIRA's mobile is pinned to the SDK that the publicly-shipped Expo Go
+client bundles (currently **SDK 54**) so the scan-the-QR iteration
+loop works without sideloading a custom Dev Client. Background
+reasoning lives in the feedback memory
+`.claude/projects/-home-runner-workspace/memory/feedback_expo_sdk_for_iteration.md`.
+
+Rules:
+
+- **Never hand-pick a peer version.** Every `expo-*` / `react-native*`
+  / `react` / `react-dom` / `@expo/*` peer is resolved by
+  `npx expo install --fix` against the active `expo` major. Picking
+  one yourself is how F21 T12 ended up on the pre-version-alignment
+  `expo-notifications` line by mistake (see the 2026-06-23 decision
+  log).
+- **To upgrade**: edit `apps/mobile/package.json` to set the new
+  `expo` major (e.g. `~56.0.0`), run `pnpm install --filter
+  @aira/mobile`, run `pnpm --filter @aira/mobile exec expo install
+  --fix`, then `pnpm install` to sync the workspace lockfile. The
+  resolver does the rest.
+- **To downgrade**: same flow in reverse. Re-evaluate the
+  `pnpm.overrides` block at the workspace root (`@types/react` +
+  `@types/react-dom`) — the SDK-aligned React types version probably
+  changed.
+- **Marketing `version` bumps** are independent of SDK changes.
+  Only bump `version` (in `app.config.ts`) when you want to fork
+  the OTA cohort (real-device users on the old build won't pull
+  the new bundle).
+
+TODO (deferred from the 2026-06-23 review): a dedicated
+"SDK pin management" companion doc walking the upgrade flow
+end-to-end for the next fork. The bullets above are the minimum
+viable version.
 
 ## When to ask Expo support
 
