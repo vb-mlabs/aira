@@ -1,20 +1,20 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-22 (G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix + contact-person + edit-categories subs + favorites all shipped post-S6)
+**Last updated:** 2026-06-23 (S0 EAS init shipped — first iOS IPA in TestFlight + first Android AAB in Play Internal Testing under "AIRA by Nisarga"; Team ID substituted into `.well-known`; F21 push broadcasts unblocked.)
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
 
-## What's pending (as of 2026-06-22)
+## What's pending (as of 2026-06-23)
 
-**Sprint 5 — engineering-ready scope is closed.** Only outstanding: F21 push broadcasts (gated on S0 EAS init). The business-owner identity blocker that previously also gated F21's audience targeting is now resolved — G1 shipped `businesses.owner_user_id` + assignment/broadcast plumbing 2026-06-16, so F21 inherits a real owner targeting model the moment EAS comes online.
+**Sprint 5 — F21 push broadcasts now fully unblocked.** EAS came online + Apple Push Key (.p8) registered during the S0 init flow + G1's owner targeting model already shipped → F21 is the next code-only feature. No external blocker remaining; it ships when a contributor picks it up.
 
-**Sprint 0 — external work in motion:**
-- ⬜ Register `airabynisarga.com` domain
-- ⬜ EAS project init + Apple/Google bundle ID registration
-- 🟦 Apple Team ID → fill into `.well-known/apple-app-site-association`
-- 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json`
+**Sprint 0 — most items shipped 2026-06-23:**
+- ⬜ Register `airabynisarga.com` domain (still pending — needed for live `.well-known` verification + production deploy URL)
+- ✅ EAS project init + Apple/Google bundle ID registration
+- ✅ Apple Team ID → filled into `.well-known/apple-app-site-association` (`C529274M9Y`)
+- 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json` (deferred until Play Console App Signing fingerprint is captured)
 
 **Sprint 6 — ✅ Done:** F22, F23′, feature image, `requireAdminJSON` cleanup, mobile fonts, super_admin narrowing all shipped. F25 deep links moved to S7 (S0-gated).
 
@@ -24,7 +24,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 **Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI. All blocked or premature for MVP.
 
-The critical path to TestFlight runs through **S0 (Apple Team ID + Android SHA-256 + EAS init) → F21 → S7**.
+The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** Next critical path: F21 push broadcast implementation (now purely code work) → S7 store submissions.
 
 ---
 
@@ -381,6 +381,85 @@ children in the Primary dropdown, and indented `pl-6` rows with a "↳ "
 prefix in the Additional checkbox grid. Active-only filter applied at the
 page boundary; inactive branches drop wholesale.
 
+### ✅ Post-S6 — EAS project init + first signed builds + .well-known propagation (2026-06-23) — **S0 critical path cleared**
+Plan + review + report under `.mstack/plans/2026-06-22-eas-project-init.md`,
+`.mstack/reviews/...`, `.mstack/code/2026-06-22-eas-project-init/`. The
+S0 EAS gate that had been carrying four open items for weeks closed
+in one ~6-hour session. End-to-end:
+
+- **EAS project bound** to the `million-labs` Expo org as
+  `@million-labs/aira-mobile` (projectId
+  `21065081-2afd-43d4-aef7-7ce10de55a8b`). EAS Update channels +
+  `runtimeVersion: { policy: "appVersion" }` wired so OTAs flow per
+  marketing version.
+- **Apple credentials**: distribution certificate +
+  provisioning profile + APNs Push Key (.p8) all set up under
+  Nisarga Group LLC team (`C529274M9Y`). App Store Connect API key
+  uploaded to EAS for future submissions. Push Key in place means F21
+  push broadcasts is now purely code work.
+- **Android credentials**: upload keystore generated by EAS; backed up
+  to 1Password per `docs/operations/eas-keystore-backup.md`. Google
+  Play Android Developer API enabled in the Cloud project; dedicated
+  `aira-play-publisher` service account created with Internal-Testing
+  release permissions; service-account JSON key backed up to
+  1Password.
+- **First signed production builds**: iOS IPA + Android AAB both
+  successfully built on EAS cloud runners after a debugging marathon
+  that surfaced six Replit/pnpm-monorepo + EAS-cloud-runner
+  interactions worth recording for the runbook:
+  1. `eas.json` `autoIncrement` is a boolean at the profile level
+     (NOT the string `"buildNumber"` — that's per-platform only).
+  2. `eas init` non-fatal error on dynamic configs (the project IS
+     created on Expo's side; we manually paste the suggested
+     `extra.eas.projectId` block).
+  3. EACCES rmdir on `/tmp/runner/eas-cli-nodejs/.../`
+     `React Native DevTools-linux-x64` — dotslash unpacks with 555
+     perms and Replit sandbox blocks cleanup. Fix: nuke `.cache/` at
+     source + `DOTSLASH_CACHE=$HOME/.dotslash-cache` env override.
+  4. `Unknown system error -122` copying `.local/share/pnpm/store/`
+     (Replit puts the pnpm store inside the workspace). Fix:
+     workspace-root `.easignore` listing every Replit-clutter path.
+  5. iOS "Install dependencies" + Android "Prebuild" failed because
+     workspace `.easignore` excluded `tooling/` (which `packages/*`
+     depend on for `@aira/tsconfig`) and `.npmrc` (which carries
+     `node-linker=hoisted` that Metro requires).
+  6. `sharp@0.34.5` in `apps/web` couldn't build on EAS's iOS runner;
+     fix: moved to `optionalDependencies` so install warnings don't
+     abort.
+  7. `whatwg-fetch` peer-dep not found by Metro — added explicit
+     direct dep on `apps/mobile` and copied `.npmrc` to project root
+     so pnpm sees the hoist config regardless of cwd.
+- **App Store Connect record created** as "AIRA by Nisarga" (App ID
+  `6783242682`) because "AIRA" was already taken. Locked decision:
+  launcher icon stays "AIRA" (`app.config.ts`) for short brand-forward
+  read; App Store storefront is "AIRA by Nisarga" for the
+  parent-entity disambiguation. Same divergence as the
+  in-app `${brand.name} by ${brand.parentName}` footer.
+- **Play Console record created** under "AIRA by Nisarga" + Internal
+  Testing track configured.
+- **First submissions live**: iOS IPA submitted via `eas submit` to
+  App Store Connect → processing into TestFlight. Android AAB
+  submitted via `eas submit` to Play Console Internal Testing track.
+  Both required some flow-specific debugging (Internal-distribution
+  iOS preview kept asking for device UDIDs — pivoted to production
+  profile to skip that loop; Google Play Android Developer API
+  needed manual enablement in Cloud project before fastlane could
+  publish).
+- **Apple Team ID substituted** into both sites in
+  `apple-app-site-association` (committed `ade001d`). The
+  Android `assetlinks.json` SHA-256 substitution stays deferred until
+  Play Console App Signing fingerprint is captured from the live
+  Internal Testing release.
+- **Two new runbook docs** at `docs/operations/eas-build-runbook.md`
+  and `docs/operations/eas-keystore-backup.md` capturing the CLI
+  invocations + every failure mode hit during the session, so the
+  next person spends seconds not hours.
+
+The work surfaced a meaningful learning catalogue: 8 entries added to
+`.mstack/learnings.jsonl` covering the various Replit + EAS + pnpm
+interactions. Net commits on this S0 ship: 12 implementation commits
+plus the plan/review/report docs.
+
 ### ✅ Post-S6 — Listing Favorites (2026-06-22) — **net-new feature**
 Plan + review + report under `.mstack/plans/2026-06-22-listing-favorites.md`,
 `.mstack/reviews/...`, `.mstack/code/2026-06-22-listing-favorites/`.
@@ -440,7 +519,7 @@ Six raw route handlers (gallery image upload POST, gallery image DELETE, subscri
 
 ## Sprint 0 — Foundation & accounts (~1 week)
 
-**Status:** 🟦 In flight — most internal/config work done 2026-06-09. Outstanding items all need external account work (Apple Developer, Google Play Console, domain registration, EAS init).
+**Status:** ✅ Done — EAS init + first signed builds + .well-known Team ID substitution all shipped 2026-06-23. Only outstanding: domain registration for `airabynisarga.com` (live link verification can't activate until it resolves) + Play Console App Signing SHA-256 (needs Internal Testing release to land first; written into `assetlinks.json` when captured).
 
 **Project facts (locked 2026-06-09):**
 - Prod host: `airabynisarga.com`
@@ -448,12 +527,12 @@ Six raw route handlers (gallery image upload POST, gallery image DELETE, subscri
 
 **Goal:** Everything with external lead time or one-time config is in motion before we start building features.
 
-- ⬜ Register `airabynisarga.com` domain (in progress per user)
+- ⬜ Register `airabynisarga.com` domain (still pending — live universal-link verification gated on the domain resolving to the Replit deploy)
 - ✅ Postmark sender signature + DKIM/SPF (Postmark server token set in Replit env)
-- ⬜ EAS project init (`eas init`) + bundle ID registration with Apple/Google
+- ✅ EAS project init (`eas init`) + bundle ID registration with Apple/Google — bound to `million-labs` Expo org as `@million-labs/aira-mobile` (projectId `21065081-2afd-43d4-aef7-7ce10de55a8b`). Apple bundle ID `com.airabynisarga.app` registered with Nisarga Group LLC team (`C529274M9Y`); Play Console bundle registered under "AIRA by Nisarga" (App Store Connect App ID `6783242682`).
 - ✅ Bundle identifiers in `apps/mobile/app.config.ts` — `com.airabynisarga.app` (iOS + Android), associated domain `airabynisarga.com`
-- 🟦 `.well-known/apple-app-site-association` — bundle ID filled; `{{APPLE_TEAM_ID}}` waiting on Apple Developer
-- 🟦 `.well-known/assetlinks.json` — package filled; `{{ANDROID_CERT_SHA256}}` waiting on Play Console signing
+- ✅ `.well-known/apple-app-site-association` — Team ID `C529274M9Y` substituted at both sites (`applinks.details[0].appID` AND `webcredentials.apps[0]`). Live verification activates once the domain resolves.
+- 🟦 `.well-known/assetlinks.json` — package filled; `{{ANDROID_CERT_SHA256}}` deferred until Play Console App Signing fingerprint captured (Internal Testing release in progress)
 - ✅ Env secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL` set in Replit prod
 - ✅ Neon database — dev branch live; prod handled via Replit env
 - ✅ Replit production env wiring verified
@@ -758,5 +837,11 @@ Append-only. Add each architecture/scope decision with date + why.
 - **2026-06-22** — Listing **Favorites** mutation semantics: BOTH `addFavorite` and `removeFavorite` are fully idempotent (silent on duplicates). *Why:* favorites are personal preferences with no second party who needs the trail (unlike `community.post_interest`, which throws on duplicate add because the post author needs to know who responded). The unique `(business_id, user_id)` index + `ON CONFLICT DO NOTHING` insert makes this one-line. No audit log for the same reason: no compliance, no dispute scenario, no second party. Diverges from the post_interest precedent on purpose — when following a precedent table for a new join entity, verify the semantic match, not just the table shape.
 - **2026-06-22** — Listing Favorites UI: single-click toggle (NOT the user's originally-requested double-click-to-remove). *Why:* double-click as a remove gesture is engineer-intuitive (dblclick fires after click) but discoverability-hostile to users — they don't know to try it; on touch it conflicts with browser double-tap-to-zoom; screen-reader and keyboard users can't reliably double-click. Standard pattern across Pinterest/Spotify/Apple is the single-click toggle with the icon state telegraphing direction. Surfaced as a Concern at /mlabs-plan; user picked the toggle once the tradeoffs were on the table.
 - **2026-06-22** — `BusinessSchema` deliberately stays `z.object()` (not `.strict()`) because the admin extension pattern (`BusinessAdminSchema = BusinessSchema.extend(...)`) and the public-payload leakage check rely on different mechanics: the public ops project the public mapper, the admin ops project the admin mapper. Verification of "no PII leakage" is by raw-body inspection of `/api/v1/businesses` responses, NOT by Zod-parse — Zod's `safeParse` on a non-strict schema silently strips unknown keys, so the test would always pass whether or not the field leaked. Adding `.strict()` globally is a separate plan if anyone wants belt-and-braces.
+- **2026-06-23** — EAS project bound to the `million-labs` Expo org (not personal, not Nisarga). *Why:* `million-labs` already exists and aligns with how the dev team holds membership; transfer to Nisarga is a one-step rename if ownership ever needs to migrate. Project: `@million-labs/aira-mobile` (UUID `21065081-2afd-43d4-aef7-7ce10de55a8b`).
+- **2026-06-23** — App Store Connect listing name = "AIRA by Nisarga" (not "AIRA"). *Why:* Apple already had an app named "AIRA" so the bare name was unavailable. Adding "by Nisarga" gets the parent-entity disambiguation Apple wanted AND matches the in-app `${brand.name} by ${brand.parentName}` pattern that ships in the auth shell footer + sidebar. Launcher icon stays "AIRA" (`app.config.ts.name`) for the home-screen read; storefront uses the longer form. Decision locked deliberately rather than absorbed silently.
+- **2026-06-23** — Skipped the `preview` profile builds entirely; went straight to `production` for both iOS + Android. *Why:* preview profile's `distribution: "internal"` on iOS triggered a UDID-registration loop (ad-hoc IPAs need each test device's UDID; we have zero registered). Production builds use App Store distribution which doesn't require UDIDs and the artifact (signed IPA) is what TestFlight Internal Testing accepts anyway. Net effect: one fewer build run, no UDID registration overhead, same end-state for internal testers. Preview profile + channel remain wired in `eas.json` for the future "JS hotfix to internal testers separately from production users" workflow.
+- **2026-06-23** — `sharp@0.34.5` moved from `dependencies` to `optionalDependencies` on `apps/web/package.json`. *Why:* EAS's iOS cloud runner (macOS arm64) couldn't install sharp during the workspace-root `pnpm install --frozen-lockfile` — prebuilt binary failed to download and the node-gyp source-build fallback also failed, aborting the install. Sharp only matters for the web's server-side image pipelines (avatar, feature image, evidence); mobile doesn't import it. `optionalDependencies` makes pnpm log a warning + continue when the cloud install fails on a platform where sharp's prebuilts don't land — Replit + web prod both install it cleanly. Trade-off: if sharp ever fails on Replit or web prod, the failure becomes a silent warning instead of a loud error. Web has end-to-end tests for image upload that would catch this.
+- **2026-06-23** — `apps/mobile/package.json` carries a direct dep on `whatwg-fetch`. *Why:* `@expo/metro-runtime` (a transitive dep of `expo-router`) imports `whatwg-fetch` at the source level, but pnpm's strict isolated-store layout hides it from Metro's resolver (Metro only checks `node_modules` and `../../node_modules`, not the deep `.pnpm/...` paths). Even with `node-linker=hoisted` + `shamefully-hoist=true` in `.npmrc`, EAS's cloud install didn't reliably hoist whatwg-fetch to where Metro looks. Explicit direct dep forces pnpm's hand. Same pattern is likely to recur with other peer-deps-via-pnpm-hoisting; first occurrence locked here.
+- **2026-06-23** — Apple Push Key (.p8 for APNs) set up during EAS init flow rather than deferred to F21. *Why:* the credential setup is a one-shot portal trip; bundling it now means F21 push broadcasts (server-side fan-out via `expo-server-sdk`, mobile-side Expo Push Token registration) becomes purely code work with no waiting on Apple. Per-team key, reusable across apps, doesn't expire — zero ongoing maintenance cost.
 - **2026-06-22** — `apiClient.post(path, body, init?)` and `.patch(path, body, init?)` take the request body as the SECOND POSITIONAL argument, NOT as `{ body }` inside an init object. Mis-copying the fetch `{ body }` shape sends `{"body":{...}}` as the literal request body and strict Zod schemas reject it with 400. `.delete(path, init?)` has no body arg. Caught the FavoriteButton ship within minutes via user report ("red dot, no favorites in My Favorites"); fix unwrapped the body to a positional arg. Lesson logged.
 - **2026-06-15** — PRD F23 (CSV exports for Listings / Categories / Memberships / Sponsorships / Posts) reframed and largely deferred. *Why:* of the five surfaces, only BusinessSubscriptions has real pre-launch demand — PRD F16 leans on its CSV as the manual workaround for not having SMS reminders. But the actual operator job (phone expiring members down a list) is served *better* by an in-UI queue than by a download: outcomes (called / voicemail / refused / paid / reschedule) get captured as audit rows instead of evaporating in a spreadsheet, the admin's place persists across sessions, and phone numbers stay canonical. New scope = **F23′ renewal follow-up queue**. The other four CSV surfaces (Listings, Categories, MembershipPlans, Sponsorships, Posts) are reachable in-app for internal use, and external-sharing asks haven't materialised; building those CSVs speculatively for hypothetical client/accountant emails isn't a launch-week need. Reopen surface-by-surface when a real external-sharing request hits twice. Audit log CSV export is also deferred — Drizzle Studio is sufficient for incident response by the dev, and operator-facing audit consumption is on-screen filtering.
