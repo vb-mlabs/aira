@@ -134,6 +134,9 @@ importers:
       react-native-worklets:
         specifier: ^0.7.4
         version: 0.7.4(@babel/core@7.29.0)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      whatwg-fetch:
+        specifier: ^3.6.20
+        version: 3.6.20
       zod:
         specifier: ^4.4.3
         version: 4.4.3
