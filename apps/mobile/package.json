@@ -26,7 +26,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.59.20",
     "better-auth": "^1.6.10",
-    "expo": "~55.0.23",
+    "expo": "~54.0.0",
     "expo-constants": "~55.0.16",
     "expo-font": "~55.0.7",
     "expo-image-picker": "~55.0.20",
@@ -48,7 +48,6 @@
     "react-native-screens": "4.23.0",
     "react-native-svg": "15.15.3",
     "react-native-web": "~0.21.2",
-    "react-native-worklets": "^0.7.4",
     "whatwg-fetch": "^3.6.20",
     "zod": "^4.4.3"
   },
