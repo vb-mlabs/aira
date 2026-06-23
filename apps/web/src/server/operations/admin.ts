@@ -27,6 +27,8 @@ import {
   ListAuditOutputSchema,
   BusinessOwnerBroadcastInputSchema,
   BusinessOwnerBroadcastOutputSchema,
+  PreviewBroadcastRecipientCountInputSchema,
+  PreviewBroadcastRecipientCountOutputSchema,
 } from "@aira/validators/admin"
 import { auth } from "@/lib/auth"
 import { logger } from "@/lib/logger"
@@ -168,4 +170,19 @@ export const sendBusinessOwnerBroadcastOp = defineOperation({
     notifications.sendPushBroadcast(db, ctx, args, {
       expoAccessToken: env.EXPO_ACCESS_TOKEN,
     }),
+})
+
+/** F21 — Live recipient count for the broadcast modal's audience
+ *  picker. Wraps resolveTargetUserIds and returns the size of the
+ *  resolved user set. Debounced from the modal so admins see the
+ *  scope of their selection before they click Send. */
+export const previewBroadcastRecipientCountOp = defineOperation({
+  name: "admin.businesses.broadcast.preview",
+  input: PreviewBroadcastRecipientCountInputSchema,
+  output: PreviewBroadcastRecipientCountOutputSchema,
+  permission: "admin",
+  handler: async (db, _ctx, { target }) => {
+    const userIds = await admin.resolveTargetUserIds(db, target)
+    return { count: userIds.length }
+  },
 })

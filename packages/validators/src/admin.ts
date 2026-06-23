@@ -107,6 +107,26 @@ export const ListAuditOutputSchema = z.object({
 });
 export type ListAuditOutput = z.infer<typeof ListAuditOutputSchema>;
 
+/** F21 — Audience preview op input/output. The admin modal hits the
+ *  preview op while the audience picker is open and debounces the radio
+ *  / multi-select choices so the recipient count is visible before the
+ *  admin commits. */
+export const PreviewBroadcastRecipientCountInputSchema = z
+  .object({
+    target: z.lazy(() => BroadcastTargetSchema),
+  })
+  .strict();
+export type PreviewBroadcastRecipientCountInput = z.infer<
+  typeof PreviewBroadcastRecipientCountInputSchema
+>;
+
+export const PreviewBroadcastRecipientCountOutputSchema = z.object({
+  count: z.number().int().nonnegative(),
+});
+export type PreviewBroadcastRecipientCountOutput = z.infer<
+  typeof PreviewBroadcastRecipientCountOutputSchema
+>;
+
 /** F21 — Audience picker for the owner broadcast modal. Existing G1
  *  "all linked owners" path stays the default; the three new branches add
  *  optional narrowing. All branches inherit the active-only business
