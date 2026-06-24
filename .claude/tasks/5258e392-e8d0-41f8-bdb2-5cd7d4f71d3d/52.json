@@ -1,0 +1,9 @@
+{
+  "id": "52",
+  "subject": "F21 T13: mobile push registration utility",
+  "description": "requestPermissionAndRegister() in apps/mobile/lib/push.ts: permission check, token fetch, POST + secure-store flag.",
+  "activeForm": "Writing F21 T13 push registration utility",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

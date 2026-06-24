@@ -1,0 +1,9 @@
+{
+  "id": "30",
+  "subject": "T7 [HUMAN]: Apple credentials",
+  "description": "User generates App Store Connect API key + Apple Push Key (.p8), uploads via eas credentials --platform ios.",
+  "activeForm": "Waiting on Apple credentials",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

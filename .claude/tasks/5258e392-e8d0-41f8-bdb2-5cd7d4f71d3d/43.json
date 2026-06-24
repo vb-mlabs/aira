@@ -1,0 +1,9 @@
+{
+  "id": "43",
+  "subject": "F21 T4: resolveTargetUserIds extraction",
+  "description": "Refactor sendBusinessOwnerBroadcast to delegate user-id resolution to resolveTargetUserIds with 4 audience branches.",
+  "activeForm": "Refactoring F21 T4 resolveTargetUserIds",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

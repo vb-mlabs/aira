@@ -1,0 +1,9 @@
+{
+  "id": "40",
+  "subject": "F21 T1: user_device + notification_delivery tables",
+  "description": "Add the two new Drizzle schemas + generate the migration. Pause if migration isn't purely additive.",
+  "activeForm": "Generating F21 T1 schema + migration",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,65 @@
+Resolved "preview" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "preview" environment on EAS.
+
+
+
+🤖 Android build
+✔ Using remote Android credentials (Expo server)
+✔ Using Keystore from configuration: Build Credentials bKEqZ6v-0G (default)
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+✔ Compressed project files 22s (265 MB)
+Your project archive is 265 MB. You can reduce its size and the time it takes to upload by excluding files that are unnecessary for the build process in .easignore file. Learn more: https://expo.fyi/eas-build-archive
+✔ Uploaded to EAS 2s
+✔ Computed project fingerprint
+Resolved "preview" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "preview" environment on EAS.
+
+✔ iOS app only uses standard/exempt encryption? Learn more: https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations … yes
+
+Cannot automatically write to dynamic config at: app.config.ts
+Add the following to app.config.ts:
+
+{
+  "ios": {
+    "infoPlist": {
+      "ITSAppUsesNonExemptEncryption": false
+    }
+  }
+}
+
+No remote versions are configured for this project, buildNumber will be initialized based on the value from the local project.
+✔ Initialized buildNumber with 1.
+
+🍏 iOS build
+✔ Using remote iOS credentials (Expo server)
+
+If you provide your Apple account credentials we will be able to generate all necessary build credentials and fully validate them.
+This is optional, but without Apple account access you will need to provide all the missing values manually and we can only run minimal validation on them.
+✔ Do you want to log in to your Apple account? … yes
+
+› Log in to your Apple Developer account to continue
+✔ Apple ID: … vinod@millionlabs.co.uk
+› The password is only used to authenticate with Apple and never stored on EAS servers
+  Learn more: https://bit.ly/2VtGWhU
+✔ Password (for vinod@millionlabs.co.uk): … **********
+› Saving Apple ID password to the local Keychain
+  Learn more: https://docs.expo.dev/distribution/security#keychain
+✔ Logged in, verify your Apple account to continue
+Two-factor Authentication (6 digit code) is enabled for vinod@millionlabs.co.uk. Learn more: https://support.apple.com/en-us/HT204915
+
+✔ Please enter the 6 digit code you received at +91 •••••• •••40: … 351414
+✔ Valid code
+✔ Logged in and verified
+✔ Select a Team › Nisarga Group LLC - Company/Organization (C529274M9Y)
+✔ Select a Provider › Nisarga Group LLC (129060205)
+✔ Bundle identifier registered com.airabynisarga.app
+✔ Synced capabilities: Enabled: Associated Domains
+✔ Synced capability identifiers: No updates
+✔ Fetched Apple distribution certificates
+✔ Generate a new Apple Distribution Certificate? … yes
+✔ Created Apple distribution certificate
+✔ Created distribution certificate
+✔ You don't have any registered devices yet. Would you like to register them now? … yes
+✔ How would you like to register your devices? › Developer Portal - import devices already registered on Apple Developer Portal
+All your devices registered on Apple Developer Portal are already imported to EAS.

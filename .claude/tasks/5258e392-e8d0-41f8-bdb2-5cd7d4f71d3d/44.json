@@ -1,0 +1,9 @@
+{
+  "id": "44",
+  "subject": "F21 T5: devices service queries",
+  "description": "register/unregister/listDevicesForUserIds/deleteDeviceById pure DB functions.",
+  "activeForm": "Writing F21 T5 devices queries",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

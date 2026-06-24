@@ -1,0 +1,9 @@
+{
+  "id": "29",
+  "subject": "T6 [HUMAN]: simulator iOS build",
+  "description": "User runs eas build --platform ios --profile dev (free, no creds). Validates wiring.",
+  "activeForm": "Waiting on simulator build",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

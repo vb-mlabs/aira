@@ -1,0 +1,9 @@
+{
+  "id": "27",
+  "subject": "T4 [HUMAN]: eas init",
+  "description": "User runs `pnpm dlx eas-cli@latest init` from apps/mobile/ to bind project to million-labs org. CLI writes extra.eas.projectId to app.config.ts.",
+  "activeForm": "Waiting on eas init",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

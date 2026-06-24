@@ -1,0 +1,9 @@
+{
+  "id": "38",
+  "subject": "T15 [CODE]: FORK_CHECKLIST",
+  "description": "Tick eas init + the two .well-known substitution items in derived FORK_CHECKLIST.md (NOT the template).",
+  "activeForm": "Updating fork checklist",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}
