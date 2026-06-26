@@ -31,8 +31,8 @@ export function SocialLinks({
     "relative z-10 inline-flex size-8 md:size-10 flex-shrink-0 items-center justify-center rounded-full transition-opacity"
 
   return (
-    <div className={`flex items-center gap-1.5 ${className ?? ""}`}>
-      {facebook_url ? (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className ?? ""}`}>
+      {facebook_url && (
         <a
           href={facebook_url}
           target="_blank"
@@ -43,17 +43,9 @@ export function SocialLinks({
         >
           <FacebookIcon />
         </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#1877F2", opacity: 0.25 }}
-        >
-          <FacebookIcon />
-        </span>
       )}
 
-      {instagram_url ? (
+      {instagram_url && (
         <a
           href={instagram_url}
           target="_blank"
@@ -64,17 +56,9 @@ export function SocialLinks({
         >
           <InstagramIcon />
         </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#E1306C", opacity: 0.25 }}
-        >
-          <InstagramIcon />
-        </span>
       )}
 
-      {waHref ? (
+      {waHref && (
         <a
           href={waHref}
           target="_blank"
@@ -85,17 +69,9 @@ export function SocialLinks({
         >
           <WhatsappIcon />
         </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#25D366", opacity: 0.25 }}
-        >
-          <WhatsappIcon />
-        </span>
       )}
 
-      {website ? (
+      {website && (
         <a
           href={website}
           target="_blank"
@@ -106,17 +82,9 @@ export function SocialLinks({
         >
           <Globe className="size-4 text-white" aria-hidden />
         </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#6366F1", opacity: 0.25 }}
-        >
-          <Globe className="size-4 text-white" aria-hidden />
-        </span>
       )}
 
-      {phone ? (
+      {phone && (
         <a
           href={`tel:${phone}`}
           aria-label="Call"
@@ -125,17 +93,9 @@ export function SocialLinks({
         >
           <Phone className="size-4 text-white" aria-hidden />
         </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#16A34A", opacity: 0.25 }}
-        >
-          <Phone className="size-4 text-white" aria-hidden />
-        </span>
       )}
 
-      {mapsHref ? (
+      {mapsHref && (
         <a
           href={mapsHref}
           target="_blank"
@@ -146,14 +106,6 @@ export function SocialLinks({
         >
           <GoogleMapsPinIcon className="size-4 text-white" />
         </a>
-      ) : (
-        <span
-          aria-hidden
-          className={`${iconBase} cursor-default`}
-          style={{ backgroundColor: "#EA4335", opacity: 0.25 }}
-        >
-          <GoogleMapsPinIcon className="size-4 text-white" />
-        </span>
       )}
     </div>
   )
