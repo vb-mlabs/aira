@@ -27,8 +27,8 @@ export function Hero() {
         </em>
       </p>
       <h1 className="m-0 max-w-[640px] font-display text-[30px] font-semibold leading-[1.2] tracking-tight text-foreground md:text-[3.6vw] md:[font-size:clamp(28px,3.6vw,44px)]">
-        A directory of Atlanta&rsquo;s Indian community,{" "}
-        <em className="font-bold italic text-primary">curated with care.</em>
+        Atlanta&rsquo;s Indian business directory,{" "}
+        <em className="font-bold italic text-primary">curated with care</em>
       </h1>
 
       <WaitlistCard />
