@@ -51,7 +51,7 @@ export const brand = {
   // time, so they belong in the rebrand layer like the rest of the brand
   // copy. Forks edit here; no DB migration, no admin form.
   homepage: {
-    aboutTitle: "A directory of Atlanta's Indian community, curated with care",
+    aboutTitle: "Atlanta's Indian business directory, curated with care",
     aboutBody:
       "AIRA is Atlanta's premier community directory connecting the Indian community with local Indian businesses, services, and resources.",
     // Displayed in the Community Members stat card on /home. Default is the
