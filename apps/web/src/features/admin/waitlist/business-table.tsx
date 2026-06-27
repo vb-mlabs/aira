@@ -9,6 +9,7 @@ import { EmptyState } from "@/lib/ui"
 import type { WaitlistAdminListItem } from "@aira/validators"
 import { SOURCE_LABEL } from "./source-label"
 import { formatDateTime } from "./format-date"
+import { RowActions } from "./row-actions"
 
 interface BusinessTableProps {
   items: WaitlistAdminListItem[]
@@ -85,8 +86,7 @@ export function BusinessTable({ items }: BusinessTableProps) {
                 {formatDateTime(row.created_at)}
               </td>
               <td className="px-4 py-3 text-right">
-                {/* T7 — copy / delete buttons land here */}
-                <span className="text-xs text-muted-foreground">—</span>
+                <RowActions row={row} showCopyPhone />
               </td>
             </tr>
           ))}
