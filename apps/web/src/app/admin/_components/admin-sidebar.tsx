@@ -18,6 +18,7 @@ import {
   ClipboardList,
   Clock,
   LayoutDashboard,
+  MailPlus,
   MessageSquare,
   PhoneCall,
   Settings2,
@@ -51,6 +52,7 @@ const ADMIN_NAV: NavRow[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, requires: "admin" },
   { href: "/admin/businesses", label: "Manage listings", icon: Store, requires: "admin" },
   { href: "/admin/renewals", label: "Renewals", icon: PhoneCall, requires: "admin" },
+  { href: "/admin/waitlist", label: "Waitlist", icon: MailPlus, requires: "admin" },
   { href: "/admin/community", label: "Community", icon: MessageSquare, requires: "admin" },
   { href: "/admin/users", label: "Users", icon: Users, requires: "admin" },
   // Setup
