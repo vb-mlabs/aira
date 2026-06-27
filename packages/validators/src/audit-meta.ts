@@ -186,6 +186,14 @@ export type AuditMeta =
       kind: "business.broadcast_sent";
       title: string;
       recipient_count: number;
+    }
+  // Admin hard-deletes a pre-launch waitlist row from /admin/waitlist.
+  // target.id = waitlist.id. email + waitlist_type captured pre-delete so
+  // the audit row remains useful after the source row is gone.
+  | {
+      kind: "waitlist.delete";
+      email: string;
+      waitlist_type: "consumer" | "business";
     };
 
 // ─── Known actions / target types ───────────────────────────────────────────
@@ -231,6 +239,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "business.owner_assigned",
   "business.owner_unassigned",
   "business.broadcast_sent",
+  "waitlist.delete",
 ] as const;
 export type KnownAuditAction = (typeof KNOWN_AUDIT_ACTIONS)[number];
 
@@ -256,6 +265,7 @@ export const KNOWN_AUDIT_TARGET_TYPES = [
   "community_post",
   "app_setting",
   "session",
+  "waitlist",
 ] as const;
 export type KnownAuditTargetType = (typeof KNOWN_AUDIT_TARGET_TYPES)[number];
 
