@@ -76,6 +76,12 @@ export function RenderAuditTarget({ row }: RenderTargetProps) {
         <span className="text-muted-foreground">session</span>
       )
 
+    case "waitlist":
+      // Pre-launch signup row — no detail page; the row was hard-deleted
+      // so the link target wouldn't resolve even if one existed. Match
+      // community_post's treatment: short hex id with no link.
+      return <code className="font-mono text-xs">{shortId}</code>
+
     default:
       return <code className="font-mono text-xs">{shortId}</code>
   }

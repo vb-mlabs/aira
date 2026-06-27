@@ -231,6 +231,15 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
         </>
       )
 
+    // ─── waitlist.* ──────────────────────────────────────────────────
+    case "waitlist.delete":
+      return (
+        <>
+          Deleted {m.waitlist_type} waitlist entry (
+          <code>{m.email}</code>)
+        </>
+      )
+
     // ─── exhaustiveness gate ─────────────────────────────────────────
     default: {
       // Adding a new variant to AuditMeta without a case above triggers
