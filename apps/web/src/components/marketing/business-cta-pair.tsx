@@ -128,7 +128,7 @@ function GetListedForm() {
     setError(null)
     setIsSubmitting(true)
     try {
-      await apiClient.post("/api/v1/business-waitlist", { body: fields })
+      await apiClient.post("/api/v1/business-waitlist", fields)
       setSubmitted(true)
     } catch {
       setError("Something went wrong. Please try again or email us directly.")
