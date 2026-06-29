@@ -8,10 +8,15 @@ import { apiGet } from "../../lib/api/client";
 import type {
   BusinessListInput,
   BusinessListOutput,
+  Category,
 } from "@aira/validators";
 
 export interface BusinessCountResult {
   count: number;
+}
+
+export interface CategoryListResult {
+  categories: Category[];
 }
 
 /** GET /api/v1/businesses with input as query string. Encodes optional
@@ -39,4 +44,10 @@ export async function listBusinesses(
 export async function getBusinessCount(): Promise<BusinessCountResult> {
   const res = await apiGet<BusinessCountResult>("/api/v1/businesses/count");
   return res.data ?? { count: 0 };
+}
+
+/** GET /api/v1/categories — root categories for the configured city. */
+export async function listCategories(): Promise<CategoryListResult> {
+  const res = await apiGet<CategoryListResult>("/api/v1/categories");
+  return res.data ?? { categories: [] };
 }

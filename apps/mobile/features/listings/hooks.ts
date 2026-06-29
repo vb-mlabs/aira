@@ -3,7 +3,11 @@
 // (e.g. P2 favorites toggle) can hit one prefix.
 
 import { useQuery } from "@tanstack/react-query";
-import { listBusinesses, getBusinessCount } from "./api";
+import {
+  listBusinesses,
+  getBusinessCount,
+  listCategories,
+} from "./api";
 
 const FEATURED_LIMIT = 6;
 
@@ -23,5 +27,15 @@ export function useBusinessCount() {
     queryKey: ["listings", "count"],
     queryFn: getBusinessCount,
     staleTime: 60_000,
+  });
+}
+
+/** Root categories for the Categories tab + listings switcher.
+ *  Filters at render time to active=true. */
+export function useCategories() {
+  return useQuery({
+    queryKey: ["listings", "categories"],
+    queryFn: listCategories,
+    staleTime: 5 * 60_000,
   });
 }
