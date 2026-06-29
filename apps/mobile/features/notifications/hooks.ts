@@ -1,4 +1,5 @@
 import * as React from "react";
+import { AppState } from "react-native";
 import {
   useMutation,
   useQuery,
@@ -6,7 +7,25 @@ import {
 } from "@tanstack/react-query";
 import { listNotifications, getUnreadCount, markAllRead } from "./api";
 import type { NotificationRow } from "./api";
-import { usePollingInterval } from "../messages/hooks";
+
+/**
+ * Foreground-aware polling interval — 5s when the app is active, 60s when
+ * backgrounded. Lifted out of the deleted features/messages/hooks during the
+ * P1 mobile-parity tab refactor (notifications was the only remaining
+ * consumer). Move to apps/mobile/lib/ if a third polling consumer appears.
+ */
+function usePollingInterval(): number {
+  const [interval, setInterval] = React.useState(() =>
+    AppState.currentState === "active" ? 5000 : 60_000
+  );
+  React.useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      setInterval(state === "active" ? 5000 : 60_000);
+    });
+    return () => sub.remove();
+  }, []);
+  return interval;
+}
 
 export function useNotifications() {
   const interval = usePollingInterval();
