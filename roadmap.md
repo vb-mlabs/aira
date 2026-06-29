@@ -1,6 +1,6 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-29 (`airabynisarga.com` registered + live; universal-link follow-ups shipped — AASA Content-Type pinned via next.config headers(), www → apex 301 redirect, CLAUDE.md apex-only convention. Android SHA-256 placeholder still pending Play Console App Signing fingerprint capture.)
+**Last updated:** 2026-06-29 (`airabynisarga.com` registered + live; universal-link follow-ups shipped — AASA Content-Type pinned via next.config headers(), www → apex 301 redirect, CLAUDE.md apex-only convention, Android App Signing key SHA-256 pasted into assetlinks.json. Only S0 follow-up still open: EAS prod rebuild for both platforms.)
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22, S0 EAS init shipped 2026-06-23, F21 push broadcasts shipped 2026-06-23, Expo SDK 54 downgrade shipped 2026-06-23.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
@@ -16,7 +16,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 - ✅ Apple Team ID → filled into `.well-known/apple-app-site-association` (`C529274M9Y`)
 - ✅ AASA served with `Content-Type: application/json` via `apps/web/next.config.mjs` `headers()` rule (2026-06-29) — Apple swcd CDN already cached the file end-to-end
 - ✅ `www.airabynisarga.com/*` → apex 301 redirect wired via `next.config.mjs` `redirects()` (dormant until DNS for www catches up; CLAUDE.md apex-only convention locked alongside)
-- 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json` (deferred until Play Console App Signing fingerprint is captured)
+- ✅ Android signing-cert SHA-256 filled into `.well-known/assetlinks.json` (2026-06-29; captured from Play Console App Signing)
 - 🟦 EAS production rebuild for both platforms (after F21's `expo-notifications` config-plugin add). Required before push works on real devices; `eas build --profile production --platform all` + `eas submit --profile production --platform all`. Runbook: `docs/operations/eas-build-runbook.md`.
 
 **Sprint 6 — ✅ Done:** F22, F23′, feature image, `requireAdminJSON` cleanup, mobile fonts, super_admin narrowing all shipped. F25 deep links moved to S7 (S0-gated).
@@ -27,7 +27,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 **Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI. All blocked or premature for MVP.
 
-The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** F21 push broadcasts is code-complete; an EAS production rebuild + submit gets the `expo-notifications` config plugin onto real devices and closes the loop for end-to-end push. `airabynisarga.com` is now live + verified end-to-end (Apple swcd cached AASA; assetlinks awaits the SHA-256 paste). Next critical path: Android SHA-256 capture from Play Console + EAS production rebuild + S7 store submissions.
+The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** F21 push broadcasts is code-complete; an EAS production rebuild + submit gets the `expo-notifications` config plugin onto real devices and closes the loop for end-to-end push. `airabynisarga.com` is now live + verified end-to-end (Apple swcd cached AASA; assetlinks now carries the App Signing key SHA-256 so Android App Links autoVerify can succeed once verifier re-fetches). Next critical path: EAS production rebuild + S7 store submissions.
 
 ---
 
@@ -701,7 +701,7 @@ layer. If it doesn't, revert path is `git revert` + move files out of
 
 ## Sprint 0 — Foundation & accounts (~1 week)
 
-**Status:** ✅ Done — EAS init + first signed builds + .well-known Team ID substitution all shipped 2026-06-23. Domain `airabynisarga.com` registered + live 2026-06-29 with universal-link follow-ups (AASA Content-Type via `next.config` headers, www → apex 301 redirect, CLAUDE.md apex-only convention). Only outstanding: Play Console App Signing SHA-256 (needs Internal Testing release to land first; written into `assetlinks.json` when captured).
+**Status:** ✅ Done — EAS init + first signed builds + .well-known Team ID substitution all shipped 2026-06-23. Domain `airabynisarga.com` registered + live 2026-06-29 with universal-link follow-ups (AASA Content-Type via `next.config` headers, www → apex 301 redirect, CLAUDE.md apex-only convention) AND Android App Signing key SHA-256 pasted into `assetlinks.json`. All `.well-known` files now contain real values.
 
 **Project facts (locked 2026-06-09):**
 - Prod host: `airabynisarga.com`
@@ -714,7 +714,7 @@ layer. If it doesn't, revert path is `git revert` + move files out of
 - ✅ EAS project init (`eas init`) + bundle ID registration with Apple/Google — bound to `million-labs` Expo org as `@million-labs/aira-mobile` (projectId `21065081-2afd-43d4-aef7-7ce10de55a8b`). Apple bundle ID `com.airabynisarga.app` registered with Nisarga Group LLC team (`C529274M9Y`); Play Console bundle registered under "AIRA by Nisarga" (App Store Connect App ID `6783242682`).
 - ✅ Bundle identifiers in `apps/mobile/app.config.ts` — `com.airabynisarga.app` (iOS + Android), associated domain `airabynisarga.com`
 - ✅ `.well-known/apple-app-site-association` — Team ID `C529274M9Y` substituted at both sites (`applinks.details[0].appID` AND `webcredentials.apps[0]`). Live verification activates once the domain resolves.
-- 🟦 `.well-known/assetlinks.json` — package filled; `{{ANDROID_CERT_SHA256}}` deferred until Play Console App Signing fingerprint captured (Internal Testing release in progress)
+- ✅ `.well-known/assetlinks.json` — package filled; App Signing key SHA-256 fingerprint pasted 2026-06-29 (captured from Play Console → Setup → App integrity → App signing)
 - ✅ Env secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL` set in Replit prod
 - ✅ Neon database — dev branch live; prod handled via Replit env
 - ✅ Replit production env wiring verified

@@ -31,9 +31,9 @@ at the bottom for the happy-path flow.
 - [x] Edit `apps/web/public/.well-known/apple-app-site-association`:
   - [x] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID. _(C529274M9Y — Nisarga Group LLC, filled 2026-06-23)_
   - [x] iOS bundle ID filled: `com.airabynisarga.app`.
-- [ ] Edit `apps/web/public/.well-known/assetlinks.json`:
+- [x] Edit `apps/web/public/.well-known/assetlinks.json`:
   - [x] Android package filled: `com.airabynisarga.app`.
-  - [ ] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. **(deferred — Play Console App Signing fingerprint to be pasted after Internal Testing release lands)**
+  - [x] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. _(captured from Play Console → Setup → App integrity → App signing, pasted 2026-06-29)_
 - [x] `eas init` to bind this fork to a new EAS project. _(million-labs org, project `aira-mobile`, projectId `21065081-2afd-43d4-aef7-7ce10de55a8b`, 2026-06-23)_
 - [x] Set GitHub repo secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL`. _(set in Replit prod env)_
 - [x] `pnpm db:migrate` against the new Neon database. _(migrations 0001–0013 applied)_
