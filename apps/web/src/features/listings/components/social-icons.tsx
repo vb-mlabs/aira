@@ -8,6 +8,11 @@ interface SocialLinksProps {
   website?: string | null
   address?: string | null
   className?: string
+  /** Card-density mode: drop the map pin (already on the detail page),
+   *  reorder to action-first (Phone → WhatsApp → Website → IG/FB), and
+   *  cap at 4 icons. Detail surfaces leave this false to keep all six
+   *  channels visible. Defaults false. */
+  compact?: boolean
 }
 
 export function SocialLinks({
@@ -18,6 +23,7 @@ export function SocialLinks({
   website,
   address,
   className,
+  compact = false,
 }: SocialLinksProps) {
   const waHref = whatsapp_number
     ? `https://wa.me/${whatsapp_number.replace(/\D/g, "")}`
@@ -30,83 +36,94 @@ export function SocialLinks({
   const iconBase =
     "relative z-10 inline-flex size-8 md:size-10 flex-shrink-0 items-center justify-center rounded-full transition-opacity"
 
+  // Pre-render each channel once; the two modes below pick + order.
+  const fb = facebook_url && (
+    <a
+      key="fb"
+      href={facebook_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Facebook"
+      className={`${iconBase} hover:opacity-80`}
+      style={{ backgroundColor: "#1877F2" }}
+    >
+      <FacebookIcon />
+    </a>
+  )
+  const ig = instagram_url && (
+    <a
+      key="ig"
+      href={instagram_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Instagram"
+      className={`${iconBase} hover:opacity-80`}
+      style={{ backgroundColor: "#E1306C" }}
+    >
+      <InstagramIcon />
+    </a>
+  )
+  const wa = waHref && (
+    <a
+      key="wa"
+      href={waHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="WhatsApp"
+      className={`${iconBase} hover:opacity-80`}
+      style={{ backgroundColor: "#25D366" }}
+    >
+      <WhatsappIcon />
+    </a>
+  )
+  const web = website && (
+    <a
+      key="web"
+      href={website}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Website"
+      className={`${iconBase} hover:opacity-80`}
+      style={{ backgroundColor: "#6366F1" }}
+    >
+      <Globe className="size-4 text-white" aria-hidden />
+    </a>
+  )
+  const tel = phone && (
+    <a
+      key="tel"
+      href={`tel:${phone}`}
+      aria-label="Call"
+      className={`${iconBase} hover:opacity-80`}
+      style={{ backgroundColor: "#16A34A" }}
+    >
+      <Phone className="size-4 text-white" aria-hidden />
+    </a>
+  )
+  const map = mapsHref && (
+    <a
+      key="map"
+      href={mapsHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View on Google Maps"
+      className={`${iconBase} hover:opacity-80`}
+      style={{ backgroundColor: "#EA4335" }}
+    >
+      <GoogleMapsPinIcon className="size-4 text-white" />
+    </a>
+  )
+
+  // Detail (default): keep the historic order, full set.
+  // Card (compact): action-first, no map, Instagram preferred over Facebook
+  // for the 4th slot when both populated, cap at 4.
+  const icons = compact
+    ? [tel, wa, web, ig || fb].filter(Boolean).slice(0, 4)
+    : [fb, ig, wa, web, tel, map].filter(Boolean)
+
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${className ?? ""}`}>
-      {facebook_url && (
-        <a
-          href={facebook_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Facebook"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#1877F2" }}
-        >
-          <FacebookIcon />
-        </a>
-      )}
-
-      {instagram_url && (
-        <a
-          href={instagram_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Instagram"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#E1306C" }}
-        >
-          <InstagramIcon />
-        </a>
-      )}
-
-      {waHref && (
-        <a
-          href={waHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="WhatsApp"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#25D366" }}
-        >
-          <WhatsappIcon />
-        </a>
-      )}
-
-      {website && (
-        <a
-          href={website}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Website"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#6366F1" }}
-        >
-          <Globe className="size-4 text-white" aria-hidden />
-        </a>
-      )}
-
-      {phone && (
-        <a
-          href={`tel:${phone}`}
-          aria-label="Call"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#16A34A" }}
-        >
-          <Phone className="size-4 text-white" aria-hidden />
-        </a>
-      )}
-
-      {mapsHref && (
-        <a
-          href={mapsHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="View on Google Maps"
-          className={`${iconBase} hover:opacity-80`}
-          style={{ backgroundColor: "#EA4335" }}
-        >
-          <GoogleMapsPinIcon className="size-4 text-white" />
-        </a>
-      )}
+      {icons}
     </div>
   )
 }

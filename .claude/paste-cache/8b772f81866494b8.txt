@@ -1,0 +1,54 @@
+Here's a paste-ready brief for the other agent. It's portable — assumes a similar Expo + Next.js monorepo on Replit /
+  Vercel / wherever.
+
+  ---
+  EXPO_PUBLIC_API_BASE_URL setup — three layers, three audiences
+
+  The mobile app reads process.env.EXPO_PUBLIC_API_BASE_URL at module load (see
+  apps/mobile/lib/api/client.ts:resolveApiBaseUrl). It needs to point at the deployed Next.js API for whichever
+  environment the binary was built for. Three places set it:
+
+  1. Expo Go (local dev with QR code) → apps/mobile/.env.local
+  EXPO_PUBLIC_API_BASE_URL=https://<your-replit-dev-domain>
+  - Must be publicly reachable HTTPS — a real phone on cellular can't hit localhost or your LAN. On Replit use
+  $REPLIT_DEV_DOMAIN; elsewhere use ngrok / a tunnel.
+  - Gitignored (it's per-developer).
+
+  2. EAS native builds (TestFlight, Play Store internal, App Store) → apps/mobile/eas.json
+  {
+    "build": {
+      "preview":    { "env": { "EXPO_PUBLIC_API_BASE_URL": "https://your-prod-domain.com" } },
+      "production": { "env": { "EXPO_PUBLIC_API_BASE_URL": "https://your-prod-domain.com" } }
+    }
+  } 
+  - Baked into the .ipa / .apk at build time. This is the source of truth for native binaries.
+
+  3. EAS OTA updates (eas update) → apps/mobile/.env.production.local (gitignored)
+  EXPO_PUBLIC_API_BASE_URL=https://your-prod-domain.com
+  - This one is the foot-gun. eas update runs Metro locally to build the JS bundle. Metro inlines .env* files using
+  normal Next-style precedence (.env.production.local > .env.local > .env). The env block in eas.json does NOT apply to
+  eas update, and .easignore does NOT protect either. 
+  - Without this file, your dev URL from .env.local leaks into the production OTA bundle and silently breaks every
+  TestFlight user until you push another update. (We hit this — it's where the file came from.)
+  - Mirror the value in eas.json's production block. 
+
+  Add to .gitignore
+
+  apps/mobile/.env.local
+  apps/mobile/.env.production.local
+
+  Sanity checklist before shipping the first OTA update
+
+  1. cat apps/mobile/.env.production.local shows the prod URL, not localhost or a dev domain.
+  2. eas.json production.env.EXPO_PUBLIC_API_BASE_URL matches.
+  3. After eas update --branch production, install via TestFlight and confirm network requests hit prod (Charles Proxy
+  or a logged request).
+
+  Why the split exists
+
+  Expo's runtime resolves env vars from the JS bundle, not from the OS. The bundle is built by whoever runs Metro: EAS
+  Build's CI for native binaries (reads eas.json), your laptop for OTA updates (reads .env*). Three layers = three
+  bundle producers, each needing the right URL.
+
+  ---
+  That's the full picture. The other agent can adapt the file paths but th

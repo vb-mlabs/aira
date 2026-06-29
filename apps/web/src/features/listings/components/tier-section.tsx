@@ -63,6 +63,7 @@ export function TierSection({
               business={b}
               isSignedIn={isSignedIn}
               isFavorited={favIds?.has(b.id) ?? false}
+              showCategory={false}
             />
           </li>
         ))}

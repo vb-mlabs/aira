@@ -9,7 +9,7 @@
 
 import { BusinessCard } from "@/features/listings"
 import type { Business } from "@/features/listings"
-import { BusinessCtaPair } from "./business-cta-pair"
+import { BusinessCtaPair, GetListedDialog } from "./business-cta-pair"
 
 const perks = [
   {
@@ -117,10 +117,20 @@ const PREVIEW_BUSINESS: Business = {
 }
 
 function ListingCardPreview() {
+  // The preview card was previously a real BusinessCard with intact
+  // /listings/* hrefs; anonymous click would route through the (app)
+  // auth gate and dump the user at /login. Wrap in GetListedDialog +
+  // pass interactive={false} so the click opens the business signup
+  // form (the section's actual CTA) instead.
   return (
     <div className="px-2">
       <div className="mx-auto max-w-[380px]">
-        <BusinessCard business={PREVIEW_BUSINESS} />
+        <GetListedDialog
+          triggerClassName="block w-full text-left"
+          triggerAriaLabel="Get your business listed on AIRA"
+        >
+          <BusinessCard business={PREVIEW_BUSINESS} interactive={false} />
+        </GetListedDialog>
       </div>
       <p className="mt-3.5 text-center font-display text-sm italic text-brand-cream-muted">
         A listing on AIRA &mdash; verified tick, quick actions, sponsored
