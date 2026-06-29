@@ -77,6 +77,25 @@ const nextConfig = {
       },
     ]
   },
+
+  // Apex-only canonical host. The `www.` subdomain currently resolves to a
+  // third-party parking host (airabynisarga-com.l.ink); this rule ships as
+  // dormant code that activates the moment DNS for www.airabynisarga.com
+  // points at our origin. Match shape mirrors Next's documented host-based
+  // redirect — :path* preserves the requested route, permanent=true emits 301
+  // so browsers + Apple/Google verifiers cache the canonical host.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          { type: "host", value: "www.airabynisarga.com" },
+        ],
+        destination: "https://airabynisarga.com/:path*",
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig
