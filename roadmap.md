@@ -1,19 +1,21 @@
 # AIRA — Implementation Roadmap
 
-**Last updated:** 2026-06-23 (F21 push broadcasts shipped end-to-end + Expo SDK 55 → 54 downgrade for Expo Go iteration compatibility. S5 closed. EAS production rebuild required to activate push on real devices AND ship the SDK 54 native runtime.)
+**Last updated:** 2026-06-29 (`airabynisarga.com` registered + live; universal-link follow-ups shipped — AASA Content-Type pinned via next.config headers(), www → apex 301 redirect, CLAUDE.md apex-only convention. Android SHA-256 placeholder still pending Play Console App Signing fingerprint capture.)
 **Sources:** [docs/PRD.md](./docs/PRD.md) v1.0 MVP, planning session 2026-05-25, progress sync 2026-06-09, S3 close-out + F25 deferral 2026-06-13, F20 Community Board ship 2026-06-14, F17 configurable schedule + F20 v2 admin hardening 2026-06-14, S6 scope trim 2026-06-15 (AppSetting hub + F23 reframe to in-UI renewal queue), S6 in-flight 2026-06-15 (F22 + F23′ + feature image + requireAdminJSON cleanup), G1 owner reachability + community v2 + Post-on-AIRA rebrand + category drift fix shipped 2026-06-16 → 2026-06-21, listing contact-person + admin edit-categories subs + listing favorites shipped 2026-06-22, S0 EAS init shipped 2026-06-23, F21 push broadcasts shipped 2026-06-23, Expo SDK 54 downgrade shipped 2026-06-23.
 **Companion docs:** [.mstack/design-system/DESIGN.md](./.mstack/design-system/DESIGN.md) · [TODOS.md](./TODOS.md) · [FORK_CHECKLIST.md](./FORK_CHECKLIST.md)
 
 This is the living tracker. Update sprint statuses, check off features as they land, log decisions inline. Re-read it at the start of every sprint planning session.
 
-## What's pending (as of 2026-06-23)
+## What's pending (as of 2026-06-29)
 
 **Sprint 5 — ✅ Done (2026-06-23).** F14 + F17 + F20 + F20 v2 + F21 all shipped. S5 closed.
 
-**Sprint 0 — most items shipped 2026-06-23; two follow-ups outstanding:**
-- ⬜ Register `airabynisarga.com` domain (still pending — needed for live `.well-known` verification + production deploy URL)
+**Sprint 0 — almost done; two follow-ups outstanding:**
+- ✅ Register `airabynisarga.com` domain — live and resolving to Replit deploy as of 2026-06-29
 - ✅ EAS project init + Apple/Google bundle ID registration
 - ✅ Apple Team ID → filled into `.well-known/apple-app-site-association` (`C529274M9Y`)
+- ✅ AASA served with `Content-Type: application/json` via `apps/web/next.config.mjs` `headers()` rule (2026-06-29) — Apple swcd CDN already cached the file end-to-end
+- ✅ `www.airabynisarga.com/*` → apex 301 redirect wired via `next.config.mjs` `redirects()` (dormant until DNS for www catches up; CLAUDE.md apex-only convention locked alongside)
 - 🟦 Android signing-cert SHA-256 → fill into `.well-known/assetlinks.json` (deferred until Play Console App Signing fingerprint is captured)
 - 🟦 EAS production rebuild for both platforms (after F21's `expo-notifications` config-plugin add). Required before push works on real devices; `eas build --profile production --platform all` + `eas submit --profile production --platform all`. Runbook: `docs/operations/eas-build-runbook.md`.
 
@@ -25,7 +27,7 @@ This is the living tracker. Update sprint statuses, check off features as they l
 
 **Deferred to Phase 2:** F17 per-business-owner emails, business-owner self-service portals, Stripe self-serve subscriptions, masked call routing, multi-city UI. All blocked or premature for MVP.
 
-The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** F21 push broadcasts is code-complete; an EAS production rebuild + submit gets the `expo-notifications` config plugin onto real devices and closes the loop for end-to-end push. Next critical path: domain registration + S7 store submissions.
+The critical path to TestFlight is now cleared. **First AIRA iOS build is in TestFlight Internal Testing (App Store Connect App ID `6783242682`) + first Android build is in Play Console Internal Testing — both under the "AIRA by Nisarga" listing.** F21 push broadcasts is code-complete; an EAS production rebuild + submit gets the `expo-notifications` config plugin onto real devices and closes the loop for end-to-end push. `airabynisarga.com` is now live + verified end-to-end (Apple swcd cached AASA; assetlinks awaits the SHA-256 paste). Next critical path: Android SHA-256 capture from Play Console + EAS production rebuild + S7 store submissions.
 
 ---
 
@@ -645,6 +647,48 @@ unwrapped the body to a single positional arg. Learning logged.
 ### ✅ S6 — `requireAdminJSON` auth cleanup (2026-06-15)
 Six raw route handlers (gallery image upload POST, gallery image DELETE, subscription evidence POST, feature-image POST + DELETE, renewals CSV GET, cron GET) each inlined the same 3-step admin auth block (`getSessionFromHeaders` → role check → `adminSessionIsStale`). Extracted to `requireAdminJSON(req: Request): Promise<AuthSession["user"] | Response>` in `lib/auth/server.ts`, mirroring the existing `requireUserJSON()` pattern. Each route collapsed to two lines. No behaviour change — same checks, same responses. Commit `d009ea1`.
 
+### ✅ Post-S6 — Universal-link follow-ups (2026-06-29)
+Plan + review at `.mstack/plans/2026-06-29-universal-link-followups.md` /
+`.mstack/reviews/2026-06-29-universal-link-followups.md`. Bundled S0/S7
+plumbing cleanup landing after the `airabynisarga.com` domain went live
+and Apple swcd cached the AASA end-to-end. Four atomic commits:
+
+- **AASA Content-Type via `next.config.mjs` `headers()`** — Replit's
+  static-file layer was serving the extensionless apple-app-site-association
+  as `application/octet-stream` and bypassing the route handler at
+  `apps/web/src/app/.well-known/[file]/route.ts` that was designed for the
+  fix. Pinning via `headers()` for `/.well-known/:path*` keeps the file
+  served from `/public` (smallest diff) while overriding the MIME +
+  5-min cache for both AASA and assetlinks.json. Dead route handler + its
+  integration test deleted.
+- **`www.airabynisarga.com/*` → apex 301 via `next.config.mjs`
+  `redirects()`** — `www` currently resolves to a third-party parking host
+  (`airabynisarga-com.l.ink`), so the rule ships as dormant code that
+  activates the moment DNS for `www` points at our origin. Pairs with the
+  CLAUDE.md guard.
+- **CLAUDE.md apex-only convention** — new "Conventions" bullet locking
+  every outbound URL to `brand.url` (apex). Imports of the host string
+  must come from `@aira/config`. Codebase was already clean at audit
+  time (verified by grep across `packages/email/src`,
+  `packages/config/src`, `apps/web/src`, `apps/mobile/`); the rule is
+  preventive.
+- **Roadmap S0 status flip** — this entry + the "What's pending" header
+  flip from ⬜ to ✅ for the items shipped.
+
+**Carved out of this run:** the Android SHA-256 paste into
+`assetlinks.json` — depends on capturing the App Signing key fingerprint
+from Play Console, ships as a one-line human follow-up commit when the
+fingerprint is in hand. AASA `paths` widening for F25 deep-link surfaces
+stays narrow today (`/verify*`, `/reset-password*` only) and ships
+together with F25's mobile-side route handlers + EAS rebuild.
+
+**Verification:** Apple swcd CDN at
+`https://app-site-association.cdn-apple.com/a/v1/airabynisarga.com`
+returns the populated AASA pre-ship; post-deploy `curl -I` against the
+live origin will confirm the `headers()` rule overrides Replit's static
+layer. If it doesn't, revert path is `git revert` + move files out of
+`/public` (Plan B in the review's Open Questions).
+
 ### Other notable items
 - Drizzle migrations shipped since 2026-05-25: `0008` (session.last_activity_at), `0009` (user_role enum), `0011` (businesses table), `0012` (social fields), `0013` (hours + aira_review), `0014` (rating), `0015` (deleted_at + partial index), `0016` (city + category + app_setting), `0017` (membership_plan + business_subscription), `0018` (sponsorship_tier + sponsorship), `0019` (sponsorship_tier.max_slots), plus waitlist extensions.
 - Businesses stat `COUNT` bigint-as-string fix (commit `233f144`): `@neondatabase/serverless` returns `COUNT(*)` as a string; wrapped in `Number()` in `packages/services/src/businesses/queries.ts`.
@@ -657,7 +701,7 @@ Six raw route handlers (gallery image upload POST, gallery image DELETE, subscri
 
 ## Sprint 0 — Foundation & accounts (~1 week)
 
-**Status:** ✅ Done — EAS init + first signed builds + .well-known Team ID substitution all shipped 2026-06-23. Only outstanding: domain registration for `airabynisarga.com` (live link verification can't activate until it resolves) + Play Console App Signing SHA-256 (needs Internal Testing release to land first; written into `assetlinks.json` when captured).
+**Status:** ✅ Done — EAS init + first signed builds + .well-known Team ID substitution all shipped 2026-06-23. Domain `airabynisarga.com` registered + live 2026-06-29 with universal-link follow-ups (AASA Content-Type via `next.config` headers, www → apex 301 redirect, CLAUDE.md apex-only convention). Only outstanding: Play Console App Signing SHA-256 (needs Internal Testing release to land first; written into `assetlinks.json` when captured).
 
 **Project facts (locked 2026-06-09):**
 - Prod host: `airabynisarga.com`
