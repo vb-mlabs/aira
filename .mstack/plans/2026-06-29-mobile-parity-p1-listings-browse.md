@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-29
 **Slug:** 2026-06-29-mobile-parity-p1-listings-browse
-**Status:** reviewed
+**Status:** implemented
 **Author:** Claude (Opus 4.7) via `/mlabs-plan`
 
 ---
