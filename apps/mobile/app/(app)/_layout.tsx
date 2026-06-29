@@ -133,6 +133,16 @@ export default function AppLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="listings"
+          options={{
+            // Listings + business detail live under their own Stack
+            // layout (see listings/_layout.tsx). Hidden from the tab
+            // bar — the Categories tab is the entry point via
+            // router.push("/listings/<slug>").
+            href: null,
+          }}
+        />
       </Tabs>
     </>
   );

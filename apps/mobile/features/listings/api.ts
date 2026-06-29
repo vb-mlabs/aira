@@ -6,6 +6,7 @@
 
 import { apiGet } from "../../lib/api/client";
 import type {
+  Business,
   BusinessListInput,
   BusinessListOutput,
   Category,
@@ -50,4 +51,34 @@ export async function getBusinessCount(): Promise<BusinessCountResult> {
 export async function listCategories(): Promise<CategoryListResult> {
   const res = await apiGet<CategoryListResult>("/api/v1/categories");
   return res.data ?? { categories: [] };
+}
+
+/** GET /api/v1/categories/:slug — single category for the listings screen
+ *  header (and 404 detection). */
+export async function getCategoryBySlug(
+  slug: string,
+): Promise<{ category: Category } | null> {
+  try {
+    const res = await apiGet<{ category: Category }>(
+      `/api/v1/categories/${encodeURIComponent(slug)}`,
+    );
+    return res.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** GET /api/v1/businesses/:id — single business detail page. Returns null
+ *  when the row is archived or unknown. */
+export async function getBusinessById(
+  id: string,
+): Promise<{ business: Business } | null> {
+  try {
+    const res = await apiGet<{ business: Business }>(
+      `/api/v1/businesses/${encodeURIComponent(id)}`,
+    );
+    return res.data ?? null;
+  } catch {
+    return null;
+  }
 }
