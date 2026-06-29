@@ -91,6 +91,17 @@ caching + workspace filters apply.
 - **Lefthook.** Pre-commit hooks (lint-staged, typecheck) run via lefthook —
   installed automatically on `pnpm install`. Don't bypass with `--no-verify`
   unless explicitly asked.
+- **Apex-only outbound URLs.** Every outbound URL — email templates,
+  marketing copy, OAuth callbacks, share links — uses the apex
+  `brand.url` (`https://airabynisarga.com`). Never `www.`. iOS Universal
+  Links + Android App Links only verify against the apex (see
+  `apps/mobile/app.config.ts` `associatedDomains` + the `.well-known`
+  files under `apps/web/public/`), so a `www.` link silently misses the
+  app-open intent and lands users in the browser. `apps/web/next.config.mjs`
+  ships a 301 redirect from `www.airabynisarga.com/*` → apex that activates
+  the moment DNS catches up; the apex-only rule is the belt that prevents
+  drift in the meantime. Import `brand.url` from `@aira/config` — never
+  hand-type the host.
 
 ## mstack workflow (skills under `.claude/skills/`)
 
