@@ -55,6 +55,28 @@ const nextConfig = {
     "@aira/ui-web",
     "@aira/validators",
   ],
+
+  // Universal-link manifests under /public/.well-known/. The default
+  // static-file Content-Type for the extensionless apple-app-site-association
+  // file is application/octet-stream; Apple's swcd is currently lenient but
+  // the contract wants application/json. Pinning via a headers() rule keeps
+  // the file served from /public (smallest diff) while overriding the MIME
+  // for both AASA and assetlinks.json. 5-min cache matches Apple/Google's
+  // documented re-fetch cadence (verifiers re-pull on their own schedule).
+  async headers() {
+    return [
+      {
+        source: "/.well-known/:path*",
+        headers: [
+          { key: "content-type", value: "application/json" },
+          {
+            key: "cache-control",
+            value: "public, max-age=300, s-maxage=300",
+          },
+        ],
+      },
+    ]
+  },
 }
 
 export default nextConfig
