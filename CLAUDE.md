@@ -160,6 +160,58 @@ Two known gotchas — deeper notes in `.claude/memory/`:
   `git replace --graft <earliest-commit>` + `git filter-branch -- --all`. See
   [.claude/memory/replit-truncated-history.md](./.claude/memory/replit-truncated-history.md).
 
+## Expo Go on Replit
+
+Iterating on `apps/mobile` against a real phone runs through Expo Go (scan
+the QR, app loads). Two non-obvious traps on Replit you need to know about:
+
+**1. Always `EXPO_FORCE_WEBCONTAINER_ENV=1 expo start --tunnel`.** Not `expo
+start` alone, not `--tunnel` alone, not `REACT_NATIVE_PACKAGER_HOSTNAME` /
+`EXPO_PACKAGER_PROXY_URL` env vars pointing at `$REPLIT_DEV_DOMAIN` —
+none of those make Metro reachable from a phone outside the LAN. Expo CLI
+picks between two tunnel backends at runtime:
+
+- **AsyncWsTunnel** — uses `@expo/ws-tunnel`, hosted by Expo at
+  `*.boltexpo.dev`. Free, anonymous, zero config. Fires only when
+  `envIsWebcontainer()` returns true.
+- **AsyncNgrok** — uses ngrok. Anonymous tunnels were deprecated upstream,
+  so it now requires an authtoken or it crashes with this exact error:
+  `TypeError: Cannot read properties of undefined (reading 'body')` (Expo
+  CLI mis-handles ngrok's `ERR_NGROK_4018` "auth required" response).
+
+Replit isn't a webcontainer by default (`process.versions.webcontainer` is
+unset). Without the env var, Expo CLI silently falls back to ngrok →
+crash. The error message pointing at the ngrok status page is a red
+herring — ngrok isn't down, the agent just isn't authenticated. Don't
+set up an ngrok account; flip the env var.
+
+**2. Do NOT pass `--port`.** `@expo/ws-tunnel` only supports Metro's
+default 8081; `--port 8080` throws `WS_TUNNEL_PORT`. The
+`[[ports]] externalPort = 8080` mapping in `.replit` is misleading — it
+does NOT publish 8080 to the public internet, only to the workspace's
+internal sandbox. Metro must go through the tunnel for a real phone to
+reach it.
+
+**Healthy startup signal.** Console line
+`Waiting on http://<id>.boltexpo.dev` followed by the QR code. If you see
+`boltexpo.dev`, ws-tunnel is connected. If you see
+`ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL` plus the ngrok-body error, the env
+var got dropped — restore it in `.replit`'s `Expo Go (Tunnel)` workflow
+and restart.
+
+**Symptom of regression.** If `EXPO_FORCE_WEBCONTAINER_ENV=1` ever gets
+removed from `.replit`, you'll see either this crash OR phones getting
+`java.io.IOException: Failed to download remote update` when scanning the
+QR (Expo falls back to advertising an unreachable Replit URL). Don't
+waste time on ngrok auth or port mappings — put the env var back.
+
+**API base URL is a separate concern.** Even with the tunnel working, the
+app's fetch wrapper needs `EXPO_PUBLIC_API_BASE_URL` pointing at a
+publicly reachable HTTPS host (the phone can't hit `localhost:3000`). See
+`apps/mobile/.env.example` for the three-layer setup
+(`.env.local` for Expo Go, `eas.json` env for native builds,
+`.env.production.local` for OTA updates).
+
 ## When in doubt
 
 - New feature → `/mlabs-plan`, not direct edits to `apps/` or `packages/`.
