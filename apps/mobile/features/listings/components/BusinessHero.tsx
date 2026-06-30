@@ -6,6 +6,7 @@ import { brand } from "@aira/config";
 import { getCategoryMeta } from "../category-meta";
 import { RatingPill } from "./RatingPill";
 import { FavoriteHeart } from "./FavoriteHeart";
+import { TierPill } from "./TierPill";
 
 interface BusinessHeroProps {
   business: Business;
@@ -104,11 +105,12 @@ export function BusinessHero({
               ) : null}
             </View>
           </View>
-          <View className="pt-1">
+          <View className="items-end pt-1" style={{ gap: 6 }}>
             <FavoriteHeart
               businessId={business.id}
               isFavorited={isFavorited}
             />
+            <TierPill tier={business.tier} />
           </View>
         </View>
       </View>
