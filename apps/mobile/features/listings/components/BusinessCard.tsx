@@ -77,19 +77,28 @@ export function BusinessCard({
 
         {/* Identity column */}
         <View className="flex-1">
-          <View className="flex-row flex-wrap items-center" style={{ gap: 6 }}>
-            <Text className="font-display text-base leading-tight text-foreground">
-              {business.name}
-            </Text>
+          {/* Name + verified tick rendered inside a single <Text> so the tick
+              reflows inline with the text. With numberOfLines={2}, long names
+              wrap to two lines and the tick sits attached to the last word of
+              the last line — never alone on its own row. MaterialCommunityIcons
+              renders as an icon-font glyph, which Text composes natively. */}
+          <Text
+            numberOfLines={2}
+            className="font-display text-base leading-tight text-foreground"
+          >
+            {business.name}
             {business.verified ? (
-              <MaterialCommunityIcons
-                name="check-decagram"
-                size={18}
-                color={VERIFIED_BLUE_HEX}
-                accessibilityLabel="Verified"
-              />
+              <Text>
+                {" "}
+                <MaterialCommunityIcons
+                  name="check-decagram"
+                  size={16}
+                  color={VERIFIED_BLUE_HEX}
+                  accessibilityLabel="Verified"
+                />
+              </Text>
             ) : null}
-          </View>
+          </Text>
           {(showCategory ||
             (business.rating !== null && business.rating > 0)) && (
             <View
