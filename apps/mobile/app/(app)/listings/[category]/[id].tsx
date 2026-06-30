@@ -1,7 +1,9 @@
 import * as React from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Button } from "../../../../components/ui/Button";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { AboutCard } from "../../../../features/listings/components/AboutCard";
 import { AiraReviewCard } from "../../../../features/listings/components/AiraReviewCard";
@@ -11,6 +13,13 @@ import { EmptyState } from "../../../../features/listings/components/EmptyState"
 import { Gallery } from "../../../../features/listings/components/Gallery";
 import { useFavoriteIds } from "../../../../features/favorites/hooks";
 import { useBusinessDetail } from "../../../../features/listings/hooks";
+
+// Hex matches the secondaryForeground token (#301d0d) so the
+// arrow-left glyph composes against the secondary Button bg with the
+// same color as the label text. NativeWind's className → color
+// pipeline doesn't reach into @expo/vector-icons' `color` prop, so
+// we hand off a literal hex. Update if design tokens shift.
+const SECONDARY_FG_HEX = "#301d0d";
 
 /**
  * Business detail stack screen — mirrors web's
@@ -86,6 +95,27 @@ export default function BusinessDetailScreen() {
             <Gallery images={business.images} />
           </View>
         ) : null}
+        {/* Bottom Go-back affordance — matches web's
+            apps/web/src/features/listings/components/business-detail.tsx:196-204
+            shadcn Button with ArrowLeft glyph. Centered, self-width
+            (NOT fullWidth) so it reads as a control, not a CTA.
+            Additive to the Stack header chevron + iOS swipe-back /
+            Android system back — exists for users who scrolled the
+            full page and don't think to reach for the chevron. */}
+        <View className="mt-8 items-center">
+          <Button
+            variant="secondary"
+            accessibilityLabel="Go back to previous screen"
+            onPress={() => router.back()}
+          >
+            <MaterialCommunityIcons
+              name="arrow-left"
+              size={16}
+              color={SECONDARY_FG_HEX}
+            />
+            {"  Go back"}
+          </Button>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
