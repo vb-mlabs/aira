@@ -6,6 +6,7 @@ import { brand } from "@aira/config";
 import { getCategoryMeta } from "../category-meta";
 import { RatingPill } from "./RatingPill";
 import { FavoriteHeart } from "./FavoriteHeart";
+import { SocialIcons } from "./SocialIcons";
 import { TierPill } from "./TierPill";
 
 interface BusinessHeroProps {
@@ -103,6 +104,21 @@ export function BusinessHero({
                   <RatingPill rating={business.rating} />
                 </View>
               ) : null}
+            </View>
+            {/* Inline social/contact row mirroring web's detail hero
+                (apps/web/src/features/listings/components/business-detail.tsx:89).
+                Same compact ordering as the BusinessCard. Component
+                short-circuits to null when no contact fields are set,
+                so businesses without social presence don't render an
+                empty row. */}
+            <View className="mt-3">
+              <SocialIcons
+                facebook_url={business.facebook_url}
+                instagram_url={business.instagram_url}
+                whatsapp_number={business.whatsapp_number}
+                phone={business.phone}
+                website={business.website}
+              />
             </View>
           </View>
           <View className="items-end pt-1" style={{ gap: 6 }}>
