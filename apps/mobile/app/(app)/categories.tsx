@@ -10,6 +10,7 @@ export default function CategoriesScreen() {
   const active = (cats.data?.categories ?? []).filter(
     (c) => c.active !== false,
   );
+  const counts = cats.data?.counts ?? {};
 
   // Title now lives in the Tabs cream header — keep only the
   // descriptive subhead in-content. No SafeAreaView: the header
@@ -32,7 +33,11 @@ export default function CategoriesScreen() {
           data={active}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <CategoryTile slug={item.slug} name={item.name} />
+            <CategoryTile
+              slug={item.slug}
+              name={item.name}
+              count={counts[item.slug]}
+            />
           )}
           contentContainerStyle={{
             paddingHorizontal: 20,

@@ -67,3 +67,13 @@ export const CategoriesCountsOutputSchema = z.object({
   counts: z.record(z.string(), z.number().int().min(0)),
 });
 export type CategoriesCountsOutput = z.infer<typeof CategoriesCountsOutputSchema>;
+
+/** Root categories + per-slug visible-business counts in one round-trip.
+ *  Drives the mobile Categories tab (and any future client that needs
+ *  both shapes together) so HTTP callers don't have to make two requests
+ *  or fall back to in-process ops. */
+export const CategoriesRootsOutputSchema = z.object({
+  categories: z.array(CategorySchema),
+  counts: z.record(z.string(), z.number().int().min(0)),
+});
+export type CategoriesRootsOutput = z.infer<typeof CategoriesRootsOutputSchema>;

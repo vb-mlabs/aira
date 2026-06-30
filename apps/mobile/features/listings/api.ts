@@ -18,6 +18,9 @@ export interface BusinessCountResult {
 
 export interface CategoryListResult {
   categories: Category[];
+  /** Per-slug count of currently-visible businesses. Mirrors what web
+   *  renders next to each category tile (e.g. "Restaurants 47"). */
+  counts: Record<string, number>;
 }
 
 /** GET /api/v1/businesses with input as query string. Encodes optional
@@ -47,10 +50,16 @@ export async function getBusinessCount(): Promise<BusinessCountResult> {
   return res.data ?? { count: 0 };
 }
 
-/** GET /api/v1/categories — root categories for the configured city. */
+/** GET /api/v1/categories?roots=1 — root categories + per-slug counts in
+ *  one round-trip. The bare /api/v1/categories endpoint returns ONLY counts
+ *  (its default mode drives web's sidebar badge); ?roots=1 is the variant
+ *  that returns the flat root list paired with counts, which is what the
+ *  mobile Categories tab needs. See apps/web/src/app/api/v1/categories/route.ts. */
 export async function listCategories(): Promise<CategoryListResult> {
-  const res = await apiGet<CategoryListResult>("/api/v1/categories");
-  return res.data ?? { categories: [] };
+  const res = await apiGet<CategoryListResult>("/api/v1/categories", {
+    query: { roots: true },
+  });
+  return res.data ?? { categories: [], counts: {} };
 }
 
 /** GET /api/v1/categories/:slug — single category for the listings screen

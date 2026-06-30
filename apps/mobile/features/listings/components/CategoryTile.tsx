@@ -10,16 +10,24 @@ interface CategoryTileProps {
   /** DB-row name takes precedence over the curated displayName so admin
    *  edits show up. Mirrors web behavior. */
   name: string;
+  /** Visible-business count for this category. Undefined hides the chip
+   *  (so the row still renders before counts hydrate). */
+  count?: number;
 }
 
 /** Category row on the Categories tab. Tap routes to /listings/<slug>. */
-export function CategoryTile({ slug, name }: CategoryTileProps) {
+export function CategoryTile({ slug, name, count }: CategoryTileProps) {
   const meta = getCategoryMeta(slug);
+  const countLabel = typeof count === "number" ? String(count) : null;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Browse ${name} businesses`}
+      accessibilityLabel={
+        countLabel
+          ? `Browse ${name} businesses, ${countLabel} listed`
+          : `Browse ${name} businesses`
+      }
       onPress={() => {
         router.push(`/listings/${slug}` as never);
       }}
@@ -49,6 +57,11 @@ export function CategoryTile({ slug, name }: CategoryTileProps) {
               </Text>
             ) : null}
           </View>
+          {countLabel ? (
+            <Text className="text-sm font-semibold text-mutedForeground">
+              {countLabel}
+            </Text>
+          ) : null}
           <Text className="text-lg text-mutedForeground">›</Text>
         </View>
       </Card>

@@ -6,6 +6,7 @@ import { categories as categoriesService } from "@aira/services"
 import {
   CategoriesCountsInputSchema,
   CategoriesCountsOutputSchema,
+  CategoriesRootsOutputSchema,
   CategoryTreeOutputSchema,
 } from "@aira/validators/categories"
 import { z } from "zod"
@@ -32,6 +33,20 @@ export const listCategoriesOp = defineOperation({
   handler: async (db) => {
     const items = await categoriesService.getRootCategoriesForCity(db, CITY_ID)
     return { categories: items }
+  },
+})
+
+export const listCategoriesRootsOp = defineOperation({
+  name: "categories.listRoots",
+  input: z.object({}),
+  output: CategoriesRootsOutputSchema,
+  permission: "user",
+  handler: async (db) => {
+    const [items, counts] = await Promise.all([
+      categoriesService.getRootCategoriesForCity(db, CITY_ID),
+      categoriesService.getBusinessCountsByCategory(db),
+    ])
+    return { categories: items, counts }
   },
 })
 
