@@ -1,6 +1,5 @@
 import * as React from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { CategoryTile } from "../../features/listings/components/CategoryTile";
 import { EmptyState } from "../../features/listings/components/EmptyState";
@@ -12,16 +11,13 @@ export default function CategoriesScreen() {
     (c) => c.active !== false,
   );
 
+  // Title now lives in the Tabs cream header — keep only the
+  // descriptive subhead in-content. No SafeAreaView: the header
+  // owns the top inset, the tab bar owns the bottom.
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="px-5 pt-6">
-        <Text
-          accessibilityRole="header"
-          className="font-display text-3xl font-bold text-foreground"
-        >
-          Categories
-        </Text>
-        <Text className="mt-1 text-sm text-mutedForeground">
+    <View className="flex-1 bg-background">
+      <View className="px-5 pt-4">
+        <Text className="text-sm text-mutedForeground">
           Browse Atlanta&apos;s Indian businesses by category.
         </Text>
       </View>
@@ -60,6 +56,6 @@ export default function CategoriesScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }

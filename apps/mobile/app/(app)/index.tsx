@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Image, RefreshControl, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { brand } from "@aira/config";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { BusinessCard } from "../../features/listings/components/BusinessCard";
@@ -44,8 +43,10 @@ export default function HomeScreen() {
   const bizCountDisplay = bizCount > 0 ? `${bizCount}+` : "—";
   const featuredItems = featured.data?.items ?? [];
 
+  // No SafeAreaView — the Tabs navigator's cream header handles the
+  // top inset and the tab bar handles the bottom inset on this screen.
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <View className="flex-1 bg-background">
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 32 }}
         refreshControl={
@@ -135,6 +136,6 @@ export default function HomeScreen() {
           </View>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

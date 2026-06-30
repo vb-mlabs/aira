@@ -79,7 +79,15 @@ export default function AppLayout() {
       />
       <Tabs
         screenOptions={{
-          headerShown: false,
+          // Default ON so plain-screen tabs (Home, Categories) inherit
+          // the cream header chrome. Post + Account override to OFF
+          // below because their Stack children render their own header
+          // — leaving headerShown true there would double-stack a
+          // Tabs header on top of the Stack header.
+          headerShown: true,
+          headerStyle: { backgroundColor: "#EAE0CB" },
+          headerTintColor: "#3D2814",
+          headerTitleStyle: { fontWeight: "600" },
           tabBarShowLabel: true,
           tabBarLabelStyle: { fontSize: 11 },
           // Cream bg + dark-brown active tint mirror the Post/Listings
@@ -118,6 +126,8 @@ export default function AppLayout() {
         <Tabs.Screen
           name="post"
           options={{
+            // post/_layout.tsx is a Stack — let it render the header.
+            headerShown: false,
             title: "Post",
             tabBarAccessibilityLabel: "Post tab",
             tabBarIcon: ({ focused }) => (
@@ -128,6 +138,8 @@ export default function AppLayout() {
         <Tabs.Screen
           name="account"
           options={{
+            // account/_layout.tsx is a Stack — let it render the header.
+            headerShown: false,
             title: "Account",
             tabBarAccessibilityLabel: "Account tab",
             tabBarIcon: ({ focused }) => (
