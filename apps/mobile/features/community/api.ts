@@ -4,11 +4,12 @@
 // CreateCommentOutputSchema from @aira/validators; the route handler
 // validates with Zod at the server boundary, so we don't re-parse here.
 
-import { apiGet, apiPost } from "../../lib/api/client";
+import { apiDelete, apiGet, apiPatch, apiPost } from "../../lib/api/client";
 import type {
   AdminPostRow,
   CreateCommentInput,
   CreatePostInput,
+  EditMyPostInput,
   GetPostOutput,
   ListCommentsOutput,
   ListPostsInput,
@@ -94,4 +95,26 @@ export async function listMyCommunityPosts(): Promise<{ items: AdminPostRow[] }>
     "/api/v1/community/my-posts",
   );
   return res.data ?? { items: [] };
+}
+
+/** PATCH /api/v1/community/posts/{id} — author edits own post. Approved
+ *  posts revert to pending status server-side (F20 v2 review decision).
+ *  Caller should always send body as a string or undefined — NEVER null
+ *  (null clears the body; we don't want that).
+ *  Returns the AdminPostRow shape (matches the wire output schema
+ *  EditPostOutputSchema). */
+export async function editMyCommunityPost(
+  input: EditMyPostInput,
+): Promise<{ post: AdminPostRow }> {
+  const { id, ...patch } = input;
+  return apiPatch<{ post: AdminPostRow }>(
+    `/api/v1/community/posts/${encodeURIComponent(id)}`,
+    patch,
+  );
+}
+
+/** DELETE /api/v1/community/posts/{id} — author deletes own post.
+ *  Cascades through post_interest + community_comment on the server. */
+export async function deleteMyCommunityPost(id: string): Promise<void> {
+  await apiDelete(`/api/v1/community/posts/${encodeURIComponent(id)}`);
 }

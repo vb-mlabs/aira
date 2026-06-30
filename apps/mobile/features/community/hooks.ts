@@ -7,6 +7,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import {
   createCommunityComment,
   createCommunityPost,
+  deleteMyCommunityPost,
+  editMyCommunityPost,
   getCommunityPost,
   listCommunityComments,
   listCommunityPosts,
@@ -16,6 +18,7 @@ import { useMe } from "../auth/hooks";
 import type {
   CreateCommentInput,
   CreatePostInput,
+  EditMyPostInput,
   ListCommentsOutput,
 } from "@aira/validators";
 
@@ -137,5 +140,34 @@ export function useMyCommunityPosts() {
     queryKey: ["community", "my-posts"],
     queryFn: listMyCommunityPosts,
     staleTime: 60_000,
+  });
+}
+
+/** Edit your own community post. On success invalidates both the
+ *  /account/posts list and the public detail cache (in case the user
+ *  opens the public view next). Server reverts approved posts to
+ *  pending status on any edit — caller's "Edits sent for moderation"
+ *  toast carries that expectation. */
+export function useEditMyPost(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: EditMyPostInput) => editMyCommunityPost(input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["community", "my-posts"] });
+      void qc.invalidateQueries({ queryKey: ["community", "post", postId] });
+    },
+  });
+}
+
+/** Delete your own community post. Cascades through post_interest +
+ *  community_comment server-side. Invalidates the my-posts list. */
+export function useDeleteMyPost(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => deleteMyCommunityPost(postId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["community", "my-posts"] });
+      void qc.removeQueries({ queryKey: ["community", "post", postId] });
+    },
   });
 }
