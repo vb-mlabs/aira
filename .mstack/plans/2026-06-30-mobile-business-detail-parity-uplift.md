@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-30
 **Slug:** 2026-06-30-mobile-business-detail-parity-uplift
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk (via /mlabs-plan)
 
 ---
