@@ -23,15 +23,12 @@ interface CategoryTileProps {
   /** Visible-business count for this category. Undefined hides the chip
    *  (so the row still renders before counts hydrate). */
   count?: number;
-  /** When true, tapping drills into the sub-cat picker at
-   *  /categories/<slug>; when false, jumps straight to /listings/<slug>.
-   *  Lets roots with no children skip the empty sub-page. */
-  hasSubs?: boolean;
 }
 
-/** Category row on the Categories tab. Tap routes to either the sub-cat
- *  picker (if hasSubs) or directly to the listings screen. */
-export function CategoryTile({ slug, name, count, hasSubs }: CategoryTileProps) {
+/** Category row on the Categories tab. Tap always routes to
+ *  /listings/<slug>; the listings screen exposes a sub-category picker
+ *  in a bottom sheet for roots that have children. */
+export function CategoryTile({ slug, name, count }: CategoryTileProps) {
   const meta = getCategoryMeta(slug);
   const countLabel = typeof count === "number" ? String(count) : null;
 
@@ -44,11 +41,7 @@ export function CategoryTile({ slug, name, count, hasSubs }: CategoryTileProps) 
           : `Browse ${name} businesses`
       }
       onPress={() => {
-        if (hasSubs) {
-          router.push(`/categories/${slug}` as never);
-        } else {
-          router.push(`/listings/${slug}` as never);
-        }
+        router.push(`/listings/${slug}` as never);
       }}
     >
       <View

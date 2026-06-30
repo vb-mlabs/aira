@@ -12,7 +12,6 @@ export default function CategoriesScreen() {
     (c) => c.active !== false,
   );
   const counts = cats.data?.counts ?? {};
-  const subsByRoot = cats.data?.subsByRoot ?? {};
 
   return (
     <View className="flex-1 bg-background">
@@ -37,7 +36,6 @@ export default function CategoriesScreen() {
               slug={item.slug}
               name={item.name}
               count={counts[item.slug]}
-              hasSubs={(subsByRoot[item.id]?.length ?? 0) > 0}
             />
           )}
           contentContainerStyle={{

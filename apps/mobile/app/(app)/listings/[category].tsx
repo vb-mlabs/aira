@@ -6,14 +6,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
+import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
 import { VerifiedFilterChip } from "../../../features/listings/components/VerifiedFilterChip";
 import { useFavoriteIds } from "../../../features/favorites/hooks";
 import {
+  useCategories,
   useCategory,
   useListings,
 } from "../../../features/listings/hooks";
@@ -30,11 +32,38 @@ export default function CategoryListingScreen() {
   const slug = typeof params.category === "string" ? params.category : undefined;
 
   const cat = useCategory(slug);
+  const cats = useCategories();
   const favIds = useFavoriteIds();
   const [q, setQ] = React.useState("");
   const [verified, setVerified] = React.useState(false);
 
   const list = useListings({ category: slug, q, verified });
+
+  // Resolve the parent root for the picker pill. If `slug` is a root
+  // with subs, picker shows "All <Root>" + each sub. If `slug` is a sub,
+  // we walk subsByRoot to find which root owns it and show its siblings
+  // (sub-to-sub navigation without bouncing back to /categories). If
+  // neither (root with no subs, or unknown slug), picker is hidden.
+  const pickerData = React.useMemo(() => {
+    const rootList = cats.data?.categories ?? [];
+    const subsByRoot = cats.data?.subsByRoot ?? {};
+    if (!slug) return null;
+
+    const rootMatch = rootList.find((c) => c.slug === slug);
+    if (rootMatch) {
+      const subs = subsByRoot[rootMatch.id] ?? [];
+      return subs.length > 0 ? { root: rootMatch, subs } : null;
+    }
+    for (const [rootId, subList] of Object.entries(subsByRoot)) {
+      if (subList.some((s) => s.slug === slug)) {
+        const owner = rootList.find((c) => c.id === rootId);
+        return owner ? { root: owner, subs: subList } : null;
+      }
+    }
+    return null;
+  }, [cats.data, slug]);
+
+  const counts = cats.data?.counts ?? {};
 
   const pages = list.data?.pages ?? [];
   const items = pages.flatMap((p) => p.items);
@@ -66,11 +95,25 @@ export default function CategoryListingScreen() {
       {/* Controls */}
       <View className="px-5 pt-3" style={{ gap: 12 }}>
         <SearchBar value={q} onChange={setQ} />
-        <View className="flex-row" style={{ gap: 8 }}>
+        <View className="flex-row items-center" style={{ gap: 8 }}>
           <VerifiedFilterChip
             active={verified}
             onToggle={() => setVerified((v) => !v)}
           />
+          {pickerData && slug ? (
+            <SubcategoryPicker
+              root={pickerData.root}
+              subs={pickerData.subs}
+              currentSlug={slug}
+              counts={counts}
+              // replace, not push — sub-to-sub navigation shouldn't
+              // pile up on the back stack. One Back press from any
+              // sub returns to Categories, not the previous sub.
+              onSelect={(nextSlug) =>
+                router.replace(`/listings/${nextSlug}` as never)
+              }
+            />
+          ) : null}
         </View>
       </View>
 
