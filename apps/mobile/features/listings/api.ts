@@ -56,8 +56,12 @@ export async function getBusinessCount(): Promise<BusinessCountResult> {
  *  that returns the flat root list paired with counts, which is what the
  *  mobile Categories tab needs. See apps/web/src/app/api/v1/categories/route.ts. */
 export async function listCategories(): Promise<CategoryListResult> {
+  // Numeric 1 (not boolean true) because the route handler checks
+  // `params.get("roots") === "1"` and apiGet stringifies booleans
+  // as "true"/"false", which would silently miss the branch and fall
+  // through to the default counts-only response.
   const res = await apiGet<CategoryListResult>("/api/v1/categories", {
-    query: { roots: true },
+    query: { roots: 1 },
   });
   return res.data ?? { categories: [], counts: {} };
 }
