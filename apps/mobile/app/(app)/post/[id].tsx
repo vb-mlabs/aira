@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
+import { CommentThread } from "../../../features/community/components/CommentThread";
 import { ContactReveal } from "../../../features/community/components/ContactReveal";
 import { PostStatusBanner } from "../../../features/community/components/PostStatusBanner";
 import { ReportButton } from "../../../features/community/components/ReportButton";
@@ -89,7 +90,13 @@ export default function PostDetailScreen() {
           <ReportButton kind="post" id={post.id} />
         </View>
 
-        {/* T5 will mount the comment thread + composer below here. */}
+        {/* Threaded comments. Composer pinned at top; oldest below. */}
+        <View className="mt-8">
+          <CommentThread
+            postId={post.id}
+            acceptsComments={post.status === "approved"}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

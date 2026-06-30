@@ -11,9 +11,11 @@ import {
   listCommunityComments,
   listCommunityPosts,
 } from "./api";
+import { useMe } from "../auth/hooks";
 import type {
   CreateCommentInput,
   CreatePostInput,
+  ListCommentsOutput,
 } from "@aira/validators";
 
 const POSTS_PAGE_SIZE = 12;
@@ -69,16 +71,59 @@ export function useCreatePost() {
   });
 }
 
-/** Create a comment (or reply when parent_id is set). Invalidates the
- *  thread to reconcile after the optimistic append. */
+/** Create a comment (or reply when parent_id is set). Optimistic: the new
+ *  comment is appended to the local cache before the request returns so
+ *  the user sees their text immediately; on success we invalidate the
+ *  thread to reconcile against the server's authoritative shape, on
+ *  error we roll back to the pre-mutate snapshot.
+ *
+ *  Top-level comments get appended at the END of items (oldest-first
+ *  display puts the newest at the bottom). Replies nest under the
+ *  parent's `replies` array — the 1-level reply cap is enforced
+ *  server-side. */
 export function useCreateComment(postId: string) {
   const qc = useQueryClient();
+  const me = useMe();
+  const queryKey = ["community", "comments", postId] as const;
+
   return useMutation({
     mutationFn: (input: CreateCommentInput) => createCommunityComment(input),
-    onSuccess: () => {
-      void qc.invalidateQueries({
-        queryKey: ["community", "comments", postId],
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData<ListCommentsOutput>(queryKey);
+
+      const temp = {
+        id: `temp-${Date.now()}`,
+        post_id: postId,
+        parent_id: input.parent_id ?? null,
+        user_id: me.data?.id ?? null,
+        user_name: me.data?.name ?? null,
+        body: input.body,
+        status: "visible" as const,
+        created_at: new Date().toISOString(),
+      };
+
+      qc.setQueryData<ListCommentsOutput>(queryKey, (old) => {
+        if (!old) return { items: [{ ...temp, replies: [] }] };
+        if (input.parent_id) {
+          return {
+            items: old.items.map((node) =>
+              node.id === input.parent_id
+                ? { ...node, replies: [...node.replies, temp] }
+                : node,
+            ),
+          };
+        }
+        return { items: [...old.items, { ...temp, replies: [] }] };
       });
+
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey });
     },
   });
 }
