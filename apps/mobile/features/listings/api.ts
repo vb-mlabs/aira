@@ -19,8 +19,13 @@ export interface BusinessCountResult {
 export interface CategoryListResult {
   categories: Category[];
   /** Per-slug count of currently-visible businesses. Mirrors what web
-   *  renders next to each category tile (e.g. "Restaurants 47"). */
+   *  renders next to each category tile (e.g. "Restaurants 47"). Keyed
+   *  by slug so both root + sub counts live in the same map. */
   counts: Record<string, number>;
+  /** Sub-categories grouped by their parent root's `id`. Roots with no
+   *  subs are absent from the map (treat as `[]`). Lets the tile know
+   *  whether to drill into a sub-cat picker or go straight to listings. */
+  subsByRoot: Record<string, Category[]>;
 }
 
 /** GET /api/v1/businesses with input as query string. Encodes optional
@@ -63,7 +68,7 @@ export async function listCategories(): Promise<CategoryListResult> {
   const res = await apiGet<CategoryListResult>("/api/v1/categories", {
     query: { roots: 1 },
   });
-  return res.data ?? { categories: [], counts: {} };
+  return res.data ?? { categories: [], counts: {}, subsByRoot: {} };
 }
 
 /** GET /api/v1/categories/:slug — single category for the listings screen

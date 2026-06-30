@@ -1,9 +1,10 @@
 import * as React from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
-import { Skeleton } from "../../components/ui/Skeleton";
-import { CategoryTile } from "../../features/listings/components/CategoryTile";
-import { EmptyState } from "../../features/listings/components/EmptyState";
-import { useCategories } from "../../features/listings/hooks";
+import { Stack } from "expo-router";
+import { Skeleton } from "../../../components/ui/Skeleton";
+import { CategoryTile } from "../../../features/listings/components/CategoryTile";
+import { EmptyState } from "../../../features/listings/components/EmptyState";
+import { useCategories } from "../../../features/listings/hooks";
 
 export default function CategoriesScreen() {
   const cats = useCategories();
@@ -11,12 +12,11 @@ export default function CategoriesScreen() {
     (c) => c.active !== false,
   );
   const counts = cats.data?.counts ?? {};
+  const subsByRoot = cats.data?.subsByRoot ?? {};
 
-  // Title now lives in the Tabs cream header — keep only the
-  // descriptive subhead in-content. No SafeAreaView: the header
-  // owns the top inset, the tab bar owns the bottom.
   return (
     <View className="flex-1 bg-background">
+      <Stack.Screen options={{ title: "Categories" }} />
       <View className="px-5 pt-4">
         <Text className="text-sm text-mutedForeground">
           Browse Atlanta&apos;s Indian businesses by category.
@@ -37,6 +37,7 @@ export default function CategoriesScreen() {
               slug={item.slug}
               name={item.name}
               count={counts[item.slug]}
+              hasSubs={(subsByRoot[item.id]?.length ?? 0) > 0}
             />
           )}
           contentContainerStyle={{

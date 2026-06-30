@@ -116,6 +116,10 @@ export default function AppLayout() {
         <Tabs.Screen
           name="categories"
           options={{
+            // categories/_layout.tsx is now a Stack — let it render the
+            // header so the sub-cat drill-down screen gets back-nav
+            // without doubling up the cream bar.
+            headerShown: false,
             title: "Categories",
             tabBarAccessibilityLabel: "Categories tab",
             tabBarIcon: ({ focused }) => (

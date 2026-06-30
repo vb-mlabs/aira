@@ -68,12 +68,19 @@ export const CategoriesCountsOutputSchema = z.object({
 });
 export type CategoriesCountsOutput = z.infer<typeof CategoriesCountsOutputSchema>;
 
-/** Root categories + per-slug visible-business counts in one round-trip.
- *  Drives the mobile Categories tab (and any future client that needs
- *  both shapes together) so HTTP callers don't have to make two requests
- *  or fall back to in-process ops. */
+/** Root categories + per-slug visible-business counts + sub-cats grouped
+ *  by root_id in one round-trip. Drives the mobile Categories tab (and
+ *  any future client that needs the shape together) so HTTP callers
+ *  don't have to make multiple requests or fall back to in-process ops.
+ *
+ *  - `categories` — active level-1 (root) rows for the city
+ *  - `counts`     — per-slug visible-business counts (both root + sub)
+ *  - `subsByRoot` — active level-2 rows keyed by their parent root's
+ *                   `id`. Roots with no subs are absent from the map
+ *                   (clients should default to `[]`). */
 export const CategoriesRootsOutputSchema = z.object({
   categories: z.array(CategorySchema),
   counts: z.record(z.string(), z.number().int().min(0)),
+  subsByRoot: z.record(z.string(), z.array(CategorySchema)),
 });
 export type CategoriesRootsOutput = z.infer<typeof CategoriesRootsOutputSchema>;

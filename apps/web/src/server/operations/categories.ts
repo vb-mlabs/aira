@@ -42,11 +42,24 @@ export const listCategoriesRootsOp = defineOperation({
   output: CategoriesRootsOutputSchema,
   permission: "user",
   handler: async (db) => {
-    const [items, counts] = await Promise.all([
-      categoriesService.getRootCategoriesForCity(db, CITY_ID),
+    // Fetch the full tree once + counts in parallel. The tree already
+    // partitions roots from their children, so we can derive both
+    // `categories` (active roots) and `subsByRoot` from the same query
+    // without a second round-trip. Roots with no children are simply
+    // absent from subsByRoot.
+    const [tree, counts] = await Promise.all([
+      categoriesService.getCategoryTree(db, CITY_ID),
       categoriesService.getBusinessCountsByCategory(db),
     ])
-    return { categories: items, counts }
+    const categories = tree
+      .map((t) => t.root)
+      .filter((root) => root.active)
+    const subsByRoot: Record<string, typeof tree[number]["children"]> = {}
+    for (const { root, children } of tree) {
+      const active = children.filter((c) => c.active)
+      if (active.length > 0) subsByRoot[root.id] = active
+    }
+    return { categories, counts, subsByRoot }
   },
 })
 
