@@ -126,14 +126,6 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
-          name="notifications"
-          options={{
-            // Hide from the tab bar but keep the route navigable via
-            // push-tap deep-links and (future) bell-icon in P2.
-            href: null,
-          }}
-        />
-        <Tabs.Screen
           name="listings"
           options={{
             // Listings + business detail live under their own Stack

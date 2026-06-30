@@ -3,14 +3,25 @@ import { FlatList, Pressable, Text, View } from "react-native";
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { brand } from "@aira/config";
-import { Skeleton } from "../../components/ui/Skeleton";
-import { useToast } from "../../components/ui/Toast";
-import { EmptyNotificationsIllustration } from "../../lib/illustrations/empty-notifications";
+import { Skeleton } from "../../../components/ui/Skeleton";
+import { useToast } from "../../../components/ui/Toast";
+import { EmptyNotificationsIllustration } from "../../../lib/illustrations/empty-notifications";
 import {
   useNotifications,
   useMarkAllRead,
-} from "../../features/notifications/hooks";
-import type { NotificationRow } from "../../features/notifications/api";
+} from "../../../features/notifications/hooks";
+import type { NotificationRow } from "../../../features/notifications/api";
+
+/**
+ * Moved from apps/mobile/app/(app)/notifications.tsx in P2c T2. The
+ * old path was orphaned in P1 (registered as a hidden Tabs.Screen
+ * with href:null after the messages-tab cleanup); P2c gives it its
+ * home under the Account hub.
+ *
+ * NOTE for P3 push deep-link routing: tap a notification → land at
+ * /account/notifications, NOT the old /notifications path. The old
+ * path no longer resolves.
+ */
 
 /** Resolve the row's body to a short display string. The wire shape is a
  *  discriminated union (generic | message | post_interest | post_comment);
@@ -120,7 +131,7 @@ export default function NotificationsScreen() {
             <EmptyNotificationsIllustration size={160} />
           </View>
           <Text className="mt-4 text-lg font-semibold text-foreground">
-            You're all caught up.
+            You&apos;re all caught up.
           </Text>
         </View>
       ) : (
