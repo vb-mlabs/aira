@@ -30,6 +30,9 @@ interface HubRowProps {
   onPress: () => void;
   destructive?: boolean;
   accessibilityHint?: string;
+  /** Last row in a group drops the bottom hairline so the trailing
+   *  divider doesn't bleed below the rounded card corner. */
+  isLast?: boolean;
 }
 
 function HubRow({
@@ -38,6 +41,7 @@ function HubRow({
   onPress,
   destructive,
   accessibilityHint,
+  isLast,
 }: HubRowProps) {
   return (
     <Pressable
@@ -45,7 +49,11 @@ function HubRow({
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       onPress={onPress}
-      className="flex-row items-center border-b border-border bg-card px-4"
+      className={
+        isLast
+          ? "flex-row items-center bg-card px-4"
+          : "flex-row items-center border-b border-border bg-card px-4"
+      }
       style={{ minHeight: 60, gap: 14 }}
     >
       <MaterialCommunityIcons
@@ -84,8 +92,11 @@ export default function AccountScreen() {
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ title: "Account" }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-        {/* Avatar header — preserved byte-for-byte from P2b */}
-        <View className="items-center px-6 pt-6">
+        {/* Avatar header — px-5 unifies gutter with every other tab
+            (Home, Categories, Listings) and matches the inset row
+            groups below. Avatar circle is centered so the gutter
+            shift only affects name/email text width. */}
+        <View className="items-center px-5 pt-6">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Change avatar"
@@ -142,8 +153,11 @@ export default function AccountScreen() {
 
         {/* 7 sub-page rows in locked order: Favorites → My Listings →
             My Posts → Notifications → Privacy & Security → Terms →
-            About */}
-        <View className="mt-6 overflow-hidden">
+            About. mx-5 mirrors the 20pt gutter every other tab uses
+            (Home, Categories, Listings); rounded-xl + overflow-hidden
+            clips the inner row borders so the group reads as one
+            card with internal hairline dividers. */}
+        <View className="mx-5 mt-6 overflow-hidden rounded-xl">
           <HubRow
             icon="heart-outline"
             label="Favorites"
@@ -184,11 +198,13 @@ export default function AccountScreen() {
             icon="information-outline"
             label="About"
             onPress={() => router.push("/account/about" as never)}
+            isLast
           />
         </View>
 
-        {/* Destructive actions at the bottom — preserved from P2b */}
-        <View className="mt-6 overflow-hidden">
+        {/* Destructive actions at the bottom — same gutter + card
+            grouping as the sub-page list above. */}
+        <View className="mx-5 mt-6 overflow-hidden rounded-xl">
           <HubRow
             icon="logout"
             label="Sign out"
@@ -201,6 +217,7 @@ export default function AccountScreen() {
             onPress={() => setShowDelete(true)}
             destructive
             accessibilityHint="Permanently deletes your account and data"
+            isLast
           />
         </View>
       </ScrollView>
