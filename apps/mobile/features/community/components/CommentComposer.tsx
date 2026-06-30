@@ -58,16 +58,22 @@ export function CommentComposer({
     }
   }
 
+  // Placeholders + character counter + button labels mirror web's
+  // comment-composer.tsx so the experience matches across surfaces.
+  const placeholder = parentId
+    ? "Write a reply…"
+    : "Share your thoughts or ask a question…";
+  const buttonLabel = parentId ? "Reply" : "Comment";
+
   return (
     <View style={{ gap: compact ? 6 : 8 }}>
       <Input
-        placeholder={parentId ? "Write a reply…" : "Write a comment…"}
+        placeholder={placeholder}
         value={body}
         onChangeText={setBody}
         maxLength={COMMENT_MAX}
         multiline
         numberOfLines={compact ? 2 : 3}
-        textAlignVertical="top"
         accessibilityHint={`Optional reply input. Max ${COMMENT_MAX} characters.`}
       />
       {error ? (
@@ -75,7 +81,13 @@ export function CommentComposer({
           {error}
         </Text>
       ) : null}
-      <View className="flex-row justify-end">
+      <View
+        className="flex-row items-center justify-between"
+        style={{ gap: 8 }}
+      >
+        <Text className="text-xs text-mutedForeground">
+          {body.length} / {COMMENT_MAX}
+        </Text>
         <Button
           size={compact ? "sm" : "md"}
           onPress={onSubmit}
@@ -83,7 +95,7 @@ export function CommentComposer({
           loading={pending}
           accessibilityLabel={parentId ? "Post reply" : "Post comment"}
         >
-          {parentId ? "Reply" : "Post comment"}
+          {buttonLabel}
         </Button>
       </View>
     </View>

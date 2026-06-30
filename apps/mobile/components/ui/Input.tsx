@@ -41,11 +41,12 @@ export const Input = React.forwardRef<TextInput, InputProps>(function Input(
   },
   ref
 ) {
-  // Estimate a sensible default minHeight for multi-line use: line
-  // height ~22pt × numberOfLines + padding. Caller can override via
-  // numberOfLines prop.
+  // Sensible default minHeight for multi-line use: line height ~22pt ×
+  // numberOfLines + padding. Caller-driven via numberOfLines so a 2-row
+  // reply composer doesn't tower over the surrounding thread. Default
+  // is 5 rows (~126pt) when numberOfLines isn't passed.
   const multilineMinHeight = multiline
-    ? Math.max((numberOfLines ?? 5) * 22 + 16, 120)
+    ? (numberOfLines ?? 5) * 22 + 16
     : undefined;
 
   return (
