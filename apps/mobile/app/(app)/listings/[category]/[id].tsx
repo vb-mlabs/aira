@@ -9,6 +9,7 @@ import { BusinessHero } from "../../../../features/listings/components/BusinessH
 import { ContactCard } from "../../../../features/listings/components/ContactCard";
 import { EmptyState } from "../../../../features/listings/components/EmptyState";
 import { Gallery } from "../../../../features/listings/components/Gallery";
+import { useFavoriteIds } from "../../../../features/favorites/hooks";
 import { useBusinessDetail } from "../../../../features/listings/hooks";
 
 /**
@@ -26,6 +27,7 @@ export default function BusinessDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const id = typeof params.id === "string" ? params.id : undefined;
   const detail = useBusinessDetail(id);
+  const favIds = useFavoriteIds();
 
   const business = detail.data?.business ?? null;
   const headerTitle = business?.name ?? "";
@@ -70,7 +72,10 @@ export default function BusinessDetailScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        <BusinessHero business={business} />
+        <BusinessHero
+          business={business}
+          isFavorited={favIds.data?.has(business.id) ?? false}
+        />
         <View className="mt-5 px-5" style={{ gap: 12 }}>
           <AboutCard description={business.description} />
           <ContactCard business={business} />

@@ -5,6 +5,7 @@ import { brand } from "@aira/config";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { BusinessCard } from "../../features/listings/components/BusinessCard";
 import { StatCard } from "../../features/listings/components/StatCard";
+import { useFavoriteIds } from "../../features/favorites/hooks";
 import {
   useBusinessCount,
   useFeatured,
@@ -30,6 +31,7 @@ const TAGLINE_CAPTION = brand.tagline.split(" & ").join(" · ");
 export default function HomeScreen() {
   const featured = useFeatured();
   const count = useBusinessCount();
+  const favIds = useFavoriteIds();
 
   const onRefresh = React.useCallback(() => {
     void featured.refetch();
@@ -116,7 +118,11 @@ export default function HomeScreen() {
             </View>
             <View className="mt-4" style={{ gap: 12 }}>
               {featuredItems.map((business) => (
-                <BusinessCard key={business.id} business={business} />
+                <BusinessCard
+                  key={business.id}
+                  business={business}
+                  isFavorited={favIds.data?.has(business.id) ?? false}
+                />
               ))}
             </View>
           </View>

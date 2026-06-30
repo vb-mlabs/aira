@@ -136,7 +136,10 @@ export function BusinessCard({
 
         {/* Action column */}
         <View className="items-end justify-between" style={{ gap: 6 }}>
-          <FavoriteHeart isFavorited={isFavorited} />
+          <FavoriteHeart
+            businessId={business.id}
+            isFavorited={isFavorited}
+          />
           <View className="rounded-full bg-primary px-2.5 py-1">
             <Text className="text-[10px] font-bold uppercase tracking-wide text-primaryForeground">
               More Info

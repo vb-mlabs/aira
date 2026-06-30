@@ -9,6 +9,10 @@ import { FavoriteHeart } from "./FavoriteHeart";
 
 interface BusinessHeroProps {
   business: Business;
+  /** Resolved by the detail screen from useFavoriteIds(). Defaults
+   *  false so callers that don't yet pipe the Set through render the
+   *  heart as outline (no breakage). */
+  isFavorited?: boolean;
 }
 
 // Same constants as BusinessCard — NativeWind doesn't reach into
@@ -24,7 +28,10 @@ const HERO_PLACEHOLDER_BG = "#e1d6c2";
  *  category label, AIRA Stars rating row. P1 ships a placeholder
  *  background when image_url is null; P3 may swap to expo-image with
  *  a blur-up. */
-export function BusinessHero({ business }: BusinessHeroProps) {
+export function BusinessHero({
+  business,
+  isFavorited = false,
+}: BusinessHeroProps) {
   const category = getCategoryMeta(business.category);
 
   return (
@@ -98,7 +105,10 @@ export function BusinessHero({ business }: BusinessHeroProps) {
             </View>
           </View>
           <View className="pt-1">
-            <FavoriteHeart />
+            <FavoriteHeart
+              businessId={business.id}
+              isFavorited={isFavorited}
+            />
           </View>
         </View>
       </View>

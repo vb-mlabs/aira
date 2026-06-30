@@ -12,6 +12,7 @@ import { BusinessCard } from "../../../features/listings/components/BusinessCard
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { VerifiedFilterChip } from "../../../features/listings/components/VerifiedFilterChip";
+import { useFavoriteIds } from "../../../features/favorites/hooks";
 import {
   useCategory,
   useListings,
@@ -29,6 +30,7 @@ export default function CategoryListingScreen() {
   const slug = typeof params.category === "string" ? params.category : undefined;
 
   const cat = useCategory(slug);
+  const favIds = useFavoriteIds();
   const [q, setQ] = React.useState("");
   const [verified, setVerified] = React.useState(false);
 
@@ -84,7 +86,11 @@ export default function CategoryListingScreen() {
           data={items}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <BusinessCard business={item} showCategory={false} />
+            <BusinessCard
+              business={item}
+              showCategory={false}
+              isFavorited={favIds.data?.has(item.id) ?? false}
+            />
           )}
           contentContainerStyle={{
             paddingHorizontal: 20,
