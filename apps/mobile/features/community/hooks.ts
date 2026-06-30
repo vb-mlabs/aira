@@ -10,6 +10,7 @@ import {
   getCommunityPost,
   listCommunityComments,
   listCommunityPosts,
+  listMyCommunityPosts,
 } from "./api";
 import { useMe } from "../auth/hooks";
 import type {
@@ -125,5 +126,16 @@ export function useCreateComment(postId: string) {
     onSettled: () => {
       void qc.invalidateQueries({ queryKey });
     },
+  });
+}
+
+/** Author's own community posts — drives /account/posts. Includes
+ *  pending / rejected / expired rows that the public board op
+ *  filters out. */
+export function useMyCommunityPosts() {
+  return useQuery({
+    queryKey: ["community", "my-posts"],
+    queryFn: listMyCommunityPosts,
+    staleTime: 60_000,
   });
 }

@@ -6,6 +6,7 @@
 
 import { apiGet, apiPost } from "../../lib/api/client";
 import type {
+  AdminPostRow,
   CreateCommentInput,
   CreatePostInput,
   GetPostOutput,
@@ -82,4 +83,15 @@ export async function createCommunityComment(
     `/api/v1/community/posts/${encodeURIComponent(input.id)}/comments`,
     input,
   );
+}
+
+/** GET /api/v1/community/my-posts — author's own posts regardless of
+ *  status. Returns the AdminPostRow shape (with rejected_reason +
+ *  user_id + admin fields) since the author sees their own
+ *  rejection reasons. Powers /account/posts on mobile. */
+export async function listMyCommunityPosts(): Promise<{ items: AdminPostRow[] }> {
+  const res = await apiGet<{ items: AdminPostRow[] }>(
+    "/api/v1/community/my-posts",
+  );
+  return res.data ?? { items: [] };
 }
