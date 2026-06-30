@@ -2,6 +2,7 @@ import * as React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Avatar } from "../../../components/ui/Avatar";
 import { Dialog } from "../../../components/ui/Dialog";
 import { Skeleton } from "../../../components/ui/Skeleton";
@@ -9,62 +10,60 @@ import { useToast } from "../../../components/ui/Toast";
 import { useMe, useSignOut } from "../../../features/auth/hooks";
 import { usePickAndUploadAvatar } from "../../../features/avatar/hooks";
 import { useDeleteAccount } from "../../../features/profile/hooks";
-import { requestPermissionAndRegister } from "../../../lib/push";
 
 /**
- * Account hub — iOS Settings pattern. Grouped rows with hairline dividers
- * + uppercase muted section headers. Content preserved byte-for-byte from
- * the pre-restructure account.tsx; ONE addition: the Favorites row above
- * the Profile section (P2b). P2c will redesign the hub more comprehensively
- * + add more sub-pages.
+ * Account hub — flat row list mirroring web's /account page. Each row
+ * routes to a stack screen under apps/mobile/app/(app)/account/. Sign
+ * out + Delete account stay at the bottom as destructive rows.
+ *
+ * The legacy iOS Settings sections (Profile / Notifications / Security /
+ * Danger Zone) from pre-P2c got dropped along with their no-op
+ * Name/Email/Change-password rows. The "Enable notifications" push-
+ * permission re-prompt action moved to /account/privacy-security in T6.
  */
 
-function SectionHeader({ children }: { children: React.ReactNode }) {
-  return (
-    <Text className="mb-2 ml-4 mt-6 text-xs uppercase tracking-wider text-mutedForeground">
-      {children}
-    </Text>
-  );
+const ICON_COLOR = "#4F653B"; // primary olive
+const DESTRUCTIVE_COLOR = "#d40c1a"; // destructive red
+
+interface HubRowProps {
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+  label: string;
+  onPress: () => void;
+  destructive?: boolean;
+  accessibilityHint?: string;
 }
 
-function Row({
+function HubRow({
+  icon,
   label,
-  value,
   onPress,
   destructive,
   accessibilityHint,
-}: {
-  label: string;
-  value?: string;
-  onPress?: () => void;
-  destructive?: boolean;
-  accessibilityHint?: string;
-}) {
+}: HubRowProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       onPress={onPress}
-      className="flex-row items-center justify-between border-b border-border bg-card px-4"
-      style={{ minHeight: 60 }}
+      className="flex-row items-center border-b border-border bg-card px-4"
+      style={{ minHeight: 60, gap: 14 }}
     >
+      <MaterialCommunityIcons
+        name={icon}
+        size={22}
+        color={destructive ? DESTRUCTIVE_COLOR : ICON_COLOR}
+      />
       <Text
         className={
           destructive
-            ? "text-base text-destructive"
-            : "text-base text-foreground"
+            ? "flex-1 text-base text-destructive"
+            : "flex-1 text-base text-foreground"
         }
       >
         {label}
       </Text>
-      {value ? (
-        <Text className="text-base text-mutedForeground" numberOfLines={1}>
-          {value}
-        </Text>
-      ) : (
-        <Text className="text-base text-mutedForeground">›</Text>
-      )}
+      <Text className="text-base text-mutedForeground">›</Text>
     </Pressable>
   );
 }
@@ -80,11 +79,11 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Hide the Stack header on the tab landing — matches the
-          pre-restructure UX (no header on the primary tab). Sub-pages
-          like /account/favorites inherit the default Stack header. */}
+      {/* Hide the Stack header on the tab landing — matches the pattern
+          shipped in P2b. Sub-pages inherit the default Stack header. */}
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+        {/* Avatar header — preserved byte-for-byte from P2b */}
         <View className="items-center px-6 pt-6">
           <Pressable
             accessibilityRole="button"
@@ -105,7 +104,12 @@ export default function AccountScreen() {
               }
             }}
             // 88×88 tap target per a11y spec
-            style={{ width: 88, height: 88, alignItems: "center", justifyContent: "center" }}
+            style={{
+              width: 88,
+              height: 88,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             {me.isLoading ? (
               <Skeleton width={80} height={80} borderRadius={40} />
@@ -135,78 +139,63 @@ export default function AccountScreen() {
           )}
         </View>
 
-        {/* P2b addition — standalone Favorites row above the Profile
-            section. No section header (locked decision); P2c may add
-            a 'My collections' header once sibling rows (my-listings,
-            my-posts) land here. */}
+        {/* 7 sub-page rows in locked order: Favorites → My Listings →
+            My Posts → Notifications → Privacy & Security → Terms →
+            About */}
         <View className="mt-6 overflow-hidden">
-          <Row
+          <HubRow
+            icon="heart-outline"
             label="Favorites"
             accessibilityHint="See businesses you've saved"
             onPress={() => router.push("/account/favorites" as never)}
           />
-        </View>
-
-        <SectionHeader>Profile</SectionHeader>
-        <View className="overflow-hidden">
-          <Row
-            label="Name"
-            value={me.data?.name}
-            onPress={() => {
-              /* push edit name modal — out of scope v1 */
-            }}
+          <HubRow
+            icon="store-outline"
+            label="My Listings"
+            accessibilityHint="Businesses you manage"
+            onPress={() => router.push("/account/listings" as never)}
           />
-          <Row
-            label="Email"
-            value={me.data?.email}
-            onPress={() => {
-              /* email change requires verify flow — v2 */
-            }}
+          <HubRow
+            icon="message-text-outline"
+            label="My Posts"
+            accessibilityHint="Community posts you've authored"
+            onPress={() => router.push("/account/posts" as never)}
           />
-        </View>
-
-        <SectionHeader>Notifications</SectionHeader>
-        <View className="overflow-hidden">
-          <Row
-            label="Enable notifications"
-            accessibilityHint="Opens the system prompt and registers this device for push"
-            onPress={async () => {
-              const result = await requestPermissionAndRegister();
-              if (result.granted) {
-                toast.show({
-                  message: "Notifications enabled",
-                  kind: "success",
-                });
-              } else {
-                toast.show({
-                  message:
-                    result.error ??
-                    "Enable in Settings → AIRA → Notifications",
-                  kind: "error",
-                });
-              }
-            }}
+          <HubRow
+            icon="bell-outline"
+            label="Notifications"
+            accessibilityHint="In-app notifications"
+            onPress={() => router.push("/account/notifications" as never)}
+          />
+          <HubRow
+            icon="lock-outline"
+            label="Privacy & Security"
+            onPress={() =>
+              router.push("/account/privacy-security" as never)
+            }
+          />
+          <HubRow
+            icon="file-document-outline"
+            label="Terms"
+            onPress={() => router.push("/account/terms" as never)}
+          />
+          <HubRow
+            icon="information-outline"
+            label="About"
+            onPress={() => router.push("/account/about" as never)}
           />
         </View>
 
-        <SectionHeader>Security</SectionHeader>
-        <View className="overflow-hidden">
-          <Row
-            label="Change password"
-            onPress={() => {
-              /* nav to change-password — v2 */
-            }}
-          />
-        </View>
-
-        <SectionHeader>Danger Zone</SectionHeader>
-        <View className="overflow-hidden">
-          <Row
+        {/* Destructive actions at the bottom — preserved from P2b */}
+        <View className="mt-6 overflow-hidden">
+          <HubRow
+            icon="logout"
             label="Sign out"
             onPress={() => setShowSignOut(true)}
             destructive
           />
-          <Row
+          <HubRow
+            icon="delete-outline"
             label="Delete account"
             onPress={() => setShowDelete(true)}
             destructive
