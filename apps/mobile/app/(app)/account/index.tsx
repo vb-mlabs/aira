@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Avatar } from "../../../components/ui/Avatar";
@@ -77,11 +76,13 @@ export default function AccountScreen() {
   const [showSignOut, setShowSignOut] = React.useState(false);
   const [showDelete, setShowDelete] = React.useState(false);
 
+  // Cream "Account" header now matches Home/Categories/Post for full
+  // top-bar parity across tabs. The avatar block stays as the hero
+  // below it. No SafeAreaView — the Stack header owns the top inset
+  // and the Tabs bar owns the bottom.
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      {/* Hide the Stack header on the tab landing — matches the pattern
-          shipped in P2b. Sub-pages inherit the default Stack header. */}
-      <Stack.Screen options={{ headerShown: false }} />
+    <View className="flex-1 bg-background">
+      <Stack.Screen options={{ title: "Account" }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         {/* Avatar header — preserved byte-for-byte from P2b */}
         <View className="items-center px-6 pt-6">
@@ -239,6 +240,6 @@ export default function AccountScreen() {
           }
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
