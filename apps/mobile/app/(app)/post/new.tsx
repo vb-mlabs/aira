@@ -129,7 +129,7 @@ export default function PostComposerScreen() {
           <View>
             <Input
               label="Title"
-              placeholder="Room for rent in Sandy Springs, weekend tutoring, looking for a paediatrician…"
+              placeholder="Room for rent, weekend tutoring, paediatrician…"
               value={title}
               onChangeText={setTitle}
               maxLength={TITLE_MAX}
