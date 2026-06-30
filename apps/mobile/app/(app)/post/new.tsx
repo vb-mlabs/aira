@@ -80,9 +80,23 @@ export default function PostComposerScreen() {
       <Stack.Screen
         options={{
           title: "New post",
-          // Bottom-sheet on iOS (partial overlay, drag-to-dismiss).
-          // Android falls back to a full-screen slide-up modal.
+          // Bottom-sheet on iOS via formSheet + explicit detents.
+          // Without sheetAllowedDetents iOS defaults to a near-full-
+          // screen card; specifying ['medium','large'] opens at half
+          // height and lets the user expand to full. sheetGrabberVisible
+          // surfaces the drag handle so the dismiss affordance is
+          // obvious.
+          //
+          // Android falls back to a regular slide-up modal (RN
+          // platform limitation — true partial sheets on Android would
+          // require @gorhom/bottom-sheet which adds a new dep).
           presentation: "formSheet",
+          // Numeric fractions of the screen height — 0.5 ~ medium,
+          // 0.99 ~ near-full. This expo-router build doesn't accept
+          // the string 'medium'/'large' identifiers.
+          sheetAllowedDetents: [0.5, 0.99],
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 16,
           // Replace the back chevron with a Cancel button so the
           // sheet has a clear dismiss path across platforms.
           headerLeft: () => (
