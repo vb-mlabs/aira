@@ -82,7 +82,17 @@ export default function AppLayout() {
           headerShown: false,
           tabBarShowLabel: true,
           tabBarLabelStyle: { fontSize: 11 },
-          tabBarStyle: { height: 64 },
+          // Cream bg + dark-brown active tint mirror the Post/Listings
+          // stack header chrome so the top and bottom edges read as one
+          // continuous frame around the content. borderTopColor uses the
+          // same brown at low opacity for a subtle hairline divider.
+          tabBarStyle: {
+            height: 64,
+            backgroundColor: "#EAE0CB",
+            borderTopColor: "rgba(61,40,20,0.12)",
+          },
+          tabBarActiveTintColor: "#3D2814",
+          tabBarInactiveTintColor: "rgba(61,40,20,0.55)",
         }}
       >
         <Tabs.Screen
