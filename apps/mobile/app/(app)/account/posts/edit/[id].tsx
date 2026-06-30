@@ -161,37 +161,59 @@ export default function PostEditScreen() {
           }}
           keyboardShouldPersistTaps="handled"
         >
-          <Input
-            label="Title"
-            value={title}
-            onChangeText={setTitle}
-            maxLength={TITLE_MAX}
-            autoCapitalize="sentences"
-            returnKeyType="next"
-          />
-          <Input
-            label="Body"
-            value={body}
-            onChangeText={setBody}
-            maxLength={BODY_MAX}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
+          {/* Labels + placeholders + counters mirror web's PostFields
+              (apps/web/src/features/community/components/post-fields.tsx)
+              so create + edit feel identical across surfaces. */}
+          <View>
+            <Input
+              label="Title"
+              placeholder="Room for rent in Sandy Springs, weekend tutoring, looking for a paediatrician…"
+              value={title}
+              onChangeText={setTitle}
+              maxLength={TITLE_MAX}
+              autoCapitalize="sentences"
+              returnKeyType="next"
+            />
+            <Text className="mt-1 text-xs text-mutedForeground">
+              {title.length} / {TITLE_MAX}
+            </Text>
+          </View>
+
+          <View>
+            <Input
+              label="Description (optional)"
+              placeholder="Any extra detail neighbours should know — price, availability, what you're looking for…"
+              value={body}
+              onChangeText={setBody}
+              maxLength={BODY_MAX}
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+            <Text className="mt-1 text-xs text-mutedForeground">
+              {body.length} / {BODY_MAX}
+            </Text>
+          </View>
+
           <Input
             label="Phone (optional)"
+            placeholder="(404) 555-0100"
             value={phone}
             onChangeText={setPhone}
             maxLength={PHONE_MAX}
             keyboardType="phone-pad"
+            hint="Visible to other signed-in members."
           />
+
           <Input
             label="Email (optional)"
+            placeholder="you@example.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            hint="Visible to other signed-in members."
           />
 
           {error ? (

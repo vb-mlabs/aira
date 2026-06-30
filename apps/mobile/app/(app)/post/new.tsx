@@ -1,5 +1,12 @@
 import * as React from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router } from "expo-router";
 import { ApiError } from "../../../lib/api/client";
@@ -12,17 +19,20 @@ const TITLE_MAX = 120;
 const BODY_MAX = 1000;
 const PHONE_MAX = 30;
 
+const HELPER_VISIBLE = "Visible to other signed-in members.";
+
 /**
- * Composer for a new community post. Mirrors the field set web's
- * post-form.tsx exposes: title (required, ≤120), body (optional, ≤1000),
- * phone (optional, ≤30), email (optional, valid email shape).
+ * Composer for a new community post. Opens as a bottom sheet on iOS
+ * (presentation: 'formSheet') and a full-screen modal on Android.
+ * Field labels + placeholders + helper text mirror web's PostFields
+ * component so the create + edit experience stays visually consistent
+ * across surfaces.
  *
- * Submit calls createCommunityPostOp via useCreatePost. On success the
- * server returns the new post (status=pending); router.replace pushes
- * the user onto /post/<new-id> so back navigates to the board, not to
- * an empty composer. The detail screen will render PostStatusBanner
- * showing "Waiting for moderation" since pending posts don't show on
- * the public board until admin approves.
+ * Submit calls createCommunityPostOp via useCreatePost. On success
+ * router.replace pushes the user onto /post/<new-id> so back navigates
+ * to the board, not to an empty composer. The detail screen will
+ * render PostStatusBanner showing "Waiting for moderation" since
+ * pending posts don't show on the public board until admin approves.
  */
 export default function PostComposerScreen() {
   const create = useCreatePost();
@@ -67,7 +77,26 @@ export default function PostComposerScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "New post" }} />
+      <Stack.Screen
+        options={{
+          title: "New post",
+          // Bottom-sheet on iOS (partial overlay, drag-to-dismiss).
+          // Android falls back to a full-screen slide-up modal.
+          presentation: "formSheet",
+          // Replace the back chevron with a Cancel button so the
+          // sheet has a clear dismiss path across platforms.
+          headerLeft: () => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+              onPress={() => router.back()}
+              hitSlop={8}
+            >
+              <Text className="pr-2 text-base text-foreground">Cancel</Text>
+            </Pressable>
+          ),
+        }}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -81,36 +110,49 @@ export default function PostComposerScreen() {
           }}
           keyboardShouldPersistTaps="handled"
         >
-          <Input
-            label="Title"
-            placeholder="What are you looking for?"
-            value={title}
-            onChangeText={setTitle}
-            maxLength={TITLE_MAX}
-            autoCapitalize="sentences"
-            returnKeyType="next"
-            accessibilityHint="Required. Max 120 characters."
-          />
-          <Input
-            label="Body"
-            placeholder="Add a few details (optional)…"
-            value={body}
-            onChangeText={setBody}
-            maxLength={BODY_MAX}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-            accessibilityHint="Optional. Max 1000 characters."
-          />
+          {/* Title — labels + placeholder + counter all mirror
+              apps/web/src/features/community/components/post-fields.tsx */}
+          <View>
+            <Input
+              label="Title"
+              placeholder="Room for rent in Sandy Springs, weekend tutoring, looking for a paediatrician…"
+              value={title}
+              onChangeText={setTitle}
+              maxLength={TITLE_MAX}
+              autoCapitalize="sentences"
+              returnKeyType="next"
+            />
+            <Text className="mt-1 text-xs text-mutedForeground">
+              {title.length} / {TITLE_MAX}
+            </Text>
+          </View>
+
+          <View>
+            <Input
+              label="Description (optional)"
+              placeholder="Any extra detail neighbours should know — price, availability, what you're looking for…"
+              value={body}
+              onChangeText={setBody}
+              maxLength={BODY_MAX}
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+            <Text className="mt-1 text-xs text-mutedForeground">
+              {body.length} / {BODY_MAX}
+            </Text>
+          </View>
+
           <Input
             label="Phone (optional)"
-            placeholder="+1 404 555 0123"
+            placeholder="(404) 555-0100"
             value={phone}
             onChangeText={setPhone}
             maxLength={PHONE_MAX}
             keyboardType="phone-pad"
-            accessibilityHint="Optional. Shown on your post so people can reach you."
+            hint={HELPER_VISIBLE}
           />
+
           <Input
             label="Email (optional)"
             placeholder="you@example.com"
@@ -119,7 +161,7 @@ export default function PostComposerScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            accessibilityHint="Optional. Shown on your post so people can reach you."
+            hint={HELPER_VISIBLE}
           />
 
           {error ? (
