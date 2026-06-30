@@ -8,6 +8,7 @@ import {
   getBusinessById,
   getBusinessCount,
   getCategoryBySlug,
+  getMyListings,
   listCategories,
 } from "./api";
 
@@ -92,5 +93,14 @@ export function useBusinessDetail(id: string | undefined) {
     queryKey: ["listings", "business", id],
     queryFn: () => getBusinessById(id as string),
     enabled: !!id,
+  });
+}
+
+/** Businesses the current user owns. Drives /account/listings. */
+export function useMyListings() {
+  return useQuery({
+    queryKey: ["listings", "mine"],
+    queryFn: getMyListings,
+    staleTime: 60_000,
   });
 }

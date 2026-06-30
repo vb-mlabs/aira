@@ -68,6 +68,16 @@ export async function getCategoryBySlug(
   }
 }
 
+/** GET /api/v1/account/listings — businesses owned by the current user.
+ *  Used by /account/listings on mobile (mirrors web's /account/listings
+ *  page; returns the full Business[] not a denormalised owner projection). */
+export async function getMyListings(): Promise<{ items: Business[] }> {
+  const res = await apiGet<{ items: Business[] }>(
+    "/api/v1/account/listings",
+  );
+  return res.data ?? { items: [] };
+}
+
 /** GET /api/v1/businesses/:id — single business detail page. Returns null
  *  when the row is archived or unknown. */
 export async function getBusinessById(
