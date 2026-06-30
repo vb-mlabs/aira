@@ -1,18 +1,22 @@
 import * as React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Avatar } from "../../components/ui/Avatar";
-import { Dialog } from "../../components/ui/Dialog";
-import { Skeleton } from "../../components/ui/Skeleton";
-import { useToast } from "../../components/ui/Toast";
-import { useMe, useSignOut } from "../../features/auth/hooks";
-import { usePickAndUploadAvatar } from "../../features/avatar/hooks";
-import { useDeleteAccount } from "../../features/profile/hooks";
-import { requestPermissionAndRegister } from "../../lib/push";
+import { Stack, router } from "expo-router";
+import { Avatar } from "../../../components/ui/Avatar";
+import { Dialog } from "../../../components/ui/Dialog";
+import { Skeleton } from "../../../components/ui/Skeleton";
+import { useToast } from "../../../components/ui/Toast";
+import { useMe, useSignOut } from "../../../features/auth/hooks";
+import { usePickAndUploadAvatar } from "../../../features/avatar/hooks";
+import { useDeleteAccount } from "../../../features/profile/hooks";
+import { requestPermissionAndRegister } from "../../../lib/push";
 
 /**
- * Profile screen — iOS Settings pattern. Grouped rows with hairline dividers
- * + uppercase muted section headers. NOT stacked cards (Pass-4 rejection).
+ * Account hub — iOS Settings pattern. Grouped rows with hairline dividers
+ * + uppercase muted section headers. Content preserved byte-for-byte from
+ * the pre-restructure account.tsx; ONE addition: the Favorites row above
+ * the Profile section (P2b). P2c will redesign the hub more comprehensively
+ * + add more sub-pages.
  */
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
@@ -65,7 +69,7 @@ function Row({
   );
 }
 
-export default function ProfileScreen() {
+export default function AccountScreen() {
   const me = useMe();
   const signOut = useSignOut();
   const uploadAvatar = usePickAndUploadAvatar();
@@ -76,6 +80,10 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      {/* Hide the Stack header on the tab landing — matches the
+          pre-restructure UX (no header on the primary tab). Sub-pages
+          like /account/favorites inherit the default Stack header. */}
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="items-center px-6 pt-6">
           <Pressable
@@ -125,6 +133,18 @@ export default function ProfileScreen() {
               </Text>
             </>
           )}
+        </View>
+
+        {/* P2b addition — standalone Favorites row above the Profile
+            section. No section header (locked decision); P2c may add
+            a 'My collections' header once sibling rows (my-listings,
+            my-posts) land here. */}
+        <View className="mt-6 overflow-hidden">
+          <Row
+            label="Favorites"
+            accessibilityHint="See businesses you've saved"
+            onPress={() => router.push("/account/favorites" as never)}
+          />
         </View>
 
         <SectionHeader>Profile</SectionHeader>
