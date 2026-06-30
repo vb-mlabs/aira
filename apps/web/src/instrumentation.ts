@@ -29,7 +29,15 @@
 // See docs/decisions/0008-codebase-conventions.md (lands in T18).
 
 export async function register() {
+  // NEXT_RUNTIME and NEXT_PHASE are Next.js framework env vars — set by
+  // Next itself, never by the user, and not part of the validated env
+  // schema in @/config/env. instrumentation.ts also fires before the
+  // env validator boots, so reaching for `env` here would be a
+  // chicken-and-egg. Both reads are read-only guards for runtime/phase
+  // detection; safe to access process.env directly.
+  // eslint-disable-next-line no-restricted-syntax
   if (process.env.NEXT_RUNTIME !== "nodejs") return
+  // eslint-disable-next-line no-restricted-syntax
   if (process.env.NEXT_PHASE === "phase-production-build") return
   const { startCrons } = await import("@/lib/cron/registry")
   await startCrons()

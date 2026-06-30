@@ -152,6 +152,12 @@ function BroadcastModal({ open, onOpenChange }: BroadcastModalProps) {
   useEffect(() => {
     if (!open) return
     if (target === null) {
+      // Reset preview state when target clears. React 19's
+      // set-state-in-effect rule flags this, but the alternative
+      // (derived state) doesn't work here because the reset is
+      // conditional on a deeply-nested input change, not a single
+      // render-time computation. Two setStates batch into one render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreviewCount(0)
       setPreviewLoading(false)
       return

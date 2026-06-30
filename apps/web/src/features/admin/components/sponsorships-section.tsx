@@ -60,7 +60,11 @@ export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
     }
   }
 
-  useEffect(() => { fetchSponsorships() }, [businessId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // fetchSponsorships calls setState transitively (setLoading, setSponsorships,
+  // setError). React 19's set-state-in-effect rule flags the transitive
+  // call site even though this is a standard "fetch on prop change" pattern.
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { fetchSponsorships() }, [businessId])
 
   async function handleCancel(spId: string) {
     if (!confirm("Cancel this sponsorship?")) return
@@ -234,6 +238,12 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
   // Re-fetch tiers with slot info when category is selected
   useEffect(() => {
     if (!categoryId) {
+      // Reset annotation to base tiers when category clears.
+      // React 19 set-state-in-effect flags this; derived state isn't
+      // feasible because annotated tiers are populated asynchronously
+      // via apiClient.get below — they can't be a pure render-time
+      // computation off baseTiers.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnnotatedTiers(baseTiers)
       return
     }
