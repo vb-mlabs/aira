@@ -1,0 +1,22 @@
+~/.../apps/mobile$ export DOTSLASH_CACHE=$HOME/.dotslash-cache
+~/.../apps/mobile$ grep projectId app.config.ts
+  // EAS Update endpoint — paired with the projectId in `extra.eas` below.
+  // can't auto-write to a dynamic config (function form), so the projectId
+      projectId: "21065081-2afd-43d4-aef7-7ce10de55a8b",
+~/.../apps/mobile$ pnpm dlx eas-cli@latest build --platform all --profile preview
+Resolved "preview" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "preview" environment on EAS.
+
+
+
+🤖 Android build
+✔ Using remote Android credentials (Expo server)
+✔ Using Keystore from configuration: Build Credentials bKEqZ6v-0G (default)
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+✖ Compressing project files
+Failed to upload the project tarball to EAS Build
+
+Reason: Unknown system error -122: Unknown system error -122, copyfile '/home/runner/workspace/.local/share/pnpm/store/v10/files/e1/a934dbc8d8f1354b2833a14fdca209a8453d3704cc6ec7e0d36630c03458d5b0f87a0f535124302611e9c36d56ffcd0d09d1ff82c1decf57083d22a6ab2362-exec' -> '/tmp/runner/eas-cli-nodejs/ee8c9eab-07b5-4d05-8a97-569757311c65-shallow-clone/.local/share/pnpm/store/v10/files/e1/a934dbc8d8f1354b2833a14fdca209a8453d3704cc6ec7e0d36630c03458d5b0f87a0f535124302611e9c36d56ffcd0d09d1ff82c1decf57083d22a6ab2362-exec'
+    Error: build command failed.
+~/.../apps/mobile$ 

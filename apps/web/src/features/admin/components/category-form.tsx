@@ -6,6 +6,7 @@ import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
+import { ApiError } from "@aira/api"
 import { AlertDialog } from "@base-ui/react/alert-dialog"
 import type { Category } from "@aira/validators/categories"
 
@@ -68,8 +69,12 @@ export function CategoryForm({
         }
         router.push("/admin/settings/categories")
         router.refresh()
-      } catch {
-        setError("Failed to save. Please try again.")
+      } catch (err) {
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Failed to save. Please try again.",
+        )
       }
     })
   }

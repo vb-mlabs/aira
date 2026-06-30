@@ -4,6 +4,7 @@
 // so the first paint is immediate. The PostList client component then takes
 // over for search + pagination.
 
+import { brand } from "@aira/config"
 import { apiServerFetch } from "@aira/api/server"
 import { requireUser } from "@/lib/auth/server"
 import { listCommunityPostsOp } from "@/server/operations/community"
@@ -32,17 +33,14 @@ export default async function CommunityPage() {
     <div className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
       <section className="text-center">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">
-          Community Requests
+          Community Posts
         </p>
         <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">
-          Real people. Real asks.{" "}
-          <em className="not-italic font-semibold text-primary">
-            Trusted leads.
-          </em>
+          Post on {brand.name}
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-foreground/80 sm:text-base">
-          Ask the community for a referral — a doctor, a teacher, a contractor —
-          and let neighbours close the loop with someone they actually know.
+          Post a request for something you need — services, recommendations,
+          items, or local help.
         </p>
         <div className="mt-6 flex justify-center">
           <PostForm />

@@ -1,0 +1,9 @@
+{
+  "id": "50",
+  "subject": "F21 T11: broadcast modal audience picker",
+  "description": "Extend business-broadcast-modal.tsx with audience picker (4 radios), live count preview, partial-success display.",
+  "activeForm": "Extending F21 T11 broadcast modal",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

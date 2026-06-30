@@ -25,6 +25,22 @@ export const listCitiesAdminOp = defineOperation({
   },
 })
 
+/** Plain-admin-readable cities list — same payload as the
+ *  super-admin variant, but accessible to "admin" perms so the F21
+ *  broadcast modal's by_city picker has a list of options. Cities
+ *  are platform-shape config; reads are safe for any admin, mutations
+ *  stay super_admin via the create/update ops above. */
+export const listCitiesForAdminOp = defineOperation({
+  name: "admin.cities.listForAdmin",
+  input: z.object({}).strict(),
+  output: CityListOutputSchema,
+  permission: "admin",
+  handler: async (db) => {
+    const cities = await citiesService.listCities(db)
+    return { cities }
+  },
+})
+
 export const createCityOp = defineOperation({
   name: "admin.cities.create",
   input: CityCreateInputSchema,

@@ -11,10 +11,11 @@
 //   - When the SDK loads, `<gmp-place-autocomplete>` registers itself as a
 //     custom element. We poll `customElements.whenDefined(...)` and fall
 //     back to a plain <Input> after 4 s if registration never completes.
-//   - Existing addresses are surfaced as a small "Current: <addr>" hint
-//     below the picker so admins know what's stored without us trying to
-//     pre-populate the custom element's internal input (the element has
-//     no controlled-value API — it's deliberately uncontrolled).
+//   - On mount we reach into the element's internal <input> to seed it
+//     with the existing value so editors see what's stored rather than an
+//     empty field. The element has no documented controlled-value API,
+//     but the input is rendered in the light DOM and is reachable via
+//     `querySelector('input')`.
 
 import { useEffect, useRef, useState } from "react"
 import { Input } from "@aira/ui-web/input"
@@ -29,6 +30,14 @@ declare global {
         },
         HTMLElement
       >
+    }
+  }
+
+  interface Window {
+    google?: {
+      maps?: {
+        importLibrary?: (name: string) => Promise<unknown>
+      }
     }
   }
 }
@@ -61,11 +70,16 @@ export function PlacesAddressInput({
     "loading",
   )
 
-  // Probe for the custom element. If it doesn't register within 4 s, give
-  // up and surface a plain text input — that's the same fallback the
-  // legacy widget used when the key was missing. The set-state-in-effect
-  // rule's preferred pattern is for prop-mirroring; we're synchronising
-  // with an external SDK load, so direct setState is the right shape.
+  // Probe for the custom element. With `loading=async` the Maps script
+  // returns just a bootstrap loader — the places library + element
+  // registration only happen when something calls
+  // `google.maps.importLibrary("places")`. Without that call,
+  // `customElements.whenDefined("gmp-place-autocomplete")` would hang
+  // forever and the 4 s timeout fired, dropping us to the plain input.
+  //
+  // Flow: wait for the loader stub → import the places library → wait
+  // for the custom element to register → mark ready. Falls back to a
+  // plain controlled input if any step times out.
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined" || typeof customElements === "undefined") {
@@ -76,12 +90,25 @@ export function PlacesAddressInput({
       setSdkState("ready")
       return
     }
+
     let cancelled = false
     const timeout = setTimeout(() => {
       if (!cancelled) setSdkState("absent")
-    }, 4000)
-    customElements
-      .whenDefined("gmp-place-autocomplete")
+    }, 8000)
+
+    async function load() {
+      const start = performance.now()
+      while (!window.google?.maps?.importLibrary) {
+        if (performance.now() - start > 6000) {
+          throw new Error("Google Maps loader did not appear")
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50))
+      }
+      await window.google.maps.importLibrary("places")
+      await customElements.whenDefined("gmp-place-autocomplete")
+    }
+
+    load()
       .then(() => {
         if (cancelled) return
         clearTimeout(timeout)
@@ -90,6 +117,7 @@ export function PlacesAddressInput({
       .catch(() => {
         if (!cancelled) setSdkState("absent")
       })
+
     return () => {
       cancelled = true
       clearTimeout(timeout)
@@ -109,10 +137,24 @@ export function PlacesAddressInput({
     el.setAttribute("placeholder", placeholder)
     container.appendChild(el)
 
+    // Seed the internal input with the existing value. The element
+    // renders its <input> in the light DOM on the next tick after
+    // append, so wait one frame before reaching for it.
+    if (value) {
+      requestAnimationFrame(() => {
+        const input = el.querySelector("input")
+        if (input && !input.value) input.value = value
+      })
+    }
+
     function handleSelect(event: Event) {
-      const detail = (event as CustomEvent<{ placePrediction: PlacePredictionLike }>)
-        .detail
-      const place = detail.placePrediction.toPlace()
+      // The `gmp-select` event puts `placePrediction` directly on the
+      // event object (per Google's samples), not under `event.detail`.
+      const placePrediction = (event as unknown as {
+        placePrediction?: PlacePredictionLike
+      }).placePrediction
+      if (!placePrediction) return
+      const place = placePrediction.toPlace()
       place
         .fetchFields({ fields: ["formattedAddress"] })
         .then(() => {
@@ -130,6 +172,9 @@ export function PlacesAddressInput({
       // Don't clear container.innerHTML on cleanup — React strict-mode
       // double-mount would race against the next mount.
     }
+    // `value` intentionally omitted from deps — it's only used as a
+    // one-shot seed on mount; updating it shouldn't rebuild the element.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sdkState, id, placeholder, onChange])
 
   // SDK absent → identical UX to pre-migration: plain controlled input.
@@ -145,6 +190,9 @@ export function PlacesAddressInput({
     )
   }
 
+  // Styling for the `<gmp-place-autocomplete>` host + its internal input
+  // lives in apps/web/src/app/globals.css — Google ships internal CSS for
+  // the element that needs !important to override.
   return (
     <div className="space-y-1.5">
       <div ref={containerRef} />

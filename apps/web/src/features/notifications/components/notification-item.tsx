@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { ApiError } from "@aira/api"
+import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
 import type { NotificationRow } from "@aira/validators/notifications"
 import { apiClient } from "@/lib/api-client"
@@ -100,9 +101,23 @@ function renderBody(body: NotificationRow["body"]): RenderedBody {
       }
     case "post_interest":
       return {
-        title: `${body.responder_name} can help with your request`,
+        title: `${body.responder_name} is interested in your post`,
         message: body.message ?? `Re: ${body.post_title}`,
         href: `/community/${body.post_id}`,
+      }
+    case "post_comment":
+      return {
+        title: body.is_reply
+          ? `${body.commenter_name} replied to your comment`
+          : `${body.commenter_name} commented on your post`,
+        message: body.body_preview,
+        href: `/community/${body.post_id}`,
+      }
+    case "business_broadcast":
+      return {
+        title: `${brand.name} team: ${body.title}`,
+        message: body.message,
+        href: "/account/listings",
       }
   }
 }

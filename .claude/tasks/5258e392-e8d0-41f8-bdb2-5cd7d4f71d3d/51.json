@@ -1,0 +1,9 @@
+{
+  "id": "51",
+  "subject": "F21 T12: expo-notifications + config plugin (MANDATORY PAUSE)",
+  "description": "Add expo-notifications to mobile package + register config plugin in app.config.ts. MANDATORY pause after — EAS rebuild required.",
+  "activeForm": "Adding F21 T12 expo-notifications",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

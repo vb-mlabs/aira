@@ -61,6 +61,14 @@ export type AuditMeta =
   // Admin curation of the business directory. target_id is the business.id.
   | { kind: "business.archived" }
   | { kind: "business.restored" }
+  // Admin edit of the free-text contact_person field on a business listing.
+  // from/to are the values before/after the edit; null encodes an unset
+  // value. Emitted only when old !== new (no-op edits don't write).
+  | {
+      kind: "business.contact_person_changed";
+      from: string | null;
+      to: string | null;
+    }
   // S4 — subscription + sponsorship audit trail.
   | {
       kind: "business.subscription_recorded";
@@ -103,9 +111,46 @@ export type AuditMeta =
     }
   | {
       kind: "community.post_edited";
-      fields: Array<"title" | "body">;
+      fields: Array<"title" | "body" | "phone" | "email">;
       title?: { from: string; to: string };
       body?: { from: string | null; to: string | null };
+      phone?: { from: string | null; to: string | null };
+      email?: { from: string | null; to: string | null };
+    }
+  // Self-service edit on an approved community post sends the row back
+  // for re-moderation. Written alongside community.post_edited in the
+  // same transaction so the audit trail shows both the diff AND the
+  // status transition (keeps each audit kind single-purpose). Captures
+  // the previous approved_at + expires_at so admins can reason about
+  // the timeline if a post bounces between states.
+  | {
+      kind: "community.post_reverted_to_pending";
+      from: "approved";
+      to: "pending";
+      prev_approved_at: string;
+      prev_expires_at: string | null;
+    }
+  // Comment thread moderation. Admin hides/restores a comment without
+  // hard-deleting (the body is preserved in the DB but never projected
+  // to the wire while hidden). Cascade-delete via FK takes care of
+  // replies when the top-level is hard-deleted, so the audit row only
+  // captures the parent. body_snapshot is the verbatim body at the
+  // time of the moderation action.
+  | {
+      kind: "community.comment_hidden";
+      post_id: string;
+      body_snapshot: string;
+    }
+  | {
+      kind: "community.comment_restored";
+      post_id: string;
+    }
+  | {
+      kind: "community.comment_deleted";
+      post_id: string;
+      author_id: string;
+      body_snapshot: string;
+      was_reply: boolean;
     }
   // S6 — F23′ admin renewal follow-up queue. One row per call/attempt.
   // target.id = business_subscription.id. Single action kind + outcome
@@ -121,6 +166,34 @@ export type AuditMeta =
         | "reschedule";
       note: string | null;
       scheduled_next: string | null;
+    }
+  // G1 — business owner reachability. target.id = business.id for assign /
+  // unassign; broadcast_sent has no target (admin action with N recipients
+  // counted in meta).
+  | {
+      kind: "business.owner_assigned";
+      owner_user_id: string;
+      owner_email: string;
+      /** Previous owner_user_id when this was a re-assign (overwrite).
+       *  null on first assignment. */
+      prev_owner_user_id: string | null;
+    }
+  | {
+      kind: "business.owner_unassigned";
+      prev_owner_user_id: string;
+    }
+  | {
+      kind: "business.broadcast_sent";
+      title: string;
+      recipient_count: number;
+    }
+  // Admin hard-deletes a pre-launch waitlist row from /admin/waitlist.
+  // target.id = waitlist.id. email + waitlist_type captured pre-delete so
+  // the audit row remains useful after the source row is gone.
+  | {
+      kind: "waitlist.delete";
+      email: string;
+      waitlist_type: "consumer" | "business";
     };
 
 // ─── Known actions / target types ───────────────────────────────────────────
@@ -150,6 +223,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "user.signed_up",
   "business.archived",
   "business.restored",
+  "business.contact_person_changed",
   "business.subscription_recorded",
   "business.subscription_voided",
   "business.sponsorship_assigned",
@@ -157,7 +231,15 @@ export const KNOWN_AUDIT_ACTIONS = [
   "app_setting.updated",
   "community.post_deleted",
   "community.post_edited",
+  "community.post_reverted_to_pending",
+  "community.comment_hidden",
+  "community.comment_restored",
+  "community.comment_deleted",
   "business.subscription_followup",
+  "business.owner_assigned",
+  "business.owner_unassigned",
+  "business.broadcast_sent",
+  "waitlist.delete",
 ] as const;
 export type KnownAuditAction = (typeof KNOWN_AUDIT_ACTIONS)[number];
 
@@ -183,6 +265,7 @@ export const KNOWN_AUDIT_TARGET_TYPES = [
   "community_post",
   "app_setting",
   "session",
+  "waitlist",
 ] as const;
 export type KnownAuditTargetType = (typeof KNOWN_AUDIT_TARGET_TYPES)[number];
 
@@ -207,7 +290,15 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.subscription_voided": "Subscription voided",
     "community.post_deleted": "Post deleted",
     "community.post_edited": "Post edited",
+    "community.post_reverted_to_pending": "Post reverted to pending",
+    "community.comment_hidden": "Comment hidden",
+    "community.comment_restored": "Comment restored",
+    "community.comment_deleted": "Comment deleted",
     "app_setting.updated": "Setting updated",
+    "business.owner_assigned": "Owner assigned",
+    "business.owner_unassigned": "Owner unassigned",
+    "business.broadcast_sent": "Broadcast sent",
+    "business.contact_person_changed": "Contact person changed",
   };
 
 /** Convert an action kind string into a humanised dropdown label.

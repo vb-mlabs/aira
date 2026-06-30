@@ -49,16 +49,13 @@ export const VALID_YEARS_OPERATING = [
 ] as const;
 export type YearsOperating = (typeof VALID_YEARS_OPERATING)[number];
 
-export const VALID_CATEGORIES = [
-  "restaurants",
-  "education",
-  "events-entertainment",
-  "professional-services",
-  "health-wellness",
-  "real-estate",
-  "shopping",
-] as const;
-/** Legacy type kept for seeding helpers and existing tests. */
+/** Category slugs are sourced at runtime from the `category` DB table
+ *  (admin-editable via /admin/settings/categories). The hardcoded
+ *  VALID_CATEGORIES const that used to live here was removed on
+ *  2026-06-16 — see .mstack/plans/2026-06-16-category-drift-fix.md.
+ *  This stays as `string` because Zod can't validate against a runtime
+ *  catalog; the `category` table's slug uniqueness + the rename guard
+ *  in updateCategoryOp keep the contract enforced. */
 export type BusinessCategory = string;
 
 export const BusinessTierSchema = z.enum(VALID_TIERS);
@@ -87,6 +84,12 @@ export const BusinessSchema = z.object({
   city_id: z.string().nullable(),
   business_type: z.string().nullable(),
   years_operating: z.string().nullable(),
+  /** Opaque FK to user.id — the business owner. Surfaced on the public
+   *  schema so the admin extension can project it; carries no PII on its
+   *  own. Mutated only via the audited assignBusinessOwner /
+   *  unassignBusinessOwner service path; deliberately NOT included in
+   *  BusinessUpdateInputSchema so generic admin edits cannot mutate it. */
+  owner_user_id: z.string().nullable(),
   /** ISO 8601; NULL = active, non-NULL = archived at this moment. */
   deleted_at: z.string().nullable(),
   /** ISO 8601 */
@@ -99,6 +102,58 @@ export const BusinessSchema = z.object({
   extra_category_ids: z.string().array().default([]),
 });
 export type Business = z.infer<typeof BusinessSchema>;
+
+/** Admin-extended business shape — adds the contact_person field (free-text
+ *  name of the admin's point of contact for the listing). Used on every
+ *  admin output (admin list, admin detail, admin create/update outputs).
+ *  Public BusinessSchema deliberately omits contact_person so the value
+ *  cannot reach unauthenticated callers via /api/v1/businesses; the data
+ *  layer also strips it on public projections (see queries.ts). */
+export const BusinessAdminSchema = BusinessSchema.extend({
+  contact_person: z.string().nullable(),
+});
+export type BusinessAdmin = z.infer<typeof BusinessAdminSchema>;
+
+/** Business owner — denormalised user projection returned from
+ *  getBusinessOwner. Used by the admin business-detail op output and by
+ *  the admin list page's per-row Owner column. Carries user PII (name,
+ *  email) so callers must scope this to admin surfaces only. */
+export const BusinessOwnerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
+export type BusinessOwner = z.infer<typeof BusinessOwnerSchema>;
+
+/** Admin owner-assignment input. owner_user_id is the picked user;
+ *  business id comes from the [id] route param. */
+export const AssignBusinessOwnerInputSchema = z
+  .object({
+    id: z.string().min(1),
+    owner_user_id: z.string().min(1),
+  })
+  .strict();
+export type AssignBusinessOwnerInput = z.infer<
+  typeof AssignBusinessOwnerInputSchema
+>;
+
+export const UnassignBusinessOwnerInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type UnassignBusinessOwnerInput = z.infer<
+  typeof UnassignBusinessOwnerInputSchema
+>;
+
+/** Admin detail output — extends the public BusinessDetail shape with a
+ *  separately-fetched owner record. owner is null when owner_user_id is
+ *  null or when the referenced user has been deleted/anonymised. */
+export const BusinessAdminDetailOutputSchema = z.object({
+  business: BusinessAdminSchema.nullable(),
+  owner: BusinessOwnerSchema.nullable(),
+});
+export type BusinessAdminDetailOutput = z.infer<
+  typeof BusinessAdminDetailOutputSchema
+>;
 
 // businesses.tier is no longer admin-writable through this surface — the
 // column is now a denormalised cache maintained by the subscription
@@ -121,10 +176,17 @@ export const BusinessUpdateInputSchema = z
     hours: z.string().nullable().optional(),
     aira_review: z.string().nullable().optional(),
     rating: z.number().min(0).max(5).nullable().optional(),
+    verified: z.boolean().optional(),
     extra_category_ids: z.string().array().optional(),
     city_id: z.string().nullable().optional(),
     business_type: z.string().nullable().optional(),
     years_operating: z.string().nullable().optional(),
+    contact_person: z
+      .string()
+      .trim()
+      .max(120)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
@@ -151,12 +213,18 @@ export const BusinessCreateInputSchema = z
     facebook_url: z.string().nullable().optional(),
     website: z.string().nullable().optional(),
     whatsapp_number: z.string().nullable().optional(),
+    contact_person: z
+      .string()
+      .trim()
+      .max(120)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type BusinessCreateInput = z.infer<typeof BusinessCreateInputSchema>;
 
 export const BusinessUpdateOutputSchema = z.object({
-  business: BusinessSchema,
+  business: BusinessAdminSchema,
 });
 export type BusinessUpdateOutput = z.infer<typeof BusinessUpdateOutputSchema>;
 

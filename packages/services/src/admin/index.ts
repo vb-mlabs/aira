@@ -8,9 +8,16 @@ export {
   unbanUser,
   preparePasswordReset,
   sendAdminNotification,
+  sendBusinessOwnerBroadcast,
+  resolveTargetUserIds,
 } from "./service"
 
-export type { AdminResult, PasswordResetTarget } from "./service"
+export type {
+  AdminResult,
+  PasswordResetTarget,
+  BusinessOwnerBroadcastArgs,
+  BusinessOwnerBroadcastResult,
+} from "./service"
 
 export {
   listUsers,

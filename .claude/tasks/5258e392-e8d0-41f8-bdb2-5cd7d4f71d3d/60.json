@@ -1,0 +1,9 @@
+{
+  "id": "60",
+  "subject": "SDK54 T4: runbook entry — SDK pin change",
+  "description": "Add section noting SDK 54 pin + the version-resolver policy + future SDK pin management TODO.",
+  "activeForm": "Updating runbook",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

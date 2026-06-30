@@ -19,7 +19,24 @@ export {
   deletePost,
   adminListInterests,
   getPostAuthorForEmail,
+  listMyPosts,
+  editMyPost,
+  deleteMyPost,
 } from "./service"
+
+export {
+  listComments,
+  createComment,
+  deleteComment,
+  moderateComment,
+} from "./comments"
+export type {
+  CommentRow,
+  CommentThreadNode,
+  CreateCommentArgs,
+  CreateCommentResult,
+  ListCommentsResult,
+} from "./comments"
 
 export type {
   ListPostsArgs,

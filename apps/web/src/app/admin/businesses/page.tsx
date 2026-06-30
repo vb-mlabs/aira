@@ -5,6 +5,8 @@ import { apiServerFetch } from "@aira/api/server"
 import { TIER_LABELS, type BusinessTier } from "@aira/validators"
 import { listAllBusinessesAdminOp } from "@/server/operations/businesses-admin"
 import { AdminBadge } from "@/features/admin"
+import { BusinessBroadcastButton } from "@/features/admin/components/business-broadcast-modal"
+import { expiryLabel } from "@/features/admin/renewals/expiry-label"
 import { EmptyState } from "@/lib/ui"
 import { cn } from "@aira/ui-web/utils"
 import { AdminPageHeader } from "../_components/page-header"
@@ -16,7 +18,10 @@ export const dynamic = "force-dynamic"
 type PaymentStatus = "paid" | "pending" | "overdue"
 
 interface PageProps {
-  searchParams: Promise<{ archived?: string; renewing?: string }>
+  searchParams: Promise<{
+    archived?: string
+    renewing?: string
+  }>
 }
 
 export default async function AdminBusinessesPage({ searchParams }: PageProps) {
@@ -38,7 +43,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Businesses"
+        title="Manage listings"
         subtitle="View and edit directory listings."
         actions={
           <>
@@ -51,6 +56,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 Download CSV
               </a>
             )}
+            <BusinessBroadcastButton />
             <Link
               href="/admin/businesses/new"
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -101,7 +107,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
           action={!renewing ? { label: "Add business", href: "/admin/businesses/new" } : undefined}
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/40">
               <tr>
@@ -109,6 +115,8 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left font-semibold">Category</th>
                 <th className="px-4 py-3 text-left font-semibold">Tier</th>
                 <th className="px-4 py-3 text-left font-semibold">Subscription</th>
+                <th className="px-4 py-3 text-left font-semibold">Owner</th>
+                <th className="px-4 py-3 text-left font-semibold">Contact person</th>
                 <th className="px-4 py-3 text-left font-semibold">Verified</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
               </tr>
@@ -116,12 +124,21 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
             <tbody className="divide-y divide-border">
               {businesses.map((b) => {
                 const archived = b.deleted_at !== null
+                const days = b.latest_subscription_days_remaining
+                const endDate = b.latest_subscription_end_date
+                // days_remaining < 0 takes the overdue treatment regardless
+                // of payment_status — surfaces the data-quality window
+                // between expiry and the renewal cron flipping the badge.
+                const isOverdue = days !== null && days < 0
+                const isCritical = days !== null && days >= 0 && days <= 3
                 return (
                   <tr
                     key={b.id}
                     className={cn(
                       "relative cursor-pointer hover:bg-muted/20",
                       archived && "opacity-60",
+                      isOverdue &&
+                        "bg-destructive/[0.04] shadow-[inset_3px_0_0_var(--destructive)] hover:bg-destructive/[0.08]",
                     )}
                   >
                     <td className="px-4 py-3">
@@ -144,12 +161,46 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                     </td>
                     <td className="px-4 py-3">
                       {b.latest_payment_status ? (
-                        <AdminBadge
-                          variant={b.latest_payment_status as PaymentStatus}
-                          label={b.latest_payment_status}
-                        />
+                        <div>
+                          <AdminBadge
+                            variant={b.latest_payment_status as PaymentStatus}
+                            label={b.latest_payment_status}
+                          />
+                          {days !== null && endDate !== null && (
+                            <span
+                              className={cn(
+                                "mt-0.5 block text-[11px] leading-tight",
+                                isOverdue
+                                  ? "font-bold uppercase tracking-wide text-destructive"
+                                  : isCritical
+                                    ? "font-semibold text-destructive"
+                                    : "text-muted-foreground",
+                              )}
+                            >
+                              {expiryLabel(days, endDate)}
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {b.owner ? (
+                        <span className="block truncate">
+                          {b.owner.name || b.owner.email}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {b.contact_person ? (
+                        <span className="block max-w-[150px] truncate">
+                          {b.contact_person}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">

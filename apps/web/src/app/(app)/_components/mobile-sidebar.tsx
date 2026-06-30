@@ -10,14 +10,14 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { AppSidebar } from "./app-sidebar"
-import type { Category } from "@aira/validators/categories"
+import type { CategoryTreeOutput } from "@aira/validators/categories"
 
 interface MobileSidebarProps {
-  categories?: Category[]
+  tree?: CategoryTreeOutput["tree"]
   isAdmin?: boolean
 }
 
-export function MobileSidebar({ categories, isAdmin }: MobileSidebarProps) {
+export function MobileSidebar({ tree, isAdmin }: MobileSidebarProps) {
   const [open, setOpen] = useState(false)
   // Defer portal mount to client to avoid SSR/hydration mismatch.
   const [mounted, setMounted] = useState(false)
@@ -80,7 +80,7 @@ export function MobileSidebar({ categories, isAdmin }: MobileSidebarProps) {
               aria-modal="true"
               aria-label="Main menu"
             >
-              <AppSidebar onClose={() => setOpen(false)} categories={categories} isAdmin={isAdmin} />
+              <AppSidebar onClose={() => setOpen(false)} tree={tree} isAdmin={isAdmin} />
             </div>
           </div>,
           document.body,

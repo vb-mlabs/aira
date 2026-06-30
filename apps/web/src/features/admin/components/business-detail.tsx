@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { Fragment, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
-import { Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
+import { BadgeCheck, ChevronLeft, Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
+import Link from "next/link"
 import { ApiError } from "@aira/api"
 import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
@@ -11,13 +12,21 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
+import type { BusinessAdmin } from "@aira/validators/businesses"
 import { RatingPill } from "@/features/listings/components/rating-pill"
 import {
   GoogleMapsPinIcon,
   SocialLinks,
 } from "@/features/listings/components/social-icons"
-import type { Category } from "@aira/validators/categories"
+import {
+  VALID_BUSINESS_TYPES,
+  VALID_YEARS_OPERATING,
+  type BusinessOwner,
+} from "@aira/validators/businesses"
+import type { Category, CategoryTreeOutput } from "@aira/validators/categories"
+import type { City } from "@aira/validators/cities"
 import { ArchiveControl } from "./archive-control"
+import { BusinessOwnerSection } from "./business-owner-section"
 import { FeatureImageControl } from "./feature-image-section"
 import { GalleryControl } from "./gallery-section"
 import { PlacesAddressInput } from "./places-address-input"
@@ -25,8 +34,32 @@ import { SubscriptionsSection } from "./subscriptions-section"
 import { SponsorshipsSection } from "./sponsorships-section"
 
 interface BusinessAdminDetailProps {
-  business: Business
+  business: BusinessAdmin
+  owner?: BusinessOwner | null
   categories?: Category[]
+  /** Active root→children tree used by CategoryEditModal to render
+   *  <optgroup>s. Pre-filtered upstream (page) so inactive branches
+   *  are already dropped — see /admin/businesses/[id]/page.tsx. */
+  categoryTree: CategoryTreeOutput["tree"]
+  cities?: City[]
+}
+
+// Human labels for Business profile selects. Duplicated from
+// business-create-form.tsx so the two surfaces stay self-contained;
+// extract to a shared module if a third caller needs them.
+const BUSINESS_TYPE_LABELS: Record<string, string> = {
+  storefront: "Storefront",
+  home_based: "Home-based",
+  service_at_client: "Service at client location",
+  online_only: "Online only",
+  mixed: "Mixed",
+}
+
+const YEARS_OPERATING_LABELS: Record<string, string> = {
+  under_1: "Under 1 year",
+  "1_to_3": "1–3 years",
+  "3_to_5": "3–5 years",
+  "5_plus": "5+ years",
 }
 
 type Feedback = { kind: "ok" | "error"; message: string } | null
@@ -37,7 +70,7 @@ interface UpdateResult {
 
 async function runUpdate(
   id: string,
-  data: Record<string, string | number | null | string[]>,
+  data: Record<string, string | number | boolean | null | string[]>,
 ): Promise<Feedback> {
   try {
     await apiClient.patch<UpdateResult>(
@@ -53,10 +86,26 @@ async function runUpdate(
   }
 }
 
-export function BusinessAdminDetail({ business, categories = [] }: BusinessAdminDetailProps) {
+export function BusinessAdminDetail({
+  business,
+  owner = null,
+  categories = [],
+  categoryTree,
+  cities = [],
+}: BusinessAdminDetailProps) {
   const archived = business.deleted_at !== null
   return (
     <div className="space-y-6">
+      {/* Back link to the businesses list. Sidebar nav exists too, but a
+          dedicated "<- Businesses" link is the affordance admins reach for
+          on a detail screen, matching the /account sub-page pattern. */}
+      <Link
+        href="/admin/businesses"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+        Businesses
+      </Link>
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -74,7 +123,17 @@ export function BusinessAdminDetail({ business, categories = [] }: BusinessAdmin
         <ArchiveControl business={business} />
       </header>
 
-      <CoreFieldsSection business={business} categories={categories} />
+      <CoreFieldsSection
+        business={business}
+        categories={categories}
+        categoryTree={categoryTree}
+        cities={cities}
+      />
+      <BusinessOwnerSection
+        businessId={business.id}
+        businessName={business.name}
+        owner={owner}
+      />
       <ContactSection business={business} />
       <AiraReviewSection business={business} />
       <SubscriptionsSection businessId={business.id} />
@@ -122,12 +181,14 @@ function CategoryPreview({
 function CategoryEditModal({
   business,
   categories,
+  categoryTree,
   open,
   onClose,
   onSaved,
 }: {
   business: Business
   categories: Category[]
+  categoryTree: CategoryTreeOutput["tree"]
   open: boolean
   onClose: () => void
   onSaved: (result: Feedback) => void
@@ -216,41 +277,61 @@ function CategoryEditModal({
                 onChange={(e) => setCategory(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
               >
-                {categories.length === 0 && (
+                {categoryTree.length === 0 && (
                   <option value={category}>{category}</option>
                 )}
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.name}
-                  </option>
+                {categoryTree.map(({ root, children }) => (
+                  <Fragment key={root.id}>
+                    <option value={root.slug}>{root.name}</option>
+                    {children.length > 0 && (
+                      <optgroup label={root.name}>
+                        {children.map((child) => (
+                          <option key={child.id} value={child.slug}>
+                            {child.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </Fragment>
                 ))}
               </select>
             </div>
 
-            {categories.length > 0 && (
+            {categoryTree.length > 0 && (
               <div className="space-y-1.5">
                 <Label>Additional categories</Label>
                 <p className="text-xs text-muted-foreground">
                   Business appears in listings for each checked category.
                 </p>
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  {categories.map((c) => {
-                    const isExtra = extraIds.includes(c.id)
-                    return (
+                  {categoryTree.flatMap(({ root, children }) => [
+                    <label
+                      key={root.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={extraIds.includes(root.id)}
+                        onChange={() => toggleExtra(root.id)}
+                        className="h-3.5 w-3.5 rounded border-input accent-primary"
+                      />
+                      <span>{root.name}</span>
+                    </label>,
+                    ...children.map((child) => (
                       <label
-                        key={c.id}
-                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                        key={child.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 pl-6 text-sm hover:bg-accent"
                       >
                         <input
                           type="checkbox"
-                          checked={isExtra}
-                          onChange={() => toggleExtra(c.id)}
+                          checked={extraIds.includes(child.id)}
+                          onChange={() => toggleExtra(child.id)}
                           className="h-3.5 w-3.5 rounded border-input accent-primary"
                         />
-                        <span>{c.name}</span>
+                        <span>↳ {child.name}</span>
                       </label>
-                    )
-                  })}
+                    )),
+                  ])}
                 </div>
               </div>
             )}
@@ -283,9 +364,13 @@ function CategoryEditModal({
 function CoreFieldsSection({
   business,
   categories,
+  categoryTree,
+  cities,
 }: {
-  business: Business
+  business: BusinessAdmin
   categories: Category[]
+  categoryTree: CategoryTreeOutput["tree"]
+  cities: City[]
 }) {
   const [coreOpen, setCoreOpen] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
@@ -309,6 +394,7 @@ function CoreFieldsSection({
         <CoreFieldsPreview
           business={business}
           categories={categories}
+          cities={cities}
           onEditCategories={() => setCategoryOpen(true)}
         />
         {/* Gallery — additional images shown below the Feature image
@@ -332,6 +418,7 @@ function CoreFieldsSection({
       </div>
       <CoreFieldsEditModal
         business={business}
+        cities={cities}
         open={coreOpen}
         onClose={() => setCoreOpen(false)}
         onSaved={(result) => {
@@ -342,6 +429,7 @@ function CoreFieldsSection({
       <CategoryEditModal
         business={business}
         categories={categories}
+        categoryTree={categoryTree}
         open={categoryOpen}
         onClose={() => setCategoryOpen(false)}
         onSaved={(result) => {
@@ -356,27 +444,36 @@ function CoreFieldsSection({
 function CoreFieldsPreview({
   business,
   categories,
+  cities,
   onEditCategories,
 }: {
-  business: Business
+  business: BusinessAdmin
   categories: Category[]
+  cities: City[]
   onEditCategories: () => void
 }) {
+  const cityName = business.city_id
+    ? cities.find((c) => c.id === business.city_id)?.name ?? null
+    : null
+  const businessTypeLabel = business.business_type
+    ? BUSINESS_TYPE_LABELS[business.business_type] ?? business.business_type
+    : null
+  const yearsOperatingLabel = business.years_operating
+    ? YEARS_OPERATING_LABELS[business.years_operating] ?? business.years_operating
+    : null
+  const contactPerson = business.contact_person ?? null
+  const hasProfileMeta =
+    cityName || businessTypeLabel || yearsOperatingLabel || contactPerson
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
-      <div className="w-full overflow-hidden rounded-md border border-border bg-muted/30 sm:w-48 sm:flex-shrink-0">
-        {business.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={business.image_url}
-            alt=""
-            className="aspect-[1200/630] w-full object-cover"
-          />
-        ) : (
-          <div className="flex aspect-[1200/630] w-full items-center justify-center text-[0.65rem] uppercase tracking-widest text-muted-foreground">
-            No image
-          </div>
-        )}
+      {/* Feature image — direct upload / replace / delete. The control
+          owns its own POST/DELETE + router.refresh(); no modal needed. */}
+      <div className="w-full sm:w-56 sm:flex-shrink-0">
+        <FeatureImageControl
+          businessId={business.id}
+          imageUrl={business.image_url}
+        />
       </div>
       <div className="min-w-0 flex-1 space-y-3">
         <p className="font-display text-lg text-foreground">{business.name}</p>
@@ -402,6 +499,37 @@ function CoreFieldsPreview({
         ) : (
           <p className="text-sm text-muted-foreground">No description yet.</p>
         )}
+        {/* Profile metadata — city / business type / years operating. Each
+            renders only when set; the whole block hides when all three are
+            blank so we don't show an empty row. */}
+        {hasProfileMeta && (
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-3">
+            {cityName && (
+              <div>
+                <dt className="text-muted-foreground">City</dt>
+                <dd className="text-foreground">{cityName}</dd>
+              </div>
+            )}
+            {businessTypeLabel && (
+              <div>
+                <dt className="text-muted-foreground">Type</dt>
+                <dd className="text-foreground">{businessTypeLabel}</dd>
+              </div>
+            )}
+            {yearsOperatingLabel && (
+              <div>
+                <dt className="text-muted-foreground">Operating</dt>
+                <dd className="text-foreground">{yearsOperatingLabel}</dd>
+              </div>
+            )}
+            {contactPerson && (
+              <div>
+                <dt className="text-muted-foreground">Contact person</dt>
+                <dd className="text-foreground">{contactPerson}</dd>
+              </div>
+            )}
+          </dl>
+        )}
       </div>
     </div>
   )
@@ -409,11 +537,13 @@ function CoreFieldsPreview({
 
 function CoreFieldsEditModal({
   business,
+  cities,
   open,
   onClose,
   onSaved,
 }: {
-  business: Business
+  business: BusinessAdmin
+  cities: City[]
   open: boolean
   onClose: () => void
   onSaved: (result: Feedback) => void
@@ -421,6 +551,14 @@ function CoreFieldsEditModal({
   const router = useRouter()
   const [name, setName] = useState(business.name)
   const [description, setDescription] = useState(business.description ?? "")
+  const [contactPerson, setContactPerson] = useState(
+    business.contact_person ?? "",
+  )
+  const [cityId, setCityId] = useState(business.city_id ?? "")
+  const [businessType, setBusinessType] = useState(business.business_type ?? "")
+  const [yearsOperating, setYearsOperating] = useState(
+    business.years_operating ?? "",
+  )
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -430,6 +568,10 @@ function CoreFieldsEditModal({
       const result = await runUpdate(business.id, {
         name: name.trim() || null,
         description: description.trim() || null,
+        contact_person: contactPerson.trim() || null,
+        city_id: cityId || null,
+        business_type: businessType || null,
+        years_operating: yearsOperating || null,
       })
       if (result?.kind === "error") {
         setError(result.message)
@@ -455,9 +597,10 @@ function CoreFieldsEditModal({
                 Edit core fields
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                Name, description, and the feature image (1200×630 cover). Placement
-                comes from the business&rsquo;s active paid subscription &mdash; edit
-                that in Subscriptions below.
+                Name, about copy, city, business type, and tenure. The feature
+                image, categories, and gallery are edited inline on the card.
+                Placement comes from the business&rsquo;s active paid
+                subscription &mdash; edit that in Subscriptions below.
               </Dialog.Description>
             </div>
             <Dialog.Close
@@ -469,20 +612,6 @@ function CoreFieldsEditModal({
           </div>
 
           <div className="space-y-5 overflow-y-auto px-6 py-5">
-            {/* Feature image — the control owns its own upload/remove
-                lifecycle (direct fetch + router.refresh()); the modal's
-                Save button below only persists name/description/tier. */}
-            <div className="space-y-1.5">
-              <Label>Feature image</Label>
-              <p className="text-xs text-muted-foreground">
-                Uploads and removals save immediately.
-              </p>
-              <FeatureImageControl
-                businessId={business.id}
-                imageUrl={business.image_url}
-              />
-            </div>
-
             <div className="space-y-1.5">
               <Label htmlFor="b-name">Name</Label>
               <Input
@@ -492,13 +621,79 @@ function CoreFieldsEditModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="b-description">Description</Label>
+              <Label htmlFor="b-contact-person">Contact person</Label>
               <Input
+                id="b-contact-person"
+                value={contactPerson}
+                onChange={(e) => setContactPerson(e.target.value)}
+                placeholder="e.g. Priya Krishnamurthy"
+                maxLength={120}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="b-description">About</Label>
+              <textarea
                 id="b-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder="Short description shown on cards and the detail page."
+                rows={6}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
               />
             </div>
+
+            {/* Business profile — fields that were create-only before but
+                naturally change over time (relocations, model changes,
+                tenure). */}
+            <div className="space-y-1.5">
+              <Label htmlFor="b-city">City</Label>
+              <select
+                id="b-city"
+                value={cityId}
+                onChange={(e) => setCityId(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— no city —</option>
+                {cities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="b-business-type">Business type</Label>
+              <select
+                id="b-business-type"
+                value={businessType}
+                onChange={(e) => setBusinessType(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— select —</option>
+                {VALID_BUSINESS_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {BUSINESS_TYPE_LABELS[t] ?? t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="b-years">Years operating</Label>
+              <select
+                id="b-years"
+                value={yearsOperating}
+                onChange={(e) => setYearsOperating(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">— select —</option>
+                {VALID_YEARS_OPERATING.map((y) => (
+                  <option key={y} value={y}>
+                    {YEARS_OPERATING_LABELS[y] ?? y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}
@@ -858,8 +1053,7 @@ function AddressEditModal({
                 {titleLabel}
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                Type to search Google Places. Suggestions appear when the
-                Maps API key is configured.
+                Type to search Google Places and pick a suggestion.
               </Dialog.Description>
             </div>
             <Dialog.Close
@@ -913,7 +1107,18 @@ function AiraReviewSection({ business }: { business: Business }) {
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
-        <h2 className="text-base font-semibold">{brand.name} Review</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold">{brand.name} Review</h2>
+          {business.verified && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+              title={`${brand.name} verified business`}
+            >
+              <BadgeCheck className="size-3.5" aria-hidden />
+              Verified
+            </span>
+          )}
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -1114,6 +1319,7 @@ function AiraReviewEditModal({
     business.rating === null ? "" : business.rating.toString(),
   )
   const [airaReview, setAiraReview] = useState(business.aira_review ?? "")
+  const [verified, setVerified] = useState(business.verified)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -1123,6 +1329,7 @@ function AiraReviewEditModal({
       const result = await runUpdate(business.id, {
         rating: rating === "" ? null : Number(rating),
         aira_review: airaReview.trim() || null,
+        verified,
       })
       if (result?.kind === "error") {
         setError(result.message)
@@ -1169,6 +1376,25 @@ function AiraReviewEditModal({
               </p>
               <AiraReviewPreview rating={previewRating} review={airaReview} />
             </div>
+
+            <label className="flex items-start gap-3 rounded-md border border-border bg-muted/20 px-4 py-3 cursor-pointer transition-colors hover:bg-muted/30">
+              <input
+                type="checkbox"
+                checked={verified}
+                onChange={(e) => setVerified(e.target.checked)}
+                className="mt-0.5 size-4 cursor-pointer accent-primary"
+              />
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  <BadgeCheck className="size-4 text-primary" aria-hidden />
+                  Verified by {brand.name}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Surfaces the blue-tick badge on cards and the public detail
+                  page. Use only after confirming the business is authentic.
+                </p>
+              </div>
+            </label>
 
             <div className="space-y-1.5">
               <Label>Star rating</Label>

@@ -106,3 +106,84 @@ export const ListAuditOutputSchema = z.object({
   pageSize: z.number().int().min(1),
 });
 export type ListAuditOutput = z.infer<typeof ListAuditOutputSchema>;
+
+/** F21 — Audience preview op input/output. The admin modal hits the
+ *  preview op while the audience picker is open and debounces the radio
+ *  / multi-select choices so the recipient count is visible before the
+ *  admin commits. */
+export const PreviewBroadcastRecipientCountInputSchema = z
+  .object({
+    target: z.lazy(() => BroadcastTargetSchema),
+  })
+  .strict();
+export type PreviewBroadcastRecipientCountInput = z.infer<
+  typeof PreviewBroadcastRecipientCountInputSchema
+>;
+
+export const PreviewBroadcastRecipientCountOutputSchema = z.object({
+  count: z.number().int().nonnegative(),
+});
+export type PreviewBroadcastRecipientCountOutput = z.infer<
+  typeof PreviewBroadcastRecipientCountOutputSchema
+>;
+
+/** F21 — Audience picker for the owner broadcast modal. Existing G1
+ *  "all linked owners" path stays the default; the three new branches add
+ *  optional narrowing. All branches inherit the active-only business
+ *  filter (deleted_at IS NULL) at the service layer per F21 review
+ *  decision 4. */
+export const BroadcastTargetSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("all_linked_owners") }).strict(),
+  z
+    .object({ kind: z.literal("by_city"), city_id: z.string().min(1) })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("by_categories"),
+      category_ids: z.array(z.string().min(1)).min(1),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("by_businesses"),
+      business_ids: z.array(z.string().min(1)).min(1),
+    })
+    .strict(),
+]);
+export type BroadcastTarget = z.infer<typeof BroadcastTargetSchema>;
+
+/** G1 — Notify all linked business owners. title bounds keep the bell
+ *  drop-down legible (≤120 chars), message bounds the body without being
+ *  artificially short (2000 chars covers any realistic announcement).
+ *  F21 added `target` with a default so the existing one-click "all
+ *  owners" flow stays binary-compatible at the modal call-site. */
+export const BusinessOwnerBroadcastInputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    message: z.string().trim().min(1).max(2000),
+    target: BroadcastTargetSchema.default({ kind: "all_linked_owners" }),
+  })
+  .strict();
+export type BusinessOwnerBroadcastInput = z.infer<
+  typeof BusinessOwnerBroadcastInputSchema
+>;
+
+export const BusinessOwnerBroadcastOutputSchema = z.object({
+  ok: z.literal(true),
+  /** Number of recipients targeted by the targeting query. 0 is legal —
+   *  no notifications written, but the audit row is still persisted so the
+   *  attempt leaves a trace. */
+  recipient_count: z.number().int().nonnegative(),
+  /** F21 — total devices across resolved recipients that we attempted to
+   *  push to. <= sum of registered devices per user. */
+  devices_attempted: z.number().int().nonnegative(),
+  /** F21 — devices the Expo Push Service accepted a ticket for before the
+   *  60s AbortController fired. */
+  devices_completed: z.number().int().nonnegative(),
+  /** F21 — devices still in-flight when the 60s cap fired. The receipt
+   *  follow-up plan will reconcile these. */
+  devices_pending: z.number().int().nonnegative(),
+});
+export type BusinessOwnerBroadcastOutput = z.infer<
+  typeof BusinessOwnerBroadcastOutputSchema
+>;

@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "{{APPLE_TEAM_ID}}.com.airabynisarga.app",
+        "appID": "C529274M9Y.com.airabynisarga.app",
         "paths": [
           "/verify*",
           "/reset-password*"
@@ -13,7 +13,7 @@
   },
   "webcredentials": {
     "apps": [
-      "{{APPLE_TEAM_ID}}.com.airabynisarga.app"
+      "C529274M9Y.com.airabynisarga.app"
     ]
   }
 }

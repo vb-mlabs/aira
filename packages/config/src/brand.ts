@@ -51,9 +51,9 @@ export const brand = {
   // time, so they belong in the rebrand layer like the rest of the brand
   // copy. Forks edit here; no DB migration, no admin form.
   homepage: {
-    aboutTitle: "A directory of Atlanta's Indian community, curated with care",
+    aboutTitle: "Atlanta's Indian business directory, curated with care",
     aboutBody:
-      "Every listing is reviewed by a person before it appears. Real businesses. Real people. The dosa place, the tabla teacher, the mandap rental — the people you'd ask a friend about.",
+      "AIRA is Atlanta's premier community directory connecting the Indian community with local Indian businesses, services, and resources.",
     // Displayed in the Community Members stat card on /home. Default is the
     // em-dash so fresh forks render the same placeholder they did when the
     // value was an "auto" app_setting fallback. Override with a literal

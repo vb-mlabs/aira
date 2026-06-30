@@ -67,6 +67,12 @@ export const env = createEnv({
     // Optional: when unset, PlacesAddressInput falls back to a plain text
     // input.
     GOOGLE_MAPS_API_KEY: z.string().optional(),
+    // Expo Push Service access token — F21 server-side push broadcasts.
+    // Generated at https://expo.dev/settings/access-tokens scoped to the
+    // org that owns the EAS project. Optional at boot so dev environments
+    // without push setup still start; sendPushBroadcast throws a clear
+    // error at fan-out time if devices exist but the token is missing.
+    EXPO_ACCESS_TOKEN: z.string().min(20).optional(),
   },
   client: {
     // Public env vars must be prefixed NEXT_PUBLIC_
@@ -86,6 +92,7 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+    EXPO_ACCESS_TOKEN: process.env.EXPO_ACCESS_TOKEN,
   },
   // During first-deploy / fork, secrets may not be set yet. Skip validation
   // unless explicitly requested. Set SKIP_ENV_VALIDATION=1 for build steps

@@ -16,7 +16,8 @@ import "server-only"
 import { headers } from "next/headers"
 import { z } from "zod"
 import { ApiError } from "@aira/api"
-import { admin } from "@aira/services"
+import { admin, notifications } from "@aira/services"
+import { env } from "@/config/env"
 import {
   AdminUsersFiltersSchema,
   ListUsersOutputSchema,
@@ -24,6 +25,10 @@ import {
   UserDetailOutputSchema,
   ListAuditInputSchema,
   ListAuditOutputSchema,
+  BusinessOwnerBroadcastInputSchema,
+  BusinessOwnerBroadcastOutputSchema,
+  PreviewBroadcastRecipientCountInputSchema,
+  PreviewBroadcastRecipientCountOutputSchema,
 } from "@aira/validators/admin"
 import { auth } from "@/lib/auth"
 import { logger } from "@/lib/logger"
@@ -149,4 +154,35 @@ export const sendAdminNotificationOp = defineOperation({
       message,
       href,
     }),
+})
+
+/** G1 + F21 — fan out the broadcast: audit + in-app notifications
+ *  (bell icon — bulletproof, runs even if Expo is down) plus push
+ *  delivery via the Expo Push Service for the audience's registered
+ *  devices. Audience picker lives in the validator (defaults to
+ *  all_linked_owners). Empty recipient sets still leave an audit row. */
+export const sendBusinessOwnerBroadcastOp = defineOperation({
+  name: "admin.businesses.broadcast",
+  input: BusinessOwnerBroadcastInputSchema,
+  output: BusinessOwnerBroadcastOutputSchema,
+  permission: "admin",
+  handler: (db, ctx, args) =>
+    notifications.sendPushBroadcast(db, ctx, args, {
+      expoAccessToken: env.EXPO_ACCESS_TOKEN,
+    }),
+})
+
+/** F21 — Live recipient count for the broadcast modal's audience
+ *  picker. Wraps resolveTargetUserIds and returns the size of the
+ *  resolved user set. Debounced from the modal so admins see the
+ *  scope of their selection before they click Send. */
+export const previewBroadcastRecipientCountOp = defineOperation({
+  name: "admin.businesses.broadcast.preview",
+  input: PreviewBroadcastRecipientCountInputSchema,
+  output: PreviewBroadcastRecipientCountOutputSchema,
+  permission: "admin",
+  handler: async (db, _ctx, { target }) => {
+    const userIds = await admin.resolveTargetUserIds(db, target)
+    return { count: userIds.length }
+  },
 })

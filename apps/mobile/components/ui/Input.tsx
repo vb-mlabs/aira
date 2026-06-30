@@ -20,11 +20,35 @@ export interface InputProps extends Omit<TextInputProps, "style"> {
  * Input primitive — 44pt min height, focus ring, inline error message.
  * Wraps label + field + error helper text. Matches the shadcn API
  * (`label`, `error`, plus standard TextInput props).
+ *
+ * When `multiline` is true, the field grows from a 48pt single-line
+ * box to a min-height multi-line area (default minHeight: 120pt, can
+ * grow further). Without this branch RN's TextInput stays clamped to
+ * the explicit `h-12` Tailwind class even with multiline=true, which
+ * makes long-form composers (like the community post Description
+ * field) look like one-line inputs.
  */
 export const Input = React.forwardRef<TextInput, InputProps>(function Input(
-  { label, error, hint, containerStyle, accessibilityHint, ...rest },
+  {
+    label,
+    error,
+    hint,
+    containerStyle,
+    accessibilityHint,
+    multiline,
+    numberOfLines,
+    ...rest
+  },
   ref
 ) {
+  // Sensible default minHeight for multi-line use: line height ~22pt ×
+  // numberOfLines + padding. Caller-driven via numberOfLines so a 2-row
+  // reply composer doesn't tower over the surrounding thread. Default
+  // is 5 rows (~126pt) when numberOfLines isn't passed.
+  const multilineMinHeight = multiline
+    ? (numberOfLines ?? 5) * 22 + 16
+    : undefined;
+
   return (
     <View style={containerStyle} className="w-full">
       {label ? (
@@ -35,10 +59,21 @@ export const Input = React.forwardRef<TextInput, InputProps>(function Input(
         accessibilityLabel={label ?? rest.placeholder}
         accessibilityHint={accessibilityHint}
         placeholderTextColor="#8e8e8e"
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        // h-12 only applies to single-line. Multi-line uses minHeight
+        // so the field grows with content; py-2 gives breathing room
+        // since TextInput multiline ignores fixed `h-*` heights.
         className={[
-          "h-12 w-full rounded-lg border bg-background px-3 text-base text-foreground",
+          "w-full rounded-lg border bg-background px-3 text-base text-foreground",
+          multiline ? "py-2" : "h-12",
           error ? "border-destructive" : "border-input",
         ].join(" ")}
+        style={
+          multilineMinHeight !== undefined
+            ? { minHeight: multilineMinHeight, textAlignVertical: "top" }
+            : undefined
+        }
         {...rest}
       />
       {error ? (

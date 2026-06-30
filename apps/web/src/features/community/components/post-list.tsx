@@ -9,6 +9,7 @@ import { Search, Sparkles } from "lucide-react"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { ApiError } from "@aira/api"
+import { brand } from "@aira/config"
 import { apiClient } from "@/lib/api-client"
 import { EmptyState } from "@/lib/ui"
 import type { PostRow } from "../types"
@@ -24,8 +25,9 @@ interface ListResponse {
 
 interface PostListProps {
   initial: ListResponse
-  /** id of the current viewer so PostCard knows when to suppress the
-   *  "I can help" button (post author). null when unknown. */
+  /** id of the current viewer so PostCard can render "Your post" on
+   *  the viewer's own rows instead of the Comment CTA. null when
+   *  unknown. */
   currentUserId: string | null
 }
 
@@ -83,9 +85,9 @@ export function PostList({ initial, currentUserId }: PostListProps) {
           type="search"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search requests (pediatrician, caterer, tax advisor…)"
+          placeholder="Search posts (room for rent, caterer, sale, referral…)"
           className="pl-9"
-          aria-label="Search community requests"
+          aria-label="Search community posts"
         />
       </div>
 
@@ -100,13 +102,13 @@ export function PostList({ initial, currentUserId }: PostListProps) {
           icon={Sparkles}
           title={
             activeQuery
-              ? "No requests match that search"
-              : "Be the first to ask the community"
+              ? "No posts match that search"
+              : `Be the first to post on ${brand.name}`
           }
           description={
             activeQuery
               ? "Try a shorter keyword or clear the search."
-              : "Tap “Ask the community” above to post a request — a moderator will review it before it goes live."
+              : `Tap “Post on ${brand.name}” above to share a post — a moderator will review it before it goes live.`
           }
         />
       ) : (
@@ -129,7 +131,7 @@ export function PostList({ initial, currentUserId }: PostListProps) {
           className="flex items-center justify-between border-t border-border pt-4"
         >
           <p className="text-sm text-muted-foreground">
-            Page {data.page} of {totalPages} &middot; {data.total} request
+            Page {data.page} of {totalPages} &middot; {data.total} post
             {data.total === 1 ? "" : "s"}
           </p>
           <div className="flex items-center gap-2">

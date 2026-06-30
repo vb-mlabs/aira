@@ -40,9 +40,6 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
-# Recreates the Claude Code memory symlink so persistent memory survives
-# Replit restarts (~/.claude/ may be wiped, but the workspace persists).
-# Idempotent — safe to run on every boot. See .claude/memory/README.md.
 [[workflows.workflow]]
 name = "Claude bootstrap"
 author = "agent"
@@ -68,9 +65,19 @@ name = "Expo Go (Tunnel)"
 mode = "sequential"
 author = "agent"
 
+# EXPO_FORCE_WEBCONTAINER_ENV=1 routes the tunnel through Expo's hosted
+# ws-tunnel backend (*.boltexpo.dev) instead of @expo/ngrok. Ngrok deprecated
+# anonymous tunnels upstream, so without this flag Expo CLI falls back to
+# ngrok and crashes mid-startup with
+# `TypeError: Cannot read properties of undefined (reading 'body')` (CLI
+# misreads ERR_NGROK_4018 "auth required"). Setting this env var flips
+# Expo CLI's `envIsWebcontainer()` check to true and uses ws-tunnel, which is
+# free + anonymous + zero-config. Healthy startup logs
+# `Waiting on http://<id>.boltexpo.dev` followed by the QR code. See
+# CLAUDE.md "Expo Go on Replit".
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm --filter @aira/mobile exec expo start --tunnel"
+args = "EXPO_FORCE_WEBCONTAINER_ENV=1 pnpm --filter @aira/mobile exec expo start --tunnel --clear"
 
 [[ports]]
 localPort = 5000
@@ -79,6 +86,10 @@ externalPort = 80
 [[ports]]
 localPort = 8080
 externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
 
 [objectStorage]
 defaultBucketID = "replit-objstore-7ec03186-b4ed-4cae-b991-c9abd53c4c54"

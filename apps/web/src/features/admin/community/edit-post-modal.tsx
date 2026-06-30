@@ -16,6 +16,7 @@ import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
 import {
   COMMUNITY_POST_BODY_MAX,
+  COMMUNITY_POST_PHONE_MAX,
   COMMUNITY_POST_TITLE_MAX,
   type AdminPostRow,
 } from "@aira/validators/community"
@@ -36,6 +37,8 @@ export function EditPostModal({
 }: EditPostModalProps) {
   const [title, setTitle] = useState(post.title)
   const [body, setBody] = useState(post.body ?? "")
+  const [phone, setPhone] = useState(post.phone ?? "")
+  const [email, setEmail] = useState(post.email ?? "")
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -44,9 +47,19 @@ export function EditPostModal({
     const next = body.trim().length === 0 ? null : body.trim()
     return next !== (post.body ?? null)
   }, [body, post.body])
+  const phoneChanged = useMemo(() => {
+    const next = phone.trim().length === 0 ? null : phone.trim()
+    return next !== (post.phone ?? null)
+  }, [phone, post.phone])
+  const emailChanged = useMemo(() => {
+    const next = email.trim().length === 0 ? null : email.trim()
+    return next !== (post.email ?? null)
+  }, [email, post.email])
 
   const canSave =
-    !pending && (titleChanged || bodyChanged) && title.trim().length > 0
+    !pending &&
+    (titleChanged || bodyChanged || phoneChanged || emailChanged) &&
+    title.trim().length > 0
 
   function handleOpenChange(next: boolean) {
     if (!next) {
@@ -60,11 +73,23 @@ export function EditPostModal({
     setError(null)
     const trimmedTitle = title.trim()
     const trimmedBody = body.trim()
-    const update: { id: string; title?: string; body?: string | null } = {
+    const trimmedPhone = phone.trim()
+    const trimmedEmail = email.trim()
+    const update: {
+      id: string
+      title?: string
+      body?: string | null
+      phone?: string | null
+      email?: string | null
+    } = {
       id: post.id,
     }
     if (titleChanged) update.title = trimmedTitle
     if (bodyChanged) update.body = trimmedBody.length === 0 ? null : trimmedBody
+    if (phoneChanged)
+      update.phone = trimmedPhone.length === 0 ? null : trimmedPhone
+    if (emailChanged)
+      update.email = trimmedEmail.length === 0 ? null : trimmedEmail
 
     startTransition(async () => {
       try {
@@ -91,7 +116,7 @@ export function EditPostModal({
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
             <div>
               <Dialog.Title className="font-display text-xl text-foreground">
-                Edit request
+                Edit post
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
                 Status stays {post.status}. The author won&rsquo;t be notified.
@@ -138,6 +163,30 @@ export function EditPostModal({
               <p className="text-xs text-muted-foreground">
                 {body.length} / {COMMUNITY_POST_BODY_MAX}
               </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`edit-phone-${post.id}`}>Phone</Label>
+                <Input
+                  id={`edit-phone-${post.id}`}
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  maxLength={COMMUNITY_POST_PHONE_MAX}
+                  placeholder="Leave empty to clear."
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`edit-email-${post.id}`}>Email</Label>
+                <Input
+                  id={`edit-email-${post.id}`}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Leave empty to clear."
+                />
+              </div>
             </div>
 
             {error && (

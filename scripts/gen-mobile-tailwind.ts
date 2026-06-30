@@ -36,21 +36,82 @@ const HEADER = `/**
  */
 `;
 
+/**
+ * oklch → sRGB hex conversion (Björn Ottosson's OKLab spec).
+ *
+ * React Native's color parser only accepts rgb/rgba/hex/named values. NativeWind
+ * v4 claims runtime CSS color support but in practice oklch() strings silently
+ * fall back to default (white/transparent) inside RN — which is what made every
+ * `bg-background`, `bg-card`, etc. render as white in Expo Go (2026-06-29).
+ *
+ * Web continues to consume the oklch source directly via globals.css; only the
+ * mobile generated config gets the hex equivalents emitted by this fn. The
+ * design tokens stay oklch — single source of truth, lossy conversion happens
+ * at the boundary.
+ *
+ * Formula: https://bottosson.github.io/posts/oklab/
+ */
+function oklchToHex(input: string): string {
+  const m = input
+    .replace(/\s+/g, " ")
+    .match(/^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.%]+))?\s*\)$/);
+  if (!m) {
+    // Pass through if already hex / named / unparseable — the caller's
+    // problem to fix.
+    return input;
+  }
+  const L = Number(m[1]);
+  const C = Number(m[2]);
+  const H = Number(m[3]);
+
+  // OKLch → OKLab
+  const a = C * Math.cos((H * Math.PI) / 180);
+  const b = C * Math.sin((H * Math.PI) / 180);
+
+  // OKLab → linear LMS
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+
+  const ll = l_ * l_ * l_;
+  const mm = m_ * m_ * m_;
+  const ss = s_ * s_ * s_;
+
+  // Linear LMS → linear sRGB
+  let r = +4.0767416621 * ll - 3.3077115913 * mm + 0.2309699292 * ss;
+  let g = -1.2684380046 * ll + 2.6097574011 * mm - 0.3413193965 * ss;
+  let bl = -0.0041960863 * ll - 0.7034186147 * mm + 1.707614701 * ss;
+
+  // Linear sRGB → sRGB (gamma)
+  const gamma = (x: number): number =>
+    x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
+  r = gamma(r);
+  g = gamma(g);
+  bl = gamma(bl);
+
+  const toByte = (n: number): number =>
+    Math.round(Math.max(0, Math.min(1, n)) * 255);
+  const hex = (n: number): string => toByte(n).toString(16).padStart(2, "0");
+  return `#${hex(r)}${hex(g)}${hex(bl)}`;
+}
+
 function colorsToTailwind(): Record<string, string | Record<string, string>> {
-  // We use the LIGHT palette as the default Tailwind color map and rely on
-  // NativeWind's dark: variants which read from the same `darkVars` pattern.
-  // For React Native NativeWind v4 the color values must be valid CSS
-  // color strings; oklch() is supported in NativeWind v4.
+  // We use the LIGHT palette as the default Tailwind color map. Dark tokens
+  // get a `*Dark` suffix so consumers can opt-in via explicit class names.
+  //
+  // CRITICAL: every value is emitted as sRGB hex — RN's color parser does
+  // not handle oklch() and NativeWind v4 doesn't convert it for us. Keeping
+  // the source as oklch in design.ts (matches web globals.css) and
+  // converting at generation time keeps both surfaces in sync without a
+  // shared color lib.
   const light = design.colors.light;
   const dark = design.colors.dark;
   const out: Record<string, string | Record<string, string>> = {};
-  // Emit each token as { DEFAULT: light, dark: dark } so consumers can write
-  // text-foreground (light) and dark:text-foreground-dark.
   for (const key of Object.keys(light) as Array<keyof typeof light>) {
-    out[String(key)] = light[key];
+    out[String(key)] = oklchToHex(light[key]);
   }
   for (const key of Object.keys(dark) as Array<keyof typeof dark>) {
-    out[`${String(key)}Dark`] = dark[key];
+    out[`${String(key)}Dark`] = oklchToHex(dark[key]);
   }
   return out;
 }

@@ -7,8 +7,9 @@ import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
 import { Pagination } from "./pagination"
 import { TierSection } from "./tier-section"
-import { CATEGORIES_ORDERED, CATEGORY_META, VALID_TIERS } from "../index"
+import { getCategoryMeta, VALID_TIERS } from "../index"
 import type { Business, BusinessCategory, BusinessTier } from "../types"
+import type { Category } from "@aira/validators/categories"
 
 interface ListingViewProps {
   items: Business[]
@@ -18,6 +19,15 @@ interface ListingViewProps {
   q: string
   verified: boolean
   currentCategory: BusinessCategory
+  /** Active root categories for the city — drives the switcher
+   *  dropdown. Fetched server-side from the same `category` DB table
+   *  the admin edits via /admin/settings/categories. */
+  categories: Category[]
+  /** Anonymous callers get no FavoriteButton on any card. */
+  isSignedIn?: boolean
+  /** Ids the caller has favorited; cards in this set render with a
+   *  filled heart on mount. */
+  favIds?: ReadonlyArray<string>
 }
 
 const DEBOUNCE_MS = 300
@@ -30,7 +40,11 @@ export function ListingView({
   q,
   verified,
   currentCategory,
+  categories,
+  isSignedIn = false,
+  favIds,
 }: ListingViewProps) {
+  const favIdSet = favIds ? new Set(favIds) : undefined
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   // Controlled input keeps a local mirror so typing feels instant; the
@@ -119,7 +133,7 @@ export function ListingView({
       <div className="mb-5">
         <div className="relative inline-flex cursor-pointer items-center gap-1">
           <h1 className="pointer-events-none font-display text-2xl font-semibold text-foreground">
-            {CATEGORY_META[currentCategory as keyof typeof CATEGORY_META]?.displayName ?? currentCategory}
+            {getCategoryMeta(currentCategory).displayName}
           </h1>
           <ChevronDown
             className="pointer-events-none size-5 flex-shrink-0 text-foreground"
@@ -131,9 +145,9 @@ export function ListingView({
             aria-label="Switch category"
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           >
-            {CATEGORIES_ORDERED.map((cat) => (
-              <option key={cat.slug} value={cat.slug}>
-                {cat.displayName}
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.slug}>
+                {cat.name}
               </option>
             ))}
           </select>
@@ -223,6 +237,8 @@ export function ListingView({
                 key={tier}
                 tier={tier}
                 businesses={byTier[tier]}
+                isSignedIn={isSignedIn}
+                favIds={favIdSet}
               />
             ))}
           </div>

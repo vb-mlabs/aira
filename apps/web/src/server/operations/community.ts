@@ -22,8 +22,11 @@ import {
   CreatePostOutputSchema,
   DeletePostInputSchema,
   DeletePostOutputSchema,
+  EditMyPostInputSchema,
   EditPostInputSchema,
   EditPostOutputSchema,
+  MyPostsListInputSchema,
+  MyPostsListOutputSchema,
   GetPostInputSchema,
   GetPostOutputSchema,
   InterestMutationOutputSchema,
@@ -185,6 +188,8 @@ export const editCommunityPostOp = defineOperation({
       id: input.id,
       title: input.title,
       body: input.body,
+      phone: input.phone,
+      email: input.email,
     }),
 })
 
@@ -204,4 +209,40 @@ export const adminListInterestsOp = defineOperation({
   permission: "admin",
   handler: async (db, ctx, { id }) =>
     communityService.adminListInterests(db, ctx, { id }),
+})
+
+// ─── F20 v3 — author-side post management ──────────────────────────────────
+
+export const listMyCommunityPostsOp = defineOperation({
+  name: "community.listMyPosts",
+  input: MyPostsListInputSchema,
+  output: MyPostsListOutputSchema,
+  permission: "user",
+  handler: async (db, ctx) => communityService.listMyPosts(db, ctx),
+})
+
+export const editMyCommunityPostOp = defineOperation({
+  name: "community.editMy",
+  input: EditMyPostInputSchema,
+  // Re-uses EditPostOutputSchema — same `{ post: AdminPostRowSchema }`
+  // shape, since the author sees rejected_reason on their own row.
+  output: EditPostOutputSchema,
+  permission: "user",
+  handler: async (db, ctx, input) =>
+    communityService.editMyPost(db, ctx, {
+      id: input.id,
+      title: input.title,
+      body: input.body,
+      phone: input.phone,
+      email: input.email,
+    }),
+})
+
+export const deleteMyCommunityPostOp = defineOperation({
+  name: "community.deleteMy",
+  input: DeletePostInputSchema,
+  output: DeletePostOutputSchema,
+  permission: "user",
+  handler: async (db, ctx, { id }) =>
+    communityService.deleteMyPost(db, ctx, { id }),
 })

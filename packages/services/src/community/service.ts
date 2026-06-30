@@ -42,6 +42,8 @@ interface DbPostRow {
   status: CommunityPostStatus
   user_id: string
   author_name: string
+  phone: string | null
+  email: string | null
   interest_count: number
   expires_at: Date | null
   approved_at: Date | null
@@ -58,6 +60,8 @@ function toPostRow(row: DbPostRow): PostRow {
     status: row.status,
     user_id: row.user_id,
     author_name: row.author_name,
+    phone: row.phone,
+    email: row.email,
     interest_count: row.interest_count,
     expires_at: row.expires_at?.toISOString() ?? null,
     created_at: row.created_at.toISOString(),
@@ -73,6 +77,8 @@ function toAdminPostRow(row: DbPostRow): AdminPostRow {
     user_id: row.user_id,
     author_name: row.author_name,
     author_email: row.author_email,
+    phone: row.phone,
+    email: row.email,
     rejected_reason: row.rejected_reason,
     interest_count: row.interest_count,
     expires_at: row.expires_at?.toISOString() ?? null,
@@ -89,6 +95,8 @@ const POST_SELECT = {
   user_id: communityPost.user_id,
   author_name: sql<string>`COALESCE(${user.name}, ${user.email})`,
   author_email: user.email,
+  phone: communityPost.phone,
+  email: communityPost.email,
   interest_count: communityPost.interest_count,
   expires_at: communityPost.expires_at,
   approved_at: communityPost.approved_at,
@@ -197,6 +205,8 @@ export async function getPost(
 export interface CreatePostArgs {
   title: string
   body?: string | undefined
+  phone?: string | undefined
+  email?: string | undefined
 }
 
 export async function createPost(
@@ -225,8 +235,8 @@ export async function createPost(
       code: "community.active_post_exists",
       message:
         existing.status === "pending"
-          ? "You already have a request awaiting moderation."
-          : "You already have an active request. Wait for it to expire or be resolved before posting another.",
+          ? "You already have a post awaiting moderation."
+          : "You already have an active post. Wait for it to expire or be resolved before posting another.",
     })
   }
 
@@ -236,6 +246,8 @@ export async function createPost(
       user_id: ctx.userId,
       title: args.title,
       body: args.body && args.body.length > 0 ? args.body : null,
+      phone: args.phone && args.phone.length > 0 ? args.phone : null,
+      email: args.email && args.email.length > 0 ? args.email : null,
       status: "pending",
     })
     .returning({ id: communityPost.id })
@@ -364,14 +376,14 @@ export async function addInterest(
   if (post.status !== "approved") {
     throw ApiError.badRequest(
       "community.post_not_active",
-      "This request is no longer accepting offers to help.",
+      "This post is no longer accepting interest.",
     )
   }
   if (post.user_id === ctx.userId) {
     throw new ApiError({
       status: 409,
       code: "community.self_interest",
-      message: "You can't offer to help on your own request.",
+      message: "You can't show interest in your own post.",
     })
   }
 
@@ -390,7 +402,7 @@ export async function addInterest(
       throw new ApiError({
         status: 409,
         code: "community.already_interested",
-        message: "You've already offered to help on this request.",
+        message: "You've already shown interest in this post.",
       })
     }
     throw err
@@ -653,26 +665,37 @@ export async function getAdminPostStatusCounts(
 // ─── Admin: post edit / delete / respondent visibility (F20 v2) ────────────
 
 /**
- * Edit the title and/or body of a post regardless of status. Status is
- * intentionally NOT changed by an edit (locked review decision — keep
- * approve/reject as the only state-change actions). At least one of
- * title or body must be defined; the validator guards this at the
- * boundary.
+ * Edit the title, body, phone, and/or email of a post regardless of
+ * status. Status is intentionally NOT changed by an edit (locked review
+ * decision — keep approve/reject as the only state-change actions).
+ * At least one of the fields must be defined; the validator guards this
+ * at the boundary.
  *
- * Body of "" (empty after trim) or explicit null both clear the body.
- * Audit row written BEFORE the update inside one transaction so a failed
- * audit rolls back the change.
+ * Body/phone/email of "" (empty after trim) or explicit null all clear
+ * the field. Audit row written BEFORE the update inside one transaction
+ * so a failed audit rolls back the change.
  */
 export async function editPost(
   db: Database,
   ctx: CallerContext,
-  args: { id: string; title?: string; body?: string | null },
+  args: {
+    id: string
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+  },
 ): Promise<{ post: AdminPostRow }> {
   // Capture the row before the transaction so we can short-circuit on
   // not-found without opening a tx — and so the before/after pair has a
   // consistent snapshot to compare against.
   const [before] = await db
-    .select({ title: communityPost.title, body: communityPost.body })
+    .select({
+      title: communityPost.title,
+      body: communityPost.body,
+      phone: communityPost.phone,
+      email: communityPost.email,
+    })
     .from(communityPost)
     .where(eq(communityPost.id, args.id))
     .limit(1)
@@ -682,13 +705,20 @@ export async function editPost(
   }
 
   // Build the field set + per-field before/after pairs. The trimmed-empty
-  // body case is normalised to null here so the audit captures the canonical
-  // "cleared" state.
-  const update: { title?: string; body?: string | null } = {}
-  const fields: Array<"title" | "body"> = []
+  // string case is normalised to null here so the audit captures the
+  // canonical "cleared" state.
+  const update: {
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+  } = {}
+  const fields: Array<"title" | "body" | "phone" | "email"> = []
   const meta: {
     title?: { from: string; to: string }
     body?: { from: string | null; to: string | null }
+    phone?: { from: string | null; to: string | null }
+    email?: { from: string | null; to: string | null }
   } = {}
 
   if (args.title !== undefined && args.title !== before.title) {
@@ -703,6 +733,26 @@ export async function editPost(
       update.body = next
       fields.push("body")
       meta.body = { from: before.body, to: next }
+    }
+  }
+
+  if (args.phone !== undefined) {
+    const next =
+      args.phone === null || args.phone.length === 0 ? null : args.phone
+    if (next !== before.phone) {
+      update.phone = next
+      fields.push("phone")
+      meta.phone = { from: before.phone, to: next }
+    }
+  }
+
+  if (args.email !== undefined) {
+    const next =
+      args.email === null || args.email.length === 0 ? null : args.email
+    if (next !== before.email) {
+      update.email = next
+      fields.push("email")
+      meta.email = { from: before.email, to: next }
     }
   }
 
@@ -783,6 +833,216 @@ export async function deletePost(
   })
 
   return { ok: true }
+}
+
+// ─── Author-side: list / edit / delete own posts ───────────────────────────
+
+/**
+ * Lists the caller's own posts across all statuses (pending + approved +
+ * expired + rejected), newest first. Returns AdminPostRow so the author
+ * sees their own rejected_reason. No pagination in v1 — most users will
+ * have 0 or 1 active post at a time given the 1-active-post limit; only
+ * historic rejected/expired rows accumulate.
+ */
+export async function listMyPosts(
+  db: Database,
+  ctx: CallerContext,
+): Promise<{ items: AdminPostRow[] }> {
+  const rows = await db
+    .select(POST_SELECT)
+    .from(communityPost)
+    .leftJoin(user, eq(user.id, communityPost.user_id))
+    .where(eq(communityPost.user_id, ctx.userId))
+    .orderBy(desc(communityPost.created_at))
+
+  return { items: rows.map(toAdminPostRow) }
+}
+
+/**
+ * Author-side edit. Subset of admin editPost: status/admin-only fields
+ * are not accepted (the validator already strips them; this is defence
+ * in depth). The big difference is the "revert to pending" rule —
+ * when an approved row is edited with at least one substantive field
+ * change, status flips back to pending and approved_at/expires_at are
+ * cleared. A separate audit row (community.post_reverted_to_pending)
+ * captures the transition; community.post_edited captures the diff.
+ * Both write inside the same transaction.
+ *
+ * Edits on expired/rejected rows are rejected (the author should
+ * delete + re-post, since those statuses imply the lifecycle is over).
+ */
+export async function editMyPost(
+  db: Database,
+  ctx: CallerContext,
+  args: {
+    id: string
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+  },
+): Promise<{ post: AdminPostRow }> {
+  const [before] = await db
+    .select({
+      title: communityPost.title,
+      body: communityPost.body,
+      phone: communityPost.phone,
+      email: communityPost.email,
+      status: communityPost.status,
+      user_id: communityPost.user_id,
+      approved_at: communityPost.approved_at,
+      expires_at: communityPost.expires_at,
+    })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!before) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+  if (before.user_id !== ctx.userId) {
+    throw new ApiError({
+      status: 403,
+      code: "community.forbidden",
+      message: "You can only edit your own posts.",
+    })
+  }
+  if (before.status === "expired" || before.status === "rejected") {
+    throw ApiError.badRequest(
+      "community.post_not_editable",
+      "Expired or rejected posts can't be edited. Delete and create a new one.",
+    )
+  }
+
+  // Field diffs — same shape as admin editPost. Trimmed-empty strings
+  // for nullable text columns normalise to null in the audit snapshot.
+  const update: {
+    title?: string
+    body?: string | null
+    phone?: string | null
+    email?: string | null
+    status?: "pending"
+    approved_at?: null
+    expires_at?: null
+  } = {}
+  const fields: Array<"title" | "body" | "phone" | "email"> = []
+  const meta: {
+    title?: { from: string; to: string }
+    body?: { from: string | null; to: string | null }
+    phone?: { from: string | null; to: string | null }
+    email?: { from: string | null; to: string | null }
+  } = {}
+
+  if (args.title !== undefined && args.title !== before.title) {
+    update.title = args.title
+    fields.push("title")
+    meta.title = { from: before.title, to: args.title }
+  }
+  if (args.body !== undefined) {
+    const next = args.body === null || args.body.length === 0 ? null : args.body
+    if (next !== before.body) {
+      update.body = next
+      fields.push("body")
+      meta.body = { from: before.body, to: next }
+    }
+  }
+  if (args.phone !== undefined) {
+    const next =
+      args.phone === null || args.phone.length === 0 ? null : args.phone
+    if (next !== before.phone) {
+      update.phone = next
+      fields.push("phone")
+      meta.phone = { from: before.phone, to: next }
+    }
+  }
+  if (args.email !== undefined) {
+    const next =
+      args.email === null || args.email.length === 0 ? null : args.email
+    if (next !== before.email) {
+      update.email = next
+      fields.push("email")
+      meta.email = { from: before.email, to: next }
+    }
+  }
+
+  // No substantive change → return the row as-is rather than write an
+  // audit row + flip status for nothing.
+  if (fields.length === 0) {
+    const fresh = await getAdminRow(db, args.id)
+    return { post: fresh }
+  }
+
+  const reverting = before.status === "approved"
+  if (reverting) {
+    update.status = "pending"
+    update.approved_at = null
+    update.expires_at = null
+  }
+
+  await db.transaction(async (tx) => {
+    const audit = createAudit(tx)
+    await audit({
+      actorId: ctx.userId,
+      action: "community.post_edited",
+      target: { type: "community_post", id: args.id },
+      meta: { kind: "community.post_edited", fields, ...meta },
+      client: auditClient(ctx),
+    })
+    if (reverting) {
+      await audit({
+        actorId: ctx.userId,
+        action: "community.post_reverted_to_pending",
+        target: { type: "community_post", id: args.id },
+        meta: {
+          kind: "community.post_reverted_to_pending",
+          from: "approved",
+          to: "pending",
+          prev_approved_at:
+            before.approved_at?.toISOString() ?? new Date(0).toISOString(),
+          prev_expires_at: before.expires_at?.toISOString() ?? null,
+        },
+        client: auditClient(ctx),
+      })
+    }
+    await tx
+      .update(communityPost)
+      .set(update)
+      .where(eq(communityPost.id, args.id))
+  })
+
+  return { post: await getAdminRow(db, args.id) }
+}
+
+/**
+ * Author-side delete. Thin ownership guard then delegates to deletePost
+ * (admin path) so the existing FK cascade + audit-snapshot logic stays
+ * the single source of truth. The author's own delete writes the same
+ * `community.post_deleted` audit kind — the actor on the audit row is
+ * how downstream consumers tell author-delete from admin-delete.
+ */
+export async function deleteMyPost(
+  db: Database,
+  ctx: CallerContext,
+  args: { id: string },
+): Promise<{ ok: true }> {
+  const [row] = await db
+    .select({ user_id: communityPost.user_id })
+    .from(communityPost)
+    .where(eq(communityPost.id, args.id))
+    .limit(1)
+
+  if (!row) {
+    throw ApiError.notFound("community.post_not_found", "Post not found.")
+  }
+  if (row.user_id !== ctx.userId) {
+    throw new ApiError({
+      status: 403,
+      code: "community.forbidden",
+      message: "You can only delete your own posts.",
+    })
+  }
+
+  return deletePost(db, ctx, args)
 }
 
 /**

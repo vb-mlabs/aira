@@ -306,3 +306,38 @@
     @apply font-sans;
   }
 }
+
+/* Google Places `<gmp-place-autocomplete>` — used in the admin business
+   detail address modal. The element ships its own internal CSS that gives
+   the input a white square box; override with !important so it matches the
+   app's <Input> primitive (rounded-2xl, transparent, border-input). The
+   inner <input> is in the light DOM, so descendant selectors reach it. */
+gmp-place-autocomplete {
+  display: block !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  font-family: inherit !important;
+}
+gmp-place-autocomplete input {
+  height: 45px !important;
+  width: 100% !important;
+  border-radius: var(--radius-2xl) !important;
+  border: 1px solid var(--input) !important;
+  background-color: transparent !important;
+  padding: 0.25rem 0.75rem !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  color: var(--foreground) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+gmp-place-autocomplete input::placeholder {
+  color: var(--muted-foreground) !important;
+}
+gmp-place-autocomplete input:focus-visible {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent) !important;
+}

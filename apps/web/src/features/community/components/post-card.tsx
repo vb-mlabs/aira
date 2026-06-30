@@ -4,20 +4,20 @@
 // /community feed and /listings/<category> share one visual rhythm.
 //
 // PostList drives the click target via `onOpen`, opening
-// PostDetailModal inline. The InterestButton sits at z-10 so its hitbox
-// wins over the row's click handler.
+// PostDetailModal inline. The Comment button shares the same handler so
+// the affordance reads as the explicit "join the conversation" action
+// even when the user happens to tap the row.
 
+import { AtSign, MessageCircle, Phone } from "lucide-react"
+import { Button } from "@aira/ui-web/button"
 import { cn } from "@aira/ui-web/utils"
 import type { PostRow } from "../types"
-import { InterestButton } from "./interest-button"
 
 interface PostCardProps {
   post: PostRow
-  /** Current session user id, when known. Used to suppress "I can help"
-   *  on a post the viewer authored. */
+  /** Current session user id, when known. Used to swap the Comment CTA
+   *  for a lightweight self-row indicator on the viewer's own posts. */
   currentUserId?: string | null
-  /** Whether the current session has already offered to help on this post. */
-  alreadyHelped?: boolean
   /** Click handler for the whole-card affordance — opens
    *  PostDetailModal. Required when the card sits in a list; the detail
    *  page (which renders the same data inline) passes nothing. */
@@ -27,7 +27,6 @@ interface PostCardProps {
 export function PostCard({
   post,
   currentUserId = null,
-  alreadyHelped = false,
   onOpen,
 }: PostCardProps) {
   const isAuthor = currentUserId !== null && currentUserId === post.user_id
@@ -82,28 +81,28 @@ export function PostCard({
       </div>
 
       <div className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch">
-        <StatusPill status={post.status} />
+        <div className="flex items-center gap-1.5">
+          <ContactPill phone={post.phone} email={post.email} />
+          <StatusPill status={post.status} />
+        </div>
         {isAuthor ? (
-          <p className="text-[11px] text-muted-foreground">
-            {post.interest_count === 0
-              ? "No offers yet"
-              : post.interest_count === 1
-                ? "1 helper"
-                : `${post.interest_count} helpers`}
-          </p>
+          <p className="text-[11px] text-muted-foreground">Your post</p>
         ) : (
-          <div
-            className="relative z-10"
-            onClick={(e) => e.stopPropagation()}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            // Stop the row-level click handler so we only fire onOpen once.
+            onClick={(e) => {
+              e.stopPropagation()
+              if (onOpen) onOpen()
+            }}
             onKeyDown={(e) => e.stopPropagation()}
+            className="relative z-10 rounded-full"
           >
-            <InterestButton
-              postId={post.id}
-              initialActive={alreadyHelped}
-              initialCount={post.interest_count}
-              showCount={false}
-            />
-          </div>
+            <MessageCircle aria-hidden />
+            Comment
+          </Button>
         )}
       </div>
     </article>
@@ -111,9 +110,41 @@ export function PostCard({
 }
 
 /**
+ * Tiny icon-only chip that signals "this post has contact details" without
+ * eating card density. The actual tel:/mailto: links live in the detail
+ * modal where there's room for them.
+ */
+function ContactPill({
+  phone,
+  email,
+}: {
+  phone: string | null
+  email: string | null
+}) {
+  if (!phone && !email) return null
+  const label =
+    phone && email
+      ? "Phone + email available"
+      : phone
+        ? "Phone available"
+        : "Email available"
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-info/30 bg-info/10 px-1.5 py-0.5 text-info-foreground"
+    >
+      {phone && <Phone className="size-3" aria-hidden />}
+      {email && <AtSign className="size-3" aria-hidden />}
+    </span>
+  )
+}
+
+/**
  * Compact read-only variant — used on the standalone /community/[id] page
- * (still reachable via notification deep-links). No click target, no
- * InterestButton; the page surrounding it owns the interaction.
+ * (still reachable via notification deep-links). No click target; the
+ * page renders the comment thread directly below as the engagement
+ * surface.
  */
 export function PostCardReadOnly({ post }: { post: PostRow }) {
   return (
@@ -138,7 +169,10 @@ export function PostCardReadOnly({ post }: { post: PostRow }) {
           </p>
         )}
       </div>
-      <StatusPill status={post.status} />
+      <div className="flex items-center gap-1.5">
+        <ContactPill phone={post.phone} email={post.email} />
+        <StatusPill status={post.status} />
+      </div>
     </article>
   )
 }

@@ -55,6 +55,47 @@ const nextConfig = {
     "@aira/ui-web",
     "@aira/validators",
   ],
+
+  // Universal-link manifests under /public/.well-known/. The default
+  // static-file Content-Type for the extensionless apple-app-site-association
+  // file is application/octet-stream; Apple's swcd is currently lenient but
+  // the contract wants application/json. Pinning via a headers() rule keeps
+  // the file served from /public (smallest diff) while overriding the MIME
+  // for both AASA and assetlinks.json. 5-min cache matches Apple/Google's
+  // documented re-fetch cadence (verifiers re-pull on their own schedule).
+  async headers() {
+    return [
+      {
+        source: "/.well-known/:path*",
+        headers: [
+          { key: "content-type", value: "application/json" },
+          {
+            key: "cache-control",
+            value: "public, max-age=300, s-maxage=300",
+          },
+        ],
+      },
+    ]
+  },
+
+  // Apex-only canonical host. The `www.` subdomain currently resolves to a
+  // third-party parking host (airabynisarga-com.l.ink); this rule ships as
+  // dormant code that activates the moment DNS for www.airabynisarga.com
+  // points at our origin. Match shape mirrors Next's documented host-based
+  // redirect — :path* preserves the requested route, permanent=true emits 301
+  // so browsers + Apple/Google verifiers cache the canonical host.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          { type: "host", value: "www.airabynisarga.com" },
+        ],
+        destination: "https://airabynisarga.com/:path*",
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig

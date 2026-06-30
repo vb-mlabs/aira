@@ -1,0 +1,14 @@
+# Run log — listing favorites
+
+- **Pre-flight:** review approved, branch fine, tree had only plan/review/learnings → committed as `dc704dd` (`docs(mstack): plan + review for listing favorites`) before the loop.
+- **T1 (810a12c):** schema edit + generate → migration `0032_moaning_marvel_boy.sql` (CREATE TABLE + 2 indexes + 2 FK constraints). `pnpm migrate` applied cleanly.
+- **T2 (95148d5):** added `BusinessFavoriteSchema`, Add/Remove input + mutation output + listMine + listMineIds output schemas. Re-exported from `@aira/validators` index.
+- **T3 (13db08e):** **paused on the pre-declared trigger** — `toBusiness`/`attachRelations` were not exported. User picked "Export the mappers (Recommended)" → exported both from `businesses/queries.ts` (kept the admin variants internal). Wrote `favorites/queries.ts` with the four required functions; barrel + service-level `* as favorites` re-export.
+- **T4 (aa00c9f):** four `defineOperation`s. Two issues surfaced: (a) Zod 4's forward inference from `input: ZodType<I>` to `handler(input: I)` doesn't fire when the handler uses `input` for property access without back-inference from a service signature — fix was explicit `AddFavoriteInput`/`RemoveFavoriteInput` annotations on the handler args (preserves the runtime-Zod boundary); (b) `@aira/validators/favorites` failed to resolve because the package.json exports map didn't list it — added.
+- **T5 (438baa7):** four thin route files mirroring `community/posts/[id]/interests`. Path segment uses snake_case `[business_id]` (precedent: `[job_name]` under `/admin/cron`) so the schema field name maps cleanly without renaming.
+- **T6 (fbca162):** `FavoriteButton` client island — single-click toggle, optimistic state, silent revert + red-dot indicator on failure, hidden entirely when `!isSignedIn`. Lint blocked a dev-only `process.env.NODE_ENV` re-throw — dropped it, replaced with a plain `console.error` for non-`ApiError` failures.
+- **T7 (f9f016d):** added `isSignedIn?` + `isFavorited?` optional props to `BusinessCard` (defaults false), rendered above TierPill in the right-column stack.
+- **T8 (3cda516):** same prop addition on `BusinessDetail`, rendered in the header next to BadgeCheck at the larger `lg` button size.
+- **T9 (5c2e2d5):** `/account/favorites` RSC — `requireUser`, parallel-fetch the two list ops, `BusinessCard` rows with the heart consumable, EmptyState fallback with a Heart icon + `/directory` CTA.
+- **T10 (3b407e0):** added `My favorites` row to `ACCOUNT_ITEMS` between `My listings` and `Notifications`.
+- **T11 (388a48f):** wired `getSession` + `listMyFavoriteIdsOp` parallel-fetch through four RSC pages (`/home`, `/directory`, `/listings/[category]`, `/listings/[category]/[id]`), added `isSignedIn?` + `favIds?` props to `ListingView`, `DirectoryView`, and `TierSection`, and passed them through to each `BusinessCard` / `BusinessDetail`. Anonymous callers skip the fetch entirely.

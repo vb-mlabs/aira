@@ -28,16 +28,27 @@ at the bottom for the happy-path flow.
   - [x] `ios.bundleIdentifier`: `com.airabynisarga.app`.
   - [x] `android.package`: `com.airabynisarga.app`.
   - [x] `ios.associatedDomains`: `applinks:airabynisarga.com`.
-- [ ] Edit `apps/web/public/.well-known/apple-app-site-association`:
-  - [ ] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID. **(waiting on Apple Developer registration)**
+- [x] Edit `apps/web/public/.well-known/apple-app-site-association`:
+  - [x] Replace `{{APPLE_TEAM_ID}}` with the Apple Developer Team ID. _(C529274M9Y — Nisarga Group LLC, filled 2026-06-23)_
   - [x] iOS bundle ID filled: `com.airabynisarga.app`.
-- [ ] Edit `apps/web/public/.well-known/assetlinks.json`:
+- [x] Edit `apps/web/public/.well-known/assetlinks.json`:
   - [x] Android package filled: `com.airabynisarga.app`.
-  - [ ] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. **(waiting on Play Console signing setup)**
-- [ ] `eas init` to bind this fork to a new EAS project.
+  - [x] Replace `{{ANDROID_CERT_SHA256}}` with the Play Console signing-cert fingerprint. _(captured from Play Console → Setup → App integrity → App signing, pasted 2026-06-29)_
+- [x] `eas init` to bind this fork to a new EAS project. _(million-labs org, project `aira-mobile`, projectId `21065081-2afd-43d4-aef7-7ce10de55a8b`, 2026-06-23)_
 - [x] Set GitHub repo secrets: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `POSTMARK_SERVER_TOKEN`, `GOOGLE_MAPS_API_KEY`, `INITIAL_ADMIN_EMAIL`. _(set in Replit prod env)_
 - [x] `pnpm db:migrate` against the new Neon database. _(migrations 0001–0013 applied)_
 - [x] First-boot smoke: `pnpm dev`, sign up, verify email lands.
+
+## F21 push broadcasts (shipped 2026-06-23)
+
+- [x] Generate an Expo access token at <https://expo.dev/settings/access-tokens> scoped to the org that owns the EAS project (e.g. `million-labs`). Set `EXPO_ACCESS_TOKEN` in Replit prod secrets. Without it the broadcast modal still writes audit + in-app notifications, but the push fan-out throws `Push delivery requires EXPO_ACCESS_TOKEN`. _(set in Replit prod env)_
+- [ ] After T12 added `expo-notifications` to `app.config.ts.plugins[]`, fire a new EAS production build for both platforms (`eas build --profile production --platform all`) and submit (`eas submit --profile production --platform all`). The plugin is a native-code change — TestFlight/Play builds installed before the rebuild won't receive push even with OS permission granted. The rebuild also picks up the SDK 54 native runtime (see below).
+
+## Expo SDK pin (shipped 2026-06-23)
+
+AIRA mobile is pinned to **Expo SDK 54**, matching the publicly-shipped Expo Go on App Store + Play Store so the scan-the-QR iteration loop works without sideloading a Dev Client. Future forks should match the SDK Expo Go ships (currently 54; whatever it bundles when you read this) unless there's a specific feature need from a higher SDK. Background: feedback memory `.claude/projects/-home-runner-workspace/memory/feedback_expo_sdk_for_iteration.md` + decision log entries in `roadmap.md` + the runbook section "SDK pin policy" at `docs/operations/eas-build-runbook.md`.
+
+- Never hand-pick a peer version. `npx expo install --fix` is the only authoritative resolver — F21 T12's manual `expo-notifications: ~0.32.13` pin was wrong (SDK 55 actually wanted `~55.0.22`) and only got fixed during the SDK 54 downgrade.
 
 ## Verify the rename worked
 
@@ -62,5 +73,5 @@ Both should come back clean (the grep should print nothing).
 - [ ] Update `README.md` brand, badges, screenshots.
 - [ ] Audit `apps/web/src/app/(auth)/` + onboarding copy beyond the auto-renamed display name.
 - [ ] Configure Sentry / observability for `aira`.
-- [ ] Set production EAS channel + `runtimeVersion` policy (the SDK 55 native build differs from earlier SDKs — see `apps/mobile/eas.json`).
-- [ ] Replace placeholder assets at `apps/mobile/assets/{icon,splash,splash-dark}.png`.
+- [x] Set production EAS channel + `runtimeVersion` policy (the SDK 55 native build differs from earlier SDKs — see `apps/mobile/eas.json`). _(production profile + `runtimeVersion: { policy: "appVersion" }` shipped 2026-06-23 via the EAS init plan.)_
+- [ ] Replace placeholder assets at `apps/mobile/assets/{icon,splash,splash-dark}.png`. _(deferred to S7 store-submission alongside screenshots + listing metadata.)_

@@ -7,8 +7,10 @@ import {
   Globe,
   Phone,
 } from "lucide-react"
+import { brand } from "@aira/config"
 import { buttonVariants } from "@aira/ui-web/button"
-import { CATEGORY_META } from "../category-meta"
+import { getCategoryMeta } from "../category-meta"
+import { FavoriteButton } from "./favorite-button"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks, GoogleMapsPinIcon } from "./social-icons"
 import { BusinessImageCarousel } from "./business-image-carousel"
@@ -16,10 +18,19 @@ import type { Business } from "../types"
 
 interface BusinessDetailProps {
   business: Business
+  /** Anonymous callers get no heart at all (default false so existing
+   *  call sites without the new piping still render). */
+  isSignedIn?: boolean
+  /** Initial favorited state for the FavoriteButton. Defaults false. */
+  isFavorited?: boolean
 }
 
-export function BusinessDetail({ business }: BusinessDetailProps) {
-  const category = CATEGORY_META[business.category]
+export function BusinessDetail({
+  business,
+  isSignedIn = false,
+  isFavorited = false,
+}: BusinessDetailProps) {
+  const category = getCategoryMeta(business.category)
   const Icon = category.icon
 
   return (
@@ -52,9 +63,15 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
               {business.verified && (
                 <BadgeCheck
                   aria-label="Verified"
-                  className="size-5 flex-shrink-0 fill-info text-info-foreground md:size-6"
+                  className="size-6 flex-shrink-0 fill-info text-info-foreground md:size-7"
                 />
               )}
+              <FavoriteButton
+                businessId={business.id}
+                isFavorited={isFavorited}
+                isSignedIn={isSignedIn}
+                size="lg"
+              />
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -62,7 +79,10 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                 {category.displayName}
               </p>
               {business.rating !== null && business.rating > 0 && (
-                <RatingPill rating={business.rating} />
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  {brand.name} Stars
+                  <RatingPill rating={business.rating} />
+                </span>
               )}
             </div>
 

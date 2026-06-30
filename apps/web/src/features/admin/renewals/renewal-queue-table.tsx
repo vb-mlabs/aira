@@ -19,6 +19,7 @@ import { AdminBadge, type AdminBadgeVariant } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
 import type { FollowupQueueRow } from "@aira/validators/subscription-followups"
 import { FollowupModal } from "./followup-modal"
+import { expiryLabel } from "./expiry-label"
 
 interface RenewalQueueTableProps {
   items: FollowupQueueRow[]
@@ -220,19 +221,6 @@ function whatsappUrl(raw: string): string {
   // accepts E.164 without leading +.
   const digits = raw.replace(/\D/g, "")
   return `https://wa.me/${digits}`
-}
-
-/** "OVERDUE 2d" / "in 5 days" / "today" — stable UTC for the absolute
- *  fallback (post-7d) per 2026-06-14 hydration lesson. */
-function expiryLabel(daysRemaining: number, endDateIso: string): string {
-  if (daysRemaining < 0) return `OVERDUE ${Math.abs(daysRemaining)}d`
-  if (daysRemaining === 0) return "today"
-  if (daysRemaining === 1) return "tomorrow"
-  if (daysRemaining <= 7) return `in ${daysRemaining} days`
-  const d = new Date(endDateIso)
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0")
-  const dd = String(d.getUTCDate()).padStart(2, "0")
-  return `${mm}/${dd}/${d.getUTCFullYear()}`
 }
 
 function relativeTime(iso: string | null): string {

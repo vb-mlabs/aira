@@ -1,7 +1,10 @@
-// Single source of truth for the 7 directory categories. Sidebar, the
-// /categories page, and the per-category route pages all read from here so
-// labels, icons, and ordering stay in sync. The slug values mirror
-// VALID_CATEGORIES in ./types — keep them aligned.
+// Display metadata for the 7 seeded directory categories. The runtime
+// catalog of which categories exist is the `category` DB table managed
+// via /admin/settings/categories — this file just attaches a curated
+// icon + tagline + label to each known slug. Admin-created categories
+// that aren't in this map fall through `getCategoryMeta()` to a generic
+// Tag icon + slug-as-name so the sidebar / listings pages don't render
+// undefined.
 
 import {
   UtensilsCrossed,
@@ -11,6 +14,7 @@ import {
   Heart,
   Building2,
   ShoppingBag,
+  Tag,
   type LucideIcon,
 } from "lucide-react"
 import type { BusinessCategory } from "./types"
@@ -65,6 +69,21 @@ export const CATEGORY_META: Record<BusinessCategory, CategoryMeta> = {
     description: "Grocery, fashion, and gifts",
     icon: ShoppingBag,
   },
+}
+
+/** Safe lookup for any slug (seeded or admin-created). Returns the
+ *  curated metadata when known, or a generic `Tag`-icon + slug-as-name
+ *  fallback so consumers never read `undefined`. Prefer this over
+ *  indexing `CATEGORY_META` directly in new code. */
+export function getCategoryMeta(slug: string): CategoryMeta {
+  const known = (CATEGORY_META as Record<string, CategoryMeta | undefined>)[slug]
+  if (known) return known
+  return {
+    slug,
+    displayName: slug,
+    description: "",
+    icon: Tag,
+  }
 }
 
 /** Ordered list — drives sidebar + /categories page rendering. */

@@ -1,0 +1,9 @@
+{
+  "id": "36",
+  "subject": "T13 [CODE]: Team ID into AASA",
+  "description": "Substitute APPLE_TEAM_ID into both sites of apple-app-site-association (applinks + webcredentials).",
+  "activeForm": "Substituting Team ID",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

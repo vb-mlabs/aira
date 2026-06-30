@@ -49,11 +49,16 @@ export function FeatureImageControl({ businessId, imageUrl }: FeatureImageProps)
     [businessId, router],
   )
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { "image/jpeg": [], "image/png": [], "image/webp": [] },
     maxFiles: 1,
     disabled: uploading || removing,
+    // noClick: the empty-state dropzone still triggers a click-to-browse;
+    // the replace button below uses `open()` directly when an image
+    // exists, so we don't need react-dropzone's auto-click handler on
+    // every wrapper.
+    noClick: false,
   })
 
   async function handleRemove() {
@@ -82,20 +87,41 @@ export function FeatureImageControl({ businessId, imageUrl }: FeatureImageProps)
         <div className="group relative aspect-[1200/630] w-full overflow-hidden rounded-md border border-border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-          <button
-            type="button"
-            onClick={handleRemove}
-            disabled={removing || uploading}
-            aria-label="Remove feature image"
-            className="absolute right-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground opacity-0 transition-opacity hover:bg-background group-hover:opacity-100 disabled:cursor-not-allowed"
-          >
-            {removing ? (
-              <Loader2 className="size-3.5 animate-spin" aria-hidden />
-            ) : (
-              <X className="size-3.5" aria-hidden />
-            )}
-            Remove
-          </button>
+          {/* Hover overlay: Replace + Remove buttons in the top-right.
+              Replace calls react-dropzone's `open()` to trigger the file
+              picker; the hidden <input> rendered below stays mounted so
+              `open()` has a target. */}
+          <div className="absolute right-2 top-2 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={open}
+              disabled={uploading || removing}
+              aria-label="Replace feature image"
+              className="inline-flex items-center gap-1 rounded-full bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed"
+            >
+              {uploading ? (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              ) : (
+                <Upload className="size-3.5" aria-hidden />
+              )}
+              Replace
+            </button>
+            <button
+              type="button"
+              onClick={handleRemove}
+              disabled={removing || uploading}
+              aria-label="Remove feature image"
+              className="inline-flex items-center gap-1 rounded-full bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-background disabled:cursor-not-allowed"
+            >
+              {removing ? (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              ) : (
+                <X className="size-3.5" aria-hidden />
+              )}
+              Remove
+            </button>
+          </div>
+          <input {...getInputProps()} />
         </div>
       ) : (
         <div
@@ -123,34 +149,6 @@ export function FeatureImageControl({ businessId, imageUrl }: FeatureImageProps)
                 {isDragActive ? "Drop to upload" : "Drop image or click to browse"}
               </span>
               <span className="text-xs">JPEG, PNG or WebP · max 8 MB</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {imageUrl && !removing && (
-        <div
-          {...getRootProps()}
-          className={[
-            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors",
-            isDragActive
-              ? "border-primary bg-primary/5 text-primary"
-              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
-            uploading && "pointer-events-none opacity-60",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          <input {...getInputProps()} />
-          {uploading ? (
-            <>
-              <Loader2 className="size-5 animate-spin" aria-hidden />
-              <span>Uploading…</span>
-            </>
-          ) : (
-            <>
-              <Upload className="size-5" aria-hidden />
-              <span>{isDragActive ? "Drop to replace" : "Drop to replace image"}</span>
             </>
           )}
         </div>

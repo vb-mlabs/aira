@@ -1,0 +1,46 @@
+# Excludes paths from eas-cli's shallow-clone tarball when uploading to
+# EAS Build. Works like .gitignore. Critical on Replit because eas-cli
+# walks UP from apps/mobile to the workspace root when bundling, and the
+# Replit shell drops gigabytes of cache + sandbox state there that has no
+# business being in a mobile build context.
+#
+# Three failure modes this prevents (all observed during S0 init):
+#   1. EACCES rmdir on .cache/dotslash/.../React Native DevTools-linux-x64
+#      — dotslash unpacks binaries with locked perms; cleanup fails.
+#   2. Unknown system error -122 (filesystem quota) copying the entire
+#      pnpm content-addressable store — millions of files, copy explodes.
+#   3. Replit-specific config (.replit, .config/, .local/) ending up in
+#      production builds.
+
+# ── Build caches ────────────────────────────────────────────────────
+.cache/
+node_modules/.cache/
+.expo/
+.turbo/
+.next/
+.maestro-cache/
+
+# ── Replit shell clutter (the workspace root has all of these) ─────
+.local/
+.config/
+.npm/
+.dotslash-cache/
+.sudo_motd
+.eas-tmp/
+
+# ── Replit project config (don't ship to mobile build) ─────────────
+.replit
+replit.nix
+.fork-config.json
+
+# ── Editor + tooling state ──────────────────────────────────────────
+.claude/
+.claude.json
+.agents/
+.lefthook/
+.mstack/
+.github/
+
+# ── OS noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

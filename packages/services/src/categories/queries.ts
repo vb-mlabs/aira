@@ -118,9 +118,16 @@ export async function updateCategory(
     sort_order: number;
   }>,
 ): Promise<Category | null> {
+  // `level` must agree with `parent_id` (DB check constraint
+  // category_parent_level_check). When parent_id changes we recompute
+  // level: null parent => root (1), non-null => subcategory (2).
+  const patch: typeof data & { level?: number } = { ...data };
+  if (data.parent_id !== undefined) {
+    patch.level = data.parent_id === null ? 1 : 2;
+  }
   const [row] = await db
     .update(categories)
-    .set({ ...data, updated_at: new Date() })
+    .set({ ...patch, updated_at: new Date() })
     .where(eq(categories.id, id))
     .returning();
   return row ? toCategory(row) : null;

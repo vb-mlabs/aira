@@ -5,7 +5,6 @@
 
 export {
   VALID_TIERS,
-  VALID_CATEGORIES,
   type BusinessTier,
   type BusinessCategory,
   type Business,

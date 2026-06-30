@@ -109,6 +109,24 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
       return <>Archived business</>
     case "business.restored":
       return <>Restored business</>
+    case "business.contact_person_changed":
+      return (
+        <>
+          Changed contact person:{" "}
+          {m.from !== null ? (
+            <>
+              <code>{truncate(m.from, 40)}</code> →{" "}
+            </>
+          ) : (
+            <>(empty) → </>
+          )}
+          {m.to !== null ? (
+            <code>{truncate(m.to, 40)}</code>
+          ) : (
+            <>(empty)</>
+          )}
+        </>
+      )
     case "business.subscription_recorded":
       return (
         <>
@@ -135,6 +153,27 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           {m.scheduled_next ? (
             <> · next attempt {formatDate(m.scheduled_next)}</>
           ) : null}
+        </>
+      )
+    case "business.owner_assigned":
+      return m.prev_owner_user_id ? (
+        <>
+          Reassigned owner to <code>{m.owner_email}</code> (replaced previous
+          owner)
+        </>
+      ) : (
+        <>
+          Assigned <code>{m.owner_email}</code> as owner
+        </>
+      )
+    case "business.owner_unassigned":
+      return <>Unassigned business owner</>
+    case "business.broadcast_sent":
+      return (
+        <>
+          Broadcast &ldquo;{truncate(m.title, 60)}&rdquo; to{" "}
+          {m.recipient_count}{" "}
+          {m.recipient_count === 1 ? "owner" : "owners"}
         </>
       )
 
@@ -167,6 +206,37 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
       return (
         <>
           Edited post fields: {m.fields.join(", ")}
+        </>
+      )
+    case "community.post_reverted_to_pending":
+      return (
+        <>
+          Post returned to moderation queue (was approved on{" "}
+          {formatDate(m.prev_approved_at)})
+        </>
+      )
+    case "community.comment_hidden":
+      return (
+        <>
+          Hid comment &ldquo;{truncate(m.body_snapshot, 60)}&rdquo;
+        </>
+      )
+    case "community.comment_restored":
+      return <>Restored a previously hidden comment</>
+    case "community.comment_deleted":
+      return (
+        <>
+          Deleted {m.was_reply ? "reply" : "top-level comment"} &ldquo;
+          {truncate(m.body_snapshot, 60)}&rdquo;
+        </>
+      )
+
+    // ─── waitlist.* ──────────────────────────────────────────────────
+    case "waitlist.delete":
+      return (
+        <>
+          Deleted {m.waitlist_type} waitlist entry (
+          <code>{m.email}</code>)
         </>
       )
 

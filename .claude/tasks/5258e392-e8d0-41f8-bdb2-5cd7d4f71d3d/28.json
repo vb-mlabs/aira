@@ -1,0 +1,9 @@
+{
+  "id": "28",
+  "subject": "T5 [HUMAN→CODE]: updates.url",
+  "description": "User runs eas update:configure (writes updates.url). /mlabs-code commits the diff.",
+  "activeForm": "Wiring updates.url",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

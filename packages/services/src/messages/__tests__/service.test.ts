@@ -344,7 +344,12 @@ vi.mock("drizzle-orm", () => {
   // the other (typed) filters, the jsonb conversation_id check is
   // effectively narrowed by `type === "message"` + `user_id === me`.
   const sql = (() => () => true) as unknown as (...a: unknown[]) => unknown
-  return { eq, ne, and, or, gt, isNull, desc, asc, sql }
+  // relations() is used by sibling schema files (e.g. db/schema/auth.ts)
+  // that get transitively imported through the schema barrel. The tests
+  // never read relation definitions — they go through the typed db mock
+  // store — so a no-op stub is enough to satisfy the import.
+  const relations = (..._args: unknown[]) => ({})
+  return { eq, ne, and, or, gt, isNull, desc, asc, sql, relations }
 })
 
 import {

@@ -1,0 +1,9 @@
+{
+  "id": "49",
+  "subject": "F21 T10: EXPO_ACCESS_TOKEN env",
+  "description": "Add optional EXPO_ACCESS_TOKEN to apps/web/src/config/env.ts + .env.example doc.",
+  "activeForm": "Adding F21 T10 EXPO_ACCESS_TOKEN env",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

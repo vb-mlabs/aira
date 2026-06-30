@@ -24,9 +24,19 @@ const TIER_PRESENTATION: Record<BusinessTier, { texture: string; Icon: LucideIco
 interface TierSectionProps {
   tier: BusinessTier
   businesses: Business[]
+  /** Anonymous callers get no heart. Defaults false so call sites that
+   *  haven't been updated yet keep rendering. */
+  isSignedIn?: boolean
+  /** Set of business ids the caller has already favorited. */
+  favIds?: ReadonlySet<string>
 }
 
-export function TierSection({ tier, businesses }: TierSectionProps) {
+export function TierSection({
+  tier,
+  businesses,
+  isSignedIn = false,
+  favIds,
+}: TierSectionProps) {
   if (businesses.length === 0) return null
   const { texture, Icon } = TIER_PRESENTATION[tier]
   const label = TIER_LABELS[tier]
@@ -49,7 +59,12 @@ export function TierSection({ tier, businesses }: TierSectionProps) {
       <ul className="space-y-3">
         {businesses.map((b) => (
           <li key={b.id}>
-            <BusinessCard business={b} />
+            <BusinessCard
+              business={b}
+              isSignedIn={isSignedIn}
+              isFavorited={favIds?.has(b.id) ?? false}
+              showCategory={false}
+            />
           </li>
         ))}
       </ul>

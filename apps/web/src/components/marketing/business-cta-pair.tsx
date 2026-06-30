@@ -6,7 +6,7 @@
 //      POSTs to /api/v1/business-waitlist via apiClient. Success swaps form for
 //      thank-you message.
 //   2. "View Launch Offer" — secondary outlined pill → modal styled after the
-//      Founding Launch Offer flyer: cream bg, italic title, perk rows, pricing grid.
+//      Founding Launch Offer flyer: cream bg, bold titles, perk rows, pricing grid.
 //
 // Both Dialogs are client-only islands so the surrounding section stays SSR.
 // Dialog uses @base-ui/react for focus trap + ESC handling.
@@ -128,10 +128,14 @@ function GetListedForm() {
     setError(null)
     setIsSubmitting(true)
     try {
-      await apiClient.post("/api/v1/business-waitlist", { body: fields })
+      await apiClient.post("/api/v1/business-waitlist", fields)
       setSubmitted(true)
-    } catch {
-      setError("Something went wrong. Please try again or email us directly.")
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Something went wrong. Please try again or email us directly.",
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -340,38 +344,64 @@ function GetListedForm() {
   )
 }
 
+// ── Reusable Get Listed dialog ────────────────────────────────────────────────
+
+// Exposed so the marketing-page business listing preview (in business-panel.tsx)
+// can trigger the same form. Anonymous click on the preview card used to route
+// through /listings/* into the auth gate and dump the user at /login; wrapping
+// the card in this dialog instead lands them on the business signup form,
+// which is what the section is actually selling.
+export function GetListedDialog({
+  children,
+  triggerClassName,
+  triggerAriaLabel,
+}: {
+  children: React.ReactNode
+  triggerClassName?: string
+  triggerAriaLabel?: string
+}) {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger
+        className={triggerClassName}
+        aria-label={triggerAriaLabel}
+      >
+        {children}
+      </Dialog.Trigger>
+
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-[color:oklch(0.25_0.04_60_/_60%)] backdrop-blur-sm data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity duration-200" />
+        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-32px)] w-[min(520px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl bg-card shadow-[0_40px_80px_-20px_oklch(0.25_0.04_60_/_50%)] outline-none data-[starting-style]:opacity-0 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:scale-95 transition-[transform,opacity] duration-200">
+          <div className="overflow-y-auto px-8 py-7 text-card-foreground md:px-10">
+            <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
+              Early access
+            </span>
+            <Dialog.Title className="mt-1.5 font-display text-[26px] font-bold leading-tight text-foreground">
+              Get your business listed
+            </Dialog.Title>
+            <Dialog.Description className="mt-1.5 text-[13px] text-muted-foreground">
+              Fill in your details and we&apos;ll reach out to get you set up.
+            </Dialog.Description>
+
+            <div className="mt-6">
+              <GetListedForm />
+            </div>
+          </div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export function BusinessCtaPair() {
   return (
     <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
       {/* ── Get Listed Early → sign-up form modal ── */}
-      <Dialog.Root>
-        <Dialog.Trigger className="inline-flex items-center gap-2 rounded-full bg-brand-cream-bright px-7 py-[14px] font-sans text-sm font-bold tracking-[0.3px] text-[color:oklch(0.42_0.06_130)] no-underline transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cream-bright focus-visible:ring-offset-2 focus-visible:ring-offset-[color:oklch(0.42_0.06_130)]">
-          Get Listed Early →
-        </Dialog.Trigger>
-
-        <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-50 bg-[color:oklch(0.25_0.04_60_/_60%)] backdrop-blur-sm data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity duration-200" />
-          <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-32px)] w-[min(520px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl bg-card shadow-[0_40px_80px_-20px_oklch(0.25_0.04_60_/_50%)] outline-none data-[starting-style]:opacity-0 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:scale-95 transition-[transform,opacity] duration-200">
-            <div className="overflow-y-auto px-8 py-7 text-card-foreground md:px-10">
-              <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
-                Early access
-              </span>
-              <Dialog.Title className="mt-1.5 font-display text-[26px] font-bold italic leading-tight text-foreground">
-                Get your business listed
-              </Dialog.Title>
-              <Dialog.Description className="mt-1.5 text-[13px] text-muted-foreground">
-                Fill in your details and we&apos;ll reach out to get you set up.
-              </Dialog.Description>
-
-              <div className="mt-6">
-                <GetListedForm />
-              </div>
-            </div>
-          </Dialog.Popup>
-        </Dialog.Portal>
-      </Dialog.Root>
+      <GetListedDialog triggerClassName="inline-flex items-center gap-2 rounded-full bg-brand-cream-bright px-7 py-[14px] font-sans text-sm font-bold tracking-[0.3px] text-[color:oklch(0.42_0.06_130)] no-underline transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cream-bright focus-visible:ring-offset-2 focus-visible:ring-offset-[color:oklch(0.42_0.06_130)]">
+        Get Listed Early →
+      </GetListedDialog>
 
       {/* ── View Launch Offer → info modal ── */}
       <Dialog.Root>
@@ -383,7 +413,7 @@ export function BusinessCtaPair() {
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-[color:oklch(0.25_0.04_60_/_60%)] backdrop-blur-sm data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity duration-200" />
           <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-32px)] w-[min(680px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl bg-card shadow-[0_40px_80px_-20px_oklch(0.25_0.04_60_/_50%)] outline-none data-[starting-style]:opacity-0 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:scale-95 transition-[transform,opacity] duration-200">
             <div className="overflow-y-auto px-7 py-5 text-card-foreground md:px-8">
-              <Dialog.Title className="text-center font-display text-[26px] font-bold italic leading-tight text-foreground">
+              <Dialog.Title className="text-center font-display text-[26px] font-bold leading-tight text-foreground">
                 Founding Launch Offer
               </Dialog.Title>
 
@@ -421,7 +451,7 @@ export function BusinessCtaPair() {
                 ))}
               </ul>
 
-              <p className="mt-3 text-center text-[12px] italic leading-[1.55] text-muted-foreground">
+              <p className="mt-3 text-center text-[12px] leading-[1.55] text-muted-foreground">
                 Available when you join with a 6-Month or 1-Year Membership
                 during the launch period.
               </p>
@@ -429,7 +459,7 @@ export function BusinessCtaPair() {
               <hr className="my-4 border-border" />
 
               {/* Membership Plans */}
-              <h3 className="text-center font-display text-[21px] font-bold italic text-foreground">
+              <h3 className="text-center font-display text-[21px] font-bold text-foreground">
                 Membership Plans
               </h3>
               <p className="mx-auto mt-1 max-w-[520px] text-center text-[12.5px] leading-[1.55] text-muted-foreground">
@@ -463,7 +493,7 @@ export function BusinessCtaPair() {
               {/* Optional Add-Ons */}
               <div className="mt-4 flex items-center gap-3">
                 <span aria-hidden="true" className="h-px flex-1 bg-border" />
-                <h3 className="shrink-0 font-display text-[18px] font-bold italic text-foreground">
+                <h3 className="shrink-0 font-display text-[18px] font-bold text-foreground">
                   Optional Add-Ons
                 </h3>
                 <span aria-hidden="true" className="h-px flex-1 bg-border" />

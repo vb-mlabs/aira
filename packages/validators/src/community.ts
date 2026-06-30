@@ -33,6 +33,10 @@ export const PostRowSchema = z.object({
    *  already publicly visible, so the id is no more sensitive. */
   user_id: z.string(),
   author_name: z.string(),
+  /** Optional contact details surfaced to any signed-in viewer so they can
+   *  reach the author directly. Both nullable (post may opt out of either). */
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
   interest_count: z.number().int().nonnegative(),
   /** ISO 8601, null when the post is pending (no expiry set yet). */
   expires_at: z.string().nullable(),
@@ -51,6 +55,8 @@ export const AdminPostRowSchema = z.object({
   user_id: z.string(),
   author_name: z.string(),
   author_email: z.string().nullable(),
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
   rejected_reason: z.string().nullable(),
   interest_count: z.number().int().nonnegative(),
   expires_at: z.string().nullable(),
@@ -94,10 +100,17 @@ export type ListPostsOutput = z.infer<typeof ListPostsOutputSchema>;
 
 // ─── Create post ────────────────────────────────────────────────────────────
 
+/** Lenient phone shape — trimmed string ≤ 30 chars. Matches how
+ *  businesses.phone is stored today; intentionally avoids libphonenumber
+ *  per the Post-on-AIRA review's locked decision. */
+export const COMMUNITY_POST_PHONE_MAX = 30;
+
 export const CreatePostInputSchema = z
   .object({
     title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX),
     body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).optional(),
+    phone: z.string().trim().max(COMMUNITY_POST_PHONE_MAX).optional(),
+    email: z.email("Enter a valid email").optional(),
   })
   .strict();
 export type CreatePostInput = z.infer<typeof CreatePostInputSchema>;
@@ -106,6 +119,48 @@ export const CreatePostOutputSchema = z.object({
   post: PostRowSchema,
 });
 export type CreatePostOutput = z.infer<typeof CreatePostOutputSchema>;
+
+// ─── Author-side edit / delete (user owns the row) ─────────────────────────
+
+/** What the author can change via the self-service path. Subset of the
+ *  admin EditPostInputSchema — no status, no admin-only fields. The
+ *  service rejects edits on expired/rejected rows; an edit on an
+ *  approved row reverts status to pending (locked review decision). */
+export const EditMyPostInputSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX).optional(),
+    body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).nullable().optional(),
+    phone: z
+      .string()
+      .trim()
+      .max(COMMUNITY_POST_PHONE_MAX)
+      .nullable()
+      .optional(),
+    email: z
+      .union([z.email("Enter a valid email"), z.null()])
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (v) =>
+      v.title !== undefined ||
+      v.body !== undefined ||
+      v.phone !== undefined ||
+      v.email !== undefined,
+    { message: "Nothing to update." },
+  );
+export type EditMyPostInput = z.infer<typeof EditMyPostInputSchema>;
+
+/** Author's own posts, regardless of status. Re-uses AdminPostRowSchema
+ *  so the author sees rejected_reason on their own row. */
+export const MyPostsListInputSchema = z.object({}).strict();
+export type MyPostsListInput = z.infer<typeof MyPostsListInputSchema>;
+
+export const MyPostsListOutputSchema = z.object({
+  items: z.array(AdminPostRowSchema),
+});
+export type MyPostsListOutput = z.infer<typeof MyPostsListOutputSchema>;
 
 // ─── Get post (detail) ──────────────────────────────────────────────────────
 
@@ -216,11 +271,25 @@ export const EditPostInputSchema = z
     id: z.string().min(1),
     title: z.string().trim().min(1).max(COMMUNITY_POST_TITLE_MAX).optional(),
     body: z.string().trim().max(COMMUNITY_POST_BODY_MAX).nullable().optional(),
+    phone: z
+      .string()
+      .trim()
+      .max(COMMUNITY_POST_PHONE_MAX)
+      .nullable()
+      .optional(),
+    email: z
+      .union([z.email("Enter a valid email"), z.null()])
+      .optional(),
   })
   .strict()
-  .refine((v) => v.title !== undefined || v.body !== undefined, {
-    message: "Nothing to update.",
-  });
+  .refine(
+    (v) =>
+      v.title !== undefined ||
+      v.body !== undefined ||
+      v.phone !== undefined ||
+      v.email !== undefined,
+    { message: "Nothing to update." },
+  );
 export type EditPostInput = z.infer<typeof EditPostInputSchema>;
 
 export const EditPostOutputSchema = z.object({
@@ -246,3 +315,84 @@ export const AdminListInterestsInputSchema = z
   .object({ id: z.string().min(1) })
   .strict();
 export type AdminListInterestsInput = z.infer<typeof AdminListInterestsInputSchema>;
+
+// ─── Comments (F20 v3 — thread-style discussion) ────────────────────────────
+
+export const COMMUNITY_COMMENT_BODY_MAX = 1000;
+
+export const CommentStatusSchema = z.enum(["visible", "hidden"]);
+export type CommentStatus = z.infer<typeof CommentStatusSchema>;
+
+/** Public wire shape for a single comment. Hidden rows project null
+ *  body + null user_id + null user_name (the body never leaves the
+ *  service layer for non-admin viewers). */
+export const CommentRowSchema = z.object({
+  id: z.string(),
+  post_id: z.string(),
+  parent_id: z.string().nullable(),
+  user_id: z.string().nullable(),
+  user_name: z.string().nullable(),
+  body: z.string().nullable(),
+  status: CommentStatusSchema,
+  /** ISO 8601 */
+  created_at: z.string(),
+});
+export type CommentRow = z.infer<typeof CommentRowSchema>;
+
+export const CommentThreadNodeSchema = CommentRowSchema.extend({
+  replies: z.array(CommentRowSchema),
+});
+export type CommentThreadNode = z.infer<typeof CommentThreadNodeSchema>;
+
+/** `id` here is the POST id (matches the Next route segment
+ *  `/posts/[id]/comments`). The service-layer arg is post_id; the
+ *  op handler does the rename. Same convention as AddInterestInputSchema. */
+export const ListCommentsInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type ListCommentsInput = z.infer<typeof ListCommentsInputSchema>;
+
+export const ListCommentsOutputSchema = z.object({
+  items: z.array(CommentThreadNodeSchema),
+});
+export type ListCommentsOutput = z.infer<typeof ListCommentsOutputSchema>;
+
+/** `id` here is the POST id (matches the Next route segment). The
+ *  op handler renames to post_id for the service call. */
+export const CreateCommentInputSchema = z
+  .object({
+    id: z.string().min(1),
+    body: z.string().trim().min(1).max(COMMUNITY_COMMENT_BODY_MAX),
+    parent_id: z.string().min(1).optional(),
+  })
+  .strict();
+export type CreateCommentInput = z.infer<typeof CreateCommentInputSchema>;
+
+export const CreateCommentOutputSchema = z.object({
+  comment: CommentRowSchema,
+});
+export type CreateCommentOutput = z.infer<typeof CreateCommentOutputSchema>;
+
+export const DeleteCommentInputSchema = z
+  .object({ id: z.string().min(1) })
+  .strict();
+export type DeleteCommentInput = z.infer<typeof DeleteCommentInputSchema>;
+
+export const DeleteCommentOutputSchema = z.object({
+  ok: z.literal(true),
+});
+export type DeleteCommentOutput = z.infer<typeof DeleteCommentOutputSchema>;
+
+export const AdminModerateCommentInputSchema = z
+  .object({
+    id: z.string().min(1),
+    action: z.enum(["hide", "restore"]),
+  })
+  .strict();
+export type AdminModerateCommentInput = z.infer<typeof AdminModerateCommentInputSchema>;
+
+export const AdminModerateCommentOutputSchema = z.object({
+  ok: z.literal(true),
+  status: CommentStatusSchema,
+});
+export type AdminModerateCommentOutput = z.infer<typeof AdminModerateCommentOutputSchema>;

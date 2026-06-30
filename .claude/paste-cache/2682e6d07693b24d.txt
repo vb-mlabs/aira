@@ -1,0 +1,181 @@
+
+2026-06-16 19:09:52.64
+b5c35855
+User
+{ level: 'info', message: 'cron: tasks stopped on SIGTERM' }
+
+2026-06-16 19:09:52.80
+b5c35855
+System
+command finished with error [sh -c PORT=5000 HOSTNAME=0.0.0.0 exec ./apps/web/.next/standalone/node-runtime apps/web/.next/standalone/apps/web/server.js]: exit status 143
+
+2026-06-16 19:09:52.90
+b5c35855
+System
+main done, exiting
+
+2026-06-16 19:09:53.78
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:53.93
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:55.55
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:56.88
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:58.18
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:58.72
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:58.84
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:09:59.07
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:10:00.27
+1592df59
+System
+healthcheck failed error=healthcheck / returned status 500
+
+2026-06-16 19:10:01.20
+1592df59
+User
+▲ Next.js 16.2.6
+
+2026-06-16 19:10:01.20
+1592df59
+User
+- Network: http://0.0.0.0:5000
+
+2026-06-16 19:10:01.20
+1592df59
+User
+- Local: http://localhost:5000
+
+2026-06-16 19:10:01.20
+1592df59
+User
+✓ Ready in 0ms
+
+2026-06-16 19:10:04.41
+1592df59
+User
+{ level: 'info', message: 'cron: swept stale running rows' }
+
+2026-06-16 19:10:05.59
+1592df59
+User
+{
+
+2026-06-16 19:10:05.59
+1592df59
+User
+level: 'info',
+
+2026-06-16 19:10:05.59
+1592df59
+User
+message: 'cron: scheduled "subscription-status-rollover" (5 0 * * *)'
+
+
+2026-06-16 19:10:05.59
+1592df59
+User
+}
+
+2026-06-16 19:10:05.60
+1592df59
+User
+{
+
+2026-06-16 19:10:05.60
+1592df59
+User
+message: 'cron: scheduled "sponsorship-status-rollover" (0 * * * *)'
+
+2026-06-16 19:10:05.60
+1592df59
+User
+}
+
+2026-06-16 19:10:05.60
+1592df59
+User
+level: 'info',
+
+2026-06-16 19:10:05.60
+1592df59
+User
+{
+
+2026-06-16 19:10:05.60
+1592df59
+User
+level: 'info',
+
+2026-06-16 19:10:05.60
+1592df59
+User
+}
+
+2026-06-16 19:10:05.60
+1592df59
+User
+message: 'cron: scheduled "renewal-reminder" (0 8 * * *)'
+
+2026-06-16 19:10:05.61
+1592df59
+User
+}
+
+2026-06-16 19:10:05.61
+1592df59
+User
+message: 'cron: scheduled "purge-soft-deleted" (0 3 * * *)'
+
+2026-06-16 19:10:05.61
+1592df59
+User
+level: 'info',
+
+2026-06-16 19:10:05.61
+1592df59
+User
+{
+
+2026-06-16 19:10:05.61
+1592df59
+User
+level: 'info',
+
+2026-06-16 19:10:05.61
+1592df59
+User
+message: 'cron: scheduled "expire-posts" (0 * * * *)'
+
+2026-06-16 19:10:05.61
+1592df59
+User
+{

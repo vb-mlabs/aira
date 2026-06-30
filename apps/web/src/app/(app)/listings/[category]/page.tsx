@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { CATEGORY_META } from "@/features/listings/category-meta"
+import { getCategoryMeta } from "@/features/listings/category-meta"
 import { ListingView } from "@/features/listings/components/listing-view"
 import { apiServerFetch } from "@aira/api/server"
+import { getSession } from "@/lib/auth/server"
 import { listBusinessesOp } from "@/server/operations/businesses"
-import { getCategoryBySlugOp } from "@/server/operations/categories"
+import { getCategoryBySlugOp, listCategoriesOp } from "@/server/operations/categories"
+import { listMyFavoriteIdsOp } from "@/server/operations/favorites"
 
 const PAGE_SIZE = 12
 
@@ -24,8 +26,9 @@ export async function generateMetadata({
   const res = await apiServerFetch(getCategoryBySlugOp, { input: { slug: category } })
   const cat = res.data?.category
   if (!cat) return { title: "Not found" }
-  const meta = CATEGORY_META[cat.slug as keyof typeof CATEGORY_META]
-  return { title: meta?.displayName ?? cat.name }
+  // Prefer the DB row's name (admin-editable) over the static
+  // metadata's displayName when both exist.
+  return { title: cat.name ?? getCategoryMeta(cat.slug).displayName }
 }
 
 export default async function CategoryListingPage({
@@ -34,29 +37,44 @@ export default async function CategoryListingPage({
 }: PageProps) {
   const { category } = await params
 
-  const catRes = await apiServerFetch(getCategoryBySlugOp, { input: { slug: category } })
-  if (!catRes.data?.category) notFound()
-
   const sp = await searchParams
   const q = sp.q?.trim() || undefined
   const parsedPage = Number.parseInt(sp.page ?? "", 10)
   const page = Number.isFinite(parsedPage) && parsedPage >= 1 ? parsedPage : 1
   const verified = sp.verified === "1" || sp.verified === "true"
 
-  const res = await apiServerFetch(listBusinessesOp, {
-    input: {
-      category,
-      q,
-      page,
-      pageSize: PAGE_SIZE,
-      verified: verified || undefined,
-    },
-  })
+  const session = await getSession()
+  const isSignedIn = !!session
+
+  // Parallel fetch: this category (for 404), the businesses in it, the
+  // full active-category list (drives the switcher dropdown in
+  // ListingView), and — when signed in — the caller's favorite ids so
+  // each card mounts with the correct heart state.
+  const [catRes, res, categoriesRes, favIdsRes] = await Promise.all([
+    apiServerFetch(getCategoryBySlugOp, { input: { slug: category } }),
+    apiServerFetch(listBusinessesOp, {
+      input: {
+        category,
+        q,
+        page,
+        pageSize: PAGE_SIZE,
+        verified: verified || undefined,
+      },
+    }),
+    apiServerFetch(listCategoriesOp, { input: {} }),
+    isSignedIn
+      ? apiServerFetch(listMyFavoriteIdsOp, { input: {} })
+      : Promise.resolve(null),
+  ])
+
+  if (!catRes.data?.category) notFound()
 
   const items = res.data?.items ?? []
   const total = res.data?.total ?? 0
   const responsePage = res.data?.page ?? page
   const responsePageSize = res.data?.pageSize ?? PAGE_SIZE
+  const categories = categoriesRes.data?.categories ?? []
+  const favIds = favIdsRes?.data?.ids ?? []
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-8 sm:px-8 sm:py-10">
@@ -68,6 +86,9 @@ export default async function CategoryListingPage({
         q={q ?? ""}
         verified={verified}
         currentCategory={category}
+        categories={categories}
+        isSignedIn={isSignedIn}
+        favIds={favIds}
       />
     </div>
   )

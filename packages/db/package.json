@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "generate": "drizzle-kit generate",
     "migrate": "tsx scripts/migrate.ts",
+    "seed:qa": "tsx scripts/seed-qa-accounts.ts",
     "studio": "drizzle-kit studio"
   },
   "dependencies": {

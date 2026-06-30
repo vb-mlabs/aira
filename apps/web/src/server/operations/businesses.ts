@@ -21,6 +21,7 @@ import {
   BusinessDetailInputSchema,
   BusinessDetailOutputSchema,
   BusinessCountOutputSchema,
+  BusinessSchema,
   type BusinessListOutput,
 } from "@aira/validators/businesses"
 import { defineOperation } from "./index"
@@ -140,5 +141,20 @@ export const countActiveBusinessesOp = defineOperation({
   handler: async (db) => {
     const count = await businessesService.countActiveBusinesses(db)
     return { count }
+  },
+})
+
+/** G1 — caller's own owned businesses. Returns active AND archived rows so
+ *  /account/listings can render an "Archived" badge alongside live ones.
+ *  Scoped implicitly: businessesService.getBusinessesOwnedBy filters on
+ *  owner_user_id = ctx.userId; no need for a separate authz check. */
+export const listMyBusinessesOp = defineOperation({
+  name: "businesses.listMine",
+  input: z.object({}).strict(),
+  output: z.object({ items: z.array(BusinessSchema) }),
+  permission: "user",
+  handler: async (db, ctx) => {
+    const items = await businessesService.getBusinessesOwnedBy(db, ctx.userId)
+    return { items }
   },
 })

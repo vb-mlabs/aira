@@ -1,0 +1,9 @@
+{
+  "id": "32",
+  "subject": "T9 [HUMAN]: preview iOS build",
+  "description": "User runs eas build --platform ios --profile preview.",
+  "activeForm": "Waiting on preview iOS build",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}
