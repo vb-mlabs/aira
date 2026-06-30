@@ -153,8 +153,11 @@ export default function AppLayout() {
             // Listings + business detail live under their own Stack
             // layout (see listings/_layout.tsx). Hidden from the tab
             // bar — the Categories tab is the entry point via
-            // router.push("/listings/<slug>").
+            // router.push("/listings/<slug>"). headerShown:false so
+            // the Stack header is the only cream bar (otherwise the
+            // Tabs-level header doubles up on top of it).
             href: null,
+            headerShown: false,
           }}
         />
       </Tabs>
