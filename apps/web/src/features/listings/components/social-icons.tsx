@@ -13,6 +13,12 @@ interface SocialLinksProps {
    *  cap at 4 icons. Detail surfaces leave this false to keep all six
    *  channels visible. Defaults false. */
   compact?: boolean
+  /** When false, icons render as decorative <span>s instead of clickable
+   *  anchors. Used by the marketing preview card, where the whole card is
+   *  already wrapped in a Dialog trigger — nested anchors would be invalid
+   *  HTML, and a real navigation would pull the visitor off the landing
+   *  page mid-pitch. Defaults true. */
+  interactive?: boolean
 }
 
 export function SocialLinks({
@@ -24,6 +30,7 @@ export function SocialLinks({
   address,
   className,
   compact = false,
+  interactive = true,
 }: SocialLinksProps) {
   const waHref = whatsapp_number
     ? `https://wa.me/${whatsapp_number.replace(/\D/g, "")}`
@@ -36,83 +43,74 @@ export function SocialLinks({
   const iconBase =
     "relative z-10 inline-flex size-8 md:size-10 flex-shrink-0 items-center justify-center rounded-full transition-opacity"
 
+  const badge = (
+    key: string,
+    href: string,
+    ariaLabel: string,
+    bg: string,
+    children: React.ReactNode,
+    external: boolean = true,
+  ) => {
+    const cls = `${iconBase} hover:opacity-80`
+    const style = { backgroundColor: bg }
+    if (!interactive) {
+      return (
+        <span key={key} aria-label={ariaLabel} className={cls} style={style}>
+          {children}
+        </span>
+      )
+    }
+    return (
+      <a
+        key={key}
+        href={href}
+        aria-label={ariaLabel}
+        className={cls}
+        style={style}
+        {...(external
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+      >
+        {children}
+      </a>
+    )
+  }
+
   // Pre-render each channel once; the two modes below pick + order.
-  const fb = facebook_url && (
-    <a
-      key="fb"
-      href={facebook_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Facebook"
-      className={`${iconBase} hover:opacity-80`}
-      style={{ backgroundColor: "#1877F2" }}
-    >
-      <FacebookIcon />
-    </a>
-  )
-  const ig = instagram_url && (
-    <a
-      key="ig"
-      href={instagram_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Instagram"
-      className={`${iconBase} hover:opacity-80`}
-      style={{ backgroundColor: "#E1306C" }}
-    >
-      <InstagramIcon />
-    </a>
-  )
-  const wa = waHref && (
-    <a
-      key="wa"
-      href={waHref}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="WhatsApp"
-      className={`${iconBase} hover:opacity-80`}
-      style={{ backgroundColor: "#25D366" }}
-    >
-      <WhatsappIcon />
-    </a>
-  )
-  const web = website && (
-    <a
-      key="web"
-      href={website}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Website"
-      className={`${iconBase} hover:opacity-80`}
-      style={{ backgroundColor: "#6366F1" }}
-    >
-      <Globe className="size-4 text-white" aria-hidden />
-    </a>
-  )
-  const tel = phone && (
-    <a
-      key="tel"
-      href={`tel:${phone}`}
-      aria-label="Call"
-      className={`${iconBase} hover:opacity-80`}
-      style={{ backgroundColor: "#16A34A" }}
-    >
-      <Phone className="size-4 text-white" aria-hidden />
-    </a>
-  )
-  const map = mapsHref && (
-    <a
-      key="map"
-      href={mapsHref}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="View on Google Maps"
-      className={`${iconBase} hover:opacity-80`}
-      style={{ backgroundColor: "#EA4335" }}
-    >
-      <GoogleMapsPinIcon className="size-4 text-white" />
-    </a>
-  )
+  const fb =
+    facebook_url && badge("fb", facebook_url, "Facebook", "#1877F2", <FacebookIcon />)
+  const ig =
+    instagram_url &&
+    badge("ig", instagram_url, "Instagram", "#E1306C", <InstagramIcon />)
+  const wa = waHref && badge("wa", waHref, "WhatsApp", "#25D366", <WhatsappIcon />)
+  const web =
+    website &&
+    badge(
+      "web",
+      website,
+      "Website",
+      "#6366F1",
+      <Globe className="size-4 text-white" aria-hidden />,
+    )
+  const tel =
+    phone &&
+    badge(
+      "tel",
+      `tel:${phone}`,
+      "Call",
+      "#16A34A",
+      <Phone className="size-4 text-white" aria-hidden />,
+      false,
+    )
+  const map =
+    mapsHref &&
+    badge(
+      "map",
+      mapsHref,
+      "View on Google Maps",
+      "#EA4335",
+      <GoogleMapsPinIcon className="size-4 text-white" />,
+    )
 
   // Detail (default): keep the historic order, full set.
   // Card (compact): action-first, no map, Instagram preferred over Facebook

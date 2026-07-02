@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "2. Tighten & align right nav CTAs (Sign in / Get Started)",
-  "description": "Right-side nav actions (Sign in + Get Started) must sit on the same master grid as the logo (already inside the same max-w container, but verify after task 1) and the gap between them should be refined — currently gap-5 sm:gap-6, try ~gap-3 to gap-4 for tighter rhythm.",
-  "activeForm": "Refining right nav CTAs",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

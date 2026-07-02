@@ -18,10 +18,11 @@ interface BusinessCardProps {
   /** Initial favorited state for the FavoriteButton. Defaults false. */
   isFavorited?: boolean
   /** When false, renders a visually-identical but non-routing card —
-   *  name + More Info become spans, FavoriteButton + SocialLinks are
-   *  suppressed. Used by marketing-page previews where any /listings/*
-   *  navigation would route an anonymous user through the auth gate
-   *  and land them on /login. Defaults true. */
+   *  name + More Info become spans, FavoriteButton is suppressed, and
+   *  SocialLinks render as decorative badges (no href). Used by
+   *  marketing-page previews where any /listings/* navigation would
+   *  route an anonymous user through the auth gate and land them on
+   *  /login. Defaults true. */
   interactive?: boolean
   /** Show the category text under the business name. Defaults true.
    *  The category-listing page (TierSection) passes false because every
@@ -103,18 +104,17 @@ export function BusinessCard({
             )}
           </div>
         )}
-        {interactive && (
-          <SocialLinks
-            facebook_url={business.facebook_url}
-            instagram_url={business.instagram_url}
-            whatsapp_number={business.whatsapp_number}
-            phone={business.phone}
-            website={business.website}
-            address={business.address}
-            compact
-            className="mt-1.5"
-          />
-        )}
+        <SocialLinks
+          facebook_url={business.facebook_url}
+          instagram_url={business.instagram_url}
+          whatsapp_number={business.whatsapp_number}
+          phone={business.phone}
+          website={business.website}
+          address={business.address}
+          compact
+          interactive={interactive}
+          className="mt-1.5"
+        />
       </div>
 
       <div className="flex flex-shrink-0 flex-col items-end gap-2">
