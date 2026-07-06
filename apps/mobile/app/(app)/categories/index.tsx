@@ -3,14 +3,13 @@ import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { Stack, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Skeleton } from "../../../components/ui/Skeleton";
-import { CategoryTile } from "../../../features/listings/components/CategoryTile";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { getCategoryMeta } from "../../../features/listings/category-meta";
 import { useCategories } from "../../../features/listings/hooks";
 import type { Category } from "@aira/validators";
 
-// Same shadow recipe as CategoryTile so the root row + sub tiles read
-// as one visually consistent group.
+// Same shadow recipe as CategoryTile so the expanding card reads
+// consistently with everything else on the screen.
 const CARD_SHADOW = {
   shadowColor: "#000",
   shadowOffset: { width: 0, height: 2 },
@@ -23,6 +22,9 @@ const CARD_SHADOW = {
 // CategoryTile constants (sRGB hex from packages/config/src/design.ts
 // light theme). Keep in sync manually with the token file.
 const TIER1_HEX = "#4F653B"; // olive green (root)
+const TIER2_HEX = "#C97638"; // burnt orange (sub) — sRGB approx of oklch(0.62 0.13 55)
+const MUTED_HEX = "#66503f";
+const BORDER_LOW_HEX = "rgba(61,40,20,0.10)";
 
 interface RootAccordionRowProps {
   root: Category;
@@ -33,13 +35,14 @@ interface RootAccordionRowProps {
 }
 
 /**
- * Accordion row on the Categories tab. Tapping a root with subs expands
- * inline to reveal them (no navigation); tapping a root without subs
- * navigates straight to /listings/<slug> (the PrimaryCategoryView will
- * render an empty state there). Tapping a sub tile navigates to the
- * sub's listings screen. Radha's 2026-07-06 UAT feedback: the old
- * two-tap flow through the intermediate PrimaryCategoryView on mobile
- * felt like a wasted step; inline expansion collapses it to one tap.
+ * Accordion row on the Categories tab. Root header + optional expanded
+ * sub-row list share the SAME card container so the whole group reads
+ * as one visual unit that grows/shrinks in place. Tapping a root with
+ * subs toggles expansion; tapping a root without subs navigates
+ * straight to /listings/<slug>. Sub rows navigate to
+ * /listings/<sub-slug>. Radha's 2026-07-06 UAT: the old two-tap flow
+ * felt wasteful; inline expansion collapses it to one tap, and keeping
+ * subs inside the parent card keeps the visual hierarchy tight.
  */
 function RootAccordionRow({
   root,
@@ -49,9 +52,8 @@ function RootAccordionRow({
   onToggle,
 }: RootAccordionRowProps) {
   const meta = getCategoryMeta(root.slug);
-  const countLabel = typeof counts[root.slug] === "number"
-    ? String(counts[root.slug])
-    : null;
+  const countLabel =
+    typeof counts[root.slug] === "number" ? String(counts[root.slug]) : null;
   const hasSubs = subs.length > 0;
 
   function handlePress() {
@@ -63,7 +65,11 @@ function RootAccordionRow({
   }
 
   return (
-    <View style={{ gap: 8 }}>
+    <View
+      className="overflow-hidden rounded-xl bg-card"
+      style={CARD_SHADOW}
+    >
+      {/* Primary row — always visible */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={
@@ -78,8 +84,8 @@ function RootAccordionRow({
         onPress={handlePress}
       >
         <View
-          className="flex-row items-center rounded-xl bg-card p-4"
-          style={[{ gap: 16 }, CARD_SHADOW]}
+          className="flex-row items-center p-4"
+          style={{ gap: 16 }}
         >
           <View
             className="items-center justify-center rounded-xl bg-muted"
@@ -118,21 +124,76 @@ function RootAccordionRow({
                 : "chevron-right"
             }
             size={20}
-            color="#66503f"
+            color={MUTED_HEX}
           />
         </View>
       </Pressable>
+
+      {/* Sub rows — nested inside the same card, divided by a hairline
+          from the primary row. Only rendered when expanded. */}
       {hasSubs && expanded ? (
-        <View style={{ paddingLeft: 20, gap: 8 }}>
-          {subs.map((sub) => (
-            <CategoryTile
-              key={sub.id}
-              slug={sub.slug}
-              name={sub.name}
-              count={counts[sub.slug]}
-              variant="sub"
-            />
-          ))}
+        <View style={{ borderTopWidth: 1, borderTopColor: BORDER_LOW_HEX }}>
+          {subs.map((sub, index) => {
+            const subCount = counts[sub.slug];
+            const subCountLabel =
+              typeof subCount === "number" ? String(subCount) : null;
+            const isLast = index === subs.length - 1;
+            return (
+              <Pressable
+                key={sub.id}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  subCountLabel
+                    ? `Browse ${sub.name} businesses, ${subCountLabel} listed`
+                    : `Browse ${sub.name} businesses`
+                }
+                onPress={() => router.push(`/listings/${sub.slug}` as never)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 12,
+                  paddingVertical: 12,
+                  paddingRight: 16,
+                  paddingLeft: 24,
+                  borderBottomWidth: isLast ? 0 : 1,
+                  borderBottomColor: BORDER_LOW_HEX,
+                }}
+              >
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 8,
+                    backgroundColor: "rgba(201,118,56,0.14)",
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name="subdirectory-arrow-right"
+                    size={16}
+                    color={TIER2_HEX}
+                  />
+                </View>
+                <Text
+                  className="flex-1 text-sm font-medium text-foreground"
+                  numberOfLines={1}
+                >
+                  {sub.name}
+                </Text>
+                {subCountLabel ? (
+                  <Text className="text-xs font-semibold text-mutedForeground">
+                    {subCountLabel}
+                  </Text>
+                ) : null}
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={18}
+                  color={MUTED_HEX}
+                />
+              </Pressable>
+            );
+          })}
         </View>
       ) : null}
     </View>
