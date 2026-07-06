@@ -7,7 +7,8 @@
 
 export {
   createBusiness,
-  getFeaturedBusinesses,
+  getFeaturedRandom,
+  getFeaturedRandomForCategory,
   getBusinessesByCategory,
   getBusinessesByCategoryPaged,
   getAllBusinessesPaged,

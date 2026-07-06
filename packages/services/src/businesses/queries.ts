@@ -18,9 +18,8 @@ import {
 } from "@aira/validators";
 
 // True when the business has at least one PAID subscription whose window
-// covers now(). Used for: gating the homepage Featured tile (premium-only
-// surface) and demoting pending-only businesses to tier3 (Regular Listings)
-// on the category/directory pages.
+// covers now(). Used to demote pending-only businesses to tier3 (Regular
+// Listings) on the category/directory pages via toBusiness().
 const IS_PAID_ACTIVE = sql<boolean>`EXISTS (
   SELECT 1 FROM business_subscription bs
   WHERE bs.business_id = businesses.id
@@ -32,7 +31,7 @@ const IS_PAID_ACTIVE = sql<boolean>`EXISTS (
 // (within window). Pending shows up so businesses that registered but haven't
 // completed payment still appear — but EFFECTIVE_TIER collapses them to
 // tier3 so they don't claim Featured/Sponsored placement. The homepage
-// Featured tile uses IS_PAID_ACTIVE directly and never includes pending.
+// Featured tile gates on HAS_ACTIVE_SPONSORSHIP separately (below).
 const VISIBLE = sql`EXISTS (
   SELECT 1 FROM business_subscription bs
   WHERE bs.business_id = businesses.id
@@ -84,31 +83,27 @@ function sponsoredAmountCents(catSlug: string) {
   ), 0)`;
 }
 
-// Sponsored sort helpers for homepage featured tile — same shape as the
-// per-category helpers but without a category filter (cross-category aggregate).
-const homepageSponsoredFlag = sql`CASE WHEN EXISTS (
+// Predicate: business has at least one active, in-window sponsorship
+// (cross-category). Powers the homepage Featured tile — random pick from
+// the sponsored-in-any-category pool.
+const HAS_ACTIVE_SPONSORSHIP = sql<boolean>`EXISTS (
   SELECT 1 FROM sponsorship sp
   WHERE sp.business_id = businesses.id
   AND sp.status = 'active'
   AND now() BETWEEN sp.start_date AND sp.end_date
-) THEN 0 ELSE 1 END`;
+)`;
 
-const homepageSponsoredPriority = sql`COALESCE((
-  SELECT MIN(st.priority)
-  FROM sponsorship sp
-  LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
-  WHERE sp.business_id = businesses.id
-  AND sp.status = 'active'
-  AND now() BETWEEN sp.start_date AND sp.end_date
-), 99999)`;
-
-const homepageSponsoredAmountCents = sql`COALESCE((
-  SELECT MAX(sp.amount_cents)
-  FROM sponsorship sp
-  WHERE sp.business_id = businesses.id
-  AND sp.status = 'active'
-  AND now() BETWEEN sp.start_date AND sp.end_date
-), 0)`;
+// Predicate: business has an active, in-window sponsorship in the given
+// category. Powers the primary category page's Featured section.
+function hasActiveSponsorshipInCategory(catSlug: string) {
+  return sql<boolean>`EXISTS (
+    SELECT 1 FROM sponsorship sp
+    WHERE sp.business_id = businesses.id
+    AND sp.status = 'active'
+    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
+    AND now() BETWEEN sp.start_date AND sp.end_date
+  )`;
+}
 
 // ─── Relation helpers ────────────────────────────────────────────────────────
 
@@ -199,31 +194,44 @@ async function attachRelationsAdmin(
 
 // ─── Public queries ──────────────────────────────────────────────────────────
 
-export async function getFeaturedBusinesses(
+/** Uniform-random pick from all businesses that hold an active sponsorship
+ *  in any category. Powers the homepage Featured tile. Order is `random()`
+ *  so each request returns a fresh selection; deliberately not seeded.
+ *
+ *  Business-unique via an EXISTS predicate (not a sponsorship JOIN), so a
+ *  business with multiple concurrent sponsorships still appears at most
+ *  once in the returned set. */
+export async function getFeaturedRandom(
   db: Database,
-  limit = 6,
+  limit: number,
 ): Promise<Business[]> {
-  // Any active business with an active-paid subscription is eligible —
-  // premium tiers (tier1 / tier2) just rank first via TIER_ORDER.
-  //
-  // History: this used to gate strictly to tier1+tier2 (see the membership-
-  // plan-tier review on 2026-06-15), but that hides the section entirely
-  // whenever the directory has no premium customer, which made /home feel
-  // empty. The tier ordering preserves the "premium first" intent without
-  // hiding everyone else.
   const rows = await db
-    .select()
+    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+    .from(businesses)
+    .where(and(isNull(businesses.deleted_at), HAS_ACTIVE_SPONSORSHIP))
+    .orderBy(sql`random()`)
+    .limit(limit);
+  return attachRelations(db, rows);
+}
+
+/** Category-scoped variant. Uniform-random pick from businesses that hold
+ *  an active sponsorship *whose category_id matches the given slug*. Powers
+ *  the primary category page's Featured section. */
+export async function getFeaturedRandomForCategory(
+  db: Database,
+  categorySlug: string,
+  limit: number,
+): Promise<Business[]> {
+  const rows = await db
+    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
     .from(businesses)
     .where(
-      and(isNull(businesses.deleted_at), IS_PAID_ACTIVE),
+      and(
+        isNull(businesses.deleted_at),
+        hasActiveSponsorshipInCategory(categorySlug),
+      ),
     )
-    .orderBy(
-      homepageSponsoredFlag,
-      homepageSponsoredPriority,
-      desc(homepageSponsoredAmountCents),
-      TIER_ORDER,
-      asc(businesses.name),
-    )
+    .orderBy(sql`random()`)
     .limit(limit);
   return attachRelations(db, rows);
 }
