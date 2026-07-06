@@ -9,9 +9,13 @@ interface SocialIconsProps {
   phone?: string | null;
   website?: string | null;
   /** Card-density mode: drops the map pin, action-first ordering
-   *  (Phone → WhatsApp → Website → IG/FB), caps at 4. Mirrors web's
-   *  recent SocialLinks compact mode. Default true on mobile because
-   *  every consumer in P1 is a card-density surface. */
+   *  (Phone → Website → WhatsApp → IG/FB), caps at 4. Mirrors web's
+   *  SocialLinks compact mode. Default true on mobile because every
+   *  consumer in P1 is a card-density surface.
+   *
+   *  Order note: Website sits between Phone and WhatsApp per QA
+   *  feedback item #7 (2026-07-06). Contacts an admin cares about
+   *  cluster in the first three slots. */
   compact?: boolean;
 }
 
@@ -100,8 +104,10 @@ export function SocialIcons({
   ) : null;
 
   // Compact mode: action-first, Instagram preferred for 4th slot, no map.
+  // Order: Phone → Website → WhatsApp → IG/FB (Website between Phone
+  // and WhatsApp per QA feedback item #7, 2026-07-06).
   const icons = compact
-    ? [tel, wa, web, ig ?? fb].filter(Boolean).slice(0, 4)
+    ? [tel, web, wa, ig ?? fb].filter(Boolean).slice(0, 4)
     : [fb, ig, wa, web, tel].filter(Boolean);
 
   if (icons.length === 0) return null;

@@ -115,8 +115,10 @@ export function SocialLinks({
   // Detail (default): keep the historic order, full set.
   // Card (compact): action-first, no map, Instagram preferred over Facebook
   // for the 4th slot when both populated, cap at 4.
+  // Order: Phone → Website → WhatsApp → IG/FB (Website between Phone and
+  // WhatsApp per QA feedback item #7, 2026-07-06).
   const icons = compact
-    ? [tel, wa, web, ig || fb].filter(Boolean).slice(0, 4)
+    ? [tel, web, wa, ig || fb].filter(Boolean).slice(0, 4)
     : [fb, ig, wa, web, tel, map].filter(Boolean)
 
   return (
