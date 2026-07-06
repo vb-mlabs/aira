@@ -21,19 +21,27 @@ interface CategoryFormProps {
   category?: Category
   roots: Category[]
   cityId?: string
+  /** Preselect the Parent category field when landing from the
+   *  Add-subcategory affordance elsewhere in the admin (e.g. the
+   *  business detail modal's per-root shortcut). Ignored in edit mode
+   *  where the loaded category already brings its own parent. */
+  defaultParentId?: string
 }
 
 export function CategoryForm({
   category,
   roots,
   cityId = "city-atlanta",
+  defaultParentId,
 }: CategoryFormProps) {
   const router = useRouter()
   const isEdit = Boolean(category)
 
   const [name, setName] = useState(category?.name ?? "")
   const [slug, setSlug] = useState(category?.slug ?? "")
-  const [parentId, setParentId] = useState<string>(category?.parent_id ?? "")
+  const [parentId, setParentId] = useState<string>(
+    category?.parent_id ?? defaultParentId ?? "",
+  )
   const [active, setActive] = useState<boolean>(category?.active ?? true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
