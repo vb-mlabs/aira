@@ -16,8 +16,11 @@ export async function pickAvatarFromLibrary(): Promise<
   }
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [1, 1],
+    // No crop step — Avatar renders the image inside a circular frame,
+    // so a portrait source center-crops visually. Cleaner UX than making
+    // the user re-frame after they've already picked. If off-center
+    // portraits become a QA issue, add a server-side smart-crop pass.
+    allowsEditing: false,
     quality: 0.85,
   });
   if (result.canceled) return null;
