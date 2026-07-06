@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-06
 **Slug:** 2026-07-06-category-crud-bugs
-**Status:** reviewed
+**Status:** implemented
 **Author:** claude
 
 ---
