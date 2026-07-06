@@ -60,10 +60,15 @@ function RootAccordionRow({
     if (hasSubs) {
       onToggle();
     } else {
-      // Use replace so the listings tab's stack never accumulates
-      // category-detail screens; back from any listing always returns
-      // to Categories tab (Radha's 2026-07-06 UAT feedback).
-      router.replace(`/listings/${root.slug}` as never);
+      // Cross-tab navigation — Categories and Listings are sibling
+      // tabs, each with its own Stack (listings is hidden via
+      // href:null). `router.replace` from Categories replaces the
+      // Categories tab's current screen with the listing, permanently
+      // clobbering the accordion — that's the bug Radha hit
+      // 2026-07-06 ("keep showing me this screen only"). `push`
+      // targets the Listings tab's stack correctly; back button pops
+      // back to Categories.
+      router.push(`/listings/${root.slug}` as never);
     }
   }
 
@@ -143,7 +148,9 @@ function RootAccordionRow({
                     : `Browse ${sub.name} businesses`
                 }
                 onPress={() =>
-                  router.replace(`/listings/${sub.slug}` as never)
+                  // Same reason as the root row above — push, not
+                  // replace, for cross-tab navigation into Listings.
+                  router.push(`/listings/${sub.slug}` as never)
                 }
                 style={{
                   flexDirection: "row",

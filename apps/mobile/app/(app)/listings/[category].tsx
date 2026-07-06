@@ -136,7 +136,7 @@ export default function CategoryListingScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Browse other categories"
-              onPress={() => router.replace("/categories" as never)}
+              onPress={() => router.push("/categories" as never)}
               className="mt-6 rounded-lg bg-primary px-5 py-2.5"
             >
               <Text className="text-sm font-semibold text-primaryForeground">
