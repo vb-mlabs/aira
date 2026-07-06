@@ -1,16 +1,18 @@
 import * as React from "react";
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
+  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { VALID_TIERS, type Business, type BusinessTier } from "@aira/validators";
 import { Skeleton } from "../../../components/ui/Skeleton";
+import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
-import { PrimaryCategoryView } from "../../../features/listings/components/PrimaryCategoryView";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
 import { TierSection } from "../../../features/listings/components/TierSection";
@@ -52,12 +54,15 @@ export default function CategoryListingScreen() {
   const [q, setQ] = React.useState("");
   const [verified, setVerified] = React.useState(false);
 
-  // Only fires for the subcategory branch (skipped when isPrimary via the
-  // category param — useListings enables on `!!category`).
+  // Fires on both branches. When slug is a root (level=1), the server
+  // expands to include children so "All Listings" returns businesses
+  // across the whole root. When slug is a sub (level=2), search/verified
+  // filters apply. Search/verified are suppressed on the level=1 branch
+  // since there's no filter UI there.
   const list = useListings({
-    category: isPrimary ? undefined : slug,
-    q,
-    verified,
+    category: slug,
+    q: isPrimary ? undefined : q,
+    verified: isPrimary ? undefined : verified,
   });
 
   // Sub-picker pill (level-2 branch only). Resolves the root that owns
@@ -100,13 +105,22 @@ export default function CategoryListingScreen() {
   }
 
   // ─── Level-1 branch ────────────────────────────────────────────────
+  // Renders the tier-grouped ListingView across the whole root (server
+  // auto-expands the query to include all child sub-categories). Also
+  // renders the per-category featured section on top when there are
+  // active sponsorships. Empty when the whole root has nothing yet.
   if (isPrimary && cat.data?.category) {
-    const subs = pickerData?.subs ?? [];
     const featured = featuredForCategory.data?.items ?? [];
+    const rootPages = list.data?.pages ?? [];
+    const rootItems = rootPages.flatMap((p) => p.items);
     const isRefreshing =
-      featuredForCategory.isFetching || cats.isFetching || cat.isFetching;
+      featuredForCategory.isFetching ||
+      list.isRefetching ||
+      cats.isFetching ||
+      cat.isFetching;
     const onRefresh = () => {
       void featuredForCategory.refetch();
+      void list.refetch();
       void cats.refetch();
       void cat.refetch();
     };
@@ -114,15 +128,92 @@ export default function CategoryListingScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
         <Stack.Screen options={{ title: headerTitle }} />
-        <PrimaryCategoryView
-          category={cat.data.category}
-          subs={subs}
-          counts={counts}
-          featured={featured}
-          favIds={favIdSet}
-          isRefreshing={isRefreshing}
-          onRefresh={onRefresh}
-        />
+        {list.isLoading ? (
+          <View className="mt-4 px-5" style={{ gap: 12 }}>
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} width="100%" height={96} borderRadius={12} />
+            ))}
+          </View>
+        ) : featured.length === 0 && rootItems.length === 0 ? (
+          <View className="items-center justify-center px-6 py-16">
+            <Text className="text-center font-display text-lg font-semibold text-foreground">
+              No listings in this category yet
+            </Text>
+            <Text className="mt-2 text-center text-sm text-mutedForeground">
+              Check back soon or browse another category.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Browse other categories"
+              onPress={() => router.replace("/categories" as never)}
+              className="mt-6 rounded-lg bg-primary px-5 py-2.5"
+            >
+              <Text className="text-sm font-semibold text-primaryForeground">
+                Browse categories
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingTop: 16,
+              paddingBottom: 48,
+            }}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
+            onScroll={({ nativeEvent }) => {
+              const { layoutMeasurement, contentOffset, contentSize } =
+                nativeEvent;
+              const nearBottom =
+                layoutMeasurement.height + contentOffset.y >=
+                contentSize.height - 200;
+              if (
+                nearBottom &&
+                list.hasNextPage &&
+                !list.isFetchingNextPage
+              ) {
+                void list.fetchNextPage();
+              }
+            }}
+            scrollEventThrottle={200}
+          >
+            {featured.length > 0 ? (
+              <View style={{ marginBottom: 24 }}>
+                <Text
+                  className="mb-3 font-display text-lg font-semibold text-foreground"
+                >
+                  Featured in {cat.data.category.name}
+                </Text>
+                <View style={{ gap: 12 }}>
+                  {featured.map((business) => (
+                    <BusinessCard
+                      key={business.id}
+                      business={business}
+                      isFavorited={favIdSet.has(business.id)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            {rootItems.length > 0
+              ? groupByTier(rootItems).map((group) => (
+                  <TierSection
+                    key={group.tier}
+                    tier={group.tier}
+                    businesses={group.businesses}
+                    favIds={favIdSet}
+                  />
+                ))
+              : null}
+            {list.isFetchingNextPage ? (
+              <View className="py-4 items-center">
+                <ActivityIndicator />
+              </View>
+            ) : null}
+          </ScrollView>
+        )}
       </SafeAreaView>
     );
   }

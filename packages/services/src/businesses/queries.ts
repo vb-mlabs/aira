@@ -327,12 +327,40 @@ export interface PagedBusinessesResult {
   total: number;
 }
 
+/** Expands a category slug to include its active children's slugs. When
+ *  the input slug is a root (level=1), returns [rootSlug, ...childSlugs];
+ *  when a subcategory (level=2) or unknown slug, returns just [slug].
+ *  Used by getBusinessesByCategoryPaged so a query for a root category
+ *  returns businesses across all its subs — the "All Listings" flow from
+ *  the SubcategoryPicker relies on this. */
+export async function getSlugAndActiveChildSlugs(
+  db: Database,
+  slug: string,
+): Promise<string[]> {
+  const [parent] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.slug, slug))
+    .limit(1);
+  if (!parent) return [slug];
+  const children = await db
+    .select({ slug: categories.slug })
+    .from(categories)
+    .where(
+      and(eq(categories.parent_id, parent.id), eq(categories.active, true)),
+    );
+  return [slug, ...children.map((c) => c.slug)];
+}
+
 /** Paginated variant with scoped keyword search (name + description +
  *  address, ILIKE) and an optional verified filter.
  *
  *  Multi-category: matches businesses whose primary category equals the
  *  slug OR who have an extra category (via business_category join) with
- *  the same slug. Runs items + count in parallel. */
+ *  the same slug. When the slug is a root category, the match is
+ *  expanded to include all active child subcategories (so "All Listings"
+ *  under a root returns everything in its subs too). Runs items + count
+ *  in parallel. */
 export async function getBusinessesByCategoryPaged(
   db: Database,
   input: PagedBusinessesInput,
@@ -340,15 +368,21 @@ export async function getBusinessesByCategoryPaged(
   const trimmed = input.q?.trim();
   const pattern = trimmed ? `%${trimmed}%` : null;
 
-  // Subquery: businesses that carry this slug as an extra category.
+  // Expand slug to include children when it's a root. For subcategories
+  // and unknown slugs this is a single-item list, so the query shape is
+  // uniform.
+  const slugs = await getSlugAndActiveChildSlugs(db, input.category);
+
+  // Subquery: businesses that carry any of these slugs as an extra
+  // category (root + child slugs).
   const extraCatSubquery = db
     .select({ business_id: businessCategories.business_id })
     .from(businessCategories)
     .innerJoin(categories, eq(businessCategories.category_id, categories.id))
-    .where(eq(categories.slug, input.category));
+    .where(inArray(categories.slug, slugs));
 
   const categoryPredicate = or(
-    eq(businesses.category, input.category),
+    inArray(businesses.category, slugs),
     inArray(businesses.id, extraCatSubquery),
   );
 
