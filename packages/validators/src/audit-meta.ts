@@ -69,6 +69,15 @@ export type AuditMeta =
       from: string | null;
       to: string | null;
     }
+  // Admin rename of a category slug cascaded to this business — the
+  // business's `category` text column pointed at the old slug and was
+  // updated in the same transaction so it doesn't orphan. One audit row
+  // per affected business. target.id = business.id.
+  | {
+      kind: "business.category_slug_cascaded";
+      from: string;
+      to: string;
+    }
   // S4 — subscription + sponsorship audit trail.
   | {
       kind: "business.subscription_recorded";
@@ -224,6 +233,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "business.archived",
   "business.restored",
   "business.contact_person_changed",
+  "business.category_slug_cascaded",
   "business.subscription_recorded",
   "business.subscription_voided",
   "business.sponsorship_assigned",
@@ -299,6 +309,7 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.owner_unassigned": "Owner unassigned",
     "business.broadcast_sent": "Broadcast sent",
     "business.contact_person_changed": "Contact person changed",
+    "business.category_slug_cascaded": "Category renamed",
   };
 
 /** Convert an action kind string into a humanised dropdown label.

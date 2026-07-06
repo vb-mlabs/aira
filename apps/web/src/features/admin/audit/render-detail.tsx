@@ -127,6 +127,12 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           )}
         </>
       )
+    case "business.category_slug_cascaded":
+      return (
+        <>
+          Category slug updated: <code>{m.from}</code> → <code>{m.to}</code>
+        </>
+      )
     case "business.subscription_recorded":
       return (
         <>
