@@ -1,0 +1,6 @@
+{
+  "$schema": "https://mstack.dev/config.schema.json",
+  "paths": {
+    "todos": "TODOS.md"
+  }
+}

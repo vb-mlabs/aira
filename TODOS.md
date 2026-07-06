@@ -49,3 +49,21 @@ Source: 2026-07-06 QA feedback pass (items #1–#16). Item deferral confirmed wi
 ### Manage home page content (#16)
 - **Item:** Home page copy — About title + body + community-member count under the AIRA wordmark — currently lives in `packages/config/src/brand.ts` under `brand.homepage.*` (aboutTitle, aboutBody, communityMembers). Editing means a code change + deploy. Options for making it admin-editable: (a) **AppSetting rows** (existing pattern — `homepage_about_title` and `homepage_about_body` keys are already seeded into `app_setting` per migration `0016_smiling_nehzno.sql:56-60`; needs an admin UI at `/admin/settings/homepage` and a resolver that overlays the app_setting values on top of `brand.homepage.*` at read time); (b) a light CMS layer per `homepage-cms-to-brand-layer` plan slug that already exists in `.mstack/plans/2026-06-15-homepage-cms-to-brand-layer.md` — worth reading before starting to avoid duplicated design work; (c) leaving as code + deploy if editing frequency stays low. Recommendation: adopt option (a) since half the plumbing is already in the DB.
 - **Trigger:** When the client asks to tweak home-page copy for the first time post-launch, OR when marketing wants A/B copy testing — whichever first.
+
+---
+
+## 2026-07-06 — Business verification notes (`/mstack-review`)
+
+Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + deferred Suggestions.
+
+### Audit-in-transaction atomicity gap
+- **Item:** Both `contact_person_changed` (existing) and the new `business.verification_changed` (added by this plan) emit audit rows *outside* the mutation transaction. A mutation failure after audit success leaves a spurious audit row on a change that didn't land. Same pattern gap likely affects other historical audit branches — sweep once, fix as a small dedicated plan.
+- **Trigger:** First time a real audit-vs-mutation drift surfaces in a QA or prod investigation, OR opportunistically alongside the next `updateBusiness` refactor.
+
+### Public-facing verification metadata
+- **Item:** Show "Verified 3 months ago by AIRA" (or similar) on the public business detail page. Currently `verified` is a boolean with no timestamp exposure; verification-notes are admin-only. Once notes land, consider surfacing derived metadata (verified_at, possibly a curated public blurb from the notes).
+- **Trigger:** When trust signals become a marketing ask, or when user research shows public callers want more than the blue tick.
+
+### `verified_by_user_id` denormalised FK
+- **Item:** Add a nullable FK on `businesses` pointing at the user who last flipped `verified` to true. Actor is currently reconstructable via `audit_log` scan; a denormalised column would enable sort-by-verifier and per-admin verification workloads.
+- **Trigger:** When an admin UI needs to sort or filter listings by verifier.
