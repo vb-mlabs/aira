@@ -1,15 +1,16 @@
 "use client"
 
-import { Fragment, useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
-import { BadgeCheck, ChevronLeft, Clock, Globe, Pencil, Phone, Sparkles, Star, X } from "lucide-react"
+import { BadgeCheck, ChevronLeft, ChevronRight, Clock, Globe, Pencil, Phone, Plus, Sparkles, Star, X } from "lucide-react"
 import Link from "next/link"
 import { ApiError } from "@aira/api"
 import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
+import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
 import type { Business } from "@/features/listings"
 import type { BusinessAdmin } from "@aira/validators/businesses"
@@ -194,27 +195,91 @@ function CategoryEditModal({
   onSaved: (result: Feedback) => void
 }) {
   const router = useRouter()
-  const [category, setCategory] = useState(business.category)
+  const [primarySlug, setPrimarySlug] = useState(business.category)
   const [extraIds, setExtraIds] = useState<string[]>(business.extra_category_ids)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // pickerMode drives the two-panel overlay: null = closed; "primary" =
+  // replace the primary category; "add" = append to extras.
+  const [pickerMode, setPickerMode] = useState<null | "primary" | "add">(null)
 
-  function toggleExtra(id: string) {
-    setExtraIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    )
+  // Lookup tables built once from the tree. catById powers the extras
+  // chip labels ("Root ▸ Sub"); catBySlug resolves the primary display.
+  const catById = useMemo(() => {
+    const m = new Map<string, { name: string; slug: string; rootName?: string }>()
+    for (const { root, children } of categoryTree) {
+      m.set(root.id, { name: root.name, slug: root.slug })
+      for (const c of children) {
+        m.set(c.id, { name: c.name, slug: c.slug, rootName: root.name })
+      }
+    }
+    return m
+  }, [categoryTree])
+
+  const catBySlug = useMemo(() => {
+    const m = new Map<string, { id: string; name: string; rootName?: string }>()
+    for (const { root, children } of categoryTree) {
+      m.set(root.slug, { id: root.id, name: root.name })
+      for (const c of children) {
+        m.set(c.slug, { id: c.id, name: c.name, rootName: root.name })
+      }
+    }
+    return m
+  }, [categoryTree])
+
+  // Primary display formats as "Root ▸ Sub" for the common case; the
+  // orphan flag fires when the stored slug points at a level-1 root (a
+  // drift-case row that pre-dates the sub-only rule). Save is still
+  // possible but the UI nags with a red warning until Change is used.
+  const primaryDisplay = useMemo(() => {
+    const found = catBySlug.get(primarySlug)
+    if (!found) return { label: primarySlug || "(none)", isOrphan: true }
+    return {
+      label: found.rootName ? `${found.rootName} ▸ ${found.name}` : found.name,
+      isOrphan: !found.rootName,
+    }
+  }, [primarySlug, catBySlug])
+
+  // Exclusion set for "add" mode — keeps the two-panel picker from
+  // offering categories that are already the primary OR already in
+  // extras. Primary mode ignores this (the picker enforces sub-only).
+  const excludeIds = useMemo(() => {
+    const set = new Set(extraIds)
+    const p = catBySlug.get(primarySlug)
+    if (p) set.add(p.id)
+    return set
+  }, [extraIds, primarySlug, catBySlug])
+
+  function handlePrimaryPick(slug: string) {
+    setPrimarySlug(slug)
+    // If the newly-picked primary was also in extras, remove it — the
+    // save cleaner would strip it anyway, but doing it here keeps the
+    // chip list truthful during editing.
+    const picked = catBySlug.get(slug)
+    if (picked) {
+      setExtraIds((prev) => prev.filter((id) => id !== picked.id))
+    }
+    setPickerMode(null)
+  }
+
+  function handleAddPick(id: string) {
+    setExtraIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    setPickerMode(null)
+  }
+
+  function removeExtra(id: string) {
+    setExtraIds((prev) => prev.filter((x) => x !== id))
   }
 
   function save() {
     setError(null)
     startTransition(async () => {
-      // Strip the primary category from extras to avoid a redundant join row.
-      const primaryCat = categories.find((c) => c.slug === category)
+      const primaryCat = catBySlug.get(primarySlug)
       const cleanedExtras = primaryCat
         ? extraIds.filter((id) => id !== primaryCat.id)
         : extraIds
       const result = await runUpdate(business.id, {
-        category,
+        category: primarySlug,
         extra_category_ids: cleanedExtras,
       })
       if (result?.kind === "error") {
@@ -232,7 +297,7 @@ function CategoryEditModal({
 
   const previewBusiness = {
     ...business,
-    category,
+    category: primarySlug,
     extra_category_ids: extraIds,
   }
 
@@ -259,6 +324,7 @@ function CategoryEditModal({
           </div>
 
           <div className="space-y-5 overflow-y-auto px-6 py-5">
+            {/* Preview — live projection of primary + extras as chips. */}
             <div className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-3">
               <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
                 Preview
@@ -269,132 +335,87 @@ function CategoryEditModal({
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="b-category">Primary category</Label>
-              {(() => {
-                // If the current stored slug isn't in any active
-                // subcategory branch, render it as a disabled "current"
-                // option at the top so the admin can see what they're
-                // moving away from. Common on rows that pre-date the
-                // sub-only rule and still point at a level-1 slug.
-                const allSubSlugs = new Set(
-                  categoryTree.flatMap(({ children }) => children.map((c) => c.slug)),
-                )
-                const currentIsOrphan = !!category && !allSubSlugs.has(category)
-                const hasAnySub = allSubSlugs.size > 0
-                return (
-                  <>
-                    <select
-                      id="b-category"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                    >
-                      {currentIsOrphan && (
-                        <option value={category} disabled>
-                          {category} — pick a subcategory below
-                        </option>
-                      )}
-                      {categoryTree.map(({ root, children }) =>
-                        children.length > 0 ? (
-                          <optgroup key={root.id} label={root.name}>
-                            {children.map((child) => (
-                              <option key={child.id} value={child.slug}>
-                                {child.name}
-                              </option>
-                            ))}
-                          </optgroup>
-                        ) : (
-                          // Roots with no active children render nothing
-                          // — Safari renders empty labelled clusters as
-                          // stray headings so we deliberately drop them.
-                          <Fragment key={root.id} />
-                        ),
-                      )}
-                    </select>
-                    {(() => {
-                      // Preselect the parent on the new-category page
-                      // when we know which root owns the currently
-                      // selected sub. Preserves admin intent — the
-                      // affordance is "add another sub *here*", not
-                      // "add any category".
-                      const rootOfCurrent = categoryTree.find(({ children }) =>
-                        children.some((c) => c.slug === category),
-                      )?.root
-                      const newSubHref = rootOfCurrent
-                        ? `/admin/settings/categories/new?parent=${encodeURIComponent(rootOfCurrent.id)}`
-                        : "/admin/settings/categories/new"
-                      return hasAnySub ? (
-                        <p className="text-xs text-muted-foreground">
-                          Only subcategories are selectable.{" "}
-                          <a
-                            href={newSubHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {rootOfCurrent
-                              ? `Add a new subcategory under ${rootOfCurrent.name} →`
-                              : "Add a new subcategory →"}
-                          </a>
-                        </p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">
-                          No subcategories exist yet.{" "}
-                          <a
-                            href="/admin/settings/categories/new"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            Add one →
-                          </a>
-                        </p>
-                      )
-                    })()}
-                  </>
-                )
-              })()}
+            {/* Primary — chip + Change button. */}
+            <div className="space-y-2">
+              <Label>Primary category</Label>
+              <div
+                className={cn(
+                  "flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2",
+                  primaryDisplay.isOrphan
+                    ? "border-destructive/40"
+                    : "border-border",
+                )}
+              >
+                <Star
+                  className="size-3.5 shrink-0 text-primary"
+                  aria-hidden
+                />
+                <span className="flex-1 truncate text-sm text-foreground">
+                  {primaryDisplay.label}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPickerMode("primary")}
+                >
+                  Change
+                </Button>
+              </div>
+              {primaryDisplay.isOrphan && (
+                <p className="text-xs text-destructive">
+                  Current primary is a root category. Click Change and pick a subcategory before saving.
+                </p>
+              )}
             </div>
 
-            {categoryTree.length > 0 && (
-              <div className="space-y-1.5">
-                <Label>Additional categories</Label>
-                <p className="text-xs text-muted-foreground">
-                  Business appears in listings for each checked category.
-                </p>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  {categoryTree.flatMap(({ root, children }) => [
-                    <label
-                      key={root.id}
-                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={extraIds.includes(root.id)}
-                        onChange={() => toggleExtra(root.id)}
-                        className="h-3.5 w-3.5 rounded border-input accent-primary"
-                      />
-                      <span>{root.name}</span>
-                    </label>,
-                    ...children.map((child) => (
-                      <label
-                        key={child.id}
-                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 pl-6 text-sm hover:bg-accent"
+            {/* Additional — chip stack + Add button. */}
+            <div className="space-y-2">
+              <Label>Also appears in</Label>
+              <p className="text-xs text-muted-foreground">
+                Optional. Additional categories the business shows up under.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {extraIds.length === 0 ? (
+                  <p className="text-xs text-muted-foreground/70">
+                    No extra categories yet.
+                  </p>
+                ) : (
+                  extraIds.map((id) => {
+                    const c = catById.get(id)
+                    if (!c) return null
+                    const label = c.rootName
+                      ? `${c.rootName} ▸ ${c.name}`
+                      : c.name
+                    return (
+                      <span
+                        key={id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground"
                       >
-                        <input
-                          type="checkbox"
-                          checked={extraIds.includes(child.id)}
-                          onChange={() => toggleExtra(child.id)}
-                          className="h-3.5 w-3.5 rounded border-input accent-primary"
-                        />
-                        <span>↳ {child.name}</span>
-                      </label>
-                    )),
-                  ])}
-                </div>
+                        {label}
+                        <button
+                          type="button"
+                          onClick={() => removeExtra(id)}
+                          aria-label={`Remove ${label}`}
+                          className="rounded-full text-muted-foreground transition-colors hover:text-destructive"
+                        >
+                          <X className="size-3" aria-hidden />
+                        </button>
+                      </span>
+                    )
+                  })
+                )}
               </div>
-            )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPickerMode("add")}
+              >
+                <Plus className="size-3.5" aria-hidden />
+                Add another category
+              </Button>
+            </div>
 
             {error && (
               <p role="alert" className="text-sm text-destructive">
@@ -415,9 +436,245 @@ function CategoryEditModal({
               </Button>
             </div>
           </div>
+
+          {/* Picker overlay — absolute-positioned inside the dialog popup
+              so it feels like a "step forward" without a nested portal. */}
+          {pickerMode !== null && (
+            <CategoryTwoPanelPicker
+              mode={pickerMode}
+              tree={categoryTree}
+              excludeIds={excludeIds}
+              onCancel={() => setPickerMode(null)}
+              onPick={(pickedId, pickedSlug) => {
+                if (pickerMode === "primary") {
+                  handlePrimaryPick(pickedSlug)
+                } else {
+                  handleAddPick(pickedId)
+                }
+              }}
+            />
+          )}
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
+  )
+}
+
+/**
+ * Two-panel category picker rendered as an inline overlay on top of the
+ * CategoryEditModal popup. Left panel: roots. Right panel: subs of the
+ * selected root. Primary mode enforces sub-only picks (matches Group B's
+ * server-side sub-only rule); add mode also lets the admin pick the
+ * root itself (matches the historical behavior where additional
+ * categories can be any level).
+ */
+function CategoryTwoPanelPicker({
+  mode,
+  tree,
+  excludeIds,
+  onCancel,
+  onPick,
+}: {
+  mode: "primary" | "add"
+  tree: CategoryTreeOutput["tree"]
+  excludeIds: Set<string>
+  onCancel: () => void
+  onPick: (id: string, slug: string) => void
+}) {
+  const [selectedRootId, setSelectedRootId] = useState<string | null>(
+    tree[0]?.root.id ?? null,
+  )
+  const [selectedPickId, setSelectedPickId] = useState<string | null>(null)
+
+  const roots = tree.map(({ root }) => root)
+  const selectedRoot = tree.find(({ root }) => root.id === selectedRootId)
+  const subs = selectedRoot?.children ?? []
+  const visibleSubs = subs.filter((s) => !excludeIds.has(s.id))
+
+  // In add mode, offer the root itself as a pickable option — matches
+  // the pre-revamp checklist behavior where roots could be added as
+  // additional categories. Suppressed when already in extras.
+  const canPickRootInAddMode =
+    mode === "add" &&
+    !!selectedRoot &&
+    !excludeIds.has(selectedRoot.root.id)
+
+  function handleConfirm() {
+    if (!selectedPickId) return
+    for (const { root, children } of tree) {
+      if (root.id === selectedPickId) {
+        onPick(root.id, root.slug)
+        return
+      }
+      const child = children.find((c) => c.id === selectedPickId)
+      if (child) {
+        onPick(child.id, child.slug)
+        return
+      }
+    }
+  }
+
+  const emptySubsAffordance =
+    subs.length === 0 && selectedRoot ? (
+      <div className="rounded-md border border-dashed border-border bg-muted/20 px-4 py-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          No subcategories under {selectedRoot.root.name} yet.
+        </p>
+        <a
+          href={`/admin/settings/categories/new?parent=${encodeURIComponent(
+            selectedRoot.root.id,
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 inline-block text-xs text-primary hover:underline"
+        >
+          Add one →
+        </a>
+      </div>
+    ) : null
+
+  return (
+    <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-xl bg-card">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-6 py-4">
+        <div>
+          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+            {mode === "primary" ? "Set primary" : "Add category"}
+          </p>
+          <h3 className="font-display text-lg text-foreground">
+            Choose a category
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          aria-label="Close picker"
+        >
+          <X className="size-4" aria-hidden />
+        </button>
+      </div>
+
+      <div className="grid flex-1 grid-cols-[minmax(0,180px)_1fr] overflow-hidden">
+        {/* Left: root list */}
+        <div className="overflow-y-auto border-r border-border bg-muted/20">
+          <ul>
+            {roots.map((root) => {
+              const isSelected = selectedRootId === root.id
+              return (
+                <li key={root.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRootId(root.id)
+                      setSelectedPickId(null)
+                    }}
+                    className={cn(
+                      "flex w-full items-center justify-between border-b border-border px-4 py-3 text-left text-sm transition-colors hover:bg-accent",
+                      isSelected &&
+                        "bg-primary/10 font-semibold text-foreground",
+                    )}
+                  >
+                    <span className="truncate">{root.name}</span>
+                    <ChevronRight
+                      className={cn(
+                        "size-3.5 shrink-0 text-muted-foreground",
+                        isSelected && "text-primary",
+                      )}
+                      aria-hidden
+                    />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+
+        {/* Right: picks under the selected root */}
+        <div className="overflow-y-auto px-4 py-3">
+          {selectedRoot ? (
+            <>
+              {canPickRootInAddMode && (
+                <label
+                  className={cn(
+                    "mb-2 flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 text-sm transition-colors hover:bg-accent",
+                    selectedPickId === selectedRoot.root.id &&
+                      "border-primary bg-primary/10",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="picker-pick"
+                    value={selectedRoot.root.id}
+                    checked={selectedPickId === selectedRoot.root.id}
+                    onChange={() =>
+                      setSelectedPickId(selectedRoot.root.id)
+                    }
+                    className="size-3.5 accent-primary"
+                  />
+                  <span>
+                    All of {selectedRoot.root.name}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      (root)
+                    </span>
+                  </span>
+                </label>
+              )}
+
+              {visibleSubs.length === 0 ? (
+                subs.length === 0 ? (
+                  emptySubsAffordance
+                ) : (
+                  <p className="rounded-md border border-dashed border-border bg-muted/20 px-4 py-6 text-center text-sm text-muted-foreground">
+                    Nothing left to add under {selectedRoot.root.name}.
+                  </p>
+                )
+              ) : (
+                <ul className="space-y-1">
+                  {visibleSubs.map((sub) => (
+                    <li key={sub.id}>
+                      <label
+                        className={cn(
+                          "flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-3 py-2 text-sm transition-colors hover:bg-accent",
+                          selectedPickId === sub.id &&
+                            "border-primary bg-primary/10",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="picker-pick"
+                          value={sub.id}
+                          checked={selectedPickId === sub.id}
+                          onChange={() => setSelectedPickId(sub.id)}
+                          className="size-3.5 accent-primary"
+                        />
+                        <span>{sub.name}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Select a category on the left.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-6 py-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          onClick={handleConfirm}
+          disabled={!selectedPickId}
+        >
+          {mode === "primary" ? "Set as primary" : "Add"}
+        </Button>
+      </div>
+    </div>
   )
 }
 
