@@ -31,6 +31,21 @@ export const API_BASE_URL =
   (process.env.EXPO_PUBLIC_API_BASE_URL as string | undefined) ??
   "http://localhost:3000";
 
+/**
+ * Resolve a media URL for RN `<Image>`. The Replit storage driver returns
+ * relative paths (`/api/storage/<key>`) that resolve against the current
+ * origin in the browser but not on a device — RN `<Image>` needs an
+ * absolute URL. Prefix with `API_BASE_URL` when the source starts with `/`.
+ */
+export function resolveMediaUrl(
+  src: string | null | undefined,
+): string | undefined {
+  if (!src) return undefined;
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  if (src.startsWith("/")) return `${API_BASE_URL}${src}`;
+  return src;
+}
+
 const KEY_ACCESS = "auth.access";
 const KEY_REFRESH = "auth.refresh";
 

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Image, Text, View } from "react-native";
+import { resolveMediaUrl } from "../../lib/api/client";
 
 export interface AvatarProps {
   src?: string | null;
@@ -50,13 +51,16 @@ export function Avatar({ src, name, userId, size = 40 }: AvatarProps) {
   }, [userId, name]);
   const radius = size / 2;
   const label = name ? `${name} avatar` : "User avatar";
+  // Storage driver returns relative /api/storage/... paths; RN Image needs
+  // absolute URLs (browser resolves against origin, RN does not).
+  const uri = resolveMediaUrl(src);
 
-  if (src) {
+  if (uri) {
     return (
       <Image
         accessibilityLabel={label}
         accessibilityRole="image"
-        source={{ uri: src }}
+        source={{ uri }}
         style={{ width: size, height: size, borderRadius: radius }}
       />
     );
