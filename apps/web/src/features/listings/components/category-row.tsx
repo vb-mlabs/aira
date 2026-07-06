@@ -49,11 +49,11 @@ export function CategoryRow({
         <span className="block font-display text-base text-foreground">
           {category.displayName}
         </span>
-        <span className="block truncate text-[0.7rem] text-muted-foreground">
-          {typeof count === "number"
-            ? `${count} ${count === 1 ? "business" : "businesses"}`
-            : category.description}
-        </span>
+        {typeof count === "number" ? (
+          <span className="block truncate text-[0.7rem] text-muted-foreground">
+            {`${count} ${count === 1 ? "business" : "businesses"}`}
+          </span>
+        ) : null}
       </span>
       <ChevronRight
         className="size-4 flex-shrink-0 text-muted-foreground"

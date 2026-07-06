@@ -80,14 +80,6 @@ export function CategoryTile({
           <Text className="font-display text-base font-semibold text-foreground">
             {name}
           </Text>
-          {meta.description ? (
-            <Text
-              className="mt-0.5 text-xs text-mutedForeground"
-              numberOfLines={1}
-            >
-              {meta.description}
-            </Text>
-          ) : null}
         </View>
         {countLabel ? (
           <Text className="text-sm font-semibold text-mutedForeground">
