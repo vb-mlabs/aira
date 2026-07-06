@@ -57,14 +57,10 @@ export default function PostDetailScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Title */}
-        <Text
-          numberOfLines={3}
-          className="font-display text-2xl font-bold text-foreground"
-        >
-          {post.title}
-        </Text>
-        <Text className="mt-1 text-xs text-mutedForeground">
+        {/* Author + relative time. Title lives in the Stack header
+            (line above) — the earlier in-body title was a duplicate
+            of it and Radha flagged the visual repeat 2026-07-06. */}
+        <Text className="text-xs text-mutedForeground">
           {post.author_name} · {relativeTime(post.created_at)}
         </Text>
 
