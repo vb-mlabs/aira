@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { Fragment, useState, useTransition } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import type { City } from "@aira/validators/cities"
-import type { Category } from "@aira/validators/categories"
+import type { CategoryTreeOutput } from "@aira/validators/categories"
 import type { Business } from "@aira/validators/businesses"
 import {
   VALID_BUSINESS_TYPES,
@@ -39,10 +40,12 @@ const YEARS_OPERATING_LABELS: Record<string, string> = {
 
 interface BusinessCreateFormProps {
   cities: City[]
-  /** Active root categories for the current city, fetched server-side
-   *  via listCategoriesOp. Source of truth for the Category dropdown
-   *  — admin-created entries appear here automatically. */
-  categories: Category[]
+  /** Active root→children category tree for the current city, fetched
+   *  server-side via listCategoriesTreeOp and pre-filtered upstream so
+   *  inactive branches are already dropped. Businesses can only pick a
+   *  level-2 (subcategory) as their primary — the service layer
+   *  enforces this too. */
+  categoryTree: CategoryTreeOutput["tree"]
 }
 
 interface CreateResult {
@@ -51,14 +54,19 @@ interface CreateResult {
 
 export function BusinessCreateForm({
   cities,
-  categories,
+  categoryTree,
 }: BusinessCreateFormProps) {
   const router = useRouter()
+
+  // Flattened subs across every root — used both to seed the primary
+  // category state to the first available sub and to gate the empty-
+  // state affordance ("No subcategories yet …").
+  const allSubs = categoryTree.flatMap(({ children }) => children)
 
   const [name, setName] = useState("")
   const [slug, setSlug] = useState("")
   const [contactPerson, setContactPerson] = useState("")
-  const [category, setCategory] = useState<string>(categories[0]?.slug ?? "")
+  const [category, setCategory] = useState<string>(allSubs[0]?.slug ?? "")
   const [description, setDescription] = useState("")
   const [businessType, setBusinessType] = useState("")
   const [yearsOperating, setYearsOperating] = useState("")
@@ -146,25 +154,55 @@ export function BusinessCreateForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bc-category">Category *</Label>
-          {categories.length === 0 ? (
+          {allSubs.length === 0 ? (
             <p className="text-xs text-muted-foreground">
-              No categories defined yet — create one in Settings →
-              Categories first.
+              No subcategories exist yet.{" "}
+              <Link
+                href="/admin/settings/categories/new"
+                className="text-primary hover:underline"
+              >
+                Add one →
+              </Link>
+              <br />
+              Businesses can only be assigned to subcategories, never to
+              primary categories.
             </p>
           ) : (
-            <select
-              id="bc-category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-              required
-            >
-              {categories.map((c) => (
-                <option key={c.id} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                id="bc-category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                required
+              >
+                {categoryTree.map(({ root, children }) =>
+                  children.length > 0 ? (
+                    <optgroup key={root.id} label={root.name}>
+                      {children.map((child) => (
+                        <option key={child.id} value={child.slug}>
+                          {child.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : (
+                    // Roots with no active children render nothing —
+                    // Safari renders empty labelled clusters as stray
+                    // headings so we deliberately drop them.
+                    <Fragment key={root.id} />
+                  ),
+                )}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Only subcategories are selectable. Need a new one?{" "}
+                <Link
+                  href="/admin/settings/categories/new"
+                  className="text-primary hover:underline"
+                >
+                  Add a subcategory →
+                </Link>
+              </p>
+            </>
           )}
         </div>
       </div>
