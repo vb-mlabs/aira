@@ -159,6 +159,12 @@ export default function AccountScreen() {
             card with internal hairline dividers. */}
         <View className="mx-5 mt-6 overflow-hidden rounded-xl">
           <HubRow
+            icon="account-outline"
+            label="My Profile"
+            accessibilityHint="Edit your name, email, and password"
+            onPress={() => router.push("/account/profile" as never)}
+          />
+          <HubRow
             icon="heart-outline"
             label="Favorites"
             accessibilityHint="See businesses you've saved"
