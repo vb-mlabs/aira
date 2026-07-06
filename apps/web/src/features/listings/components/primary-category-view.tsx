@@ -90,6 +90,7 @@ export function PrimaryCategoryView({
                         subMeta.description || `Browse ${sub.name} businesses`,
                     }}
                     count={counts[sub.slug]}
+                    variant="sub"
                   />
                 </li>
               )

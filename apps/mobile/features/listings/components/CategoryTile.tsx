@@ -23,14 +23,32 @@ interface CategoryTileProps {
   /** Visible-business count for this category. Undefined hides the chip
    *  (so the row still renders before counts hydrate). */
   count?: number;
+  /** Category depth marker for the icon-square tint.
+   *  - `"root"` (default) → olive green (matches primary chrome); used
+   *    on the Categories tab.
+   *  - `"sub"` → burnt orange (mirrors sponsor-tier ramp); used under a
+   *    root on PrimaryCategoryView. QA feedback #3. */
+  variant?: "root" | "sub";
 }
+
+// Design token values (subset). RN can't read CSS vars — inline the
+// oklch-equivalent sRGB hex from packages/config/src/design.ts light
+// theme. Keep in sync manually with the token file.
+const TIER1_HEX = "#4F653B"; // olive green (root)
+const TIER2_HEX = "#C97638"; // burnt orange (sub) — sRGB approx of oklch(0.62 0.13 55)
 
 /** Category row on the Categories tab. Tap always routes to
  *  /listings/<slug>; the listings screen exposes a sub-category picker
  *  in a bottom sheet for roots that have children. */
-export function CategoryTile({ slug, name, count }: CategoryTileProps) {
+export function CategoryTile({
+  slug,
+  name,
+  count,
+  variant = "root",
+}: CategoryTileProps) {
   const meta = getCategoryMeta(slug);
   const countLabel = typeof count === "number" ? String(count) : null;
+  const iconColor = variant === "sub" ? TIER2_HEX : TIER1_HEX;
 
   return (
     <Pressable
@@ -55,7 +73,7 @@ export function CategoryTile({ slug, name, count }: CategoryTileProps) {
           <MaterialCommunityIcons
             name={meta.iconName}
             size={24}
-            color="#4F653B"
+            color={iconColor}
           />
         </View>
         <View className="flex-1">

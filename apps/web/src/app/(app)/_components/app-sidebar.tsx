@@ -286,7 +286,7 @@ function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
             >
               <span
                 aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-sidebar-foreground/40"
+                className="size-1.5 shrink-0 rounded-full bg-[color:var(--tier2)]"
               />
               <span className="flex-1 truncate">{sub.name}</span>
             </Link>

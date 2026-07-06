@@ -81,6 +81,7 @@ export function PrimaryCategoryView({
                     slug={sub.slug}
                     name={sub.name}
                     count={counts[sub.slug]}
+                    variant="sub"
                   />
                 ))}
               </View>

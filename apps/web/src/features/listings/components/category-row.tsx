@@ -1,23 +1,47 @@
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
+import { cn } from "@aira/ui-web/utils"
 import type { CategoryMeta } from "../category-meta"
 
 interface CategoryRowProps {
   category: CategoryMeta
   /** Optional count subtitle (e.g. "12 businesses"). Hidden when omitted. */
   count?: number
+  /** Category depth marker for the icon-ring tint.
+   *  - `"root"` (default) → olive green (`--tier1`), matches primary
+   *    chrome; used on `/categories`.
+   *  - `"sub"` → burnt orange (`--tier2`); used under a root on the
+   *    PrimaryCategoryView. Mirrors the sponsor-tier ramp so subs
+   *    read as "one step in" from primary. QA feedback #3. */
+  variant?: "root" | "sub"
 }
 
-export function CategoryRow({ category, count }: CategoryRowProps) {
+export function CategoryRow({
+  category,
+  count,
+  variant = "root",
+}: CategoryRowProps) {
   const Icon = category.icon
+  const tint =
+    variant === "sub"
+      ? "bg-[color:var(--tier2)]/10 text-[color:var(--tier2)]"
+      : "bg-primary/10 text-primary"
   return (
     <Link
       href={`/listings/${category.slug}`}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 shadow-[var(--shadow-card)] transition-colors hover:border-primary hover:bg-accent"
+      className={cn(
+        "flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 shadow-[var(--shadow-card)] transition-colors hover:bg-accent",
+        variant === "sub"
+          ? "hover:border-[color:var(--tier2)]"
+          : "hover:border-primary",
+      )}
     >
       <span
         aria-hidden
-        className="flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+        className={cn(
+          "flex size-9 flex-shrink-0 items-center justify-center rounded-full",
+          tint,
+        )}
       >
         <Icon className="size-5" />
       </span>
