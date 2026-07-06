@@ -155,6 +155,46 @@ type BusinessRowWithVisibility = typeof businesses.$inferSelect & {
   is_paid_active?: boolean;
 };
 
+/** Rejects when the given category slug does not resolve to an active
+ *  level-2 (subcategory) row. Shared enforcement for createBusiness and
+ *  updateBusiness — a business's primary `category` column must point
+ *  at a subcategory, never a root. Empty/undefined slugs are treated as
+ *  "no change" by callers, so this only runs when the caller passes a
+ *  concrete slug. */
+export async function assertCategoryIsSubcategory(
+  db: Database,
+  slug: string,
+): Promise<void> {
+  const trimmed = slug.trim();
+  if (trimmed === "") {
+    throw {
+      code: "businesses.category_required",
+      message: "Category is required.",
+      status: 400,
+    };
+  }
+  const [row] = await db
+    .select({ level: categories.level })
+    .from(categories)
+    .where(eq(categories.slug, trimmed))
+    .limit(1);
+  if (!row) {
+    throw {
+      code: "businesses.category_not_found",
+      message: `Unknown category "${trimmed}".`,
+      status: 400,
+    };
+  }
+  if (row.level !== 2) {
+    throw {
+      code: "businesses.category_must_be_subcategory",
+      message:
+        "Businesses can only be assigned to subcategories, not primary categories.",
+      status: 400,
+    };
+  }
+}
+
 export async function attachRelations(
   db: Database,
   rows: BusinessRowWithVisibility[],
@@ -587,6 +627,13 @@ export async function createBusiness(
   db: Database,
   input: BusinessCreateInput,
 ): Promise<BusinessAdmin> {
+  // Enforce sub-only for the primary category slot. Primary categories
+  // are pure navigation surfaces (they only *feature* sponsored
+  // listings — see 2026-07-06-featured-business-selection); businesses
+  // live under subcategories. Two layers of defense: this service
+  // check + a UI filter on the admin picker that hides level-1 rows.
+  await assertCategoryIsSubcategory(db, input.category);
+
   const existing = await db
     .select({ id: businesses.id })
     .from(businesses)

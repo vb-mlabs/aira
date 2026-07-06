@@ -27,6 +27,7 @@ import type {
 } from "@aira/validators/businesses";
 import { createNotification } from "../notifications";
 import {
+  assertCategoryIsSubcategory,
   createBusiness,
   getBusinessByIdIncludingArchived,
   getBusinessOwner,
@@ -44,6 +45,14 @@ export async function updateBusiness(
   id: string,
   data: UpdateData,
 ): Promise<BusinessAdmin | null> {
+  // Sub-only enforcement mirrors createBusiness — a primary category
+  // slug on an existing biz can only move to another subcategory.
+  // Existing rows sitting on a primary slug drift-resolve on natural
+  // edit: the first save that touches `category` requires a valid sub.
+  if (data.category !== undefined) {
+    await assertCategoryIsSubcategory(db, data.category);
+  }
+
   const updatePayload: Partial<typeof businesses.$inferInsert> = {};
 
   if (data.name !== undefined) updatePayload.name = data.name;
