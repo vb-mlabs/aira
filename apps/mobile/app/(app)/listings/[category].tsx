@@ -152,7 +152,6 @@ export default function CategoryListingScreen() {
               root={pickerData.root}
               subs={pickerData.subs}
               currentSlug={slug}
-              counts={counts}
               // replace, not push — sub-to-sub navigation shouldn't
               // pile up on the back stack. One Back press from any
               // sub returns to Categories, not the previous sub.

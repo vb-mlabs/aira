@@ -12,8 +12,11 @@ import type { Category } from "@aira/validators";
 
 const MUTED = "#66503f";
 const FOREGROUND = "#3D2814";
-const ACTIVE_ROW_BG = "rgba(79,101,59,0.14)"; // primary olive tint at ~14% alpha
-const ACTIVE_ROW_BORDER = "rgba(79,101,59,0.30)";
+// Uses the actual primary olive from apps/mobile/tailwind.config.js
+// (#496036) so the selected-row tint matches every other active/selected
+// state in the app (VerifiedFilterChip, tab bar, etc.).
+const ACTIVE_ROW_BG = "rgba(73,96,54,0.12)"; // primary at 12% alpha
+const ACTIVE_ROW_BORDER = "rgba(73,96,54,0.32)";
 
 // Visual constants for the anchored menu — matched to iOS UIMenu so a
 // later swap to @react-native-menu/menu after a Dev Client build looks
@@ -22,15 +25,16 @@ const ACTIVE_ROW_BORDER = "rgba(79,101,59,0.30)";
 // a dropdown attached to the trigger, not a floating card.
 const MENU_MIN_WIDTH = 200;
 const MENU_MAX_HEIGHT = 320;
-const MENU_ROW_HEIGHT = 44;
+const MENU_ROW_HEIGHT = 40;
 const MENU_GAP_BELOW_PILL = 4;
-const MENU_PAD_VERTICAL = 6;
+const MENU_PAD = 8; // all-around padding inside the menu card
 const SCREEN_EDGE_INSET = 12;
 
 interface SubcategoryPickerProps {
-  /** Parent root of the sibling sub-cats. The picker offers "All <root>"
-   *  + each sub. Pass even when the user is currently viewing a sub —
-   *  the picker re-routes between siblings via the same parent root. */
+  /** Parent root of the sibling sub-cats. The picker offers "All
+   *  Listings" + each sub. Pass even when the user is currently viewing
+   *  a sub — the picker re-routes between siblings via the same parent
+   *  root. */
   root: Category;
   /** Siblings under the same root. Empty disables the picker entirely
    *  (caller should not render it). */
@@ -38,8 +42,6 @@ interface SubcategoryPickerProps {
   /** Slug currently being viewed. Used to render the active row + the
    *  pill label. */
   currentSlug: string;
-  /** Per-slug visible-business count, sourced from useCategories(). */
-  counts: Record<string, number>;
   /** Fired with the slug the user picked — caller routes via
    *  router.replace so the back-stack doesn't pile up siblings. */
   onSelect: (slug: string) => void;
@@ -75,7 +77,6 @@ export function SubcategoryPicker({
   root,
   subs,
   currentSlug,
-  counts,
   onSelect,
 }: SubcategoryPickerProps) {
   const [open, setOpen] = React.useState(false);
@@ -83,7 +84,7 @@ export function SubcategoryPicker({
   const pillRef = React.useRef<View | null>(null);
 
   const currentLabel = React.useMemo(() => {
-    if (currentSlug === root.slug) return `All ${root.name}`;
+    if (currentSlug === root.slug) return "All Listings";
     const sub = subs.find((s) => s.slug === currentSlug);
     return sub?.name ?? root.name;
   }, [currentSlug, root, subs]);
@@ -124,7 +125,7 @@ export function SubcategoryPicker({
   }, [anchor]);
 
   const rows: { slug: string; label: string }[] = [
-    { slug: root.slug, label: `All ${root.name}` },
+    { slug: root.slug, label: "All Listings" },
     ...subs.map((sub) => ({ slug: sub.slug, label: sub.name })),
   ];
 
@@ -183,17 +184,14 @@ export function SubcategoryPicker({
           >
             <ScrollView
               bounces={false}
-              contentContainerStyle={{
-                paddingVertical: MENU_PAD_VERTICAL,
-              }}
+              contentContainerStyle={{ padding: MENU_PAD }}
             >
               {rows.map((row, idx) => (
                 <MenuRow
                   key={row.slug}
                   label={row.label}
-                  count={counts[row.slug]}
                   active={row.slug === currentSlug}
-                  showDivider={idx < rows.length - 1}
+                  isLast={idx === rows.length - 1}
                   onPress={() => handleSelect(row.slug)}
                 />
               ))}
@@ -207,67 +205,46 @@ export function SubcategoryPicker({
 
 interface MenuRowProps {
   label: string;
-  count?: number;
   active: boolean;
-  showDivider: boolean;
+  isLast: boolean;
   onPress: () => void;
 }
 
-function MenuRow({
-  label,
-  count,
-  active,
-  showDivider,
-  onPress,
-}: MenuRowProps) {
-  const countLabel = typeof count === "number" ? String(count) : null;
+function MenuRow({ label, active, isLast, onPress }: MenuRowProps) {
   return (
-    <View
-      style={{
-        marginHorizontal: 6,
-        marginVertical: 2,
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: MENU_ROW_HEIGHT,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        marginBottom: isLast ? 0 : 4,
         borderRadius: 8,
-        overflow: "hidden",
-        backgroundColor: active ? ACTIVE_ROW_BG : "transparent",
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: active
+          ? ACTIVE_ROW_BG
+          : pressed
+            ? "rgba(61,40,20,0.06)"
+            : "transparent",
         borderWidth: active ? 1 : 0,
         borderColor: active ? ACTIVE_ROW_BORDER : "transparent",
-      }}
+      })}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={
-          countLabel ? `${label}, ${countLabel} listed` : label
-        }
-        accessibilityState={{ selected: active }}
-        onPress={onPress}
-        style={({ pressed }) => ({
-          minHeight: MENU_ROW_HEIGHT,
-          paddingHorizontal: 12,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 10,
-          backgroundColor: pressed ? "rgba(61,40,20,0.06)" : "transparent",
-          borderBottomWidth: showDivider && !active ? 1 : 0,
-          borderBottomColor: "rgba(61,40,20,0.06)",
-        })}
+      <Text
+        numberOfLines={1}
+        style={{
+          flex: 1,
+          fontSize: 15,
+          color: FOREGROUND,
+          fontWeight: active ? "600" : "400",
+        }}
       >
-        <Text
-          numberOfLines={1}
-          style={{
-            flex: 1,
-            fontSize: 15,
-            color: FOREGROUND,
-            fontWeight: active ? "600" : "400",
-          }}
-        >
-          {label}
-        </Text>
-        {countLabel ? (
-          <Text style={{ fontSize: 13, color: MUTED, fontWeight: "600" }}>
-            {countLabel}
-          </Text>
-        ) : null}
-      </Pressable>
-    </View>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
