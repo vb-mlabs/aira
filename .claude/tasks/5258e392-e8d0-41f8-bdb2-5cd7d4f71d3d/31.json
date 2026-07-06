@@ -1,9 +1,0 @@
-{
-  "id": "31",
-  "subject": "T8 [HUMAN]: Android keystore + backup",
-  "description": "User runs first Android build (preview), EAS generates keystore, user downloads backup to 1Password.",
-  "activeForm": "Waiting on Android keystore",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

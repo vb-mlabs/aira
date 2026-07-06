@@ -1,9 +1,0 @@
-{
-  "id": "45",
-  "subject": "F21 T6: sendPushBroadcast orchestrator",
-  "description": "New orchestrator: calls audit/in-app fan-out then expo-server-sdk push delivery with 60s AbortController + DeviceNotRegistered cleanup.",
-  "activeForm": "Writing F21 T6 sendPushBroadcast",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

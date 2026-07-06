@@ -1,9 +1,0 @@
-{
-  "id": "41",
-  "subject": "F21 T2: devices validators + extended broadcast input",
-  "description": "New devices.ts validator file. Extend BusinessOwnerBroadcastInputSchema/OutputSchema for target + device counters.",
-  "activeForm": "Writing F21 T2 validators",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

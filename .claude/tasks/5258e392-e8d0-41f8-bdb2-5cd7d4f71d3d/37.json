@@ -1,9 +1,0 @@
-{
-  "id": "37",
-  "subject": "T14 [CODE]: SHA-256 into assetlinks",
-  "description": "Substitute ANDROID_CERT_SHA256 into assetlinks.json.",
-  "activeForm": "Substituting SHA-256",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

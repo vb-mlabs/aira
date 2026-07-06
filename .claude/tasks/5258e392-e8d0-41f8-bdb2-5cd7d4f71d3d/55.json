@@ -1,9 +1,0 @@
-{
-  "id": "55",
-  "subject": "F21 T16: account-hub \"Enable notifications\" row",
-  "description": "Always-visible account-hub menu row calling requestPermissionAndRegister().",
-  "activeForm": "Adding F21 T16 account-hub row",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

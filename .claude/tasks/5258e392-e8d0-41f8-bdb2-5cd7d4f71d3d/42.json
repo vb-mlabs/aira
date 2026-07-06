@@ -1,9 +1,0 @@
-{
-  "id": "42",
-  "subject": "F21 T3: expo-server-sdk dep",
-  "description": "Add expo-server-sdk ^3.x to packages/services/package.json and run pnpm install.",
-  "activeForm": "Adding F21 T3 expo-server-sdk dep",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

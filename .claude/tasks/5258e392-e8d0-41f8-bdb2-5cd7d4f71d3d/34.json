@@ -1,9 +1,0 @@
-{
-  "id": "34",
-  "subject": "T11 [HUMAN]: App Store Connect",
-  "description": "User creates App Store Connect app record (com.airabynisarga.app, \"AIRA\"), sets up TestFlight Internal Testing group, captures Team ID.",
-  "activeForm": "Waiting on App Store Connect",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

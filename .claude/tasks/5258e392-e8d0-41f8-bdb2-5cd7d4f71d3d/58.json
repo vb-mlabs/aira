@@ -1,9 +1,0 @@
-{
-  "id": "58",
-  "subject": "SDK54 T2: pnpm install + expo install --fix",
-  "description": "Refresh lockfile with SDK 54 base; run expo install --fix to align every Expo-curated peer. Pause-if peer-dep >1 major regression, lint break in F21 code, or expo-notifications API drift.",
-  "activeForm": "Running expo install --fix",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "35",
-  "subject": "T12 [HUMAN]: Play Console + AAB upload",
-  "description": "User creates Play Console app, uploads production AAB to Internal Testing, captures App Signing key SHA-256.",
-  "activeForm": "Waiting on Play Console",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

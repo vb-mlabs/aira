@@ -1,9 +1,0 @@
-{
-  "id": "59",
-  "subject": "SDK54 T3: verify app.config.ts is SDK-54-compatible",
-  "description": "Walk app.config.ts looking for SDK-version-sensitive config; most likely outcome is no changes.",
-  "activeForm": "Verifying app.config.ts",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "46",
-  "subject": "F21 T7: profile push-token ops",
-  "description": "registerPushTokenOp + unregisterPushTokenOp in apps/web/src/server/operations/profile.ts.",
-  "activeForm": "Writing F21 T7 push-token ops",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "54",
-  "subject": "F21 T15: post-login pre-prompt gating",
-  "description": "In the post-auth layout, route to the pre-prompt on first sign-in if neither completed nor dismissed flag set.",
-  "activeForm": "Wiring F21 T15 post-login gating",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
