@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-06
 **Slug:** 2026-07-06-mobile-my-profile-and-avatar-nocrop
-**Status:** reviewed
+**Status:** implemented
 **Author:** Claude (Opus 4.7) via `/mlabs-plan`
 
 ---
