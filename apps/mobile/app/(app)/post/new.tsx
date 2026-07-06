@@ -124,12 +124,16 @@ export default function PostComposerScreen() {
           }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Title — labels + placeholder + counter all mirror
-              apps/web/src/features/community/components/post-fields.tsx */}
+          {/* Title + description placeholders intentionally short on
+              mobile — the sheet at 0.5 detent is narrow and the long
+              multi-example placeholders inherited from web
+              (post-fields.tsx) were getting truncated. Labels above
+              already carry the field name; placeholder is a one-line
+              prompt. Radha 2026-07-06 UAT. */}
           <View>
             <Input
               label="Title"
-              placeholder="Room for rent, weekend tutoring, paediatrician…"
+              placeholder="e.g. Room for rent"
               value={title}
               onChangeText={setTitle}
               maxLength={TITLE_MAX}
@@ -144,7 +148,7 @@ export default function PostComposerScreen() {
           <View>
             <Input
               label="Description (optional)"
-              placeholder="Any extra detail neighbours should know — price, availability, what you're looking for…"
+              placeholder="Add more details…"
               value={body}
               onChangeText={setBody}
               maxLength={BODY_MAX}
