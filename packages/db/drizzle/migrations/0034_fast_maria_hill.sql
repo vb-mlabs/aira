@@ -1,0 +1,1 @@
+ALTER TABLE "businesses" ADD COLUMN "verification_notes" text;
