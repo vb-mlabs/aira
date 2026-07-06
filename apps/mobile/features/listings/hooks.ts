@@ -26,6 +26,25 @@ export function useFeatured() {
   });
 }
 
+/** Featured Businesses section on a primary (level-1) category page — up
+ *  to 5 businesses drawn at random from the sponsored pool scoped to
+ *  this category. Server-side clamps limit at 5. Separate cache key from
+ *  useFeatured so navigating between the two doesn't reuse the wrong
+ *  set. Enabled only when a slug is provided. */
+export function useFeaturedForCategory(slug: string | undefined) {
+  return useQuery({
+    queryKey: ["listings", "featured", "category", slug, FEATURED_LIMIT],
+    queryFn: () =>
+      listBusinesses({
+        featured: true,
+        category: slug as string,
+        limit: FEATURED_LIMIT,
+      }),
+    enabled: !!slug,
+    staleTime: 60_000,
+  });
+}
+
 /** Businesses Listed stat-card count. */
 export function useBusinessCount() {
   return useQuery({
