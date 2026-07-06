@@ -133,6 +133,35 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           Category slug updated: <code>{m.from}</code> → <code>{m.to}</code>
         </>
       )
+    case "business.verification_changed":
+      return (
+        <>
+          {m.verified && (
+            <>
+              Verified:{" "}
+              <em>{m.verified.from ? "yes" : "no"}</em> →{" "}
+              <em>{m.verified.to ? "yes" : "no"}</em>
+            </>
+          )}
+          {m.verified && m.verification_notes ? <>; </> : null}
+          {m.verification_notes && (
+            <>
+              Notes:{" "}
+              <code>
+                {m.verification_notes.from === null
+                  ? "(empty)"
+                  : truncate(m.verification_notes.from, 40)}
+              </code>{" "}
+              →{" "}
+              <code>
+                {m.verification_notes.to === null
+                  ? "(empty)"
+                  : truncate(m.verification_notes.to, 40)}
+              </code>
+            </>
+          )}
+        </>
+      )
     case "business.subscription_recorded":
       return (
         <>
