@@ -1263,7 +1263,10 @@ function AiraReviewPreview({
   return (
     <div className="space-y-2">
       {hasRating ? (
-        <RatingPill rating={rating!} />
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+          {brand.name} Stars
+          <RatingPill rating={rating!} />
+        </span>
       ) : (
         <p className="text-xs text-muted-foreground">No rating</p>
       )}
