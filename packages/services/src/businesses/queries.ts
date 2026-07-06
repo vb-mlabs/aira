@@ -608,7 +608,9 @@ export function toBusiness(
 }
 
 // Admin row → BusinessAdmin. Spreads the public projection so the field
-// list stays in lock-step with toBusiness, then appends contact_person.
+// list stays in lock-step with toBusiness, then appends admin-only
+// fields (contact_person, verification_notes). Keep additions HERE,
+// never on toBusiness, or they leak to unauthenticated callers.
 function toBusinessAdmin(
   row: BusinessRowWithVisibility,
   images: BusinessImage[],
@@ -617,6 +619,7 @@ function toBusinessAdmin(
   return {
     ...toBusiness(row, images, extra_category_ids),
     contact_person: row.contact_person ?? null,
+    verification_notes: row.verification_notes ?? null,
   };
 }
 

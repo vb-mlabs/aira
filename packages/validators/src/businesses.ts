@@ -111,6 +111,12 @@ export type Business = z.infer<typeof BusinessSchema>;
  *  layer also strips it on public projections (see queries.ts). */
 export const BusinessAdminSchema = BusinessSchema.extend({
   contact_person: z.string().nullable(),
+  /** Admin-only free-text log of the verification decision. NULL when
+   *  the admin has verified without capturing context, OR when the
+   *  row predates this field entirely. Never surfaced on the public
+   *  BusinessSchema — kept out of /api/v1/businesses payloads by the
+   *  query projection in packages/services/src/businesses/queries.ts. */
+  verification_notes: z.string().nullable(),
 });
 export type BusinessAdmin = z.infer<typeof BusinessAdminSchema>;
 
@@ -185,6 +191,16 @@ export const BusinessUpdateInputSchema = z
       .string()
       .trim()
       .max(120)
+      .nullable()
+      .optional(),
+    /** Admin-only verification-decision log. Cap of 1000 chars — enough
+     *  for a call summary + licence numbers + timestamp, well under any
+     *  DB / render pathology. Trimmed empty string is coerced to null
+     *  at the UI boundary before hitting this schema. */
+    verification_notes: z
+      .string()
+      .trim()
+      .max(1000)
       .nullable()
       .optional(),
   })
