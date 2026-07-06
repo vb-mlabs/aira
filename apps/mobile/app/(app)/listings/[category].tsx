@@ -1,18 +1,19 @@
 import * as React from "react";
 import {
   ActivityIndicator,
-  FlatList,
   RefreshControl,
+  ScrollView,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { VALID_TIERS, type Business, type BusinessTier } from "@aira/validators";
 import { Skeleton } from "../../../components/ui/Skeleton";
-import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { PrimaryCategoryView } from "../../../features/listings/components/PrimaryCategoryView";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
+import { TierSection } from "../../../features/listings/components/TierSection";
 import { VerifiedFilterChip } from "../../../features/listings/components/VerifiedFilterChip";
 import { useFavoriteIds } from "../../../features/favorites/hooks";
 import {
@@ -163,7 +164,9 @@ export default function CategoryListingScreen() {
         </View>
       </View>
 
-      {/* List */}
+      {/* List — grouped by tier (Sponsored / Sponsored Level 2 /
+          Regular) to mirror the web layout. Textured section headers +
+          BusinessCards in each group. Empty groups render nothing. */}
       {list.isLoading ? (
         <View className="mt-4 px-5" style={{ gap: 12 }}>
           {[0, 1, 2, 3].map((i) => (
@@ -171,21 +174,11 @@ export default function CategoryListingScreen() {
           ))}
         </View>
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <BusinessCard
-              business={item}
-              showCategory={false}
-              isFavorited={favIdSet.has(item.id)}
-            />
-          )}
+        <ScrollView
           contentContainerStyle={{
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: 48,
-            gap: 12,
           }}
           refreshControl={
             <RefreshControl
@@ -193,28 +186,60 @@ export default function CategoryListingScreen() {
               onRefresh={onRefresh}
             />
           }
-          onEndReachedThreshold={0.4}
-          onEndReached={() => {
-            if (list.hasNextPage && !list.isFetchingNextPage) {
+          onScroll={({ nativeEvent }) => {
+            const { layoutMeasurement, contentOffset, contentSize } =
+              nativeEvent;
+            const nearBottom =
+              layoutMeasurement.height + contentOffset.y >=
+              contentSize.height - 200;
+            if (
+              nearBottom &&
+              list.hasNextPage &&
+              !list.isFetchingNextPage
+            ) {
               void list.fetchNextPage();
             }
           }}
-          ListEmptyComponent={
+          scrollEventThrottle={200}
+        >
+          {items.length === 0 ? (
             q.trim() ? (
               <EmptyState title="No matches for that search." />
             ) : (
               <EmptyState title="No businesses in this category yet." />
             )
-          }
-          ListFooterComponent={
-            list.isFetchingNextPage ? (
-              <View className="py-4 items-center">
-                <ActivityIndicator />
-              </View>
-            ) : null
-          }
-        />
+          ) : (
+            groupByTier(items).map((group) => (
+              <TierSection
+                key={group.tier}
+                tier={group.tier}
+                businesses={group.businesses}
+                favIds={favIdSet}
+              />
+            ))
+          )}
+          {list.isFetchingNextPage ? (
+            <View className="py-4 items-center">
+              <ActivityIndicator />
+            </View>
+          ) : null}
+        </ScrollView>
       )}
     </SafeAreaView>
   );
+}
+
+interface TierGroup {
+  tier: BusinessTier;
+  businesses: Business[];
+}
+
+/** Bucket the flat page-flatten into fixed tier order (tier1 →
+ *  tier2 → tier3). Empty tiers still produce an entry so keying stays
+ *  stable across renders; TierSection short-circuits on empty. */
+function groupByTier(items: Business[]): TierGroup[] {
+  return VALID_TIERS.map<TierGroup>((tier) => ({
+    tier,
+    businesses: items.filter((b) => b.tier === tier),
+  }));
 }
