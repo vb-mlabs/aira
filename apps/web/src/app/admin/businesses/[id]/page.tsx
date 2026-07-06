@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { apiServerFetch } from "@aira/api/server"
 import { getBusinessByIdAdminOp } from "@/server/operations/businesses-admin"
 import { listCategoriesTreeOp } from "@/server/operations/categories"
-import { listCitiesAdminOp } from "@/server/operations/cities-admin"
+import { listCitiesForAdminOp } from "@/server/operations/cities-admin"
 import { BusinessAdminDetail } from "@/features/admin/components/business-detail"
 
 export const dynamic = "force-dynamic"
@@ -23,7 +23,7 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
   const [bizRes, catRes, cityRes] = await Promise.all([
     apiServerFetch(getBusinessByIdAdminOp, { input: { id } }),
     apiServerFetch(listCategoriesTreeOp, { input: {} }),
-    apiServerFetch(listCitiesAdminOp, { input: {} }),
+    apiServerFetch(listCitiesForAdminOp, { input: {} }),
   ])
   const business = bizRes.data?.business
   const owner = bizRes.data?.owner ?? null

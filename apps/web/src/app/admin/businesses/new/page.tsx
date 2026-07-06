@@ -1,5 +1,5 @@
 import { apiServerFetch } from "@aira/api/server"
-import { listCitiesAdminOp } from "@/server/operations/cities-admin"
+import { listCitiesForAdminOp } from "@/server/operations/cities-admin"
 import { listCategoriesTreeOp } from "@/server/operations/categories"
 import { AdminFormModal } from "@/features/admin/components/admin-form-modal"
 import { BusinessCreateForm } from "@/features/admin/components/business-create-form"
@@ -8,7 +8,7 @@ export const metadata = { title: "Admin · New Business" }
 
 export default async function NewBusinessPage() {
   const [citiesRes, treeRes] = await Promise.all([
-    apiServerFetch(listCitiesAdminOp, { input: {} }),
+    apiServerFetch(listCitiesForAdminOp, { input: {} }),
     apiServerFetch(listCategoriesTreeOp, { input: {} }),
   ])
   const cities = citiesRes.data?.cities ?? []
