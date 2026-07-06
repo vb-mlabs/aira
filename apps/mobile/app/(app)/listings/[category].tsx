@@ -11,7 +11,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { VALID_TIERS, type Business, type BusinessTier } from "@aira/validators";
 import { Skeleton } from "../../../components/ui/Skeleton";
-import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
@@ -21,7 +20,6 @@ import { useFavoriteIds } from "../../../features/favorites/hooks";
 import {
   useCategories,
   useCategory,
-  useFeaturedForCategory,
   useListings,
 } from "../../../features/listings/hooks";
 import { getCategoryMeta } from "../../../features/listings/category-meta";
@@ -48,8 +46,6 @@ export default function CategoryListingScreen() {
 
   const level = cat.data?.category?.level;
   const isPrimary = level === 1;
-
-  const featuredForCategory = useFeaturedForCategory(isPrimary ? slug : undefined);
 
   const [q, setQ] = React.useState("");
   const [verified, setVerified] = React.useState(false);
@@ -106,20 +102,15 @@ export default function CategoryListingScreen() {
 
   // ─── Level-1 branch ────────────────────────────────────────────────
   // Renders the tier-grouped ListingView across the whole root (server
-  // auto-expands the query to include all child sub-categories). Also
-  // renders the per-category featured section on top when there are
-  // active sponsorships. Empty when the whole root has nothing yet.
+  // auto-expands the query to include all child sub-categories). No
+  // separate "Featured" section — sponsored businesses naturally sit
+  // in the tier1/tier2 groups, matching the web level-2 layout.
   if (isPrimary && cat.data?.category) {
-    const featured = featuredForCategory.data?.items ?? [];
     const rootPages = list.data?.pages ?? [];
     const rootItems = rootPages.flatMap((p) => p.items);
     const isRefreshing =
-      featuredForCategory.isFetching ||
-      list.isRefetching ||
-      cats.isFetching ||
-      cat.isFetching;
+      list.isRefetching || cats.isFetching || cat.isFetching;
     const onRefresh = () => {
-      void featuredForCategory.refetch();
       void list.refetch();
       void cats.refetch();
       void cat.refetch();
@@ -134,7 +125,7 @@ export default function CategoryListingScreen() {
               <Skeleton key={i} width="100%" height={96} borderRadius={12} />
             ))}
           </View>
-        ) : featured.length === 0 && rootItems.length === 0 ? (
+        ) : rootItems.length === 0 ? (
           <View className="items-center justify-center px-6 py-16">
             <Text className="text-center font-display text-lg font-semibold text-foreground">
               No listings in this category yet
@@ -179,34 +170,14 @@ export default function CategoryListingScreen() {
             }}
             scrollEventThrottle={200}
           >
-            {featured.length > 0 ? (
-              <View style={{ marginBottom: 24 }}>
-                <Text
-                  className="mb-3 font-display text-lg font-semibold text-foreground"
-                >
-                  Featured in {cat.data.category.name}
-                </Text>
-                <View style={{ gap: 12 }}>
-                  {featured.map((business) => (
-                    <BusinessCard
-                      key={business.id}
-                      business={business}
-                      isFavorited={favIdSet.has(business.id)}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : null}
-            {rootItems.length > 0
-              ? groupByTier(rootItems).map((group) => (
-                  <TierSection
-                    key={group.tier}
-                    tier={group.tier}
-                    businesses={group.businesses}
-                    favIds={favIdSet}
-                  />
-                ))
-              : null}
+            {groupByTier(rootItems).map((group) => (
+              <TierSection
+                key={group.tier}
+                tier={group.tier}
+                businesses={group.businesses}
+                favIds={favIdSet}
+              />
+            ))}
             {list.isFetchingNextPage ? (
               <View className="py-4 items-center">
                 <ActivityIndicator />
