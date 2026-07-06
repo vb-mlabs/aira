@@ -7,6 +7,7 @@
 import { and, asc, count, desc, eq, getTableColumns, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { businesses, businessImages, businessCategories, categories, businessSubscriptions, user } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
+import { ApiError } from "@aira/api";
 import {
   VALID_TIERS,
   type Business,
@@ -167,11 +168,10 @@ export async function assertCategoryIsSubcategory(
 ): Promise<void> {
   const trimmed = slug.trim();
   if (trimmed === "") {
-    throw {
-      code: "businesses.category_required",
-      message: "Category is required.",
-      status: 400,
-    };
+    throw ApiError.badRequest(
+      "businesses.category_required",
+      "Category is required.",
+    );
   }
   const [row] = await db
     .select({ level: categories.level })
@@ -179,19 +179,16 @@ export async function assertCategoryIsSubcategory(
     .where(eq(categories.slug, trimmed))
     .limit(1);
   if (!row) {
-    throw {
-      code: "businesses.category_not_found",
-      message: `Unknown category "${trimmed}".`,
-      status: 400,
-    };
+    throw ApiError.badRequest(
+      "businesses.category_not_found",
+      `Unknown category "${trimmed}".`,
+    );
   }
   if (row.level !== 2) {
-    throw {
-      code: "businesses.category_must_be_subcategory",
-      message:
-        "Businesses can only be assigned to subcategories, not primary categories.",
-      status: 400,
-    };
+    throw ApiError.badRequest(
+      "businesses.category_must_be_subcategory",
+      "Businesses can only be assigned to subcategories, not primary categories.",
+    );
   }
 }
 
@@ -640,7 +637,11 @@ export async function createBusiness(
     .where(eq(businesses.slug, input.slug))
     .limit(1);
   if (existing.length > 0) {
-    throw { code: "businesses.slug_taken", message: "Slug already in use", status: 409 };
+    throw new ApiError({
+      status: 409,
+      code: "businesses.slug_taken",
+      message: "Slug already in use",
+    });
   }
   // tier is intentionally omitted — the DB column default ('tier3') takes
   // over, and the subscription service upgrades the column via
