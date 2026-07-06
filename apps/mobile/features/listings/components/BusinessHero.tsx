@@ -8,6 +8,7 @@ import { RatingPill } from "./RatingPill";
 import { FavoriteHeart } from "./FavoriteHeart";
 import { SocialIcons } from "./SocialIcons";
 import { TierPill } from "./TierPill";
+import { resolveMediaUrl } from "../../../lib/api/client";
 
 interface BusinessHeroProps {
   business: Business;
@@ -47,7 +48,7 @@ export function BusinessHero({
       >
         {business.image_url ? (
           <Image
-            source={{ uri: business.image_url }}
+            source={{ uri: resolveMediaUrl(business.image_url) }}
             style={{ width: "100%", height: "100%" }}
             resizeMode="cover"
             accessibilityLabel={`${business.name} hero image`}

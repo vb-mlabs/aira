@@ -9,6 +9,7 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import type { BusinessImage } from "@aira/validators";
+import { resolveMediaUrl } from "../../../lib/api/client";
 
 interface GalleryProps {
   images: BusinessImage[];
@@ -110,7 +111,7 @@ export function Gallery({ images }: GalleryProps) {
         })}
         renderItem={({ item }) => (
           <Image
-            source={{ uri: item.url }}
+            source={{ uri: resolveMediaUrl(item.url) }}
             style={{
               width: screenWidth,
               height: IMAGE_HEIGHT,
