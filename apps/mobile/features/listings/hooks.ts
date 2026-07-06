@@ -12,11 +12,12 @@ import {
   listCategories,
 } from "./api";
 
-const FEATURED_LIMIT = 6;
+const FEATURED_LIMIT = 5;
 const LISTINGS_PAGE_SIZE = 12;
 
-/** Featured Businesses tile on Home — tier1+tier2 ordered by tier, then by
- *  sponsorship state. Service-side ordering; mobile just renders the list. */
+/** Featured Businesses tile on Home — 5 businesses drawn at random from
+ *  the strict sponsored pool (any category). Server clamps limit at 5,
+ *  and orders by `random()`, so pull-to-refresh may rotate the set. */
 export function useFeatured() {
   return useQuery({
     queryKey: ["listings", "featured", FEATURED_LIMIT],
