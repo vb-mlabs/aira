@@ -106,16 +106,21 @@ export function SubcategoryPicker({
 
   // Compute menu geometry — width is max(pill width, MENU_MIN_WIDTH) so
   // the dropdown reads as tethered to the pill for compact triggers,
-  // but grows for wider pills / longer labels. Anchor to the LEFT edge
-  // of the pill; if that would overflow the right edge, clamp inside
-  // the screen inset.
+  // but grows for wider pills / longer labels. Center the menu
+  // horizontally on the pill (pillCenter matches menuCenter) so the
+  // dropdown reads as attached to the trigger; clamp to screen inset
+  // if it would overflow either edge.
   const menuGeom = React.useMemo(() => {
     if (!anchor) return { left: 0, top: 0, width: MENU_MIN_WIDTH };
     const screenW = Dimensions.get("window").width;
     const width = Math.max(anchor.width, MENU_MIN_WIDTH);
-    let left = anchor.x;
+    const pillCenter = anchor.x + anchor.width / 2;
+    let left = pillCenter - width / 2;
+    // Clamp to screen edges — left inset for short pills near screen
+    // start, right inset for pills near screen end.
+    if (left < SCREEN_EDGE_INSET) left = SCREEN_EDGE_INSET;
     if (left + width > screenW - SCREEN_EDGE_INSET) {
-      left = Math.max(SCREEN_EDGE_INSET, screenW - width - SCREEN_EDGE_INSET);
+      left = screenW - width - SCREEN_EDGE_INSET;
     }
     return {
       left,
