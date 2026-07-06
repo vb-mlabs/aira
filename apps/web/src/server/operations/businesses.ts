@@ -7,7 +7,9 @@ import "server-only"
 //   1. Paginated category browse (when ?category is set with any of
 //      ?q, ?page, ?pageSize, ?verified) → getBusinessesByCategoryPaged
 //   2. Full category list (when only ?category is set) → getBusinessesByCategory
-//   3. Featured (when ?featured=1, or no filter at all)
+//   3. Featured (when ?featured=1, or no filter at all) — uniform-random
+//      pick from the strict sponsored pool. `category` alongside `featured`
+//      scopes to sponsorships in that category. `limit` is clamped at 5.
 //
 // Every branch returns { items, total, page, pageSize } so the strict
 // output schema validates everywhere — non-paginated branches synthesize
@@ -28,6 +30,10 @@ import { defineOperation } from "./index"
 
 const DEFAULT_PAGE = 1
 const DEFAULT_PAGE_SIZE = 12
+// Product spec: home Featured tile + primary category Featured section
+// both surface exactly 5 businesses. Clamp here so callers can't pass a
+// higher `limit` and blow past the design.
+const FEATURED_LIMIT = 5
 
 /** Synthesize pagination metadata for the non-paginated branches so the
  *  strict output schema validates uniformly. */
@@ -93,13 +99,20 @@ export const listBusinessesOp = defineOperation({
       return { items, total, page, pageSize }
     }
 
-    // featured wins over category — passing both yields featured-only
-    // (intentional: the home tile + the category page are distinct callers).
+    // Featured branch — uniform-random pick from businesses that hold an
+    // active sponsorship in scope. Home tile is cross-category; primary
+    // category page passes a category slug to scope to sponsorships in
+    // that category. Product spec locks the visible set at 5, so limit is
+    // clamped even if a caller passes higher.
     if (input.featured) {
-      const items = await businessesService.getFeaturedBusinesses(
-        db,
-        input.limit,
-      )
+      const cappedLimit = Math.min(input.limit ?? FEATURED_LIMIT, FEATURED_LIMIT)
+      const items = input.category
+        ? await businessesService.getFeaturedRandomForCategory(
+            db,
+            input.category,
+            cappedLimit,
+          )
+        : await businessesService.getFeaturedRandom(db, cappedLimit)
       return withFullPageMeta(items)
     }
     if (input.category) {
@@ -111,9 +124,11 @@ export const listBusinessesOp = defineOperation({
         typeof input.limit === "number" ? items.slice(0, input.limit) : items
       return withFullPageMeta(trimmed)
     }
-    // No filter — return featured as a sensible default rather than dumping
-    // the whole table. Keeps the "GET with no query" call cheap.
-    const items = await businessesService.getFeaturedBusinesses(db, input.limit)
+    // No filter — return the same random featured pool as the home tile
+    // rather than dumping the whole table. Keeps the "GET with no query"
+    // call cheap and consistent with the featured contract.
+    const cappedLimit = Math.min(input.limit ?? FEATURED_LIMIT, FEATURED_LIMIT)
+    const items = await businessesService.getFeaturedRandom(db, cappedLimit)
     return withFullPageMeta(items)
   },
 })

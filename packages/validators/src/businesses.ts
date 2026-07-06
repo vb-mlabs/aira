@@ -239,7 +239,10 @@ export type BusinessUpdateOutput = z.infer<typeof BusinessUpdateOutputSchema>;
  *  for every caller. */
 export const BusinessListInputSchema = z
   .object({
-    /** When true, returns only tier1/tier2 businesses ordered by tier. */
+    /** When true, returns a randomised selection of businesses with an
+     *  active sponsorship in scope. Combined with `category`, scopes to
+     *  sponsorships whose category_id matches. `limit` is clamped at 5
+     *  by the op regardless of the value supplied. */
     featured: z.coerce.boolean().optional(),
     category: BusinessCategorySchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
