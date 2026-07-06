@@ -1,9 +1,0 @@
-{
-  "id": "26",
-  "subject": "T3 [CODE]: expo-updates + runtimeVersion",
-  "description": "Add expo-updates dep; add runtimeVersion appVersion policy to app.config.ts. NOT updates.url (needs projectId from T4).",
-  "activeForm": "Wiring expo-updates + runtimeVersion",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,9 +1,0 @@
-{
-  "id": "57",
-  "subject": "SDK54 T1: pin expo ~54.0.0 + drop worklets",
-  "description": "Two-line edit: expo: ~55.0.23 → ~54.0.0, remove react-native-worklets line.",
-  "activeForm": "Pinning expo to ~54.0.0",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

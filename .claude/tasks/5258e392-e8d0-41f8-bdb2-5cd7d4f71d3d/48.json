@@ -1,9 +1,0 @@
-{
-  "id": "48",
-  "subject": "F21 T9: broadcast op wired to sendPushBroadcast",
-  "description": "Switch sendBusinessOwnerBroadcastOp handler from admin.sendBusinessOwnerBroadcast to notifications.sendPushBroadcast.",
-  "activeForm": "Wiring F21 T9 broadcast op",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

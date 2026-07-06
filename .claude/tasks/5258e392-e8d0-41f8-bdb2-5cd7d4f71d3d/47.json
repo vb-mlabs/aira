@@ -1,9 +1,0 @@
-{
-  "id": "47",
-  "subject": "F21 T8: /api/v1/profile/push-token route",
-  "description": "POST + DELETE handlers under apps/web/src/app/api/v1/profile/push-token/route.ts.",
-  "activeForm": "Writing F21 T8 route handler",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

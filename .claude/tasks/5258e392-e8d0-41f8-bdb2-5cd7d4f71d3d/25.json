@@ -1,9 +1,0 @@
-{
-  "id": "25",
-  "subject": "T2 [CODE]: production profile",
-  "description": "Add production profile to apps/mobile/eas.json with channel, autoIncrement buildNumber, store distribution.",
-  "activeForm": "Adding production profile",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
