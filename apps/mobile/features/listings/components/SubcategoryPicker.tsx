@@ -127,13 +127,13 @@ export function SubcategoryPicker({
         accessibilityRole="button"
         accessibilityLabel={`Subcategory: ${currentLabel}. Tap to change.`}
         onPress={handleOpen}
-        className="flex-row items-center self-start rounded-full border border-border bg-card px-3"
-        style={{ minHeight: 36, gap: 6 }}
+        className="flex-row items-center self-start rounded-full border border-border bg-card px-3 py-1.5"
+        style={{ gap: 4 }}
       >
-        <Text className="text-sm font-semibold text-foreground">
+        <Text className="text-xs font-semibold text-foreground">
           {currentLabel}
         </Text>
-        <MaterialCommunityIcons name="chevron-down" size={18} color={MUTED} />
+        <MaterialCommunityIcons name="chevron-down" size={14} color={MUTED} />
       </Pressable>
 
       <Modal
