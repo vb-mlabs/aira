@@ -12,16 +12,19 @@ import type { Category } from "@aira/validators";
 
 const MUTED = "#66503f";
 const FOREGROUND = "#3D2814";
-const ACCENT = "#4F653B";
+const ACTIVE_ROW_BG = "rgba(79,101,59,0.14)"; // primary olive tint at ~14% alpha
+const ACTIVE_ROW_BORDER = "rgba(79,101,59,0.30)";
 
 // Visual constants for the anchored menu — matched to iOS UIMenu so a
 // later swap to @react-native-menu/menu after a Dev Client build looks
-// identical. Width is a comfortable read for short labels; tall lists
-// scroll internally.
-const MENU_WIDTH = 240;
+// identical. Tightened for Radha's 2026-07-06 UAT feedback: menu now
+// hugs the pill more closely (narrower + tighter gap) so it reads as
+// a dropdown attached to the trigger, not a floating card.
+const MENU_MIN_WIDTH = 200;
 const MENU_MAX_HEIGHT = 320;
 const MENU_ROW_HEIGHT = 44;
-const MENU_GAP_BELOW_PILL = 6;
+const MENU_GAP_BELOW_PILL = 4;
+const MENU_PAD_VERTICAL = 6;
 const SCREEN_EDGE_INSET = 12;
 
 interface SubcategoryPickerProps {
@@ -45,6 +48,7 @@ interface SubcategoryPickerProps {
 interface AnchorRect {
   x: number;
   y: number;
+  width: number;
   height: number;
 }
 
@@ -88,8 +92,8 @@ export function SubcategoryPicker({
     // Measure the pill on the page to anchor the menu under it. We
     // intentionally measure on open (not on layout) so reading is
     // accurate even after orientation/scroll changes.
-    pillRef.current?.measureInWindow((x, y, _width, height) => {
-      setAnchor({ x, y, height });
+    pillRef.current?.measureInWindow((x, y, width, height) => {
+      setAnchor({ x, y, width, height });
       setOpen(true);
     });
   }
@@ -99,19 +103,23 @@ export function SubcategoryPicker({
     if (slug !== currentSlug) onSelect(slug);
   }
 
-  // Compute menu position clamped to the screen. Anchor to the LEFT
-  // edge of the pill by default; if that would overflow the right edge,
-  // anchor to the right edge of the pill instead.
-  const menuPos = React.useMemo(() => {
-    if (!anchor) return { left: 0, top: 0 };
+  // Compute menu geometry — width is max(pill width, MENU_MIN_WIDTH) so
+  // the dropdown reads as tethered to the pill for compact triggers,
+  // but grows for wider pills / longer labels. Anchor to the LEFT edge
+  // of the pill; if that would overflow the right edge, clamp inside
+  // the screen inset.
+  const menuGeom = React.useMemo(() => {
+    if (!anchor) return { left: 0, top: 0, width: MENU_MIN_WIDTH };
     const screenW = Dimensions.get("window").width;
+    const width = Math.max(anchor.width, MENU_MIN_WIDTH);
     let left = anchor.x;
-    if (left + MENU_WIDTH > screenW - SCREEN_EDGE_INSET) {
-      left = Math.max(SCREEN_EDGE_INSET, screenW - MENU_WIDTH - SCREEN_EDGE_INSET);
+    if (left + width > screenW - SCREEN_EDGE_INSET) {
+      left = Math.max(SCREEN_EDGE_INSET, screenW - width - SCREEN_EDGE_INSET);
     }
     return {
       left,
       top: anchor.y + anchor.height + MENU_GAP_BELOW_PILL,
+      width,
     };
   }, [anchor]);
 
@@ -133,7 +141,11 @@ export function SubcategoryPicker({
         <Text className="text-xs font-semibold text-foreground">
           {currentLabel}
         </Text>
-        <MaterialCommunityIcons name="chevron-down" size={14} color={MUTED} />
+        <MaterialCommunityIcons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={14}
+          color={MUTED}
+        />
       </Pressable>
 
       <Modal
@@ -153,9 +165,9 @@ export function SubcategoryPicker({
           <View
             style={{
               position: "absolute",
-              left: menuPos.left,
-              top: menuPos.top,
-              width: MENU_WIDTH,
+              left: menuGeom.left,
+              top: menuGeom.top,
+              width: menuGeom.width,
               maxHeight: MENU_MAX_HEIGHT,
               backgroundColor: "#FFFBF2",
               borderRadius: 12,
@@ -169,7 +181,12 @@ export function SubcategoryPicker({
               overflow: "hidden",
             }}
           >
-            <ScrollView bounces={false}>
+            <ScrollView
+              bounces={false}
+              contentContainerStyle={{
+                paddingVertical: MENU_PAD_VERTICAL,
+              }}
+            >
               {rows.map((row, idx) => (
                 <MenuRow
                   key={row.slug}
@@ -205,45 +222,52 @@ function MenuRow({
 }: MenuRowProps) {
   const countLabel = typeof count === "number" ? String(count) : null;
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={
-        countLabel ? `${label}, ${countLabel} listed` : label
-      }
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        minHeight: MENU_ROW_HEIGHT,
-        paddingHorizontal: 14,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-        backgroundColor: pressed ? "rgba(61,40,20,0.06)" : "transparent",
-        borderBottomWidth: showDivider ? 1 : 0,
-        borderBottomColor: "rgba(61,40,20,0.08)",
-      })}
+    <View
+      style={{
+        marginHorizontal: 6,
+        marginVertical: 2,
+        borderRadius: 8,
+        overflow: "hidden",
+        backgroundColor: active ? ACTIVE_ROW_BG : "transparent",
+        borderWidth: active ? 1 : 0,
+        borderColor: active ? ACTIVE_ROW_BORDER : "transparent",
+      }}
     >
-      <Text
-        numberOfLines={1}
-        style={{
-          flex: 1,
-          fontSize: 15,
-          color: FOREGROUND,
-          fontWeight: active ? "600" : "400",
-        }}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={
+          countLabel ? `${label}, ${countLabel} listed` : label
+        }
+        accessibilityState={{ selected: active }}
+        onPress={onPress}
+        style={({ pressed }) => ({
+          minHeight: MENU_ROW_HEIGHT,
+          paddingHorizontal: 12,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          backgroundColor: pressed ? "rgba(61,40,20,0.06)" : "transparent",
+          borderBottomWidth: showDivider && !active ? 1 : 0,
+          borderBottomColor: "rgba(61,40,20,0.06)",
+        })}
       >
-        {label}
-      </Text>
-      {countLabel ? (
-        <Text style={{ fontSize: 13, color: MUTED, fontWeight: "600" }}>
-          {countLabel}
+        <Text
+          numberOfLines={1}
+          style={{
+            flex: 1,
+            fontSize: 15,
+            color: FOREGROUND,
+            fontWeight: active ? "600" : "400",
+          }}
+        >
+          {label}
         </Text>
-      ) : null}
-      {active ? (
-        <MaterialCommunityIcons name="check" size={18} color={ACCENT} />
-      ) : (
-        <View style={{ width: 18 }} />
-      )}
-    </Pressable>
+        {countLabel ? (
+          <Text style={{ fontSize: 13, color: MUTED, fontWeight: "600" }}>
+            {countLabel}
+          </Text>
+        ) : null}
+      </Pressable>
+    </View>
   );
 }
