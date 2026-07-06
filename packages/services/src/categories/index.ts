@@ -8,6 +8,11 @@ export {
   getRootCategoriesForCity,
   createCategory,
   updateCategory,
+  updateCategoryWithCascade,
   deactivateCategory,
   reorderCategories,
+} from "./queries";
+export type {
+  UpdateCategoryWithCascadeInput,
+  UpdateCategoryWithCascadeResult,
 } from "./queries";

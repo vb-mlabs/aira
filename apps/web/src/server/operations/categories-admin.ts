@@ -58,47 +58,24 @@ export const createCategoryOp = defineOperation({
   },
 })
 
-/** Slug-rename guard. Throws ApiError.badRequest if `nextSlug` differs
- *  from the category's current slug AND there's at least one business
- *  whose `businesses.category` text column still references the old
- *  slug — those rows have no FK protecting them, so a rename would
- *  silently orphan them from /listings.
- *
- *  Exported for direct unit-test access; called from updateCategoryOp's
- *  handler below before the update fires. Mirrors the
- *  deactivateCategoryOp affected-business counting pattern. */
-export async function assertSlugRenameAllowed(
-  db: Parameters<typeof categoriesService.getCategoriesByCity>[0],
-  opts: { id: string; nextSlug: string | undefined },
-): Promise<void> {
-  if (opts.nextSlug === undefined) return
-  const existing = await categoriesService.getCategoriesByCity(db, CITY_ID, {
-    includeInactive: true,
-  })
-  const current = existing.find((c) => c.id === opts.id)
-  if (!current || current.slug === opts.nextSlug) return
-  const affected = await businessesService.getBusinessesByCategory(
-    db,
-    current.slug,
-  )
-  if (affected.length === 0) return
-  throw ApiError.badRequest(
-    "categories.rename_would_orphan",
-    `Cannot rename slug: ${affected.length} ${affected.length === 1 ? "business" : "businesses"} reference the current slug "${current.slug}". Reassign them first.`,
-  )
-}
-
 export const updateCategoryOp = defineOperation({
   name: "admin.categories.update",
   input: CategoryUpdateInputSchema,
   output: z.object({ category: z.any() }),
   permission: "super_admin",
-  handler: async (db, _ctx, { id, ...data }) => {
-    await assertSlugRenameAllowed(db, { id, nextSlug: data.slug })
-    const category = await categoriesService.updateCategory(db, id, data)
-    if (!category)
+  handler: async (db, ctx, { id, ...data }) => {
+    // Slug rename cascades to businesses.category rows in the same
+    // transaction so no listing is silently orphaned. Emits one
+    // business.category_slug_cascaded audit row per affected biz.
+    const result = await categoriesService.updateCategoryWithCascade(db, {
+      id,
+      data,
+      actorUserId: ctx.userId,
+      auditClient: ctx.source === "mobile" ? "mobile" : "web",
+    })
+    if (!result.category)
       throw ApiError.notFound("categories.not_found", "Category not found")
-    return { category }
+    return { category: result.category }
   },
 })
 
