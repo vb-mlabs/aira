@@ -22,6 +22,7 @@ export default function AccountLayout() {
         headerStyle: { backgroundColor: "#EAE0CB" },
         headerTintColor: "#3D2814",
         headerTitleStyle: { fontWeight: "600" },
+        headerBackVisible: false,
       }}
     />
   );

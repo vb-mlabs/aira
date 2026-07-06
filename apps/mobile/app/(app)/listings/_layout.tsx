@@ -16,6 +16,11 @@ export default function ListingsLayout() {
         headerStyle: { backgroundColor: "#EAE0CB" },
         headerTintColor: "#3D2814",
         headerTitleStyle: { fontWeight: "600" },
+        // Hide the back chevron. The bottom tab bar is always visible,
+        // Android has hardware back, and iOS keeps its edge-swipe
+        // gesture (React Navigation's default `gestureEnabled: true`
+        // is unaffected). Radha 2026-07-06 UAT.
+        headerBackVisible: false,
       }}
     />
   );
