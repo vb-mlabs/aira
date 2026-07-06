@@ -21,6 +21,37 @@ const PHONE_MAX = 30;
 
 const HELPER_VISIBLE = "Visible to other signed-in members.";
 
+// Rendered inline as headerLeft. Defined at module scope so React
+// Navigation sees a stable function identity across parent re-renders —
+// hoisting this and the SCREEN_OPTIONS object below fixes the "screen
+// reloads on every keystroke" bug on iOS (Radha 2026-07-06 UAT). When
+// options identity changes each render, react-navigation reconciles
+// the header + sheet detents and iOS visibly relayouts.
+function HeaderCancel() {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Cancel"
+      onPress={() => router.back()}
+      hitSlop={8}
+    >
+      <Text className="pr-2 text-base text-foreground">Cancel</Text>
+    </Pressable>
+  );
+}
+
+// `presentation: "modal"` maps to iOS UIModalPresentationPageSheet
+// (slide-up from bottom, rounded corners, small gap at top — the
+// classic iOS bottom-sheet feel) and to a slide-up modal on Android.
+// Previously used "formSheet" with sheetAllowedDetents, but on iOS
+// formSheet renders as a small centered card (iPad-derived) and the
+// mixed detent config was contributing to the keystroke-relayout bug.
+const SCREEN_OPTIONS = {
+  title: "New post",
+  presentation: "modal" as const,
+  headerLeft: () => <HeaderCancel />,
+};
+
 /**
  * Composer for a new community post. Opens as a bottom sheet on iOS
  * (presentation: 'formSheet') and a full-screen modal on Android.
@@ -77,40 +108,7 @@ export default function PostComposerScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen
-        options={{
-          title: "New post",
-          // Bottom-sheet on iOS via formSheet + explicit detents.
-          // Without sheetAllowedDetents iOS defaults to a near-full-
-          // screen card; specifying ['medium','large'] opens at half
-          // height and lets the user expand to full. sheetGrabberVisible
-          // surfaces the drag handle so the dismiss affordance is
-          // obvious.
-          //
-          // Android falls back to a regular slide-up modal (RN
-          // platform limitation — true partial sheets on Android would
-          // require @gorhom/bottom-sheet which adds a new dep).
-          presentation: "formSheet",
-          // Numeric fractions of the screen height — 0.5 ~ medium,
-          // 0.99 ~ near-full. This expo-router build doesn't accept
-          // the string 'medium'/'large' identifiers.
-          sheetAllowedDetents: [0.5, 0.99],
-          sheetGrabberVisible: true,
-          sheetCornerRadius: 16,
-          // Replace the back chevron with a Cancel button so the
-          // sheet has a clear dismiss path across platforms.
-          headerLeft: () => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Cancel"
-              onPress={() => router.back()}
-              hitSlop={8}
-            >
-              <Text className="pr-2 text-base text-foreground">Cancel</Text>
-            </Pressable>
-          ),
-        }}
-      />
+      <Stack.Screen options={SCREEN_OPTIONS} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
