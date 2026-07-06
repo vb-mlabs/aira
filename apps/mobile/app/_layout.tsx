@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import * as SplashScreen from "expo-splash-screen";
 import { ToastProvider } from "../components/ui/Toast";
 import { useAppFonts } from "../lib/fonts";
@@ -38,13 +39,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(app)" />
-          </Stack>
-        </ToastProvider>
+        <ActionSheetProvider>
+          <ToastProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(app)" />
+            </Stack>
+          </ToastProvider>
+        </ActionSheetProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
