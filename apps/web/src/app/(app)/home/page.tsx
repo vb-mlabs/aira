@@ -1,10 +1,10 @@
 // End-user landing screen after sign-in. Brand-led: centered tree-of-life
 // mark + wordmark + tagline, then a short About block, two community stat
 // cards (live Businesses count via the /api/v1/* boundary, Community
-// Members from the brand layer), and a Featured Businesses list pulled
-// from the directory (tier1 + tier2, max 6). Featured section is hidden
-// when the directory is still empty so the page doesn't render a hollow
-// block.
+// Members from the brand layer), and a Featured Businesses list — 5
+// random businesses drawn from the strict sponsored pool. Featured
+// section is hidden when the pool is empty so the page doesn't render a
+// hollow block.
 
 import type { Metadata } from "next"
 import Image from "next/image"
@@ -30,7 +30,7 @@ export default async function HomePage() {
   const isSignedIn = !!session
 
   const [featuredRes, countRes, favIdsRes] = await Promise.all([
-    apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 6 } }),
+    apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 5 } }),
     apiServerFetch(countActiveBusinessesOp, { input: {} }),
     // Skip the user-scoped fetch entirely when anonymous — the cards just
     // render without a heart.
@@ -87,7 +87,7 @@ export default async function HomePage() {
               Featured Businesses
             </h3>
             <Link
-              href="/directory"
+              href="/categories"
               className="text-sm text-primary hover:underline"
             >
               View All →

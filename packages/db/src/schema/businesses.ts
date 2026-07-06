@@ -85,6 +85,11 @@ export const businesses = pgTable(
     /** One of VALID_TIERS — validated in query layer. Defaults to bottom tier. */
     tier: text("tier").notNull().default("tier3"),
     verified: boolean("verified").notNull().default(false),
+    /** Admin-only free-text log of the verification decision — call
+     *  refs, licence numbers, photo comparison notes. Nullable; capped
+     *  at 1000 chars in Zod (DB is unbounded text). NEVER surfaced on
+     *  the public BusinessSchema or /api/v1/businesses. */
+    verification_notes: text("verification_notes"),
     /** Editorial rating 0–5 in 0.5 steps. NULL = unrated. CHECK constraint
      *  enforces the range at the DB level; the admin UI enforces the step. */
     rating: numeric("rating", { precision: 2, scale: 1, mode: "number" }),

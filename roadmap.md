@@ -70,6 +70,9 @@ The critical path to TestFlight is now cleared. **First AIRA iOS build is in Tes
 
 Significant work has shipped between the original sprint plan and now that isn't slotted into S0–S7. Captured here so the roadmap reflects reality.
 
+### ✅ QA feedback sprint (2026-07-06) — 14/16 items shipped
+PR [#4](https://github.com/vb-mlabs/aira/pull/4). Three plans consumed: `.mstack/plans/2026-07-06-featured-business-selection.md` (home + primary category page rewrite, mobile parity), `.mstack/plans/2026-07-06-category-crud-bugs.md` (rename cascade + sub-only enforcement + Add-subcategory affordance), `.mstack/plans/2026-07-06-business-verification-notes.md` (verification_notes column + combined audit + admin surface). Group C polish (subcategory tier colors, listing-card icon order, sidebar hover-open) landed as small fixes. QA report `.mstack/qa/2026-07-06-1131/report.md` — 11/11 Playwright scenarios pass. Deferred to TODOs: #15 clean test env, #16 admin-editable home page content.
+
 ### ✅ Auth-shell redesign (2026-05-26)
 Plan: `.mstack/plans/2026-05-26-auth-shell-redesign.md`. Cormorant headings + Figma copy across web `(auth)` pages, tree-of-life logo + "AIRA by Nisarga" footer in the auth layout, shared `AuthShell` component wrapping the six mobile `(auth)` screens, and a new welcome hero (tree-of-life + dual CTAs + footer) on mobile. Post-login redirect flipped from `/messages` to `/home`.
 

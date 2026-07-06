@@ -271,30 +271,90 @@ function CategoryEditModal({
 
             <div className="space-y-1.5">
               <Label htmlFor="b-category">Primary category</Label>
-              <select
-                id="b-category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-              >
-                {categoryTree.length === 0 && (
-                  <option value={category}>{category}</option>
-                )}
-                {categoryTree.map(({ root, children }) => (
-                  <Fragment key={root.id}>
-                    <option value={root.slug}>{root.name}</option>
-                    {children.length > 0 && (
-                      <optgroup label={root.name}>
-                        {children.map((child) => (
-                          <option key={child.id} value={child.slug}>
-                            {child.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </Fragment>
-                ))}
-              </select>
+              {(() => {
+                // If the current stored slug isn't in any active
+                // subcategory branch, render it as a disabled "current"
+                // option at the top so the admin can see what they're
+                // moving away from. Common on rows that pre-date the
+                // sub-only rule and still point at a level-1 slug.
+                const allSubSlugs = new Set(
+                  categoryTree.flatMap(({ children }) => children.map((c) => c.slug)),
+                )
+                const currentIsOrphan = !!category && !allSubSlugs.has(category)
+                const hasAnySub = allSubSlugs.size > 0
+                return (
+                  <>
+                    <select
+                      id="b-category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                    >
+                      {currentIsOrphan && (
+                        <option value={category} disabled>
+                          {category} — pick a subcategory below
+                        </option>
+                      )}
+                      {categoryTree.map(({ root, children }) =>
+                        children.length > 0 ? (
+                          <optgroup key={root.id} label={root.name}>
+                            {children.map((child) => (
+                              <option key={child.id} value={child.slug}>
+                                {child.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ) : (
+                          // Roots with no active children render nothing
+                          // — Safari renders empty labelled clusters as
+                          // stray headings so we deliberately drop them.
+                          <Fragment key={root.id} />
+                        ),
+                      )}
+                    </select>
+                    {(() => {
+                      // Preselect the parent on the new-category page
+                      // when we know which root owns the currently
+                      // selected sub. Preserves admin intent — the
+                      // affordance is "add another sub *here*", not
+                      // "add any category".
+                      const rootOfCurrent = categoryTree.find(({ children }) =>
+                        children.some((c) => c.slug === category),
+                      )?.root
+                      const newSubHref = rootOfCurrent
+                        ? `/admin/settings/categories/new?parent=${encodeURIComponent(rootOfCurrent.id)}`
+                        : "/admin/settings/categories/new"
+                      return hasAnySub ? (
+                        <p className="text-xs text-muted-foreground">
+                          Only subcategories are selectable.{" "}
+                          <a
+                            href={newSubHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {rootOfCurrent
+                              ? `Add a new subcategory under ${rootOfCurrent.name} →`
+                              : "Add a new subcategory →"}
+                          </a>
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          No subcategories exist yet.{" "}
+                          <a
+                            href="/admin/settings/categories/new"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            Add one →
+                          </a>
+                        </p>
+                      )
+                    })()}
+                  </>
+                )
+              })()}
             </div>
 
             {categoryTree.length > 0 && (
@@ -1100,9 +1160,10 @@ function AddressEditModal({
   )
 }
 
-function AiraReviewSection({ business }: { business: Business }) {
+function AiraReviewSection({ business }: { business: BusinessAdmin }) {
   const [open, setOpen] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
+  const notes = business.verification_notes?.trim()
 
   return (
     <section className="rounded-lg border border-border bg-card">
@@ -1129,6 +1190,14 @@ function AiraReviewSection({ business }: { business: Business }) {
           Edit
         </Button>
       </header>
+      {notes && (
+        <div className="border-b border-border bg-muted/20 px-6 py-3 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">
+            Verification notes:
+          </span>{" "}
+          <span className="whitespace-pre-line">{notes}</span>
+        </div>
+      )}
       <div className="space-y-3 px-6 py-5">
         <AiraReviewPreview
           rating={business.rating}
@@ -1308,7 +1377,7 @@ function AiraReviewEditModal({
   onClose,
   onSaved,
 }: {
-  business: Business
+  business: BusinessAdmin
   open: boolean
   onClose: () => void
   onSaved: (result: Feedback) => void
@@ -1320,6 +1389,9 @@ function AiraReviewEditModal({
   )
   const [airaReview, setAiraReview] = useState(business.aira_review ?? "")
   const [verified, setVerified] = useState(business.verified)
+  const [verificationNotes, setVerificationNotes] = useState(
+    business.verification_notes ?? "",
+  )
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -1330,6 +1402,7 @@ function AiraReviewEditModal({
         rating: rating === "" ? null : Number(rating),
         aira_review: airaReview.trim() || null,
         verified,
+        verification_notes: verificationNotes.trim() || null,
       })
       if (result?.kind === "error") {
         setError(result.message)
@@ -1395,6 +1468,23 @@ function AiraReviewEditModal({
                 </p>
               </div>
             </label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="b-verification-notes">Verification notes</Label>
+              <textarea
+                id="b-verification-notes"
+                value={verificationNotes}
+                onChange={(e) => setVerificationNotes(e.target.value)}
+                placeholder="Internal record — call refs, licence numbers, what was checked."
+                rows={3}
+                maxLength={1000}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Admin-only. Not shown on the public detail page. Max 1000
+                characters.
+              </p>
+            </div>
 
             <div className="space-y-1.5">
               <Label>Star rating</Label>

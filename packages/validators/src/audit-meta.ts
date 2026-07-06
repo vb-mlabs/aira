@@ -69,6 +69,27 @@ export type AuditMeta =
       from: string | null;
       to: string | null;
     }
+  // Admin rename of a category slug cascaded to this business — the
+  // business's `category` text column pointed at the old slug and was
+  // updated in the same transaction so it doesn't orphan. One audit row
+  // per affected business. target.id = business.id.
+  | {
+      kind: "business.category_slug_cascaded";
+      from: string;
+      to: string;
+    }
+  // Admin verification-workflow change: either the `verified` boolean
+  // or the free-text `verification_notes` (or both) changed. Combined
+  // audit row per save (mirrors the community.post_edited fields-array
+  // pattern) so a single "verify + record notes" click reads as one
+  // decision in the timeline. Per-field from/to entries are populated
+  // ONLY for the fields that actually changed. target.id = business.id.
+  | {
+      kind: "business.verification_changed";
+      fields: Array<"verified" | "verification_notes">;
+      verified?: { from: boolean; to: boolean };
+      verification_notes?: { from: string | null; to: string | null };
+    }
   // S4 — subscription + sponsorship audit trail.
   | {
       kind: "business.subscription_recorded";
@@ -224,6 +245,8 @@ export const KNOWN_AUDIT_ACTIONS = [
   "business.archived",
   "business.restored",
   "business.contact_person_changed",
+  "business.category_slug_cascaded",
+  "business.verification_changed",
   "business.subscription_recorded",
   "business.subscription_voided",
   "business.sponsorship_assigned",
@@ -299,6 +322,8 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.owner_unassigned": "Owner unassigned",
     "business.broadcast_sent": "Broadcast sent",
     "business.contact_person_changed": "Contact person changed",
+    "business.category_slug_cascaded": "Category renamed",
+    "business.verification_changed": "Verification changed",
   };
 
 /** Convert an action kind string into a humanised dropdown label.

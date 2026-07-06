@@ -19,7 +19,8 @@
 //   - @aira/services/billing        — getStripe, handleStripeEvent
 //                                       (generic Stripe primitives; forks
 //                                       add handlers)
-//   - @aira/services/businesses     — getFeaturedBusinesses,
+//   - @aira/services/businesses     — getFeaturedRandom,
+//                                       getFeaturedRandomForCategory,
 //                                       getBusinessesByCategory,
 //                                       getBusinessById
 //   - @aira/services/categories     — getBusinessCountsByCategory +

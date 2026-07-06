@@ -204,11 +204,29 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {b.verified && (
-                        <BadgeCheck
-                          className="size-4 fill-info text-info-foreground"
-                          aria-label="Verified"
-                        />
+                      {b.verified ? (
+                        // Wrapping in a <span> so the title attribute
+                        // fires the native browser tooltip — Lucide's
+                        // BadgeCheck doesn't expose title as a prop.
+                        // Notes surface here at-a-glance without a
+                        // JS-driven tooltip primitive; detail page has
+                        // the full text.
+                        <span
+                          title={b.verification_notes ?? undefined}
+                          className="inline-flex"
+                        >
+                          <BadgeCheck
+                            className="size-4 fill-info text-info-foreground"
+                            aria-label="Verified"
+                          />
+                        </span>
+                      ) : (
+                        <span
+                          aria-label="Not verified"
+                          className="text-muted-foreground/60"
+                        >
+                          —
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3">

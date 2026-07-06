@@ -212,21 +212,35 @@ interface CategoryGroupProps {
  * users who don't care about the children can ignore the disclosure.
  * The chevron is a separate toggle button to keep the link target and
  * the expand affordance from overlapping.
+ *
+ * Interaction model:
+ *   - Hovering the row auto-opens the subs (QA feedback #14 — users
+ *     shouldn't have to click the arrow to peek at what's inside).
+ *   - Mouse-out auto-closes UNLESS the current route lives inside the
+ *     group, in which case the group stays open as before.
+ *   - The chevron still toggles a persistent `open` state — useful for
+ *     touch / no-hover devices and keyboard users.
  */
 function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
   const Icon = getCategoryMeta(root.slug).icon
   const parentActive = isActive(`/listings/${root.slug}`)
   const anyChildActive = subs.some((c) => isActive(`/listings/${c.slug}`))
-  // Auto-open when the route lives inside this group; the user can
-  // still collapse manually once mounted.
-  const [open, setOpen] = useState(parentActive || anyChildActive)
+  const routeActive = parentActive || anyChildActive
+  // Persistent open state — toggled by the chevron and pre-set to true
+  // when a route in this group is active. Hover flips a separate state.
+  const [clickOpen, setClickOpen] = useState(routeActive)
+  const [hoverOpen, setHoverOpen] = useState(false)
+  const open = clickOpen || hoverOpen || routeActive
 
   return (
-    <div>
+    <div
+      onMouseEnter={() => setHoverOpen(true)}
+      onMouseLeave={() => setHoverOpen(false)}
+    >
       <div
         className={cn(
           "flex items-center border-b border-sidebar-border text-sm transition-colors hover:bg-sidebar-foreground/5",
-          (parentActive || anyChildActive) && "bg-sidebar-foreground/10",
+          routeActive && "bg-sidebar-foreground/10",
         )}
       >
         <Link
@@ -245,7 +259,7 @@ function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
         </Link>
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setClickOpen((v) => !v)}
           aria-expanded={open}
           aria-label={open ? `Hide ${root.name} subcategories` : `Show ${root.name} subcategories`}
           className="flex size-9 shrink-0 items-center justify-center pr-3 text-sidebar-foreground/70 hover:text-sidebar-foreground"
@@ -272,7 +286,7 @@ function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
             >
               <span
                 aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-sidebar-foreground/40"
+                className="size-1.5 shrink-0 rounded-full bg-[color:var(--tier2)]"
               />
               <span className="flex-1 truncate">{sub.name}</span>
             </Link>

@@ -7,6 +7,7 @@
 import { and, asc, count, desc, eq, getTableColumns, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { businesses, businessImages, businessCategories, categories, businessSubscriptions, user } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
+import { ApiError } from "@aira/api";
 import {
   VALID_TIERS,
   type Business,
@@ -18,9 +19,8 @@ import {
 } from "@aira/validators";
 
 // True when the business has at least one PAID subscription whose window
-// covers now(). Used for: gating the homepage Featured tile (premium-only
-// surface) and demoting pending-only businesses to tier3 (Regular Listings)
-// on the category/directory pages.
+// covers now(). Used to demote pending-only businesses to tier3 (Regular
+// Listings) on the category/directory pages via toBusiness().
 const IS_PAID_ACTIVE = sql<boolean>`EXISTS (
   SELECT 1 FROM business_subscription bs
   WHERE bs.business_id = businesses.id
@@ -32,7 +32,7 @@ const IS_PAID_ACTIVE = sql<boolean>`EXISTS (
 // (within window). Pending shows up so businesses that registered but haven't
 // completed payment still appear — but EFFECTIVE_TIER collapses them to
 // tier3 so they don't claim Featured/Sponsored placement. The homepage
-// Featured tile uses IS_PAID_ACTIVE directly and never includes pending.
+// Featured tile gates on HAS_ACTIVE_SPONSORSHIP separately (below).
 const VISIBLE = sql`EXISTS (
   SELECT 1 FROM business_subscription bs
   WHERE bs.business_id = businesses.id
@@ -84,31 +84,27 @@ function sponsoredAmountCents(catSlug: string) {
   ), 0)`;
 }
 
-// Sponsored sort helpers for homepage featured tile — same shape as the
-// per-category helpers but without a category filter (cross-category aggregate).
-const homepageSponsoredFlag = sql`CASE WHEN EXISTS (
+// Predicate: business has at least one active, in-window sponsorship
+// (cross-category). Powers the homepage Featured tile — random pick from
+// the sponsored-in-any-category pool.
+const HAS_ACTIVE_SPONSORSHIP = sql<boolean>`EXISTS (
   SELECT 1 FROM sponsorship sp
   WHERE sp.business_id = businesses.id
   AND sp.status = 'active'
   AND now() BETWEEN sp.start_date AND sp.end_date
-) THEN 0 ELSE 1 END`;
+)`;
 
-const homepageSponsoredPriority = sql`COALESCE((
-  SELECT MIN(st.priority)
-  FROM sponsorship sp
-  LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
-  WHERE sp.business_id = businesses.id
-  AND sp.status = 'active'
-  AND now() BETWEEN sp.start_date AND sp.end_date
-), 99999)`;
-
-const homepageSponsoredAmountCents = sql`COALESCE((
-  SELECT MAX(sp.amount_cents)
-  FROM sponsorship sp
-  WHERE sp.business_id = businesses.id
-  AND sp.status = 'active'
-  AND now() BETWEEN sp.start_date AND sp.end_date
-), 0)`;
+// Predicate: business has an active, in-window sponsorship in the given
+// category. Powers the primary category page's Featured section.
+function hasActiveSponsorshipInCategory(catSlug: string) {
+  return sql<boolean>`EXISTS (
+    SELECT 1 FROM sponsorship sp
+    WHERE sp.business_id = businesses.id
+    AND sp.status = 'active'
+    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
+    AND now() BETWEEN sp.start_date AND sp.end_date
+  )`;
+}
 
 // ─── Relation helpers ────────────────────────────────────────────────────────
 
@@ -160,6 +156,42 @@ type BusinessRowWithVisibility = typeof businesses.$inferSelect & {
   is_paid_active?: boolean;
 };
 
+/** Rejects when the given category slug does not resolve to an active
+ *  level-2 (subcategory) row. Shared enforcement for createBusiness and
+ *  updateBusiness — a business's primary `category` column must point
+ *  at a subcategory, never a root. Empty/undefined slugs are treated as
+ *  "no change" by callers, so this only runs when the caller passes a
+ *  concrete slug. */
+export async function assertCategoryIsSubcategory(
+  db: Database,
+  slug: string,
+): Promise<void> {
+  const trimmed = slug.trim();
+  if (trimmed === "") {
+    throw ApiError.badRequest(
+      "businesses.category_required",
+      "Category is required.",
+    );
+  }
+  const [row] = await db
+    .select({ level: categories.level })
+    .from(categories)
+    .where(eq(categories.slug, trimmed))
+    .limit(1);
+  if (!row) {
+    throw ApiError.badRequest(
+      "businesses.category_not_found",
+      `Unknown category "${trimmed}".`,
+    );
+  }
+  if (row.level !== 2) {
+    throw ApiError.badRequest(
+      "businesses.category_must_be_subcategory",
+      "Businesses can only be assigned to subcategories, not primary categories.",
+    );
+  }
+}
+
 export async function attachRelations(
   db: Database,
   rows: BusinessRowWithVisibility[],
@@ -199,31 +231,44 @@ async function attachRelationsAdmin(
 
 // ─── Public queries ──────────────────────────────────────────────────────────
 
-export async function getFeaturedBusinesses(
+/** Uniform-random pick from all businesses that hold an active sponsorship
+ *  in any category. Powers the homepage Featured tile. Order is `random()`
+ *  so each request returns a fresh selection; deliberately not seeded.
+ *
+ *  Business-unique via an EXISTS predicate (not a sponsorship JOIN), so a
+ *  business with multiple concurrent sponsorships still appears at most
+ *  once in the returned set. */
+export async function getFeaturedRandom(
   db: Database,
-  limit = 6,
+  limit: number,
 ): Promise<Business[]> {
-  // Any active business with an active-paid subscription is eligible —
-  // premium tiers (tier1 / tier2) just rank first via TIER_ORDER.
-  //
-  // History: this used to gate strictly to tier1+tier2 (see the membership-
-  // plan-tier review on 2026-06-15), but that hides the section entirely
-  // whenever the directory has no premium customer, which made /home feel
-  // empty. The tier ordering preserves the "premium first" intent without
-  // hiding everyone else.
   const rows = await db
-    .select()
+    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+    .from(businesses)
+    .where(and(isNull(businesses.deleted_at), HAS_ACTIVE_SPONSORSHIP))
+    .orderBy(sql`random()`)
+    .limit(limit);
+  return attachRelations(db, rows);
+}
+
+/** Category-scoped variant. Uniform-random pick from businesses that hold
+ *  an active sponsorship *whose category_id matches the given slug*. Powers
+ *  the primary category page's Featured section. */
+export async function getFeaturedRandomForCategory(
+  db: Database,
+  categorySlug: string,
+  limit: number,
+): Promise<Business[]> {
+  const rows = await db
+    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
     .from(businesses)
     .where(
-      and(isNull(businesses.deleted_at), IS_PAID_ACTIVE),
+      and(
+        isNull(businesses.deleted_at),
+        hasActiveSponsorshipInCategory(categorySlug),
+      ),
     )
-    .orderBy(
-      homepageSponsoredFlag,
-      homepageSponsoredPriority,
-      desc(homepageSponsoredAmountCents),
-      TIER_ORDER,
-      asc(businesses.name),
-    )
+    .orderBy(sql`random()`)
     .limit(limit);
   return attachRelations(db, rows);
 }
@@ -563,7 +608,9 @@ export function toBusiness(
 }
 
 // Admin row → BusinessAdmin. Spreads the public projection so the field
-// list stays in lock-step with toBusiness, then appends contact_person.
+// list stays in lock-step with toBusiness, then appends admin-only
+// fields (contact_person, verification_notes). Keep additions HERE,
+// never on toBusiness, or they leak to unauthenticated callers.
 function toBusinessAdmin(
   row: BusinessRowWithVisibility,
   images: BusinessImage[],
@@ -572,6 +619,7 @@ function toBusinessAdmin(
   return {
     ...toBusiness(row, images, extra_category_ids),
     contact_person: row.contact_person ?? null,
+    verification_notes: row.verification_notes ?? null,
   };
 }
 
@@ -579,13 +627,24 @@ export async function createBusiness(
   db: Database,
   input: BusinessCreateInput,
 ): Promise<BusinessAdmin> {
+  // Enforce sub-only for the primary category slot. Primary categories
+  // are pure navigation surfaces (they only *feature* sponsored
+  // listings — see 2026-07-06-featured-business-selection); businesses
+  // live under subcategories. Two layers of defense: this service
+  // check + a UI filter on the admin picker that hides level-1 rows.
+  await assertCategoryIsSubcategory(db, input.category);
+
   const existing = await db
     .select({ id: businesses.id })
     .from(businesses)
     .where(eq(businesses.slug, input.slug))
     .limit(1);
   if (existing.length > 0) {
-    throw { code: "businesses.slug_taken", message: "Slug already in use", status: 409 };
+    throw new ApiError({
+      status: 409,
+      code: "businesses.slug_taken",
+      message: "Slug already in use",
+    });
   }
   // tier is intentionally omitted — the DB column default ('tier3') takes
   // over, and the subscription service upgrades the column via

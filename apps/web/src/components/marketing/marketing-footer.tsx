@@ -9,20 +9,23 @@ import Image from "next/image"
 import Link from "next/link"
 import { Globe, Mail } from "lucide-react"
 import { brand } from "@aira/config"
+import { GetListedDialog } from "./business-cta-pair"
 
 // TODO: replace with the real Nisarga LinkedIn URL once it exists.
 const NISARGA_LINKEDIN_URL = "#"
 const NISARGA_WEBSITE_URL = "https://nisargacorp.com"
+const NISARGA_CONTACT_URL = "https://www.nisargacorp.com/"
 
 const forUsersLinks = [
   { href: "#notify", label: "Get notified at launch" },
   { href: "#about", label: "About AIRA" },
 ]
 
-const forBusinessesLinks = [
-  { href: "#businesses", label: "Get listed" },
-  { href: `mailto:${brand.supportEmail}`, label: "Contact us" },
-]
+const forBusinessesContactLink = {
+  href: NISARGA_CONTACT_URL,
+  label: "Contact us",
+  external: true,
+}
 
 const legalLinks = [
   { href: "/privacy", label: "Privacy" },
@@ -54,7 +57,7 @@ export function MarketingFooter() {
           </div>
 
           <FooterColumn title="Browse" links={forUsersLinks} />
-          <FooterColumn title="Get listed" links={forBusinessesLinks} />
+          <GetListedColumn />
           <FooterColumn title="About" links={legalLinks} />
         </div>
 
@@ -73,9 +76,14 @@ function ContactStrip() {
         <span aria-hidden="true" className="font-display text-lg text-brand-gold">
           ✦
         </span>
-        <span className="font-display text-[15px] tracking-wide text-foreground">
+        <Link
+          href={NISARGA_CONTACT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-display text-[15px] tracking-wide text-foreground no-underline transition-colors hover:text-primary"
+        >
           Contact Us
-        </span>
+        </Link>
         <ul className="flex items-center gap-2.5">
           <li>
             <ContactIcon
@@ -177,6 +185,33 @@ function FooterColumn({
             </Link>
           </li>
         ))}
+      </ul>
+    </div>
+  )
+}
+
+function GetListedColumn() {
+  return (
+    <div>
+      <div className="mb-4 text-[11px] font-bold uppercase tracking-[2px] text-muted-foreground">
+        Get listed
+      </div>
+      <ul className="space-y-1">
+        <li>
+          <GetListedDialog triggerClassName="block w-full py-1 text-left text-sm text-foreground no-underline transition-colors hover:text-primary">
+            Get listed
+          </GetListedDialog>
+        </li>
+        <li>
+          <Link
+            href={forBusinessesContactLink.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block py-1 text-sm text-foreground no-underline transition-colors hover:text-primary"
+          >
+            {forBusinessesContactLink.label}
+          </Link>
+        </li>
       </ul>
     </div>
   )

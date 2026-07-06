@@ -20,10 +20,10 @@ import type {
 export const QUEUE_PAGE_CAP = 100
 
 // Correlated subqueries — Drizzle's .orderBy() builder doesn't speak
-// LATERAL JOIN (locked 2026-06-10), so the same idiom as
-// homepageSponsoredFlag is used: one fragment per column needed from
-// the latest followup row, each parameterised on the business_subscription
-// id of the outer row.
+// LATERAL JOIN (locked 2026-06-10), so the same idiom as sponsoredFlag /
+// sponsoredTierPriority in packages/services/src/businesses/queries.ts:
+// one fragment per column needed from the latest followup row, each
+// parameterised on the business_subscription id of the outer row.
 const latestOutcome = sql`(
   SELECT outcome FROM subscription_followup
   WHERE subscription_id = ${businessSubscriptions.id}

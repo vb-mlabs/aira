@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "1. Align logo & section grid to one master container",
-  "description": "Align top-left logo area with the main page content container and keep a consistent left margin across all sections. Today the nav uses max-w-[1180px], about uses 1180px, phone-showcase uses 1100px, business-panel uses 1100px — pick one master width and align padding/grid origin across MarketingNav, Hero, AboutEditorial, PhoneShowcase, BusinessPanel.",
-  "activeForm": "Aligning logo & section grid",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

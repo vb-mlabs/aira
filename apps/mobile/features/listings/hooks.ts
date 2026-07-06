@@ -12,15 +12,35 @@ import {
   listCategories,
 } from "./api";
 
-const FEATURED_LIMIT = 6;
+const FEATURED_LIMIT = 5;
 const LISTINGS_PAGE_SIZE = 12;
 
-/** Featured Businesses tile on Home — tier1+tier2 ordered by tier, then by
- *  sponsorship state. Service-side ordering; mobile just renders the list. */
+/** Featured Businesses tile on Home — 5 businesses drawn at random from
+ *  the strict sponsored pool (any category). Server clamps limit at 5,
+ *  and orders by `random()`, so pull-to-refresh may rotate the set. */
 export function useFeatured() {
   return useQuery({
     queryKey: ["listings", "featured", FEATURED_LIMIT],
     queryFn: () => listBusinesses({ featured: true, limit: FEATURED_LIMIT }),
+    staleTime: 60_000,
+  });
+}
+
+/** Featured Businesses section on a primary (level-1) category page — up
+ *  to 5 businesses drawn at random from the sponsored pool scoped to
+ *  this category. Server-side clamps limit at 5. Separate cache key from
+ *  useFeatured so navigating between the two doesn't reuse the wrong
+ *  set. Enabled only when a slug is provided. */
+export function useFeaturedForCategory(slug: string | undefined) {
+  return useQuery({
+    queryKey: ["listings", "featured", "category", slug, FEATURED_LIMIT],
+    queryFn: () =>
+      listBusinesses({
+        featured: true,
+        category: slug as string,
+        limit: FEATURED_LIMIT,
+      }),
+    enabled: !!slug,
     staleTime: 60_000,
   });
 }

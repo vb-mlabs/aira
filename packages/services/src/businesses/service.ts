@@ -27,6 +27,7 @@ import type {
 } from "@aira/validators/businesses";
 import { createNotification } from "../notifications";
 import {
+  assertCategoryIsSubcategory,
   createBusiness,
   getBusinessByIdIncludingArchived,
   getBusinessOwner,
@@ -44,6 +45,14 @@ export async function updateBusiness(
   id: string,
   data: UpdateData,
 ): Promise<BusinessAdmin | null> {
+  // Sub-only enforcement mirrors createBusiness — a primary category
+  // slug on an existing biz can only move to another subcategory.
+  // Existing rows sitting on a primary slug drift-resolve on natural
+  // edit: the first save that touches `category` requires a valid sub.
+  if (data.category !== undefined) {
+    await assertCategoryIsSubcategory(db, data.category);
+  }
+
   const updatePayload: Partial<typeof businesses.$inferInsert> = {};
 
   if (data.name !== undefined) updatePayload.name = data.name;
@@ -67,12 +76,69 @@ export async function updateBusiness(
   if (data.business_type !== undefined) updatePayload.business_type = data.business_type;
   if (data.years_operating !== undefined) updatePayload.years_operating = data.years_operating;
   if (data.contact_person !== undefined) updatePayload.contact_person = data.contact_person;
+  if (data.verification_notes !== undefined) updatePayload.verification_notes = data.verification_notes;
 
   const hasBusinessUpdate = Object.keys(updatePayload).length > 0;
   const hasCategoryUpdate = data.extra_category_ids !== undefined;
 
   if (!hasBusinessUpdate && !hasCategoryUpdate) {
     return getBusinessByIdIncludingArchived(db, id);
+  }
+
+  // Verification-workflow diff audit. Read the OLD values for whichever
+  // of `verified` / `verification_notes` the caller touched, compute
+  // the changed-fields set, and emit ONE combined
+  // business.verification_changed row when the effective state changes.
+  // Skipped entirely when the save is a no-op (same values on both
+  // sides). Audit is emitted OUTSIDE the mutation transaction — matches
+  // the contact_person_changed pattern below; see the review
+  // (Concern #1) for the atomicity trade-off.
+  if (
+    data.verified !== undefined ||
+    data.verification_notes !== undefined
+  ) {
+    const [existing] = await db
+      .select({
+        verified: businesses.verified,
+        verification_notes: businesses.verification_notes,
+      })
+      .from(businesses)
+      .where(eq(businesses.id, id))
+      .limit(1);
+    if (existing) {
+      const newVerified = data.verified ?? existing.verified;
+      const newNotes =
+        data.verification_notes !== undefined
+          ? data.verification_notes
+          : (existing.verification_notes ?? null);
+      const oldNotes = existing.verification_notes ?? null;
+      const verifiedChanged =
+        data.verified !== undefined && existing.verified !== newVerified;
+      const notesChanged =
+        data.verification_notes !== undefined && oldNotes !== newNotes;
+      if (verifiedChanged || notesChanged) {
+        const fields: Array<"verified" | "verification_notes"> = [];
+        if (verifiedChanged) fields.push("verified");
+        if (notesChanged) fields.push("verification_notes");
+        const audit = createAudit(db);
+        await audit({
+          actorId: ctx.userId,
+          action: "business.verification_changed",
+          target: { type: "business", id },
+          meta: {
+            kind: "business.verification_changed",
+            fields,
+            ...(verifiedChanged
+              ? { verified: { from: existing.verified, to: newVerified } }
+              : {}),
+            ...(notesChanged
+              ? { verification_notes: { from: oldNotes, to: newNotes } }
+              : {}),
+          },
+          client: auditClient(ctx),
+        });
+      }
+    }
   }
 
   // contact_person diff audit. Read the old value before the mutation;

@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "5. Waitlist headline: \"neighbors\" → \"users\"",
-  "description": "In waitlist-card.tsx, change \"Be among the first 100 neighbors to know.\" → \"Be among the first 100 users to know.\"",
-  "activeForm": "Updating waitlist headline copy",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

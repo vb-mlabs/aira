@@ -1,8 +1,9 @@
 // Category service — counts (existing) + full DB-backed CRUD.
 
-import { asc, eq, inArray, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { businesses, categories } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
+import { createAudit, type AuditClient } from "@aira/db/audit";
 import type { Category } from "@aira/validators/categories";
 import type { CategoryTreeOutput } from "@aira/validators/categories";
 
@@ -131,6 +132,106 @@ export async function updateCategory(
     .where(eq(categories.id, id))
     .returning();
   return row ? toCategory(row) : null;
+}
+
+export interface UpdateCategoryWithCascadeInput {
+  id: string;
+  data: Partial<{
+    name: string;
+    slug: string;
+    parent_id: string | null;
+    active: boolean;
+    sort_order: number;
+  }>;
+  actorUserId: string;
+  auditClient?: AuditClient;
+}
+
+export interface UpdateCategoryWithCascadeResult {
+  category: Category | null;
+  affectedBusinessIds: string[];
+}
+
+/** Update a category and, when the slug changes, cascade the new slug to
+ *  every `businesses.category` row that still points at the old value —
+ *  all in one transaction. Emits one `business.category_slug_cascaded`
+ *  audit row per affected business so history stays intact.
+ *
+ *  Replaces the old `assertSlugRenameAllowed` guard which blocked slug
+ *  changes as soon as any business referenced the old slug. That
+ *  behaviour trapped admins whose only next step was to hand-edit every
+ *  affected row (with no bulk-reassign UI). The cascade solves the
+ *  intent — "rename this category and take the businesses with it" —
+ *  without giving up the invariant that no business points at a dead
+ *  slug.
+ *
+ *  Row-locks the category via `.for("update")` so two concurrent
+ *  renames serialise: the second transaction waits, sees the new slug,
+ *  and its cascade step no-ops (0 businesses match the now-stale slug
+ *  it was going to rename from). */
+export async function updateCategoryWithCascade(
+  db: Database,
+  input: UpdateCategoryWithCascadeInput,
+): Promise<UpdateCategoryWithCascadeResult> {
+  return db.transaction(async (tx) => {
+    const [current] = await tx
+      .select()
+      .from(categories)
+      .where(eq(categories.id, input.id))
+      .for("update")
+      .limit(1);
+    if (!current) return { category: null, affectedBusinessIds: [] };
+
+    // Same level/parent_id recompute as updateCategory — DB check
+    // constraint category_parent_level_check enforces the pairing.
+    const patch: typeof input.data & { level?: number; updated_at?: Date } = {
+      ...input.data,
+      updated_at: new Date(),
+    };
+    if (input.data.parent_id !== undefined) {
+      patch.level = input.data.parent_id === null ? 1 : 2;
+    }
+
+    const [updated] = await tx
+      .update(categories)
+      .set(patch)
+      .where(eq(categories.id, input.id))
+      .returning();
+    if (!updated) return { category: null, affectedBusinessIds: [] };
+
+    const slugChanged =
+      input.data.slug !== undefined && input.data.slug !== current.slug;
+    if (!slugChanged) {
+      return { category: toCategory(updated), affectedBusinessIds: [] };
+    }
+
+    const nextSlug = input.data.slug!;
+    const affectedRows = await tx
+      .update(businesses)
+      .set({ category: nextSlug })
+      .where(eq(businesses.category, current.slug))
+      .returning({ id: businesses.id });
+    const affectedBusinessIds = affectedRows.map((r) => r.id);
+
+    if (affectedBusinessIds.length > 0) {
+      const audit = createAudit(tx);
+      for (const bizId of affectedBusinessIds) {
+        await audit({
+          actorId: input.actorUserId,
+          action: "business.category_slug_cascaded",
+          target: { type: "business", id: bizId },
+          meta: {
+            kind: "business.category_slug_cascaded",
+            from: current.slug,
+            to: nextSlug,
+          },
+          client: input.auditClient ?? "web",
+        });
+      }
+    }
+
+    return { category: toCategory(updated), affectedBusinessIds };
+  });
 }
 
 export async function deactivateCategory(

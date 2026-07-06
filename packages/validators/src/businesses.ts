@@ -111,6 +111,12 @@ export type Business = z.infer<typeof BusinessSchema>;
  *  layer also strips it on public projections (see queries.ts). */
 export const BusinessAdminSchema = BusinessSchema.extend({
   contact_person: z.string().nullable(),
+  /** Admin-only free-text log of the verification decision. NULL when
+   *  the admin has verified without capturing context, OR when the
+   *  row predates this field entirely. Never surfaced on the public
+   *  BusinessSchema — kept out of /api/v1/businesses payloads by the
+   *  query projection in packages/services/src/businesses/queries.ts. */
+  verification_notes: z.string().nullable(),
 });
 export type BusinessAdmin = z.infer<typeof BusinessAdminSchema>;
 
@@ -187,6 +193,16 @@ export const BusinessUpdateInputSchema = z
       .max(120)
       .nullable()
       .optional(),
+    /** Admin-only verification-decision log. Cap of 1000 chars — enough
+     *  for a call summary + licence numbers + timestamp, well under any
+     *  DB / render pathology. Trimmed empty string is coerced to null
+     *  at the UI boundary before hitting this schema. */
+    verification_notes: z
+      .string()
+      .trim()
+      .max(1000)
+      .nullable()
+      .optional(),
   })
   .strict();
 export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
@@ -239,7 +255,10 @@ export type BusinessUpdateOutput = z.infer<typeof BusinessUpdateOutputSchema>;
  *  for every caller. */
 export const BusinessListInputSchema = z
   .object({
-    /** When true, returns only tier1/tier2 businesses ordered by tier. */
+    /** When true, returns a randomised selection of businesses with an
+     *  active sponsorship in scope. Combined with `category`, scopes to
+     *  sponsorships whose category_id matches. `limit` is clamped at 5
+     *  by the op regardless of the value supplied. */
     featured: z.coerce.boolean().optional(),
     category: BusinessCategorySchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),

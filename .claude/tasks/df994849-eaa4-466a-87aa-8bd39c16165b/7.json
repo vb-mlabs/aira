@@ -1,9 +1,0 @@
-{
-  "id": "7",
-  "subject": "7. About copy → \"Real businesses. Real people. Not a random data dump.\"",
-  "description": "In about-editorial.tsx, replace/restructure the lead paragraph to include the line \"Real businesses. Real people. Not a random data dump.\" — current copy says \"real businesses, run by real people, sorted by who the community actually trusts.\" Make it shorter and stronger using the new phrasing.",
-  "activeForm": "Rewriting about-editorial copy",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -80,16 +80,16 @@ task = "shell.exec"
 args = "EXPO_FORCE_WEBCONTAINER_ENV=1 pnpm --filter @aira/mobile exec expo start --tunnel --clear"
 
 [[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
 localPort = 8080
 externalPort = 8080
-
-[[ports]]
-localPort = 8081
-externalPort = 8081
 
 [objectStorage]
 defaultBucketID = "replit-objstore-7ec03186-b4ed-4cae-b991-c9abd53c4c54"

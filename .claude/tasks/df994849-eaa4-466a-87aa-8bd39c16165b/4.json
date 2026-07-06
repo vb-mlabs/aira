@@ -1,9 +1,0 @@
-{
-  "id": "4",
-  "subject": "4. Reduce hero headline size, refine line breaks",
-  "description": "Reduce hero headline font size slightly and tighten line breaks. Current: text-[40px] / clamp(40px,6.8vw,80px). Try clamp(36px,5.4vw,64px) and reconsider the forced &lt;br /&gt; — let \"curated with care.\" sit on its own line naturally.",
-  "activeForm": "Tuning hero headline",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
