@@ -1,9 +1,9 @@
 import * as React from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { router } from "expo-router";
 import type { Business, Category } from "@aira/validators";
 import { BusinessCard } from "./BusinessCard";
 import { CategoryTile } from "./CategoryTile";
-import { EmptyState } from "./EmptyState";
 
 // Primary category view — renders when a URL slug resolves to a level-1
 // (root) category. Layout: category header + subcategory tiles + Featured
@@ -56,17 +56,25 @@ export function PrimaryCategoryView({
         ) : undefined
       }
     >
-      <View className="mb-6">
-        <Text className="font-display text-2xl text-foreground">
-          {category.name}
-        </Text>
-      </View>
-
       {!hasSubs && !hasFeatured ? (
-        <EmptyState
-          title="This category is being set up."
-          description="Check back soon — subcategories and featured businesses will appear here."
-        />
+        <View className="items-center justify-center px-6 py-16">
+          <Text className="text-center font-display text-lg font-semibold text-foreground">
+            No listings in this category yet
+          </Text>
+          <Text className="mt-2 text-center text-sm text-mutedForeground">
+            Check back soon or browse another category.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Browse other categories"
+            onPress={() => router.replace("/categories" as never)}
+            className="mt-6 rounded-lg bg-primary px-5 py-2.5"
+          >
+            <Text className="text-sm font-semibold text-primaryForeground">
+              Browse categories
+            </Text>
+          </Pressable>
+        </View>
       ) : (
         <>
           {hasSubs ? (

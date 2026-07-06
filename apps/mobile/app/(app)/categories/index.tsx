@@ -60,7 +60,10 @@ function RootAccordionRow({
     if (hasSubs) {
       onToggle();
     } else {
-      router.push(`/listings/${root.slug}` as never);
+      // Use replace so the listings tab's stack never accumulates
+      // category-detail screens; back from any listing always returns
+      // to Categories tab (Radha's 2026-07-06 UAT feedback).
+      router.replace(`/listings/${root.slug}` as never);
     }
   }
 
@@ -139,7 +142,9 @@ function RootAccordionRow({
                     ? `Browse ${sub.name} businesses, ${subCountLabel} listed`
                     : `Browse ${sub.name} businesses`
                 }
-                onPress={() => router.push(`/listings/${sub.slug}` as never)}
+                onPress={() =>
+                  router.replace(`/listings/${sub.slug}` as never)
+                }
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
