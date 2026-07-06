@@ -312,31 +312,46 @@ function CategoryEditModal({
                         ),
                       )}
                     </select>
-                    {hasAnySub ? (
-                      <p className="text-xs text-muted-foreground">
-                        Only subcategories are selectable.{" "}
-                        <a
-                          href="/admin/settings/categories/new"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          Add a new subcategory →
-                        </a>
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        No subcategories exist yet.{" "}
-                        <a
-                          href="/admin/settings/categories/new"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          Add one →
-                        </a>
-                      </p>
-                    )}
+                    {(() => {
+                      // Preselect the parent on the new-category page
+                      // when we know which root owns the currently
+                      // selected sub. Preserves admin intent — the
+                      // affordance is "add another sub *here*", not
+                      // "add any category".
+                      const rootOfCurrent = categoryTree.find(({ children }) =>
+                        children.some((c) => c.slug === category),
+                      )?.root
+                      const newSubHref = rootOfCurrent
+                        ? `/admin/settings/categories/new?parent=${encodeURIComponent(rootOfCurrent.id)}`
+                        : "/admin/settings/categories/new"
+                      return hasAnySub ? (
+                        <p className="text-xs text-muted-foreground">
+                          Only subcategories are selectable.{" "}
+                          <a
+                            href={newSubHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {rootOfCurrent
+                              ? `Add a new subcategory under ${rootOfCurrent.name} →`
+                              : "Add a new subcategory →"}
+                          </a>
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          No subcategories exist yet.{" "}
+                          <a
+                            href="/admin/settings/categories/new"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            Add one →
+                          </a>
+                        </p>
+                      )
+                    })()}
                   </>
                 )
               })()}
