@@ -18,6 +18,7 @@ import {
   UserCog,
 } from "lucide-react"
 import { brand } from "@aira/config"
+import { Avatar } from "@aira/ui-web/avatar"
 import { cn } from "@aira/ui-web/utils"
 import { requireUser } from "@/lib/auth/server"
 import { SignOutButton } from "../_components/sign-out-button"
@@ -57,17 +58,15 @@ const SUPPORT_ITEMS: readonly MenuItem[] = [
 
 export default async function AccountPage() {
   const user = await requireUser()
-  const initial = (user.name?.charAt(0) ?? user.email.charAt(0)).toUpperCase()
 
   return (
     <div className="mx-auto w-full max-w-2xl px-5 py-8 sm:px-8 sm:py-10">
       <header className="mb-8 flex items-center gap-4">
-        <span
-          aria-hidden
-          className="flex size-16 flex-shrink-0 items-center justify-center rounded-full bg-primary font-display text-2xl font-bold text-primary-foreground"
-        >
-          {initial}
-        </span>
+        <Avatar
+          size="xl"
+          src={user.image}
+          name={user.name || user.email}
+        />
         <div className="min-w-0">
           <p className="truncate font-display text-2xl text-foreground">
             {user.name || user.email}
