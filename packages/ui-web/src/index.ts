@@ -4,6 +4,7 @@
 // so consumers can tree-shake on a per-component basis. The barrel re-exports
 // everything for callers that prefer a single import line.
 
+export { Avatar, type AvatarSize } from "./components/avatar"
 export { Button, buttonVariants } from "./components/button"
 export {
   FieldSet,
