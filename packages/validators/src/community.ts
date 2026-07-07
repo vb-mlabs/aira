@@ -33,6 +33,9 @@ export const PostRowSchema = z.object({
    *  already publicly visible, so the id is no more sensitive. */
   user_id: z.string(),
   author_name: z.string(),
+  /** Author profile image URL. Null when the user has not uploaded one;
+   *  clients fall back to initials (see @aira/ui-web/avatar). */
+  author_image: z.string().nullable(),
   /** Optional contact details surfaced to any signed-in viewer so they can
    *  reach the author directly. Both nullable (post may opt out of either). */
   phone: z.string().nullable(),
@@ -54,6 +57,7 @@ export const AdminPostRowSchema = z.object({
   status: CommunityPostStatusSchema,
   user_id: z.string(),
   author_name: z.string(),
+  author_image: z.string().nullable(),
   author_email: z.string().nullable(),
   phone: z.string().nullable(),
   email: z.string().nullable(),

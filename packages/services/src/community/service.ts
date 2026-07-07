@@ -42,6 +42,7 @@ interface DbPostRow {
   status: CommunityPostStatus
   user_id: string
   author_name: string
+  author_image: string | null
   phone: string | null
   email: string | null
   interest_count: number
@@ -60,6 +61,7 @@ function toPostRow(row: DbPostRow): PostRow {
     status: row.status,
     user_id: row.user_id,
     author_name: row.author_name,
+    author_image: row.author_image,
     phone: row.phone,
     email: row.email,
     interest_count: row.interest_count,
@@ -76,6 +78,7 @@ function toAdminPostRow(row: DbPostRow): AdminPostRow {
     status: row.status,
     user_id: row.user_id,
     author_name: row.author_name,
+    author_image: row.author_image,
     author_email: row.author_email,
     phone: row.phone,
     email: row.email,
@@ -94,6 +97,7 @@ const POST_SELECT = {
   status: communityPost.status,
   user_id: communityPost.user_id,
   author_name: sql<string>`COALESCE(${user.name}, ${user.email})`,
+  author_image: user.image,
   author_email: user.email,
   phone: communityPost.phone,
   email: communityPost.email,
