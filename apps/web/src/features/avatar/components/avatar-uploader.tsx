@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { Avatar } from "@aira/ui-web/avatar"
 import { Button } from "@aira/ui-web/button"
 
 interface AvatarUploaderProps {
@@ -60,7 +61,12 @@ export function AvatarUploader({ currentUrl, userName }: AvatarUploaderProps) {
     <div className="space-y-2">
       <p className="text-sm font-medium">Avatar</p>
       <div className="flex items-center gap-4">
-        <Preview url={currentUrl} name={userName} />
+        <Avatar
+          size="xl"
+          src={currentUrl}
+          name={userName}
+          className="ring-1 ring-border"
+        />
         <div className="flex gap-2">
           <Button type="button" onClick={pickFile} disabled={pending}>
             {pending ? "Uploading…" : currentUrl ? "Replace" : "Upload"}
@@ -94,37 +100,4 @@ export function AvatarUploader({ currentUrl, userName }: AvatarUploaderProps) {
       )}
     </div>
   )
-}
-
-function Preview({ url, name }: { url: string | null; name: string }) {
-  if (url) {
-    return (
-      // Avatar is a server-resized, public 256×256 JPEG served by our own
-      // proxy route — using <img> rather than next/image avoids an extra
-      // optimization round-trip on what's already a tiny asset.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={url}
-        alt={`${name}'s avatar`}
-        width={64}
-        height={64}
-        className="size-16 rounded-full object-cover ring-1 ring-border"
-      />
-    )
-  }
-  return (
-    <div
-      aria-hidden="true"
-      className="flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground text-lg font-medium"
-    >
-      {initials(name)}
-    </div>
-  )
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return "?"
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
 }
