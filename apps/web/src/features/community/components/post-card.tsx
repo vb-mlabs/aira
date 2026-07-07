@@ -9,6 +9,7 @@
 // even when the user happens to tap the row.
 
 import { AtSign, MessageCircle, Phone } from "lucide-react"
+import { Avatar } from "@aira/ui-web/avatar"
 import { Button } from "@aira/ui-web/button"
 import { cn } from "@aira/ui-web/utils"
 import type { PostRow } from "../types"
@@ -58,12 +59,11 @@ export function PostCard({
           "cursor-pointer hover:shadow-[var(--shadow-card-hover)] focus:outline-none focus:ring-2 focus:ring-ring/40",
       )}
     >
-      <div
-        aria-hidden
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary"
-      >
-        {initialsOf(post.author_name)}
-      </div>
+      <Avatar
+        size="md"
+        src={post.author_image}
+        name={post.author_name}
+      />
 
       <div className="min-w-0 flex-1">
         <h3 className="font-display text-lg leading-tight text-foreground line-clamp-1">
@@ -149,12 +149,11 @@ function ContactPill({
 export function PostCardReadOnly({ post }: { post: PostRow }) {
   return (
     <article className="relative flex items-start gap-3 rounded-xl bg-card p-4 shadow-[var(--shadow-card)]">
-      <div
-        aria-hidden
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary"
-      >
-        {initialsOf(post.author_name)}
-      </div>
+      <Avatar
+        size="md"
+        src={post.author_image}
+        name={post.author_name}
+      />
       <div className="min-w-0 flex-1">
         <h2 className="font-display text-lg leading-tight text-foreground">
           {post.title}
@@ -205,12 +204,6 @@ function StatusPill({ status }: { status: PostRow["status"] }) {
       Not approved
     </span>
   )
-}
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).slice(0, 2)
-  const initials = parts.map((p) => p[0]?.toUpperCase() ?? "").join("")
-  return initials || "?"
 }
 
 function relativeTime(iso: string): string {
