@@ -59,7 +59,13 @@ export default async function AppLayout({
         </header>
 
         {/* Desktop top utility bar (Notifications / Account avatar). */}
-        <TopUtilityBar user={user} />
+        <TopUtilityBar
+          user={{
+            name: user.name,
+            email: user.email,
+            image: user.image ?? null,
+          }}
+        />
 
         {/* Page content. Bottom padding clears the mobile tab bar; the
             sidebar already pushes width on desktop via md:pl-[280px]. */}
