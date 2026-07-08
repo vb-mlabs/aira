@@ -11,6 +11,7 @@
 
 import { Dialog } from "@base-ui/react/dialog"
 import { AtSign, Phone, X } from "lucide-react"
+import { Avatar } from "@aira/ui-web/avatar"
 import type { PostRow } from "../types"
 import { CommentThread } from "./comment-thread"
 
@@ -42,12 +43,11 @@ export function PostDetailModal({
         <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex w-[min(560px,94vw)] max-h-[90svh] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card-hover)]">
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4">
             <div className="flex min-w-0 items-center gap-3">
-              <div
-                aria-hidden
-                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary"
-              >
-                {initialsOf(post.author_name)}
-              </div>
+              <Avatar
+                size="md"
+                src={post.author_image}
+                name={post.author_name}
+              />
               <div className="min-w-0">
                 <Dialog.Title className="text-sm font-bold leading-tight">
                   {post.author_name}
@@ -121,12 +121,6 @@ export function PostDetailModal({
       </Dialog.Portal>
     </Dialog.Root>
   )
-}
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).slice(0, 2)
-  const initials = parts.map((p) => p[0]?.toUpperCase() ?? "").join("")
-  return initials || "?"
 }
 
 function relativeTime(iso: string): string {
