@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-07
 **Slug:** 2026-07-07-avatar-consolidation
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk (via /mlabs-plan)
 
 Traces to `.mstack/fixes/2026-07-07-0957-account-avatar-shows-initials.md`
