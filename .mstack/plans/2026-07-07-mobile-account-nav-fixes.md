@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-07
 **Slug:** 2026-07-07-mobile-account-nav-fixes
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk (via /mlabs-plan)
 
 ---
