@@ -90,7 +90,7 @@ export default function AccountScreen() {
   // and the Tabs bar owns the bottom.
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ title: "Account" }} />
+      <Stack.Screen options={{ title: "Account", headerBackVisible: false }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         {/* Avatar header — px-5 unifies gutter with every other tab
             (Home, Categories, Listings) and matches the inset row
