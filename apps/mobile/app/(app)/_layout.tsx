@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, router, Tabs } from "expo-router";
 import { Text } from "react-native";
 import { useMe } from "../../features/auth/hooks";
 import { useUnreadCount } from "../../features/notifications/hooks";
@@ -115,6 +115,16 @@ export default function AppLayout() {
         />
         <Tabs.Screen
           name="categories"
+          listeners={{
+            // Tapping the tab always lands on the tab's root, even from
+            // a sub-cat drill-down. React Navigation's default restores
+            // the deeper stack state on cross-tab return and only
+            // popToTops on same-tab re-tap; router.replace covers both.
+            tabPress: (e) => {
+              e.preventDefault();
+              router.replace("/(app)/categories");
+            },
+          }}
           options={{
             // categories/_layout.tsx is now a Stack — let it render the
             // header so the sub-cat drill-down screen gets back-nav
@@ -129,6 +139,12 @@ export default function AppLayout() {
         />
         <Tabs.Screen
           name="post"
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              router.replace("/(app)/post");
+            },
+          }}
           options={{
             // post/_layout.tsx is a Stack — let it render the header.
             headerShown: false,
@@ -141,6 +157,12 @@ export default function AppLayout() {
         />
         <Tabs.Screen
           name="account"
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              router.replace("/(app)/account");
+            },
+          }}
           options={{
             // account/_layout.tsx is a Stack — let it render the header.
             headerShown: false,
