@@ -76,7 +76,12 @@ export function BusinessPanel() {
             ))}
           </ul>
 
-          <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <BusinessCtaPair />
+        </div>
+
+        <div className="flex flex-col gap-10">
+          <ListingCardPreview />
+          <div className="mx-auto flex w-full max-w-[380px] flex-col gap-6">
             <LiteYouTube
               videoId="snDcgvdaSQg"
               title="The Verified Badge & Stars"
@@ -94,11 +99,7 @@ export function BusinessPanel() {
               captionClassName="text-brand-cream-muted"
             />
           </div>
-
-          <BusinessCtaPair />
         </div>
-
-        <ListingCardPreview />
       </div>
     </section>
   )
