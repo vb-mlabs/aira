@@ -64,6 +64,19 @@
 - No captions work on the landing side (deferred per review — YouTube's own
   captions ship inside the iframe when enabled on the source videos).
 
+## Post-implementation iterations
+
+- `1c31d79` `refactor(marketing): move business videos to right column below listing card`
+  — user requested the two Business Owner videos move from a 2-column
+  row inside the left column (between perks and CTAs) to the right
+  column, stacked vertically beneath `ListingCardPreview`. Left column
+  returns to its pre-video shape (perks list → CTA pair). This
+  supersedes the review's Task 3 acceptance criterion about the videos
+  being "inside BusinessPanel's left column, between the perks list and
+  BusinessCtaPair"; the shipped layout is now: left = perks + CTAs;
+  right = listing preview card + Verified Badge video + Membership video
+  (stacked, `max-w-[380px]`).
+
 ## Follow-ups
 
 - **Component-test infra.** Land a `pnpm.overrides` entry at the workspace
