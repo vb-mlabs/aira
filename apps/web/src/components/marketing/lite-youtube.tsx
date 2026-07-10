@@ -39,7 +39,7 @@ export function LiteYouTube({
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
-        className={`group relative block w-full max-w-[320px] cursor-pointer border-0 bg-transparent p-0 text-left transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2${className ? ` ${className}` : ""}`}
+        className={`group relative block w-full cursor-pointer border-0 bg-transparent p-0 text-left transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2${className ? ` ${className}` : ""}`}
       >
         <span className="relative block aspect-video w-full overflow-hidden rounded-2xl shadow-[0_10px_30px_-10px_oklch(0.25_0.04_60_/_35%)]">
           <img

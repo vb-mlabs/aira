@@ -85,7 +85,7 @@ export function WaitlistCard({
             title="Watch: what is AIRA?"
             posterAlt="Play the 60-second AIRA intro video"
             caption="60-second intro"
-            className="mx-auto mb-6"
+            className="mx-auto mb-6 max-w-[320px]"
           />
           <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
             Be among the first{" "}
