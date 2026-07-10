@@ -10,6 +10,7 @@
 import { BusinessCard } from "@/features/listings"
 import type { Business } from "@/features/listings"
 import { BusinessCtaPair, GetListedDialog } from "./business-cta-pair"
+import { LiteYouTube } from "./lite-youtube"
 
 const perks = [
   {
@@ -74,6 +75,25 @@ export function BusinessPanel() {
               </li>
             ))}
           </ul>
+
+          <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <LiteYouTube
+              videoId="snDcgvdaSQg"
+              title="The Verified Badge & Stars"
+              posterAlt="Play: what the blue tick and stars mean on AIRA"
+              caption="The blue tick & stars, explained."
+              className="mx-auto"
+              captionClassName="text-brand-cream-muted"
+            />
+            <LiteYouTube
+              videoId="dLipSrr3tBY"
+              title="Membership & Sponsorship, explained"
+              posterAlt="Play: how AIRA membership and sponsorship work"
+              caption="How membership & sponsorship work."
+              className="mx-auto"
+              captionClassName="text-brand-cream-muted"
+            />
+          </div>
 
           <BusinessCtaPair />
         </div>
