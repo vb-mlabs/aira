@@ -83,18 +83,18 @@ export function BusinessPanel() {
           <ListingCardPreview />
           <div className="mx-auto flex w-full max-w-[380px] flex-col gap-6">
             <LiteYouTube
-              videoId="snDcgvdaSQg"
-              title="The Verified Badge & Stars"
-              posterAlt="Play: what the blue tick and stars mean on AIRA"
-              caption="The blue tick & stars, explained."
-              className="mx-auto"
-              captionClassName="text-brand-cream-muted"
-            />
-            <LiteYouTube
               videoId="dLipSrr3tBY"
               title="Membership & Sponsorship, explained"
               posterAlt="Play: how AIRA membership and sponsorship work"
               caption="How membership & sponsorship work."
+              className="mx-auto"
+              captionClassName="text-brand-cream-muted"
+            />
+            <LiteYouTube
+              videoId="snDcgvdaSQg"
+              title="The Verified Badge & Stars"
+              posterAlt="Play: what the blue tick and stars mean on AIRA"
+              caption="The blue tick & stars, explained."
               className="mx-auto"
               captionClassName="text-brand-cream-muted"
             />
