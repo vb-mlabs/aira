@@ -11,6 +11,7 @@
 // 200-silent on the server.
 
 import { useId, useState } from "react"
+import { LiteYouTube } from "./lite-youtube"
 
 type Status =
   | { kind: "idle" }
@@ -79,6 +80,13 @@ export function WaitlistCard({
         </div>
       ) : (
         <>
+          <LiteYouTube
+            videoId="DnmolbDEcVE"
+            title="Watch: what is AIRA?"
+            posterAlt="Play the 60-second AIRA intro video"
+            caption="60-second intro"
+            className="mx-auto mb-6"
+          />
           <h3 className="font-display text-2xl font-semibold leading-tight text-foreground md:text-3xl">
             Be among the first{" "}
             <em className="font-bold not-italic italic text-primary">
