@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-10
 **Slug:** 2026-07-10-landing-explainer-videos
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs
 
 ---
