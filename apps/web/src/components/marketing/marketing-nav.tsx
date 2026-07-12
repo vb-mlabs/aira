@@ -1,8 +1,8 @@
 // Sticky nav for the marketing landing page. Cream backdrop-blur, AIRA
-// tree-of-life logo + wordmark left, "Waitlist" pill on the right that
-// scrolls to the #businesses section. Sign-in / Sign-up links are hidden
-// until the app is live; consumer email capture lives on the Hero's
-// WaitlistCard.
+// tree-of-life logo + wordmark left, "Get Listed Early" pill on the right
+// that scrolls to the #businesses section (matches the section's primary
+// CTA label). Sign-in / Sign-up links are hidden until the app is live;
+// consumer email capture lives on the Hero's WaitlistCard.
 
 import Image from "next/image"
 import Link from "next/link"
@@ -35,7 +35,7 @@ export function MarketingNav() {
           href="#businesses"
           className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-[13px] font-bold uppercase tracking-[0.5px] text-primary-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          Waitlist
+          Get Listed Early
         </a>
       </div>
     </nav>
