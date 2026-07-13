@@ -4,6 +4,8 @@ import { Text } from "react-native";
 import { useMe } from "../../features/auth/hooks";
 import { useUnreadCount } from "../../features/notifications/hooks";
 import { NotificationsPrePrompt } from "../../components/NotificationsPrePrompt";
+import { HamburgerButton } from "../../components/nav/HamburgerButton";
+import { NotificationBell } from "../../components/nav/NotificationBell";
 import { hasSeenPushPrePrompt } from "../../lib/push";
 
 /**
@@ -108,6 +110,12 @@ export default function AppLayout() {
           options={{
             title: "Home",
             tabBarAccessibilityLabel: "Home tab",
+            // Home is the one tab that uses the Tabs-level shared header;
+            // its hamburger + bell live here rather than on a per-screen
+            // Stack.Screen. Sibling tabs (categories/post/account) wire
+            // hamburger inside their own root screen's Stack.Screen.
+            headerLeft: () => <HamburgerButton />,
+            headerRight: () => <NotificationBell />,
             tabBarIcon: ({ focused }) => (
               <TabIcon glyph="⌂" focused={focused} />
             ),
@@ -126,14 +134,20 @@ export default function AppLayout() {
             },
           }}
           options={{
-            // categories/_layout.tsx is now a Stack — let it render the
-            // header so the sub-cat drill-down screen gets back-nav
-            // without doubling up the cream bar.
+            // categories/_layout.tsx is a Stack — let it render the
+            // header so this tab picks up the drawer hamburger via the
+            // root screen's own Stack.Screen options.
             headerShown: false,
-            title: "Categories",
-            tabBarAccessibilityLabel: "Categories tab",
+            // Renamed from "Categories" — the tab is now the All-Listings
+            // default surface (task 9). Filesystem route stays
+            // /(app)/categories/ to avoid breaking deep links.
+            title: "Listings",
+            tabBarAccessibilityLabel: "Listings tab",
             tabBarIcon: ({ focused }) => (
-              <TabIcon glyph="▦" focused={focused} />
+              // ☰ (three horizontal lines) reads as a listings feed;
+              // the old ▦ grid glyph read as "categories" which no
+              // longer matches the tab's contents.
+              <TabIcon glyph="☰" focused={focused} />
             ),
           }}
         />
