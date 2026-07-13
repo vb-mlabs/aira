@@ -36,7 +36,17 @@ export default function SignupPage() {
     }
     setErrors({})
     setPending(true)
-    const res = await signUp.email({ email, password, name })
+    // Absolute callbackURL required — Better Auth drops relative paths not
+    // in trustedOrigins (undefined in prod) and emits `callbackURL=` empty
+    // in the verify-email link. Point at "/" — same target the
+    // /verify-email page redirects to on success, so this cuts out that
+    // intermediate hop for the happy path.
+    const res = await signUp.email({
+      email,
+      password,
+      name,
+      callbackURL: `${window.location.origin}/`,
+    })
     setPending(false)
     if (res.error) {
       setErrors({ form: res.error.message ?? "Sign up failed" })
