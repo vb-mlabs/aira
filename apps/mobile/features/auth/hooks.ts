@@ -55,6 +55,13 @@ export function useSignOut() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: signOutRequest,
-    onSuccess: () => qc.clear(),
+    // resetQueries (not clear) so active QueryObservers — notably the
+    // useMe() in (app)/_layout.tsx that owns the auth gate — actually get
+    // notified. queryClient.clear() destroys queries silently, leaving
+    // stale observer snapshots and the gate stuck rendering the tabs.
+    // onSettled (not onSuccess) covers the offline / server-5xx branch:
+    // signOutRequest's finally already wiped local tokens, so we still
+    // want the gate to flip regardless of the network outcome.
+    onSettled: () => qc.resetQueries(),
   });
 }
