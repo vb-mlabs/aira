@@ -7,7 +7,12 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import { ApiError } from "@aira/api"
-import type { SponsorshipTier } from "@aira/validators/sponsorship-tiers"
+import {
+  DISPLAY_SLOTS,
+  DISPLAY_SLOT_LABELS,
+  type DisplaySlot,
+  type SponsorshipTier,
+} from "@aira/validators/sponsorship-tiers"
 
 interface TierFormProps {
   tier?: SponsorshipTier
@@ -19,6 +24,9 @@ export function TierForm({ tier }: TierFormProps) {
 
   const [name, setName] = useState(tier?.name ?? "")
   const [priority, setPriority] = useState(tier ? String(tier.priority) : "")
+  const [displaySlot, setDisplaySlot] = useState<DisplaySlot>(
+    tier?.display_slot ?? "regular",
+  )
   const [active, setActive] = useState(tier?.active ?? true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -40,12 +48,14 @@ export function TierForm({ tier }: TierFormProps) {
             id: tier.id,
             name,
             priority: priorityNum,
+            display_slot: displaySlot,
             active,
           })
         } else {
           await apiClient.post("/api/v1/admin/sponsorship-tiers", {
             name,
             priority: priorityNum,
+            display_slot: displaySlot,
           })
         }
         router.push("/admin/settings/sponsorship-tiers")
@@ -85,6 +95,27 @@ export function TierForm({ tier }: TierFormProps) {
           required
         />
         <p className="text-xs text-muted-foreground">Lower number = better position (1 is highest).</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="tier-slot">Display slot</Label>
+        <select
+          id="tier-slot"
+          value={displaySlot}
+          onChange={(e) => setDisplaySlot(e.target.value as DisplaySlot)}
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+        >
+          {DISPLAY_SLOTS.map((s) => (
+            <option key={s} value={s}>
+              {DISPLAY_SLOT_LABELS[s]}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Top / Mid tiers appear inside the Sponsored section on listing pages
+          (Top styling first, Mid second). Regular sends the sponsored business
+          into the Regular section — priority still applies within.
+        </p>
       </div>
 
       {isEdit && (
