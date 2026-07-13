@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import * as SplashScreen from "expo-splash-screen";
 import { ToastProvider } from "../components/ui/Toast";
+import { DrawerProvider } from "../components/nav/DrawerProvider";
+import { AppDrawer } from "../components/nav/AppDrawer";
 import { useAppFonts } from "../lib/fonts";
 import "../global.css";
 
@@ -41,11 +43,18 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ActionSheetProvider>
           <ToastProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(app)" />
-            </Stack>
+            <DrawerProvider>
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(app)" />
+              </Stack>
+              {/* Mounted at root so it overlays every route. AppDrawer
+                  reads open state from DrawerProvider; trigger buttons
+                  (HamburgerButton per tab-root screen) call
+                  useDrawer().openDrawer(). */}
+              <AppDrawer />
+            </DrawerProvider>
           </ToastProvider>
         </ActionSheetProvider>
       </QueryClientProvider>
