@@ -18,6 +18,7 @@ import { user as userTable } from "@aira/db/schema"
 import { createAudit } from "@aira/db/audit"
 import { users } from "@aira/services"
 import { auth } from "@/lib/auth"
+import { buildAuthUrl } from "@/lib/email/url"
 import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
 
@@ -164,8 +165,15 @@ export const requestEmailChangeOp = defineOperation({
     })
 
     try {
+      // callbackURL must be absolute. Better Auth drops relative paths not
+      // in trustedOrigins (undefined in prod) and emits `callbackURL=`
+      // empty — the confirmation link then lands nowhere useful after the
+      // DB swap. Absolute same-origin URL always passes validation.
       await auth.api.changeEmail({
-        body: { newEmail },
+        body: {
+          newEmail,
+          callbackURL: buildAuthUrl("/account"),
+        },
         headers: await headers(),
       })
     } catch (err) {

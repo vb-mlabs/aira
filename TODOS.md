@@ -76,3 +76,5 @@ Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + d
 - [ ] Admin sendPasswordResetTo (apps/web/src/server/operations/admin.ts:121) doesn't pass redirectTo — same empty-callbackURL bug as forgot-password web page — *fix reset-password-callback-empty, 2026-07-13*
 - [ ] Mobile forgotPasswordRequest (apps/mobile/features/auth/api.ts:107) doesn't pass redirectTo — needs a web URL for universal-link handoff — *fix reset-password-callback-empty, 2026-07-13*
 - [ ] Stand up React Testing Library in apps/web/tests/ — dedupe React in vitest.config so RTL renders work, then add a regression test for forgot-password page's absolute redirectTo — *fix reset-password-callback-empty, 2026-07-13*
+- [ ] Web signup (apps/web/src/app/(auth)/signup/page.tsx:39) — signUp.email() has no redirectTo; verify-email link on signup has same empty-callbackURL bug — *fix change-email-callback-empty, 2026-07-13*
+- [ ] Mobile resendVerifyRequest (apps/mobile/features/auth/api.ts:136) — no redirectTo; verify-email link on resend has empty callbackURL — *fix change-email-callback-empty, 2026-07-13*
