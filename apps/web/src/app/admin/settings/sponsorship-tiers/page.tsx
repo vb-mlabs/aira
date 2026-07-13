@@ -37,40 +37,46 @@ export default async function AdminSponsorshipTiersPage() {
           action={{ label: "New tier", href: "/admin/settings/sponsorship-tiers/new" }}
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Name</th>
-                <th className="px-4 py-3 text-left font-semibold">Priority</th>
-                <th className="px-4 py-3 text-left font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {tiers.map((tier) => (
-                <tr key={tier.id} className="hover:bg-muted/20">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/settings/sponsorship-tiers/${tier.id}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {tier.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
-                    {tier.priority}
-                  </td>
-                  <td className="px-4 py-3">
-                    <AdminBadge
-                      variant={tier.active ? "active" : "inactive"}
-                      label={tier.active ? "Active" : "Inactive"}
-                    />
-                  </td>
+        <>
+          <div className="overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-muted/40">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold">Name</th>
+                  <th className="px-4 py-3 text-left font-semibold">Priority</th>
+                  <th className="px-4 py-3 text-left font-semibold">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {tiers.map((tier) => (
+                  <tr key={tier.id} className="hover:bg-muted/20">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/settings/sponsorship-tiers/${tier.id}`}
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {tier.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 tabular-nums text-muted-foreground">
+                      {tier.priority}
+                    </td>
+                    <td className="px-4 py-3">
+                      <AdminBadge
+                        variant={tier.active ? "active" : "inactive"}
+                        label={tier.active ? "Active" : "Inactive"}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Tiers determine sort priority on category listing pages — lower
+            number wins. No slot caps.
+          </p>
+        </>
       )}
     </div>
   )
