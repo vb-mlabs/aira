@@ -39,7 +39,6 @@ export const createSponsorshipOp = defineOperation({
       target: { type: "business", id: input.business_id },
       meta: {
         kind: "business.sponsorship_assigned",
-        category_id: input.category_id,
         tier_id: input.tier_id ?? "",
         end_date: input.end_date,
         amount_cents: input.amount_cents,

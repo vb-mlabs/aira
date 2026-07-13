@@ -49,62 +49,50 @@ const EFFECTIVE_TIER = sql`CASE WHEN ${IS_PAID_ACTIVE} THEN ${businesses.tier} E
 // into the tier3 bucket regardless of what tier they're stored as.
 const TIER_ORDER = sql`CASE ${EFFECTIVE_TIER} WHEN 'tier1' THEN 1 WHEN 'tier2' THEN 2 ELSE 3 END`;
 
-// Sponsored sort helpers for /listings/[cat] — correlated subqueries to avoid
-// duplicate rows from a LEFT JOIN when a business holds multiple sponsorships.
-function sponsoredFlag(catSlug: string) {
-  return sql`CASE WHEN EXISTS (
-    SELECT 1 FROM sponsorship sp
-    WHERE sp.business_id = businesses.id
-    AND sp.status = 'active'
-    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
-    AND now() BETWEEN sp.start_date AND sp.end_date
-  ) THEN 0 ELSE 1 END`;
-}
+// Sponsored sort helpers for /listings/[cat] — correlated subqueries to
+// avoid duplicate rows from a LEFT JOIN when a business holds multiple
+// sponsorship rows (defense-in-depth; dedup at migration time collapses
+// live rows to one-per-business, but historical expired/cancelled rows can
+// still be plural).
+//
+// Under the per-business sponsorship model, none of these correlate to the
+// category being viewed — a sponsored business is sponsored everywhere it
+// appears. The outer query on the listing page already filters businesses
+// by category (primary + business_category join), so the sponsored halo
+// naturally follows the business's category membership.
+const SPONSORED_FLAG = sql`CASE WHEN EXISTS (
+  SELECT 1 FROM sponsorship sp
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+) THEN 0 ELSE 1 END`;
 
-function sponsoredTierPriority(catSlug: string) {
-  return sql`COALESCE((
-    SELECT MIN(st.priority)
-    FROM sponsorship sp
-    LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
-    WHERE sp.business_id = businesses.id
-    AND sp.status = 'active'
-    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
-    AND now() BETWEEN sp.start_date AND sp.end_date
-  ), 99999)`;
-}
+const SPONSORED_TIER_PRIORITY = sql`COALESCE((
+  SELECT MIN(st.priority)
+  FROM sponsorship sp
+  LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+), 99999)`;
 
-function sponsoredAmountCents(catSlug: string) {
-  return sql`COALESCE((
-    SELECT MAX(sp.amount_cents)
-    FROM sponsorship sp
-    WHERE sp.business_id = businesses.id
-    AND sp.status = 'active'
-    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
-    AND now() BETWEEN sp.start_date AND sp.end_date
-  ), 0)`;
-}
+const SPONSORED_AMOUNT_CENTS = sql`COALESCE((
+  SELECT MAX(sp.amount_cents)
+  FROM sponsorship sp
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+), 0)`;
 
-// Predicate: business has at least one active, in-window sponsorship
-// (cross-category). Powers the homepage Featured tile — random pick from
-// the sponsored-in-any-category pool.
+// Predicate: business has at least one active, in-window sponsorship.
+// Powers the homepage Featured tile (getFeaturedRandom) and gates the
+// per-category Featured section (getFeaturedRandomForCategory).
 const HAS_ACTIVE_SPONSORSHIP = sql<boolean>`EXISTS (
   SELECT 1 FROM sponsorship sp
   WHERE sp.business_id = businesses.id
   AND sp.status = 'active'
   AND now() BETWEEN sp.start_date AND sp.end_date
 )`;
-
-// Predicate: business has an active, in-window sponsorship in the given
-// category. Powers the primary category page's Featured section.
-function hasActiveSponsorshipInCategory(catSlug: string) {
-  return sql<boolean>`EXISTS (
-    SELECT 1 FROM sponsorship sp
-    WHERE sp.business_id = businesses.id
-    AND sp.status = 'active'
-    AND sp.category_id = (SELECT id FROM category WHERE slug = ${catSlug})
-    AND now() BETWEEN sp.start_date AND sp.end_date
-  )`;
-}
 
 // ─── Relation helpers ────────────────────────────────────────────────────────
 
@@ -251,21 +239,34 @@ export async function getFeaturedRandom(
   return attachRelations(db, rows);
 }
 
-/** Category-scoped variant. Uniform-random pick from businesses that hold
- *  an active sponsorship *whose category_id matches the given slug*. Powers
- *  the primary category page's Featured section. */
+/** Category-scoped variant. Uniform-random pick from businesses that (a)
+ *  hold an active sponsorship AND (b) are listed in the given category
+ *  (primary category OR the business_category extras join). Under the
+ *  per-business sponsorship model, sponsorship is no longer scoped to a
+ *  category — it follows the business's category membership. Powers the
+ *  primary category page's Featured section. */
 export async function getFeaturedRandomForCategory(
   db: Database,
   categorySlug: string,
   limit: number,
 ): Promise<Business[]> {
+  const slugs = await getSlugAndActiveChildSlugs(db, categorySlug);
+  const extraCatSubquery = db
+    .select({ business_id: businessCategories.business_id })
+    .from(businessCategories)
+    .innerJoin(categories, eq(businessCategories.category_id, categories.id))
+    .where(inArray(categories.slug, slugs));
   const rows = await db
     .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
     .from(businesses)
     .where(
       and(
         isNull(businesses.deleted_at),
-        hasActiveSponsorshipInCategory(categorySlug),
+        or(
+          inArray(businesses.category, slugs),
+          inArray(businesses.id, extraCatSubquery),
+        ),
+        HAS_ACTIVE_SPONSORSHIP,
       ),
     )
     .orderBy(sql`random()`)
@@ -288,9 +289,9 @@ export async function getBusinessesByCategory(
       ),
     )
     .orderBy(
-      sponsoredFlag(category),
-      sponsoredTierPriority(category),
-      desc(sponsoredAmountCents(category)),
+      SPONSORED_FLAG,
+      SPONSORED_TIER_PRIORITY,
+      desc(SPONSORED_AMOUNT_CENTS),
       TIER_ORDER,
       asc(businesses.name),
     );
@@ -406,9 +407,9 @@ export async function getBusinessesByCategoryPaged(
       .from(businesses)
       .where(where)
       .orderBy(
-        sponsoredFlag(input.category),
-        sponsoredTierPriority(input.category),
-        desc(sponsoredAmountCents(input.category)),
+        SPONSORED_FLAG,
+        SPONSORED_TIER_PRIORITY,
+        desc(SPONSORED_AMOUNT_CENTS),
         TIER_ORDER,
         asc(businesses.name),
       )

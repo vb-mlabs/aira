@@ -11,7 +11,6 @@ export type SponsorshipStatus = z.infer<typeof SponsorshipStatusSchema>
 export const SponsorshipSchema = z.object({
   id: z.string(),
   business_id: z.string(),
-  category_id: z.string(),
   tier_id: z.string().nullable(),
   status: SponsorshipStatusSchema,
   start_date: z.string(),
@@ -27,7 +26,6 @@ export type Sponsorship = z.infer<typeof SponsorshipSchema>
 export const SponsorshipCreateInputSchema = z
   .object({
     business_id: z.string().min(1),
-    category_id: z.string().min(1),
     tier_id: z.string().min(1).nullable().optional(),
     start_date: z.string().datetime(),
     end_date: z.string().datetime(),

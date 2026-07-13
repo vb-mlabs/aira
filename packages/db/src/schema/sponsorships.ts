@@ -9,7 +9,6 @@ import {
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 import { businesses } from "./businesses"
-import { categories } from "./categories"
 import { sponsorshipTiers } from "./sponsorship-tiers"
 
 export const sponsorshipStatusEnum = pgEnum("sponsorship_status", [
@@ -28,9 +27,6 @@ export const sponsorships = pgTable(
     business_id: text("business_id")
       .notNull()
       .references(() => businesses.id, { onDelete: "cascade" }),
-    category_id: text("category_id")
-      .notNull()
-      .references(() => categories.id),
     tier_id: text("tier_id").references(() => sponsorshipTiers.id, {
       onDelete: "set null",
     }),
@@ -47,13 +43,13 @@ export const sponsorships = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("sp_cat_status_dates_idx").on(
-      table.category_id,
+    // Powers "is this business currently sponsored" checks in listings queries.
+    index("sp_business_status_dates_idx").on(
+      table.business_id,
       table.status,
       table.start_date,
       table.end_date,
     ),
-    index("sp_business_idx").on(table.business_id),
     index("sp_status_end_idx").on(table.status, table.end_date),
     check("sp_date_order_check", sql`${table.end_date} >= ${table.start_date}`),
     check("sp_amount_check", sql`${table.amount_cents} >= 0`),

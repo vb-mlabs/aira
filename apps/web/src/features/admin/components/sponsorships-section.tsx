@@ -11,7 +11,6 @@ import { apiClient } from "@/lib/api-client"
 import { cn } from "@aira/ui-web/utils"
 import type { Sponsorship } from "@aira/validators/sponsorships"
 import type { SponsorshipTier } from "@aira/validators/sponsorship-tiers"
-import type { Category } from "@aira/validators/categories"
 
 interface SponsorshipsSectionProps {
   businessId: string
@@ -111,7 +110,6 @@ export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
               <thead className="border-b border-border bg-muted/40">
                 <tr>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Status</th>
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Category</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Tier</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Amount</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Period</th>
@@ -131,9 +129,6 @@ export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
                       >
                         {sp.status}
                       </span>
-                    </td>
-                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
-                      {sp.category_id.slice(0, 12)}…
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
                       {sp.tier_id ? sp.tier_id.slice(0, 8) + "…" : "—"}
@@ -190,23 +185,12 @@ interface AddSponsorshipDialogProps {
 }
 
 function tierLabel(t: SponsorshipTier): string {
-  const base = `${t.name} (priority ${t.priority})`
-  if (t.max_slots == null) return base
-  if (t.slots_used != null && t.slots_used >= t.max_slots) {
-    return `${base} — Full (${t.slots_used}/${t.max_slots})`
-  }
-  if (t.slots_used != null) {
-    return `${base} (${t.slots_used}/${t.max_slots} slots)`
-  }
-  return base
+  return `${t.name} (priority ${t.priority})`
 }
 
 function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorshipDialogProps) {
   const router = useRouter()
-  const [categories, setCategories] = useState<Category[]>([])
-  const [baseTiers, setBaseTiers] = useState<SponsorshipTier[]>([])
-  const [annotatedTiers, setAnnotatedTiers] = useState<SponsorshipTier[]>([])
-  const [categoryId, setCategoryId] = useState("")
+  const [tiers, setTiers] = useState<SponsorshipTier[]>([])
   const [tierId, setTierId] = useState("")
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [endDate, setEndDate] = useState("")
@@ -215,50 +199,16 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  // Load categories + base tiers (no slot annotation) when dialog opens
   useEffect(() => {
     if (!open) return
-    Promise.all([
-      apiClient.get<{ tree: Array<{ root: Category; children: Category[] }> }>("/api/v1/categories?tree=1"),
-      apiClient.get<{ items: SponsorshipTier[] }>("/api/v1/admin/sponsorship-tiers?includeInactive=false"),
-    ])
-      .then(([catRes, tierRes]) => {
-        const flat: Category[] = []
-        for (const node of catRes.data?.tree ?? []) {
-          flat.push(node.root, ...node.children)
-        }
-        setCategories(flat)
-        const tiers = tierRes.data?.items ?? []
-        setBaseTiers(tiers)
-        setAnnotatedTiers(tiers)
-      })
+    apiClient
+      .get<{ items: SponsorshipTier[] }>("/api/v1/admin/sponsorship-tiers?includeInactive=false")
+      .then((r) => setTiers(r.data?.items ?? []))
       .catch(() => {})
   }, [open])
 
-  // Re-fetch tiers with slot info when category is selected
-  useEffect(() => {
-    if (!categoryId) {
-      // Reset annotation to base tiers when category clears.
-      // React 19 set-state-in-effect flags this; derived state isn't
-      // feasible because annotated tiers are populated asynchronously
-      // via apiClient.get below — they can't be a pure render-time
-      // computation off baseTiers.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setAnnotatedTiers(baseTiers)
-      return
-    }
-    apiClient
-      .get<{ items: SponsorshipTier[] }>(
-        `/api/v1/admin/sponsorship-tiers?includeInactive=false&category_id=${encodeURIComponent(categoryId)}`,
-      )
-      .then((res) => setAnnotatedTiers(res.data?.items ?? baseTiers))
-      .catch(() => setAnnotatedTiers(baseTiers))
-  }, [categoryId]) // eslint-disable-line react-hooks/exhaustive-deps
-
   function resetForm() {
-    setCategoryId("")
     setTierId("")
-    setAnnotatedTiers(baseTiers)
     setStartDate(new Date().toISOString().slice(0, 10))
     setEndDate("")
     setAmountDollars("")
@@ -275,10 +225,6 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
     e.preventDefault()
     setError(null)
 
-    if (!categoryId) {
-      setError("Select a category.")
-      return
-    }
     const amount_cents = Math.round(parseFloat(amountDollars) * 100)
     if (isNaN(amount_cents) || amount_cents < 0) {
       setError("Enter a valid amount.")
@@ -295,7 +241,6 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
           `/api/v1/admin/businesses/${businessId}/sponsorships`,
           {
             business_id: businessId,
-            category_id: categoryId,
             tier_id: tierId || null,
             start_date: toISODatetime(startDate),
             end_date: toISODatetime(endDate),
@@ -330,24 +275,6 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
 
           <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="sp-category">Category</Label>
-              <select
-                id="sp-category"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-                required
-              >
-                <option value="">— Select category —</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
               <Label htmlFor="sp-tier">Tier</Label>
               <select
                 id="sp-tier"
@@ -356,14 +283,11 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
               >
                 <option value="">— No tier —</option>
-                {annotatedTiers.map((t) => {
-                  const isFull = t.max_slots != null && t.slots_used != null && t.slots_used >= t.max_slots
-                  return (
-                    <option key={t.id} value={t.id} disabled={isFull}>
-                      {tierLabel(t)}
-                    </option>
-                  )
-                })}
+                {tiers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {tierLabel(t)}
+                  </option>
+                ))}
               </select>
             </div>
 

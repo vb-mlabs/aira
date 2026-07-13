@@ -21,7 +21,6 @@ export const sponsorshipTiers = pgTable(
       .references(() => cities.id),
     name: text("name").notNull(),
     priority: integer("priority").notNull(),
-    max_slots: integer("max_slots"),
     active: boolean("active").notNull().default(true),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at")
@@ -32,6 +31,5 @@ export const sponsorshipTiers = pgTable(
   (table) => [
     uniqueIndex("st_city_priority_idx").on(table.city_id, table.priority),
     check("st_priority_check", sql`${table.priority} > 0`),
-    check("st_max_slots_check", sql`${table.max_slots} IS NULL OR ${table.max_slots} > 0`),
   ],
 )

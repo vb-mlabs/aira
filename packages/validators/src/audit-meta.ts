@@ -100,7 +100,6 @@ export type AuditMeta =
   | { kind: "business.subscription_voided" }
   | {
       kind: "business.sponsorship_assigned";
-      category_id: string;
       tier_id: string;
       end_date: string;
       amount_cents: number;

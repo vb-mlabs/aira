@@ -1,6 +1,6 @@
 import "server-only"
 
-import { sponsorshipTiers as tiersService, sponsorships as sponsorshipsService } from "@aira/services"
+import { sponsorshipTiers as tiersService } from "@aira/services"
 import {
   SponsorshipTierCreateInputSchema,
   SponsorshipTierUpdateInputSchema,
@@ -16,7 +16,6 @@ export const listSponsorshipTiersOp = defineOperation({
   name: "admin.sponsorship-tiers.list",
   input: z.object({
     includeInactive: z.coerce.boolean().optional(),
-    category_id: z.string().optional(),
   }),
   output: SponsorshipTierListOutputSchema,
   // LIST is read-only and admins need it to attach a sponsorship to a
@@ -24,19 +23,9 @@ export const listSponsorshipTiersOp = defineOperation({
   // create/update/deactivate ops below manage the tier catalog itself
   // and correctly stay super_admin.
   permission: "admin",
-  handler: async (db, _ctx, { includeInactive, category_id }) => {
+  handler: async (db, _ctx, { includeInactive }) => {
     const tiers = await tiersService.listSponsorshipTiers(db, CITY_ID, includeInactive ?? false)
-    if (!category_id) return { items: tiers }
-
-    // Annotate each tier with slot usage for the given category
-    const items = await Promise.all(
-      tiers.map(async (tier) => {
-        if (tier.max_slots == null) return tier
-        const slots_used = await sponsorshipsService.countActiveSponsorships(db, tier.id, category_id)
-        return { ...tier, slots_used }
-      }),
-    )
-    return { items }
+    return { items: tiers }
   },
 })
 

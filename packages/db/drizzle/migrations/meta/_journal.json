@@ -246,6 +246,13 @@
       "when": 1783344600808,
       "tag": "0034_fast_maria_hill",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1783939859150,
+      "tag": "0035_typical_red_shift",
+      "breakpoints": true
     }
   ]
 }

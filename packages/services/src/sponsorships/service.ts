@@ -1,40 +1,19 @@
 import "server-only"
 
 import { eq, lt, gte, and } from "drizzle-orm"
-import { sponsorships, sponsorshipTiers } from "@aira/db/schema"
-import { ApiError } from "@aira/api"
+import { sponsorships } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
 import type {
   Sponsorship,
   SponsorshipCreateInput,
   SponsorshipUpdateInput,
 } from "@aira/validators/sponsorships"
-import { toSponsorship, getSponsorshipById, countActiveSponsorships } from "./queries"
+import { toSponsorship, getSponsorshipById } from "./queries"
 
 export async function createSponsorship(
   db: Database,
   input: SponsorshipCreateInput,
 ): Promise<Sponsorship> {
-  // Enforce max_slots per (tier, category) if the tier has a cap
-  if (input.tier_id) {
-    const tierRows = await db
-      .select({ max_slots: sponsorshipTiers.max_slots })
-      .from(sponsorshipTiers)
-      .where(eq(sponsorshipTiers.id, input.tier_id))
-      .limit(1)
-    const maxSlots = tierRows[0]?.max_slots ?? null
-    if (maxSlots !== null) {
-      const used = await countActiveSponsorships(db, input.tier_id, input.category_id)
-      if (used >= maxSlots) {
-        throw new ApiError({
-          status: 409,
-          code: "sponsorship.tier_slots_full",
-          message: `This tier is full for the selected category (${used}/${maxSlots} slots used)`,
-        })
-      }
-    }
-  }
-
   const startDate = new Date(input.start_date)
   const endDate = new Date(input.end_date)
   const now = new Date()
@@ -45,7 +24,6 @@ export async function createSponsorship(
     .insert(sponsorships)
     .values({
       business_id: input.business_id,
-      category_id: input.category_id,
       tier_id: input.tier_id ?? null,
       status: initialStatus,
       start_date: startDate,
