@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, usePathname } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
 import { useDrawer } from "./DrawerProvider";
@@ -49,6 +49,7 @@ export function AppDrawerContent() {
   const { closeDrawer } = useDrawer();
   const cats = useCategories();
   const pathname = usePathname();
+  const searchParams = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const lastPathname = React.useRef(pathname);
 
@@ -60,6 +61,21 @@ export function AppDrawerContent() {
 
   const roots = (cats.data?.categories ?? []).filter((c) => c.active !== false);
   const subsByRoot = cats.data?.subsByRoot ?? {};
+
+  // Compute the origin href so category / sub taps can push with a
+  // `?from=<encoded-current-screen>` param. useOriginAwareBack on the
+  // category-listing screen honours this, so OS back gestures return
+  // the user to whichever screen the drawer was opened from — same
+  // treatment BusinessCard applies to biz-detail pushes.
+  const from = React.useMemo(() => {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(searchParams)) {
+      if (k === "from") continue;
+      if (typeof v === "string" && v.length > 0) qs.set(k, v);
+    }
+    const query = qs.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }, [pathname, searchParams]);
 
   return (
     <ImageBackground
@@ -148,7 +164,10 @@ export function AppDrawerContent() {
               label={root.name}
               active={pathname?.startsWith(`/listings/${root.slug}`) ?? false}
               onPress={() =>
-                router.push(`/listings/${root.slug}` as never)
+                router.push({
+                  pathname: "/listings/[category]",
+                  params: { category: root.slug, from },
+                } as never)
               }
             />
           ) : (
@@ -157,6 +176,7 @@ export function AppDrawerContent() {
               root={root}
               subs={subs}
               pathname={pathname ?? ""}
+              from={from}
             />
           );
         })}
@@ -260,9 +280,10 @@ interface CategoryGroupProps {
   root: Category;
   subs: Category[];
   pathname: string;
+  from: string;
 }
 
-function CategoryGroup({ root, subs, pathname }: CategoryGroupProps) {
+function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
   const parentActive = pathname.startsWith(`/listings/${root.slug}`);
   const anyChildActive = subs.some((s) =>
     pathname.startsWith(`/listings/${s.slug}`),
@@ -334,7 +355,10 @@ function CategoryGroup({ root, subs, pathname }: CategoryGroupProps) {
                 accessibilityRole="button"
                 accessibilityLabel={sub.name}
                 onPress={() =>
-                  router.push(`/listings/${sub.slug}` as never)
+                  router.push({
+                    pathname: "/listings/[category]",
+                    params: { category: sub.slug, from },
+                  } as never)
                 }
                 style={{
                   flexDirection: "row",

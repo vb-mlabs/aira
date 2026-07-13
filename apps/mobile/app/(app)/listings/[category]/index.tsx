@@ -33,6 +33,7 @@ import {
   useListings,
 } from "../../../../features/listings/hooks";
 import { getCategoryMeta } from "../../../../features/listings/category-meta";
+import { useOriginAwareBack } from "../../../../lib/nav/useOriginAwareBack";
 
 /**
  * Category screen. Branches on the loaded category's `level`:
@@ -49,6 +50,11 @@ import { getCategoryMeta } from "../../../../features/listings/category-meta";
 export default function CategoryListingScreen() {
   const params = useLocalSearchParams<{ category: string }>();
   const slug = typeof params.category === "string" ? params.category : undefined;
+
+  // Intercept OS-level back gestures (iOS edge-swipe, Android hardware
+  // back, header chevron pop) so they honour the drawer's `?from=`
+  // origin — matches the header BackButton behaviour.
+  useOriginAwareBack();
 
   const cat = useCategory(slug);
   const cats = useCategories();
