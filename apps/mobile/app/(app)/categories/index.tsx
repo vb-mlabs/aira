@@ -1,270 +1,218 @@
 import * as React from "react";
-import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
-import { Stack, router } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Stack } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
+import { HamburgerButton } from "../../../components/nav/HamburgerButton";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
-import { getCategoryMeta } from "../../../features/listings/category-meta";
-import { useCategories } from "../../../features/listings/hooks";
-import type { Category } from "@aira/validators";
+import { SearchBar } from "../../../features/listings/components/SearchBar";
+import {
+  SlotSection,
+  bucketBySlot,
+} from "../../../features/listings/components/SlotSection";
+import { useCategories, useListings } from "../../../features/listings/hooks";
+import { useFavoriteIds } from "../../../features/favorites/hooks";
 
-// Same shadow recipe as CategoryTile so the expanding card reads
-// consistently with everything else on the screen.
-const CARD_SHADOW = {
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.08,
-  shadowRadius: 6,
-  elevation: 2,
-} as const;
+const SPONSORED_TEXTURE = require("../../../assets/textures/tier1-texture.webp") as unknown;
+const REGULAR_TEXTURE = require("../../../assets/textures/tier3-texture.webp") as unknown;
 
-// Design token values (subset). RN can't read CSS vars — mirror the
-// CategoryTile constants (sRGB hex from packages/config/src/design.ts
-// light theme). Keep in sync manually with the token file.
-const TIER1_HEX = "#4F653B"; // olive green (root)
-const TIER2_HEX = "#C97638"; // burnt orange (sub) — sRGB approx of oklch(0.62 0.13 55)
-const MUTED_HEX = "#66503f";
-const BORDER_LOW_HEX = "rgba(61,40,20,0.10)";
-
-interface RootAccordionRowProps {
-  root: Category;
-  subs: Category[];
-  counts: Record<string, number>;
-  expanded: boolean;
-  onToggle: () => void;
-}
+// Chip pill colours — sRGB literals matching the cream/olive palette
+// used across the app (see design.ts light theme). RN can't read the
+// CSS vars, so mirror them here as constants.
+const CHIP_ACTIVE_BG = "#4F653B"; // primary olive
+const CHIP_ACTIVE_FG = "#F3EBDD"; // primary-foreground cream
+const CHIP_IDLE_BG = "#FFFFFF";
+const CHIP_IDLE_FG = "#3D2814";
+const CHIP_BORDER = "rgba(61,40,20,0.14)";
 
 /**
- * Accordion row on the Categories tab. Root header + optional expanded
- * sub-row list share the SAME card container so the whole group reads
- * as one visual unit that grows/shrinks in place. Tapping a root with
- * subs toggles expansion; tapping a root without subs navigates
- * straight to /listings/<slug>. Sub rows navigate to
- * /listings/<sub-slug>. Radha's 2026-07-06 UAT: the old two-tap flow
- * felt wasteful; inline expansion collapses it to one tap, and keeping
- * subs inside the parent card keeps the visual hierarchy tight.
+ * Listings tab — the default surface for browsing every business in the
+ * directory. Structural mirror of the level-2 branch on
+ * app/(app)/listings/[category].tsx: SearchBar + horizontal category
+ * chip strip in the sticky header, followed by Sponsored + Regular
+ * SlotSection groups over the paginated results. Sub-category drill-
+ * down lives in the drawer's category tree, so no picker pill here.
+ *
+ * The old accordion RootAccordionRow lived at this path pre-drawer;
+ * that navigation surface has moved into AppDrawerContent's category
+ * tree. Kept the file at (app)/categories/index.tsx (rather than
+ * moving to /(app)/listings/) to avoid breaking universal-link /
+ * push-notification deep-link resolution.
  */
-function RootAccordionRow({
-  root,
-  subs,
-  counts,
-  expanded,
-  onToggle,
-}: RootAccordionRowProps) {
-  const meta = getCategoryMeta(root.slug);
-  const countLabel =
-    typeof counts[root.slug] === "number" ? String(counts[root.slug]) : null;
-  const hasSubs = subs.length > 0;
-
-  function handlePress() {
-    if (hasSubs) {
-      onToggle();
-    } else {
-      // Cross-tab navigation — Categories and Listings are sibling
-      // tabs, each with its own Stack (listings is hidden via
-      // href:null). `router.replace` from Categories replaces the
-      // Categories tab's current screen with the listing, permanently
-      // clobbering the accordion — that's the bug Radha hit
-      // 2026-07-06 ("keep showing me this screen only"). `push`
-      // targets the Listings tab's stack correctly; back button pops
-      // back to Categories.
-      router.push(`/listings/${root.slug}` as never);
-    }
-  }
-
-  return (
-    <View
-      className="overflow-hidden rounded-xl bg-card"
-      style={CARD_SHADOW}
-    >
-      {/* Primary row — always visible */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={
-          hasSubs
-            ? `${root.name}, ${expanded ? "expanded" : "collapsed"}. Tap to ${
-                expanded ? "close" : "show"
-              } subcategories.`
-            : countLabel
-              ? `Browse ${root.name} businesses, ${countLabel} listed`
-              : `Browse ${root.name} businesses`
-        }
-        onPress={handlePress}
-      >
-        <View
-          className="flex-row items-center p-4"
-          style={{ gap: 16 }}
-        >
-          <View
-            className="items-center justify-center rounded-xl bg-muted"
-            style={{ width: 48, height: 48 }}
-          >
-            <MaterialCommunityIcons
-              name={meta.iconName}
-              size={24}
-              color={TIER1_HEX}
-            />
-          </View>
-          <View className="flex-1">
-            <Text className="font-display text-base font-semibold text-foreground">
-              {root.name}
-            </Text>
-          </View>
-          {countLabel ? (
-            <Text className="text-sm font-semibold text-mutedForeground">
-              {countLabel}
-            </Text>
-          ) : null}
-          <MaterialCommunityIcons
-            name={
-              hasSubs
-                ? expanded
-                  ? "chevron-down"
-                  : "chevron-right"
-                : "chevron-right"
-            }
-            size={20}
-            color={MUTED_HEX}
-          />
-        </View>
-      </Pressable>
-
-      {/* Sub rows — nested inside the same card, divided by a hairline
-          from the primary row. Only rendered when expanded. */}
-      {hasSubs && expanded ? (
-        <View style={{ borderTopWidth: 1, borderTopColor: BORDER_LOW_HEX }}>
-          {subs.map((sub, index) => {
-            const subCount = counts[sub.slug];
-            const subCountLabel =
-              typeof subCount === "number" ? String(subCount) : null;
-            const isLast = index === subs.length - 1;
-            return (
-              <Pressable
-                key={sub.id}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  subCountLabel
-                    ? `Browse ${sub.name} businesses, ${subCountLabel} listed`
-                    : `Browse ${sub.name} businesses`
-                }
-                onPress={() =>
-                  // Same reason as the root row above — push, not
-                  // replace, for cross-tab navigation into Listings.
-                  router.push(`/listings/${sub.slug}` as never)
-                }
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 12,
-                  paddingVertical: 12,
-                  paddingRight: 16,
-                  paddingLeft: 24,
-                  borderBottomWidth: isLast ? 0 : 1,
-                  borderBottomColor: BORDER_LOW_HEX,
-                }}
-              >
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 8,
-                    backgroundColor: "rgba(201,118,56,0.14)",
-                  }}
-                >
-                  <MaterialCommunityIcons
-                    name="subdirectory-arrow-right"
-                    size={16}
-                    color={TIER2_HEX}
-                  />
-                </View>
-                <Text
-                  className="flex-1 text-sm font-medium text-foreground"
-                  numberOfLines={1}
-                >
-                  {sub.name}
-                </Text>
-                {subCountLabel ? (
-                  <Text className="text-xs font-semibold text-mutedForeground">
-                    {subCountLabel}
-                  </Text>
-                ) : null}
-                <MaterialCommunityIcons
-                  name="chevron-right"
-                  size={18}
-                  color={MUTED_HEX}
-                />
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-export default function CategoriesScreen() {
+export default function ListingsTabScreen() {
   const cats = useCategories();
-  const active = (cats.data?.categories ?? []).filter(
-    (c) => c.active !== false,
-  );
-  const counts = cats.data?.counts ?? {};
-  const subsByRoot = cats.data?.subsByRoot ?? {};
+  const favIds = useFavoriteIds();
 
-  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = React.useState<
+    string | null
+  >(null);
+  const [q, setQ] = React.useState("");
+
+  const list = useListings({
+    category: selectedCategory ?? undefined,
+    q,
+  });
+
+  const roots = (cats.data?.categories ?? []).filter((c) => c.active !== false);
+  const favIdSet = favIds.data ?? new Set<string>();
+  const pages = list.data?.pages ?? [];
+  const items = pages.flatMap((p) => p.items);
+
+  const onRefresh = () => {
+    void list.refetch();
+    void cats.refetch();
+  };
 
   return (
-    <View className="flex-1 bg-background">
-      <Stack.Screen options={{ title: "Categories" }} />
-      <View className="px-5 pt-4">
-        <Text className="text-sm text-mutedForeground">
-          Browse Atlanta&apos;s Indian businesses by category.
-        </Text>
+    <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
+      <Stack.Screen
+        options={{
+          title: "Listings",
+          headerLeft: () => <HamburgerButton />,
+        }}
+      />
+
+      {/* ── Sticky header controls ─────────────────────────── */}
+      <View className="px-5 pt-3" style={{ gap: 12 }}>
+        <SearchBar value={q} onChange={setQ} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+        >
+          <Chip
+            label="All"
+            active={selectedCategory === null}
+            onPress={() => setSelectedCategory(null)}
+          />
+          {roots.map((root) => (
+            <Chip
+              key={root.id}
+              label={root.name}
+              active={selectedCategory === root.slug}
+              onPress={() =>
+                setSelectedCategory((prev) =>
+                  prev === root.slug ? null : root.slug,
+                )
+              }
+            />
+          ))}
+        </ScrollView>
       </View>
-      {cats.isLoading ? (
+
+      {/* ── Results ────────────────────────────────────────── */}
+      {list.isLoading ? (
         <View className="mt-4 px-5" style={{ gap: 12 }}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} width="100%" height={80} borderRadius={12} />
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} width="100%" height={96} borderRadius={12} />
           ))}
         </View>
       ) : (
-        <FlatList
-          data={active}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <RootAccordionRow
-              root={item}
-              subs={subsByRoot[item.id] ?? []}
-              counts={counts}
-              expanded={expandedId === item.id}
-              onToggle={() =>
-                setExpandedId((prev) => (prev === item.id ? null : item.id))
-              }
-            />
-          )}
+        <ScrollView
           contentContainerStyle={{
             paddingHorizontal: 20,
             paddingTop: 16,
-            paddingBottom: 32,
-            gap: 12,
+            paddingBottom: 48,
           }}
           refreshControl={
             <RefreshControl
-              refreshing={cats.isFetching}
-              onRefresh={() => {
-                void cats.refetch();
-              }}
+              refreshing={list.isRefetching && !list.isFetchingNextPage}
+              onRefresh={onRefresh}
             />
           }
-          ListEmptyComponent={
-            <EmptyState
-              title="No categories available yet."
-              description="Pull to refresh or check back soon."
-            />
-          }
-        />
+          onScroll={({ nativeEvent }) => {
+            const { layoutMeasurement, contentOffset, contentSize } =
+              nativeEvent;
+            const nearBottom =
+              layoutMeasurement.height + contentOffset.y >=
+              contentSize.height - 200;
+            if (nearBottom && list.hasNextPage && !list.isFetchingNextPage) {
+              void list.fetchNextPage();
+            }
+          }}
+          scrollEventThrottle={200}
+        >
+          {items.length === 0 ? (
+            q.trim() ? (
+              <EmptyState title="No matches for that search." />
+            ) : selectedCategory ? (
+              <EmptyState title="No listings in this category yet." />
+            ) : (
+              <EmptyState title="No businesses listed yet." />
+            )
+          ) : (
+            (() => {
+              const { sponsored, regular } = bucketBySlot(items);
+              return (
+                <>
+                  <SlotSection
+                    label="Sponsored"
+                    texture={SPONSORED_TEXTURE as never}
+                    businesses={sponsored}
+                    favIds={favIdSet}
+                  />
+                  <SlotSection
+                    label="Regular"
+                    texture={REGULAR_TEXTURE as never}
+                    businesses={regular}
+                    favIds={favIdSet}
+                  />
+                </>
+              );
+            })()
+          )}
+          {list.isFetchingNextPage ? (
+            <View className="py-4 items-center">
+              <ActivityIndicator />
+            </View>
+          ) : null}
+        </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Chip
+
+interface ChipProps {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}
+
+function Chip({ label, active, onPress }: ChipProps) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={{
+        borderRadius: 999,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        backgroundColor: active ? CHIP_ACTIVE_BG : CHIP_IDLE_BG,
+        borderWidth: 1,
+        borderColor: active ? CHIP_ACTIVE_BG : CHIP_BORDER,
+      }}
+    >
+      <Text
+        style={{
+          color: active ? CHIP_ACTIVE_FG : CHIP_IDLE_FG,
+          fontSize: 13,
+          fontWeight: active ? "700" : "500",
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
