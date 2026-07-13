@@ -40,15 +40,29 @@ function HeaderCancel() {
   );
 }
 
-// `presentation: "modal"` maps to iOS UIModalPresentationPageSheet
-// (slide-up from bottom, rounded corners, small gap at top — the
-// classic iOS bottom-sheet feel) and to a slide-up modal on Android.
-// Previously used "formSheet" with sheetAllowedDetents, but on iOS
-// formSheet renders as a small centered card (iPad-derived) and the
-// mixed detent config was contributing to the keystroke-relayout bug.
+// presentation: "pageSheet" + iOS 15+ sheet detents give the composer
+// a proper bottom-sheet feel — slides up from the bottom, snaps to
+// medium (~half-height), user can drag up to large or swipe down to
+// dismiss. sheetGrabberVisible shows the horizontal grabber pill so
+// the drag affordance is discoverable.
+//
+// History note: an earlier attempt used presentation:"formSheet" with
+// the same detent config (commit 1db5b94 → reverted in cccedbd) — on
+// iOS formSheet renders as a small centered iPad-style card, which
+// isn't a bottom sheet at all. pageSheet is the correct sibling: it
+// keeps the full-width bottom-sheet chrome, and the detent config
+// controls the height. Android ignores the sheet-* options and falls
+// back to a full-screen slide-up modal (react-navigation limitation).
 const SCREEN_OPTIONS = {
   title: "New post",
-  presentation: "modal" as const,
+  presentation: "pageSheet" as const,
+  // Fractional detents (native-stack 6.10+): 0.5 = half height, 1.0 =
+  // near-full. Sheet opens at index 0 (half) so the user sees enough of
+  // the underlying board to feel in-context.
+  sheetAllowedDetents: [0.5, 1] as number[],
+  sheetInitialDetentIndex: 0,
+  sheetGrabberVisible: true,
+  sheetCornerRadius: 20,
   headerLeft: () => <HeaderCancel />,
 };
 
