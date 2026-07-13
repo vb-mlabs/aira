@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Pressable, Text, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { Business } from "@aira/validators";
 import { brand } from "@aira/config";
@@ -49,13 +49,37 @@ export function BusinessCard({
   showCategory = true,
 }: BusinessCardProps) {
   const category = getCategoryMeta(business.category);
+  // Build the origin href (pathname + relevant search params) so the
+  // business detail screen's "Go back" button can return the user to
+  // exactly where they came from — Home, the filtered Listings tab,
+  // a category detail page — instead of a URL-hierarchical parent.
+  const pathname = usePathname();
+  const searchParams = useLocalSearchParams();
+  const from = React.useMemo(() => {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(searchParams)) {
+      // Skip `from` itself so we don't nest chains of origins across
+      // biz → related-biz → related-biz jumps.
+      if (k === "from") continue;
+      if (typeof v === "string" && v.length > 0) qs.set(k, v);
+    }
+    const query = qs.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }, [pathname, searchParams]);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Open ${business.name}`}
       onPress={() => {
-        router.push(`/listings/${business.category}/${business.id}` as never);
+        router.push({
+          pathname: "/listings/[category]/[id]",
+          params: {
+            category: business.category,
+            id: business.id,
+            from,
+          },
+        } as never);
       }}
     >
       <View

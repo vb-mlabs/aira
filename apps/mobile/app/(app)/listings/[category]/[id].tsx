@@ -33,10 +33,28 @@ const SECONDARY_FG_HEX = "#301d0d";
  * web and to make shareable URLs work the same way across surfaces.
  */
 export default function BusinessDetailScreen() {
-  const params = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string; from?: string }>();
   const id = typeof params.id === "string" ? params.id : undefined;
+  const from = typeof params.from === "string" ? params.from : undefined;
   const detail = useBusinessDetail(id);
   const favIds = useFavoriteIds();
+
+  // Origin-aware back: return the user to exactly where they came from
+  // (Home, filtered Listings tab, category detail) instead of popping
+  // to a stale stack entry or a URL-hierarchical parent. Falls back to
+  // router.back() when no `from` was provided (universal-link arrival,
+  // notification tap, etc.), then to Home if there's no history at all.
+  const goBack = React.useCallback(() => {
+    if (from) {
+      router.replace(from as never);
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/(app)" as never);
+  }, [from]);
 
   const business = detail.data?.business ?? null;
   const headerTitle = business?.name ?? "";
@@ -106,7 +124,7 @@ export default function BusinessDetailScreen() {
           <Button
             variant="secondary"
             accessibilityLabel="Go back to previous screen"
-            onPress={() => router.back()}
+            onPress={goBack}
           >
             <MaterialCommunityIcons
               name="arrow-left"
