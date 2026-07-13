@@ -8,10 +8,12 @@ import {
   ReminderScheduleSchema,
   parseReminderSchedule,
 } from "@aira/validators/app_settings"
-import { env } from "@/config/env"
 import { db } from "@/lib/db"
 import { logger } from "@/lib/logger"
-import { sendRenewalReminderEmail } from "@/lib/email/templates"
+import {
+  buildAuthUrl,
+  sendRenewalReminderEmail,
+} from "@/lib/email/templates"
 
 export const JOB_NAME = "renewal-reminder"
 
@@ -54,7 +56,7 @@ export async function runRenewalReminder(runId: string): Promise<void> {
         const rows = await subsService.findRenewingExactlyInDays(db, { days })
         if (rows.length === 0) continue
 
-        const adminUrl = `${env.BETTER_AUTH_URL ?? "http://localhost:3000"}/admin/businesses?renewing=${days}`
+        const adminUrl = buildAuthUrl("/admin/businesses", { renewing: days })
         await sendRenewalReminderEmail({
           to: brand.supportEmail,
           businesses: rows.map((r) => ({
