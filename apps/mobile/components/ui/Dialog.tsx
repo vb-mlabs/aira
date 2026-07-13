@@ -64,9 +64,17 @@ export function Dialog({
             <Button
               variant={destructive ? "destructive" : "primary"}
               size="sm"
-              onPress={() => {
-                onConfirm?.();
-                onClose();
+              onPress={async () => {
+                // Await onConfirm so async work (mutations, network) finishes
+                // before the modal dismisses — otherwise the confirm fires,
+                // the dialog closes on the same tick, and the caller's
+                // spinner/toast state has nowhere to attach. finally so a
+                // rejected mutation still dismisses the dialog cleanly.
+                try {
+                  await onConfirm?.();
+                } finally {
+                  onClose();
+                }
               }}
             >
               {confirmLabel}
