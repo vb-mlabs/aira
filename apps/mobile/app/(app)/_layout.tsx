@@ -116,14 +116,6 @@ export default function AppLayout() {
             // hamburger inside their own root screen's Stack.Screen.
             headerLeft: () => <HamburgerButton />,
             headerRight: () => <NotificationBell />,
-            // Compress content area from the 44pt default to 40pt so the
-            // cream between the safe-area (notch) and the title reads
-            // tighter on big-notch devices. Safe-area itself is
-            // untouched — the OS-mandated inset stays intact.
-            headerStyle: {
-              backgroundColor: "#EAE0CB",
-              height: 40,
-            },
             tabBarIcon: ({ focused }) => (
               <TabIcon glyph="⌂" focused={focused} />
             ),
