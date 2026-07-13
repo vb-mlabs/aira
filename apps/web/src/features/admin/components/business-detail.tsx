@@ -138,9 +138,33 @@ export function BusinessAdminDetail({
       <ContactSection business={business} />
       <AiraReviewSection business={business} />
       <SubscriptionsSection businessId={business.id} />
-      <SponsorshipsSection businessId={business.id} />
+      <SponsorshipsSection
+        businessId={business.id}
+        businessCategoryNames={deriveBusinessCategoryNames(business, categories)}
+      />
     </div>
   )
+}
+
+/**
+ * The names of every category this business is currently listed in — primary
+ * (business.category slug) plus extras (business.extra_category_ids). Fed to
+ * SponsorshipsSection so its Add-Sponsorship dialog can show "Will feature
+ * on: …" without a second fetch: sponsorship is per-business now, so it
+ * automatically appears on every category page the business is a member of.
+ */
+function deriveBusinessCategoryNames(
+  business: Business,
+  categories: Category[],
+): string[] {
+  const names: string[] = []
+  const primary = categories.find((c) => c.slug === business.category)?.name
+  if (primary) names.push(primary)
+  for (const id of business.extra_category_ids) {
+    const extra = categories.find((c) => c.id === id)?.name
+    if (extra && !names.includes(extra)) names.push(extra)
+  }
+  return names
 }
 
 function CategoryPreview({

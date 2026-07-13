@@ -14,6 +14,14 @@ import type { SponsorshipTier } from "@aira/validators/sponsorship-tiers"
 
 interface SponsorshipsSectionProps {
   businessId: string
+  /**
+   * Names of the categories this business is currently listed in (primary
+   * + extras). Under the per-business sponsorship model, an active
+   * sponsorship features the business on every one of these listing pages.
+   * Shown as a read-only helper line inside the Add-Sponsorship dialog so
+   * admins see the effective placement without having to pick a category.
+   */
+  businessCategoryNames: string[]
 }
 
 type SponsorshipStatus = "scheduled" | "active" | "expired" | "cancelled"
@@ -37,7 +45,10 @@ function toISODatetime(dateStr: string): string {
   return `${dateStr}T00:00:00.000Z`
 }
 
-export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
+export function SponsorshipsSection({
+  businessId,
+  businessCategoryNames,
+}: SponsorshipsSectionProps) {
   const router = useRouter()
   const [sponsorships, setSponsorships] = useState<Sponsorship[]>([])
   const [loading, setLoading] = useState(true)
@@ -168,6 +179,7 @@ export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
 
       <AddSponsorshipDialog
         businessId={businessId}
+        businessCategoryNames={businessCategoryNames}
         open={open}
         onOpenChange={(v) => {
           setOpen(v)
@@ -180,6 +192,7 @@ export function SponsorshipsSection({ businessId }: SponsorshipsSectionProps) {
 
 interface AddSponsorshipDialogProps {
   businessId: string
+  businessCategoryNames: string[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -188,7 +201,12 @@ function tierLabel(t: SponsorshipTier): string {
   return `${t.name} (priority ${t.priority})`
 }
 
-function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorshipDialogProps) {
+function AddSponsorshipDialog({
+  businessId,
+  businessCategoryNames,
+  open,
+  onOpenChange,
+}: AddSponsorshipDialogProps) {
   const router = useRouter()
   const [tiers, setTiers] = useState<SponsorshipTier[]>([])
   const [tierId, setTierId] = useState("")
@@ -289,6 +307,19 @@ function AddSponsorshipDialog({ businessId, open, onOpenChange }: AddSponsorship
                   </option>
                 ))}
               </select>
+              {businessCategoryNames.length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Will feature on:{" "}
+                  <span className="text-foreground">
+                    {businessCategoryNames.join(", ")}
+                  </span>
+                </p>
+              ) : (
+                <p className="text-xs text-warning">
+                  This business is in 0 categories — the sponsorship will not
+                  display anywhere until you add one.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
