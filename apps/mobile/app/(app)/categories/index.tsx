@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { HamburgerButton } from "../../../components/nav/HamburgerButton";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
@@ -50,9 +50,19 @@ export default function ListingsTabScreen() {
   const cats = useCategories();
   const favIds = useFavoriteIds();
 
-  const [selectedCategory, setSelectedCategory] = React.useState<
-    string | null
-  >(null);
+  // Category filter lives in the URL as `?cat=<slug>` so it survives every
+  // navigation the user throws at it — tab-switch, drawer-open, back from
+  // a business detail. Reading via useLocalSearchParams; writing via
+  // router.setParams. Empty string = "All" (chip strip's leftmost pill).
+  const params = useLocalSearchParams<{ cat?: string }>();
+  const selectedCategory =
+    typeof params.cat === "string" && params.cat.length > 0
+      ? params.cat
+      : null;
+  const setCategory = React.useCallback((next: string | null) => {
+    router.setParams({ cat: next ?? "" });
+  }, []);
+
   const [q, setQ] = React.useState("");
 
   const list = useListings({
@@ -90,7 +100,7 @@ export default function ListingsTabScreen() {
           <Chip
             label="All"
             active={selectedCategory === null}
-            onPress={() => setSelectedCategory(null)}
+            onPress={() => setCategory(null)}
           />
           {roots.map((root) => (
             <Chip
@@ -98,8 +108,8 @@ export default function ListingsTabScreen() {
               label={root.name}
               active={selectedCategory === root.slug}
               onPress={() =>
-                setSelectedCategory((prev) =>
-                  prev === root.slug ? null : root.slug,
+                setCategory(
+                  selectedCategory === root.slug ? null : root.slug,
                 )
               }
             />
