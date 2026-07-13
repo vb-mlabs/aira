@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-13
 **Slug:** placement-single-axis
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk (via /mlabs-plan)
 **Reviewed:** [.mstack/reviews/2026-07-13-placement-single-axis.md](../reviews/2026-07-13-placement-single-axis.md)
 
