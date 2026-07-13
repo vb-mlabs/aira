@@ -18,6 +18,7 @@
     "migrate": "tsx scripts/migrate.ts",
     "seed:qa": "tsx scripts/seed-qa-accounts.ts",
     "audit:orphan-sponsorships": "tsx scripts/audit-orphan-sponsorships.ts",
+    "audit:subscription-tier-holders": "tsx scripts/audit-subscription-tier-holders.ts",
     "studio": "drizzle-kit studio"
   },
   "dependencies": {
