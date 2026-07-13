@@ -19,7 +19,11 @@ import { SlotSection, bucketBySlot } from "../../../../features/listings/compone
 
 // Textures preserved from the old tier system — filenames retained per
 // the placement-single-axis review's "legacy naming, no rename" decision.
-const SPONSORED_TEXTURE = require("../../../../assets/textures/tier1-texture.webp") as unknown;
+// One texture per slot — three sections stack in slot order:
+// top (tier1) → mid (tier2) → regular (tier3). Both top and mid carry
+// the "Sponsored" label; texture is what visually distinguishes them.
+const TOP_TEXTURE = require("../../../../assets/textures/tier1-texture.webp") as unknown;
+const MID_TEXTURE = require("../../../../assets/textures/tier2-texture.webp") as unknown;
 const REGULAR_TEXTURE = require("../../../../assets/textures/tier3-texture.webp") as unknown;
 import { VerifiedFilterChip } from "../../../../features/listings/components/VerifiedFilterChip";
 import { useFavoriteIds } from "../../../../features/favorites/hooks";
@@ -174,13 +178,19 @@ export default function CategoryListingScreen() {
             scrollEventThrottle={200}
           >
             {(() => {
-              const { sponsored, regular } = bucketBySlot(rootItems);
+              const { top, mid, regular } = bucketBySlot(rootItems);
               return (
                 <>
                   <SlotSection
                     label="Sponsored"
-                    texture={SPONSORED_TEXTURE as never}
-                    businesses={sponsored}
+                    texture={TOP_TEXTURE as never}
+                    businesses={top}
+                    favIds={favIdSet}
+                  />
+                  <SlotSection
+                    label="Sponsored"
+                    texture={MID_TEXTURE as never}
+                    businesses={mid}
                     favIds={favIdSet}
                   />
                   <SlotSection
@@ -285,13 +295,19 @@ export default function CategoryListingScreen() {
             )
           ) : (
             (() => {
-              const { sponsored, regular } = bucketBySlot(items);
+              const { top, mid, regular } = bucketBySlot(items);
               return (
                 <>
                   <SlotSection
                     label="Sponsored"
-                    texture={SPONSORED_TEXTURE as never}
-                    businesses={sponsored}
+                    texture={TOP_TEXTURE as never}
+                    businesses={top}
+                    favIds={favIdSet}
+                  />
+                  <SlotSection
+                    label="Sponsored"
+                    texture={MID_TEXTURE as never}
+                    businesses={mid}
                     favIds={favIdSet}
                   />
                   <SlotSection
