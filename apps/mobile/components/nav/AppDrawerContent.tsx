@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, usePathname } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
@@ -48,6 +49,7 @@ export function AppDrawerContent() {
   const { closeDrawer } = useDrawer();
   const cats = useCategories();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const lastPathname = React.useRef(pathname);
 
   React.useEffect(() => {
@@ -66,6 +68,10 @@ export function AppDrawerContent() {
       style={{ flex: 1 }}
     >
       {/* ── Header ────────────────────────────────────────── */}
+      {/* paddingTop clears the status-bar / notch — AppDrawer's Modal is
+          statusBarTranslucent so the ImageBackground paints edge-to-edge,
+          and the header content insets below the safe zone. Minimum 24pt
+          for platforms with no reported inset (small Android devices). */}
       <View
         style={{
           flexDirection: "row",
@@ -74,7 +80,7 @@ export function AppDrawerContent() {
           borderBottomWidth: 1,
           borderBottomColor: TINT_LIGHT_HAIRLINE,
           paddingHorizontal: 20,
-          paddingTop: 24,
+          paddingTop: Math.max(insets.top, 24),
           paddingBottom: 20,
         }}
       >
