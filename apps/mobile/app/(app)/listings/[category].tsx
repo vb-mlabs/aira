@@ -15,6 +15,12 @@ import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
 import { BusinessCard } from "../../../features/listings/components/BusinessCard";
+import { SlotSection, bucketBySlot } from "../../../features/listings/components/SlotSection";
+
+// Textures preserved from the old tier system — filenames retained per
+// the placement-single-axis review's "legacy naming, no rename" decision.
+const SPONSORED_TEXTURE = require("../../../assets/textures/tier1-texture.webp") as unknown;
+const REGULAR_TEXTURE = require("../../../assets/textures/tier3-texture.webp") as unknown;
 import { VerifiedFilterChip } from "../../../features/listings/components/VerifiedFilterChip";
 import { useFavoriteIds } from "../../../features/favorites/hooks";
 import {
@@ -170,15 +176,25 @@ export default function CategoryListingScreen() {
             }}
             scrollEventThrottle={200}
           >
-            {rootItems.map((business) => (
-              <View key={business.id} style={{ marginBottom: 12 }}>
-                <BusinessCard
-                  business={business}
-                  showCategory={false}
-                  isFavorited={favIdSet.has(business.id)}
-                />
-              </View>
-            ))}
+            {(() => {
+              const { sponsored, regular } = bucketBySlot(rootItems);
+              return (
+                <>
+                  <SlotSection
+                    label="Sponsored"
+                    texture={SPONSORED_TEXTURE as never}
+                    businesses={sponsored}
+                    favIds={favIdSet}
+                  />
+                  <SlotSection
+                    label="Regular"
+                    texture={REGULAR_TEXTURE as never}
+                    businesses={regular}
+                    favIds={favIdSet}
+                  />
+                </>
+              );
+            })()}
             {list.isFetchingNextPage ? (
               <View className="py-4 items-center">
                 <ActivityIndicator />
@@ -271,15 +287,25 @@ export default function CategoryListingScreen() {
               <EmptyState title="No businesses in this category yet." />
             )
           ) : (
-            items.map((business) => (
-              <View key={business.id} style={{ marginBottom: 12 }}>
-                <BusinessCard
-                  business={business}
-                  showCategory={false}
-                  isFavorited={favIdSet.has(business.id)}
-                />
-              </View>
-            ))
+            (() => {
+              const { sponsored, regular } = bucketBySlot(items);
+              return (
+                <>
+                  <SlotSection
+                    label="Sponsored"
+                    texture={SPONSORED_TEXTURE as never}
+                    businesses={sponsored}
+                    favIds={favIdSet}
+                  />
+                  <SlotSection
+                    label="Regular"
+                    texture={REGULAR_TEXTURE as never}
+                    businesses={regular}
+                    favIds={favIdSet}
+                  />
+                </>
+              );
+            })()
           )}
           {list.isFetchingNextPage ? (
             <View className="py-4 items-center">

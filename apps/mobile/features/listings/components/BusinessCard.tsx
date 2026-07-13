@@ -136,13 +136,15 @@ export function BusinessCard({
 
         {/* Action column — heart at top, tier badge in the middle (web
             puts it above the More Info chevron analogue), More Info
-            pill at bottom. Sponsorship badge / slot chrome is Task 6
-            of the placement-single-axis refactor. */}
+            pill at bottom. Sponsored pill only renders when the business
+            has a top/mid slot sponsorship — regular-slot + unsponsored
+            businesses render no badge. */}
         <View className="items-end justify-between" style={{ gap: 6 }}>
           <FavoriteHeart
             businessId={business.id}
             isFavorited={isFavorited}
           />
+          <SponsoredPill slot={business.sponsored_slot} />
           <View className="rounded-full bg-primary px-2.5 py-1">
             <Text className="text-[10px] font-bold uppercase tracking-wide text-primaryForeground">
               More Info
@@ -151,5 +153,27 @@ export function BusinessCard({
         </View>
       </View>
     </Pressable>
+  );
+}
+
+function SponsoredPill({ slot }: { slot: Business["sponsored_slot"] }) {
+  if (slot === null || slot === "regular") return null;
+  const bgClass =
+    slot === "top" ? "rounded-full bg-sponsoredTop px-1.5" : "rounded-full bg-sponsoredMid px-1.5";
+  const textClass =
+    slot === "top" ? "text-sponsoredTopForeground" : "text-sponsoredMidForeground";
+  return (
+    <View
+      className={bgClass}
+      style={{ paddingVertical: 1 }}
+      accessibilityLabel="Sponsored listing"
+    >
+      <Text
+        className={textClass}
+        style={{ fontSize: 9, fontWeight: "700", letterSpacing: 0.5 }}
+      >
+        Sponsored
+      </Text>
+    </View>
   );
 }
