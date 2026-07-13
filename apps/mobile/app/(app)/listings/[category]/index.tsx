@@ -10,25 +10,25 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import type { Business } from "@aira/validators";
-import { Skeleton } from "../../../components/ui/Skeleton";
-import { EmptyState } from "../../../features/listings/components/EmptyState";
-import { SearchBar } from "../../../features/listings/components/SearchBar";
-import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
-import { BusinessCard } from "../../../features/listings/components/BusinessCard";
-import { SlotSection, bucketBySlot } from "../../../features/listings/components/SlotSection";
+import { Skeleton } from "../../../../components/ui/Skeleton";
+import { EmptyState } from "../../../../features/listings/components/EmptyState";
+import { SearchBar } from "../../../../features/listings/components/SearchBar";
+import { SubcategoryPicker } from "../../../../features/listings/components/SubcategoryPicker";
+import { BusinessCard } from "../../../../features/listings/components/BusinessCard";
+import { SlotSection, bucketBySlot } from "../../../../features/listings/components/SlotSection";
 
 // Textures preserved from the old tier system — filenames retained per
 // the placement-single-axis review's "legacy naming, no rename" decision.
-const SPONSORED_TEXTURE = require("../../../assets/textures/tier1-texture.webp") as unknown;
-const REGULAR_TEXTURE = require("../../../assets/textures/tier3-texture.webp") as unknown;
-import { VerifiedFilterChip } from "../../../features/listings/components/VerifiedFilterChip";
-import { useFavoriteIds } from "../../../features/favorites/hooks";
+const SPONSORED_TEXTURE = require("../../../../assets/textures/tier1-texture.webp") as unknown;
+const REGULAR_TEXTURE = require("../../../../assets/textures/tier3-texture.webp") as unknown;
+import { VerifiedFilterChip } from "../../../../features/listings/components/VerifiedFilterChip";
+import { useFavoriteIds } from "../../../../features/favorites/hooks";
 import {
   useCategories,
   useCategory,
   useListings,
-} from "../../../features/listings/hooks";
-import { getCategoryMeta } from "../../../features/listings/category-meta";
+} from "../../../../features/listings/hooks";
+import { getCategoryMeta } from "../../../../features/listings/category-meta";
 
 /**
  * Category screen. Branches on the loaded category's `level`:
