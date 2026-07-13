@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-13
 **Slug:** per-business-sponsorship
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk (via /mlabs-plan)
 **Reviewed:** [.mstack/reviews/2026-07-13-per-business-sponsorship.md](../reviews/2026-07-13-per-business-sponsorship.md)
 
