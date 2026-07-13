@@ -104,11 +104,14 @@ export async function forgotPasswordRequest(
   input: ForgotPasswordInput,
 ): Promise<{ ok: true }> {
   // Better Auth's email-link reset flow lives at /request-password-reset.
+  // redirectTo MUST be absolute: Better Auth drops relative paths not in
+  // trustedOrigins (undefined in prod) and emits `callbackURL=` empty in
+  // the emailed link. API_BASE_URL points at the web apex, so universal
+  // links catch the URL on iOS/Android and open the mobile app; browser
+  // fallback lands on the web /reset-password page.
   await apiPost("/api/auth/request-password-reset", {
     email: input.email,
-    // Optional — Better Auth uses BETTER_AUTH_URL as the base. Forks can
-    // override per-environment by setting this field; deep-link redirector
-    // back to mobile reset-password screen is handled by the universal link.
+    redirectTo: `${API_BASE_URL}/reset-password`,
   });
   return { ok: true };
 }
@@ -133,7 +136,13 @@ export async function verifyEmailRequest(
 export async function resendVerifyRequest(
   email: string,
 ): Promise<{ ok: true }> {
-  await apiPost("/api/auth/send-verification-email", { email });
+  // callbackURL MUST be absolute — see forgotPasswordRequest above for the
+  // same trace. Point at "/" — same target the web /verify-email page
+  // redirects to on success.
+  await apiPost("/api/auth/send-verification-email", {
+    email,
+    callbackURL: `${API_BASE_URL}/`,
+  });
   return { ok: true };
 }
 
