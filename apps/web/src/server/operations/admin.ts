@@ -31,6 +31,7 @@ import {
   PreviewBroadcastRecipientCountOutputSchema,
 } from "@aira/validators/admin"
 import { auth } from "@/lib/auth"
+import { buildAuthUrl } from "@/lib/email/url"
 import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
 
@@ -118,8 +119,11 @@ export const sendPasswordResetToOp = defineOperation({
       targetId: id,
     })
     try {
+      // Absolute callbackURL required — Better Auth drops relative paths
+      // not in trustedOrigins (undefined in prod) and emits `callbackURL=`
+      // empty in the emailed link. See fix 72ca686 for the full trace.
       await auth.api.requestPasswordReset({
-        body: { email },
+        body: { email, redirectTo: buildAuthUrl("/reset-password") },
         headers: await headers(),
       })
     } catch (err) {
