@@ -26,7 +26,6 @@ export function HamburgerButton() {
         height: 44,
         alignItems: "center",
         justifyContent: "center",
-        marginLeft: 4,
       }}
       hitSlop={8}
     >

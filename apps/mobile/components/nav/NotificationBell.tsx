@@ -39,7 +39,6 @@ export function NotificationBell() {
         height: 44,
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 4,
       }}
       hitSlop={8}
     >
