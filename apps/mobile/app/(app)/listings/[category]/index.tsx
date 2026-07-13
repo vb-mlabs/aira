@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { Redirect, Stack, router, useLocalSearchParams } from "expo-router";
 import type { Business } from "@aira/validators";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { EmptyState } from "../../../../features/listings/components/EmptyState";
@@ -93,17 +93,14 @@ export default function CategoryListingScreen() {
   const headerTitle =
     cat.data?.category?.name ?? (slug ? getCategoryMeta(slug).displayName : "Listings");
 
-  // 404: category exists in route param but server returned null.
+  // 404: category slug in the route param doesn't resolve on the server.
+  // Most common cause is stack back-navigation from a business detail
+  // (`/listings/<sub>/<id>` → auto-parent `/listings/<sub>`) where the
+  // business's subcategory has since been marked inactive or renamed.
+  // Redirect to the All-Listings tab instead of dead-ending the user on a
+  // "Category not found" empty state — they still get somewhere useful.
   if (cat.isFetched && !cat.data?.category) {
-    return (
-      <SafeAreaView className="flex-1 bg-background">
-        <Stack.Screen options={{ title: "Not found" }} />
-        <EmptyState
-          title="Category not found."
-          description="It may have been renamed or removed."
-        />
-      </SafeAreaView>
-    );
+    return <Redirect href="/(app)/categories" />;
   }
 
   // ─── Level-1 branch ────────────────────────────────────────────────
