@@ -150,7 +150,7 @@ function TierPill({ tier }: { tier: Business["tier"] }) {
   // tier-section heading exactly. Previously tier2 said "Featured" here
   // while tier-section said "Sponsored Level 2" — a long-standing
   // inconsistency this collapses.
-  const bg = tier === "tier1" ? "bg-tier1 text-tier1-foreground" : "bg-tier2 text-tier2-foreground"
+  const bg = tier === "tier1" ? "bg-sponsored-top text-sponsored-top-foreground" : "bg-sponsored-mid text-sponsored-mid-foreground"
   return (
     <span
       className={cn(

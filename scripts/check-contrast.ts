@@ -193,14 +193,15 @@ const PAIRS: Pair[] = [
   { fg: "input", bg: "background", severity: "large", note: "input outline visibility" },
   { fg: "ring", bg: "background", severity: "large", note: "focus ring visibility" },
 
-  // AIRA tier system — sponsorship tiers + PRD category-level hierarchy.
-  // tier1 (cream on olive green) and tier3 (cream on chocolate brown) both
-  // clear AA body. tier2 (cream on burnt orange) is ~2.7:1 and falls under
-  // the AA-Large bar — qualifies because tier headers are bold Lato ≥14px.
-  // Documented as a deliberate exemption in .mstack/design-system/DESIGN.md.
-  { fg: "tier1Foreground", bg: "tier1", severity: "body", note: "sponsored-top tier label" },
-  { fg: "tier2Foreground", bg: "tier2", severity: "large", note: "sponsored-mid tier label (AA-Large exemption)" },
-  { fg: "tier3Foreground", bg: "tier3", severity: "body", note: "regular-tier label" },
+  // AIRA sponsorship slot system — mapped to sponsorship_tier.display_slot.
+  // sponsoredTop (cream on olive green) and regular (cream on chocolate
+  // brown) both clear AA body. sponsoredMid (cream on burnt orange) is
+  // ~2.7:1 and falls under the AA-Large bar — qualifies because slot
+  // headers are bold Lato ≥14px. Deliberate exemption documented in
+  // .mstack/design-system/DESIGN.md.
+  { fg: "sponsoredTopForeground", bg: "sponsoredTop", severity: "body", note: "sponsored-top slot label" },
+  { fg: "sponsoredMidForeground", bg: "sponsoredMid", severity: "large", note: "sponsored-mid slot label (AA-Large exemption)" },
+  { fg: "regularForeground", bg: "regular", severity: "body", note: "regular slot label" },
 
   // Verified badge — small icon-on-pill on listing cards. Icon, not body
   // text; WCAG 1.4.11 non-text contrast applies (3:1).

@@ -1,8 +1,8 @@
 // Design tokens — TS reflection of src/app/globals.css.
 // shadcn's vocabulary is the source of truth (background/foreground/card/popover/
 // primary/secondary/muted/accent/destructive/border/input/ring/chart/sidebar).
-// AIRA additions: success, warning, tier1/tier2/tier3, brandCreamBright/Muted,
-// brandGold, info.
+// AIRA additions: success, warning, sponsoredTop/sponsoredMid/regular
+// (sponsorship placement slots), brandCreamBright/Muted, brandGold, info.
 //
 // Keep in sync with globals.css until v1.1 ships codegen. Values are OKLCH
 // triplets (the raw CSS color, not wrapped — globals.css uses them directly).
@@ -52,18 +52,21 @@ export const design = {
 
       // ---------- AIRA extensions ----------
 
-      // Semantic tier system: used for sponsorship tiers in listings AND
-      // for category hierarchy levels per PRD § Style Tokens. Same palette,
-      // two semantic axes.
-      tier1:                "oklch(0.46 0.07 132)",  // olive green — Sponsored Top / Category L0
-      tier1Foreground:      "oklch(0.94 0.02 80)",
-      tier2:                "oklch(0.62 0.13 55)",   // burnt orange — Sponsored Mid / Category L1
+      // Semantic slot system for sponsorship placement — one token pair per
+      // display slot on sponsorship_tier. `regular` is also the visual
+      // treatment for the un-sponsored listing section. Renamed from
+      // tier1/tier2/tier3 in the placement-single-axis refactor (previously
+      // ambiguous — those names implied a subscription-tier concept that
+      // no longer exists).
+      sponsoredTop:           "oklch(0.46 0.07 132)",  // olive green
+      sponsoredTopForeground: "oklch(0.94 0.02 80)",
+      sponsoredMid:           "oklch(0.62 0.13 55)",   // burnt orange
       // cream-on-burnt-orange is ~2.7:1; deliberate AA-Large exemption.
-      // Tier headers are bold 14px+ Lato — qualifies as Large by WCAG.
+      // Slot label chrome is bold 14px+ Lato — qualifies as Large by WCAG.
       // See scripts/check-contrast.ts allowlist + DESIGN.md.
-      tier2Foreground:      "oklch(0.94 0.02 80)",
-      tier3:                "oklch(0.43 0.09 55)",   // chocolate brown — Regular / Category L2
-      tier3Foreground:      "oklch(0.94 0.02 80)",
+      sponsoredMidForeground: "oklch(0.94 0.02 80)",
+      regular:                "oklch(0.43 0.09 55)",   // chocolate brown
+      regularForeground:      "oklch(0.94 0.02 80)",
 
       // Brand cream variants (used on dark surfaces — sidebar, footer cards).
       // These differ from `background` (page cream) on purpose.
@@ -117,14 +120,14 @@ export const design = {
       warningForeground:    "oklch(0.18 0.03 60)",
 
       // AIRA extensions (dark variants)
-      tier1:                "oklch(0.46 0.07 132)",
-      tier1Foreground:      "oklch(0.94 0.02 80)",
-      // Darker burnt orange on dark to keep tier2 within AA-Large (3:1)
-      // when paired with cream foreground.
-      tier2:                "oklch(0.55 0.13 55)",
-      tier2Foreground:      "oklch(0.94 0.02 80)",
-      tier3:                "oklch(0.52 0.09 55)",
-      tier3Foreground:      "oklch(0.94 0.02 80)",
+      sponsoredTop:           "oklch(0.46 0.07 132)",
+      sponsoredTopForeground: "oklch(0.94 0.02 80)",
+      // Darker burnt orange on dark to keep sponsoredMid within AA-Large
+      // (3:1) when paired with cream foreground.
+      sponsoredMid:           "oklch(0.55 0.13 55)",
+      sponsoredMidForeground: "oklch(0.94 0.02 80)",
+      regular:                "oklch(0.52 0.09 55)",
+      regularForeground:      "oklch(0.94 0.02 80)",
       brandCreamBright:     "oklch(0.94 0.02 80)",
       brandCreamMuted:      "oklch(0.86 0.04 80)",
       brandGold:            "oklch(0.74 0.10 80)",

@@ -10,8 +10,9 @@
  * foreground, card, popover, primary, secondary, muted, accent, destructive,
  * border, input, ring, chart, sidebar). Mirrored as TS in
  * packages/config/src/design.ts. AIRA-specific extensions live below the
- * shadcn block: success, warning, tier1/2/3, brand-cream-bright/-muted,
- * brand-gold, info, plus gradient + shadow utility tokens.
+ * shadcn block: success, warning, sponsored-top/-mid + regular
+ * (sponsorship slots), brand-cream-bright/-muted, brand-gold, info,
+ * plus gradient + shadow utility tokens.
  *
  * Values are OKLCH (shadcn convention). Figma is the canonical source for
  * the olive green, cream, and gold; eyedropped values are noted in design.ts.
@@ -46,13 +47,14 @@
   --warning:               oklch(0.62 0.13 55);
   --warning-foreground:    oklch(0.20 0.03 60);
 
-  /* Tier system — sponsored placement AND PRD category hierarchy (L0/L1/L2). */
-  --tier1:                 oklch(0.46 0.07 132);  /* olive green */
-  --tier1-foreground:      oklch(0.94 0.02 80);
-  --tier2:                 oklch(0.62 0.13 55);   /* burnt orange — AA-Large exemption on fg */
-  --tier2-foreground:      oklch(0.94 0.02 80);
-  --tier3:                 oklch(0.43 0.09 55);   /* chocolate brown */
-  --tier3-foreground:      oklch(0.94 0.02 80);
+  /* Sponsorship placement slots — mapped to sponsorship_tier.display_slot.
+     Renamed from tier1/2/3 in the placement-single-axis refactor. */
+  --sponsored-top:            oklch(0.46 0.07 132);  /* olive green */
+  --sponsored-top-foreground: oklch(0.94 0.02 80);
+  --sponsored-mid:            oklch(0.62 0.13 55);   /* burnt orange — AA-Large exemption on fg */
+  --sponsored-mid-foreground: oklch(0.94 0.02 80);
+  --regular:                  oklch(0.43 0.09 55);   /* chocolate brown */
+  --regular-foreground:       oklch(0.94 0.02 80);
 
   /* Brand cream variants — used on DARK surfaces (sidebar, footer cards),
      distinct from --background (page cream) on purpose. */
@@ -74,12 +76,12 @@
     oklch(0.52 0.08 132) 6%,
     oklch(0.46 0.07 132) 94%
   );
-  --gradient-tier2: linear-gradient(
+  --gradient-sponsored-mid: linear-gradient(
     145deg,
     oklch(0.72 0.10 65) 6%,
     oklch(0.62 0.13 55) 94%
   );
-  --gradient-tier3: linear-gradient(
+  --gradient-regular: linear-gradient(
     145deg,
     oklch(0.49 0.09 55) 6%,
     oklch(0.43 0.09 55) 94%
@@ -152,13 +154,13 @@
   --warning:               oklch(0.72 0.13 55);
   --warning-foreground:    oklch(0.18 0.03 60);
 
-  --tier1:                 oklch(0.46 0.07 132);
-  --tier1-foreground:      oklch(0.94 0.02 80);
+  --sponsored-top:            oklch(0.46 0.07 132);
+  --sponsored-top-foreground: oklch(0.94 0.02 80);
   /* Darker burnt orange on dark to stay within AA-Large (3:1) under cream. */
-  --tier2:                 oklch(0.55 0.13 55);
-  --tier2-foreground:      oklch(0.94 0.02 80);
-  --tier3:                 oklch(0.52 0.09 55);
-  --tier3-foreground:      oklch(0.94 0.02 80);
+  --sponsored-mid:            oklch(0.55 0.13 55);
+  --sponsored-mid-foreground: oklch(0.94 0.02 80);
+  --regular:                  oklch(0.52 0.09 55);
+  --regular-foreground:       oklch(0.94 0.02 80);
 
   --brand-cream-bright:    oklch(0.94 0.02 80);
   --brand-cream-muted:     oklch(0.86 0.04 80);
@@ -172,12 +174,12 @@
     oklch(0.52 0.08 132) 6%,
     oklch(0.46 0.07 132) 94%
   );
-  --gradient-tier2: linear-gradient(
+  --gradient-sponsored-mid: linear-gradient(
     145deg,
     oklch(0.62 0.13 55) 6%,
     oklch(0.55 0.13 55) 94%
   );
-  --gradient-tier3: linear-gradient(
+  --gradient-regular: linear-gradient(
     145deg,
     oklch(0.58 0.09 55) 6%,
     oklch(0.52 0.09 55) 94%
@@ -229,12 +231,12 @@
   --color-warning:            var(--warning);
   --color-warning-foreground: var(--warning-foreground);
 
-  --color-tier1:              var(--tier1);
-  --color-tier1-foreground:   var(--tier1-foreground);
-  --color-tier2:              var(--tier2);
-  --color-tier2-foreground:   var(--tier2-foreground);
-  --color-tier3:              var(--tier3);
-  --color-tier3-foreground:   var(--tier3-foreground);
+  --color-sponsored-top:            var(--sponsored-top);
+  --color-sponsored-top-foreground: var(--sponsored-top-foreground);
+  --color-sponsored-mid:            var(--sponsored-mid);
+  --color-sponsored-mid-foreground: var(--sponsored-mid-foreground);
+  --color-regular:                  var(--regular);
+  --color-regular-foreground:       var(--regular-foreground);
 
   --color-brand-cream-bright: var(--brand-cream-bright);
   --color-brand-cream-muted:  var(--brand-cream-muted);
