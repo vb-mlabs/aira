@@ -1,4 +1,4 @@
-import { apiPatch, apiPost, apiDelete } from "../../lib/api/client";
+import { apiPatch, apiPost, apiDelete, clearTokens } from "../../lib/api/client";
 
 export interface Profile {
   id: string;
@@ -34,5 +34,13 @@ export async function requestEmailChange(input: {
 }
 
 export async function deleteAccount(): Promise<void> {
-  await apiDelete("/api/v1/profile");
+  // Wipe local tokens even if the DELETE throws — once the user confirms,
+  // we never want to keep a bearer around that might resurrect the
+  // signed-in shell. Server-side revocation is best-effort; SecureStore
+  // cleanup is not.
+  try {
+    await apiDelete("/api/v1/profile");
+  } finally {
+    await clearTokens();
+  }
 }
