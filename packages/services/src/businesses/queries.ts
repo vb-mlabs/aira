@@ -92,6 +92,27 @@ const HAS_ACTIVE_SPONSORSHIP = sql<boolean>`EXISTS (
   AND now() BETWEEN sp.start_date AND sp.end_date
 )`;
 
+// The display_slot of the sponsorship's tier for a currently-active,
+// in-window sponsorship on this business. NULL when the business has
+// no active sponsorship. Correlated subquery mirrors the SPONSORED_*
+// pattern above.
+const SPONSORED_SLOT = sql<"top" | "mid" | "regular" | null>`(
+  SELECT st.display_slot
+  FROM sponsorship sp
+  JOIN sponsorship_tier st ON st.id = sp.tier_id
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+  ORDER BY
+    CASE st.display_slot
+      WHEN 'top' THEN 1
+      WHEN 'mid' THEN 2
+      WHEN 'regular' THEN 3
+      ELSE 9
+    END
+  LIMIT 1
+)`;
+
 // ─── Relation helpers ────────────────────────────────────────────────────────
 
 async function fetchImages(
@@ -134,11 +155,12 @@ async function fetchExtraCategoryIds(
   return out;
 }
 
-// Row shape accepted by attachRelations. `is_paid_active` used to travel
-// alongside the row to demote pending-only businesses to tier3 for
-// display — under the placement-single-axis refactor, placement is
-// entirely sponsorship-driven, so the shape is now just the raw row.
-type BusinessRowWithVisibility = typeof businesses.$inferSelect;
+// Row shape accepted by attachRelations. `sponsored_slot` flows on public
+// listing queries so the frontend can bucket rows into Sponsored / Regular
+// sections; admin queries omit it.
+type BusinessRowWithVisibility = typeof businesses.$inferSelect & {
+  sponsored_slot?: "top" | "mid" | "regular" | null;
+};
 
 /** Rejects when the given category slug does not resolve to an active
  *  level-2 (subcategory) row. Shared enforcement for createBusiness and
@@ -227,7 +249,7 @@ export async function getFeaturedRandom(
   limit: number,
 ): Promise<Business[]> {
   const rows = await db
-    .select({ ...getTableColumns(businesses) })
+    .select({ ...getTableColumns(businesses), sponsored_slot: SPONSORED_SLOT })
     .from(businesses)
     .where(and(isNull(businesses.deleted_at), HAS_ACTIVE_SPONSORSHIP))
     .orderBy(sql`random()`)
@@ -253,7 +275,7 @@ export async function getFeaturedRandomForCategory(
     .innerJoin(categories, eq(businessCategories.category_id, categories.id))
     .where(inArray(categories.slug, slugs));
   const rows = await db
-    .select({ ...getTableColumns(businesses) })
+    .select({ ...getTableColumns(businesses), sponsored_slot: SPONSORED_SLOT })
     .from(businesses)
     .where(
       and(
@@ -275,7 +297,7 @@ export async function getBusinessesByCategory(
   category: string,
 ): Promise<Business[]> {
   const rows = await db
-    .select({ ...getTableColumns(businesses) })
+    .select({ ...getTableColumns(businesses), sponsored_slot: SPONSORED_SLOT })
     .from(businesses)
     .where(
       and(
@@ -399,7 +421,7 @@ export async function getBusinessesByCategoryPaged(
 
   const [rows, countRows] = await Promise.all([
     db
-      .select({ ...getTableColumns(businesses) })
+      .select({ ...getTableColumns(businesses), sponsored_slot: SPONSORED_SLOT })
       .from(businesses)
       .where(where)
       .orderBy(
@@ -452,10 +474,16 @@ export async function getAllBusinessesPaged(
 
   const [rows, countRows] = await Promise.all([
     db
-      .select({ ...getTableColumns(businesses) })
+      .select({ ...getTableColumns(businesses), sponsored_slot: SPONSORED_SLOT })
       .from(businesses)
       .where(where)
-      .orderBy(asc(businesses.name))
+      .orderBy(
+        SPONSORED_FLAG,
+        SPONSORED_SLOT_ORDER,
+        SPONSORED_TIER_PRIORITY,
+        desc(SPONSORED_AMOUNT_CENTS),
+        asc(businesses.name),
+      )
       .limit(input.pageSize)
       .offset(offset),
     db.select({ value: count() }).from(businesses).where(where),
@@ -472,7 +500,7 @@ export async function getBusinessById(
   id: string,
 ): Promise<Business | null> {
   const [row] = await db
-    .select({ ...getTableColumns(businesses) })
+    .select({ ...getTableColumns(businesses), sponsored_slot: SPONSORED_SLOT })
     .from(businesses)
     .where(and(eq(businesses.id, id), isNull(businesses.deleted_at), VISIBLE))
     .limit(1);
@@ -621,6 +649,7 @@ export function toBusiness(
     updated_at: new Date(row.updated_at).toISOString(),
     images,
     extra_category_ids,
+    sponsored_slot: row.sponsored_slot ?? null,
   };
 }
 

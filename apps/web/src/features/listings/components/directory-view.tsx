@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, Search, Store, X } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
-import { BusinessCard } from "./business-card"
+import { SlotSection, bucketBySlot } from "./slot-section"
 import { apiClient } from "@/lib/api-client"
 import type { Business, BusinessListOutput } from "@aira/validators/businesses"
 import type { Category } from "@aira/validators/categories"
@@ -184,17 +184,27 @@ export function DirectoryView({
             }
           />
         ) : (
-          <ul className="space-y-3">
-            {items.map((b) => (
-              <li key={b.id}>
-                <BusinessCard
-                  business={b}
+          (() => {
+            const { sponsored, regular } = bucketBySlot(items)
+            return (
+              <div className="space-y-6">
+                <SlotSection
+                  label="Sponsored"
+                  texture="/textures/tier1-texture.webp"
+                  businesses={sponsored}
                   isSignedIn={isSignedIn}
-                  isFavorited={favIdSet?.has(b.id) ?? false}
+                  favIds={favIdSet}
                 />
-              </li>
-            ))}
-          </ul>
+                <SlotSection
+                  label="Regular"
+                  texture="/textures/tier3-texture.webp"
+                  businesses={regular}
+                  isSignedIn={isSignedIn}
+                  favIds={favIdSet}
+                />
+              </div>
+            )
+          })()
         )}
 
         {hasMore && (

@@ -6,7 +6,7 @@ import { ChevronDown, Search, Store, X } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
 import { Pagination } from "./pagination"
-import { BusinessCard } from "./business-card"
+import { SlotSection, bucketBySlot } from "./slot-section"
 import { getCategoryMeta } from "../index"
 import type { Business, BusinessCategory } from "../types"
 import type { Category } from "@aira/validators/categories"
@@ -230,18 +230,27 @@ export function ListingView({
             }
           />
         ) : (
-          <ul className="space-y-3">
-            {items.map((b) => (
-              <li key={b.id}>
-                <BusinessCard
-                  business={b}
+          (() => {
+            const { sponsored, regular } = bucketBySlot(items)
+            return (
+              <div className="space-y-6">
+                <SlotSection
+                  label="Sponsored"
+                  texture="/textures/tier1-texture.webp"
+                  businesses={sponsored}
                   isSignedIn={isSignedIn}
-                  isFavorited={favIdSet?.has(b.id) ?? false}
-                  showCategory={false}
+                  favIds={favIdSet}
                 />
-              </li>
-            ))}
-          </ul>
+                <SlotSection
+                  label="Regular"
+                  texture="/textures/tier3-texture.webp"
+                  businesses={regular}
+                  isSignedIn={isSignedIn}
+                  favIds={favIdSet}
+                />
+              </div>
+            )
+          })()
         )}
 
         <Pagination

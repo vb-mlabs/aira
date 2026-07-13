@@ -83,6 +83,12 @@ export const BusinessSchema = z.object({
   images: BusinessImageSchema.array().default([]),
   /** IDs of extra categories from the business_category join table. Empty when none. */
   extra_category_ids: z.string().array().default([]),
+  /** Populated by listing queries when the business has an active,
+   *  in-window sponsorship — the display_slot from its sponsorship's
+   *  tier row. NULL when the business has no active sponsorship. Drives
+   *  the two-section (Sponsored / Regular) layout on listing pages.
+   *  Detail-only endpoints leave this NULL. */
+  sponsored_slot: z.enum(["top", "mid", "regular"]).nullable().default(null),
 });
 export type Business = z.infer<typeof BusinessSchema>;
 

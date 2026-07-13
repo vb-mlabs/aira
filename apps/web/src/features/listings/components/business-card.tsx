@@ -124,6 +124,7 @@ export function BusinessCard({
             isSignedIn={isSignedIn}
           />
         )}
+        <SponsoredPill slot={business.sponsored_slot} />
         {interactive ? (
           <Link
             href={`/listings/${business.category}/${business.id}`}
@@ -142,6 +143,25 @@ export function BusinessCard({
   )
 }
 
-// TierPill removed — replaced with sponsorship-driven pill in Task 5 of the
-// placement-single-axis refactor.
+function SponsoredPill({ slot }: { slot: Business["sponsored_slot"] }) {
+  if (slot === null || slot === "regular") return null
+  // Top-slot cards get the sponsoredTop color pair; mid-slot get
+  // sponsoredMid. Label is always "Sponsored" — users never see
+  // "Level 2" / "Top" / "Mid" as text; the color cue is the entire
+  // signal of within-Sponsored hierarchy.
+  const bg =
+    slot === "top"
+      ? "bg-sponsored-top text-sponsored-top-foreground"
+      : "bg-sponsored-mid text-sponsored-mid-foreground"
+  return (
+    <span
+      className={cn(
+        "flex-shrink-0 rounded-full px-1.5 py-px text-[0.55rem] font-bold tracking-wide",
+        bg,
+      )}
+    >
+      Sponsored
+    </span>
+  )
+}
 

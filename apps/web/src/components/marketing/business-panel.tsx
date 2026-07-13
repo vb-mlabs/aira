@@ -124,6 +124,7 @@ const PREVIEW_BUSINESS: Business = {
   hours: null,
   aira_review: null,
   rating: 4.6,
+  sponsored_slot: "top" as const,
   verified: true,
   city_id: null,
   business_type: null,
