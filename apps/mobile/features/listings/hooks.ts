@@ -82,6 +82,11 @@ export function useListings(params: {
   q?: string;
   verified?: boolean;
 }) {
+  // undefined category = all-listings query. The /api/v1/businesses route
+  // treats an omitted `category` param as "return all"; drop the enabled
+  // gate so the All-Listings tab screen can fire without a slug. The
+  // [category] route always passes a slug from the route param, so this
+  // remains a pure superset for existing callers.
   return useInfiniteQuery({
     queryKey: [
       "listings",
@@ -90,7 +95,6 @@ export function useListings(params: {
       params.q ?? "",
       params.verified ?? false,
     ],
-    enabled: !!params.category,
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       listBusinesses({
