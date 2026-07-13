@@ -30,7 +30,15 @@ export default function ForgotPasswordPage() {
     }
     setErrors({})
     setPending(true)
-    await authClient.requestPasswordReset({ email, redirectTo: "/reset-password" })
+    // Absolute URL required. Better Auth validates `redirectTo` against
+    // baseURL / trustedOrigins and drops relative paths in production
+    // (trustedOrigins is undefined there), which produces `callbackURL=`
+    // empty in the emailed link and makes the click-through appear as an
+    // invalid token.
+    await authClient.requestPasswordReset({
+      email,
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
     setPending(false)
     setSubmitted(true)
   }
