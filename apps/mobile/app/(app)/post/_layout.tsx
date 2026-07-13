@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Stack } from "expo-router";
+import { BackButton } from "../../../components/nav/BackButton";
 
 /**
  * Stack layout for /(app)/post/* routes — gives index, [id], and new
@@ -20,6 +21,9 @@ export default function PostLayout() {
         headerTintColor: "#3D2814",
         headerTitleStyle: { fontWeight: "600" },
         headerBackVisible: false,
+        // Custom back arrow on nested screens (post/[id], post/new).
+        // Post tab-root (post/index.tsx) overrides with <HamburgerButton />.
+        headerLeft: () => <BackButton />,
       }}
     />
   );

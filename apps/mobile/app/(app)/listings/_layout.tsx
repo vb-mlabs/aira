@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Stack } from "expo-router";
+import { BackButton } from "../../../components/nav/BackButton";
 
 /**
  * Stack layout for /(app)/listings/* routes — gives [category] and
@@ -16,11 +17,16 @@ export default function ListingsLayout() {
         headerStyle: { backgroundColor: "#EAE0CB" },
         headerTintColor: "#3D2814",
         headerTitleStyle: { fontWeight: "600" },
-        // Hide the back chevron. The bottom tab bar is always visible,
-        // Android has hardware back, and iOS keeps its edge-swipe
-        // gesture (React Navigation's default `gestureEnabled: true`
-        // is unaffected). Radha 2026-07-06 UAT.
+        // Hide the native back chevron. The bottom tab bar is always
+        // visible, Android has hardware back, and iOS keeps its
+        // edge-swipe gesture (React Navigation's default
+        // gestureEnabled: true is unaffected). Radha 2026-07-06 UAT.
         headerBackVisible: false,
+        // Custom back arrow — MCI arrow-left glyph, same tint as the
+        // header title, no "< Parent" label leak. The business detail
+        // screen ([category]/[id].tsx) overrides this with its own
+        // BackButton wired to origin-aware goBack.
+        headerLeft: () => <BackButton />,
       }}
     />
   );

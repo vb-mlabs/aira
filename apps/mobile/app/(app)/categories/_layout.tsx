@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Stack } from "expo-router";
+import { BackButton } from "../../../components/nav/BackButton";
 
 /**
  * Stack layout for /(app)/categories/* — gives the root list its cream
@@ -21,6 +22,10 @@ export default function CategoriesLayout() {
         headerTintColor: "#3D2814",
         headerTitleStyle: { fontWeight: "600" },
         headerBackVisible: false,
+        // Custom back arrow on nested screens. Tab-root (categories/
+        // index.tsx) overrides with <HamburgerButton /> so the root
+        // shows the drawer trigger instead of a back arrow.
+        headerLeft: () => <BackButton />,
       }}
     />
   );

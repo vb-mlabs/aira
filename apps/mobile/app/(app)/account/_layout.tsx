@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Stack } from "expo-router";
+import { BackButton } from "../../../components/nav/BackButton";
 
 /**
  * Stack layout for /(app)/account/* routes — gives sub-screens like
@@ -25,6 +26,14 @@ export default function AccountLayout() {
         headerStyle: { backgroundColor: "#EAE0CB" },
         headerTintColor: "#3D2814",
         headerTitleStyle: { fontWeight: "600" },
+        // Hide the native "< Account" chevron so sub-screens render our
+        // custom BackButton instead — arrow-left icon only, no parent
+        // label leak. Tab-root (account/index.tsx) overrides both
+        // options with headerBackVisible:false and headerLeft:
+        // <HamburgerButton />, so the account hub still shows the
+        // drawer trigger.
+        headerBackVisible: false,
+        headerLeft: () => <BackButton />,
       }}
     />
   );
