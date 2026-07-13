@@ -13,6 +13,7 @@ import { EmptyState } from "../../../../features/listings/components/EmptyState"
 import { Gallery } from "../../../../features/listings/components/Gallery";
 import { useFavoriteIds } from "../../../../features/favorites/hooks";
 import { useBusinessDetail } from "../../../../features/listings/hooks";
+import { useOriginAwareBack } from "../../../../lib/nav/useOriginAwareBack";
 
 // Hex matches the secondaryForeground token (#301d0d) so the
 // arrow-left glyph composes against the secondary Button bg with the
@@ -38,6 +39,11 @@ export default function BusinessDetailScreen() {
   const from = typeof params.from === "string" ? params.from : undefined;
   const detail = useBusinessDetail(id);
   const favIds = useFavoriteIds();
+
+  // Intercept OS-level back gestures (iOS edge-swipe, Android hardware
+  // back, header chevron pop) so they honour the same origin-aware
+  // routing as the tap-based back buttons below.
+  useOriginAwareBack();
 
   // Origin-aware back: return the user to exactly where they came from
   // (Home, filtered Listings tab, category detail) instead of popping
