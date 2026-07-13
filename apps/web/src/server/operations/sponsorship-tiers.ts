@@ -19,7 +19,11 @@ export const listSponsorshipTiersOp = defineOperation({
     category_id: z.string().optional(),
   }),
   output: SponsorshipTierListOutputSchema,
-  permission: "super_admin",
+  // LIST is read-only and admins need it to attach a sponsorship to a
+  // business via the Sponsorships card on /admin/businesses/[id]. The
+  // create/update/deactivate ops below manage the tier catalog itself
+  // and correctly stay super_admin.
+  permission: "admin",
   handler: async (db, _ctx, { includeInactive, category_id }) => {
     const tiers = await tiersService.listSponsorshipTiers(db, CITY_ID, includeInactive ?? false)
     if (!category_id) return { items: tiers }

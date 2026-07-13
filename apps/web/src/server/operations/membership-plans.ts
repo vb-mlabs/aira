@@ -16,7 +16,11 @@ export const listMembershipPlansOp = defineOperation({
   name: "admin.membership-plans.list",
   input: z.object({ includeInactive: z.coerce.boolean().optional() }).strict(),
   output: MembershipPlanListOutputSchema,
-  permission: "super_admin",
+  // LIST is read-only and admins need it to attach a plan to a business
+  // via the Subscriptions card on /admin/businesses/[id]. The create/update/
+  // deactivate ops below manage the catalog itself and correctly stay
+  // super_admin.
+  permission: "admin",
   handler: async (db, _ctx, { includeInactive }) => {
     const items = await plansService.listMembershipPlans(db, CITY_ID, includeInactive ?? false)
     return { items }
