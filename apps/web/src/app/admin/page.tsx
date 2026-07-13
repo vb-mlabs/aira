@@ -59,11 +59,6 @@ export default async function AdminDashboardPage() {
 
   const total = businesses.length
   const verified = businesses.filter((b) => b.verified).length
-  const byTier = {
-    tier1: businesses.filter((b) => b.tier === "tier1").length,
-    tier2: businesses.filter((b) => b.tier === "tier2").length,
-    tier3: businesses.filter((b) => b.tier === "tier3").length,
-  }
 
   const recent = businesses.slice(0, 5)
 
@@ -74,12 +69,10 @@ export default async function AdminDashboardPage() {
         subtitle="Overview of the directory."
       />
 
-      {/* Counts */}
+      {/* Counts. Slot-driven Sponsored / Regular counts land in Task 4. */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Total businesses" value={total} />
         <StatTile label="Verified" value={verified} />
-        <StatTile label="Sponsored (Tier 1)" value={byTier.tier1} />
-        <StatTile label="Featured (Tier 2)" value={byTier.tier2} />
       </section>
 
       {/* Quick actions */}

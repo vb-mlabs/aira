@@ -9,45 +9,24 @@ import { businesses, businessImages, businessCategories, categories, businessSub
 import type { Database } from "@aira/db/client";
 import { ApiError } from "@aira/api";
 import {
-  VALID_TIERS,
   type Business,
   type BusinessAdmin,
   type BusinessCreateInput,
   type BusinessOwner,
-  type BusinessTier,
   type BusinessImage,
 } from "@aira/validators";
 
-// True when the business has at least one PAID subscription whose window
-// covers now(). Used to demote pending-only businesses to tier3 (Regular
-// Listings) on the category/directory pages via toBusiness().
-const IS_PAID_ACTIVE = sql<boolean>`EXISTS (
-  SELECT 1 FROM business_subscription bs
-  WHERE bs.business_id = businesses.id
-  AND bs.payment_status = 'paid'
-  AND now() BETWEEN bs.start_date AND bs.end_date
-)`;
-
 // Visibility gate for category/directory listings: accepts paid OR pending
 // (within window). Pending shows up so businesses that registered but haven't
-// completed payment still appear — but EFFECTIVE_TIER collapses them to
-// tier3 so they don't claim Featured/Sponsored placement. The homepage
-// Featured tile gates on HAS_ACTIVE_SPONSORSHIP separately (below).
+// completed payment still appear. Placement (whether they show in the
+// Sponsored section) is entirely driven by sponsorship — subscription no
+// longer grants placement (placement-single-axis refactor 2026-07-13).
 const VISIBLE = sql`EXISTS (
   SELECT 1 FROM business_subscription bs
   WHERE bs.business_id = businesses.id
   AND bs.payment_status IN ('paid', 'pending')
   AND now() BETWEEN bs.start_date AND bs.end_date
 )`;
-
-// Effective tier for display + sort: a pending-only business shows under
-// "Regular Listings" regardless of the stored tier column, so premium
-// placement is reserved for paid businesses.
-const EFFECTIVE_TIER = sql`CASE WHEN ${IS_PAID_ACTIVE} THEN ${businesses.tier} ELSE 'tier3' END`;
-
-// Tier ordering — uses EFFECTIVE_TIER so pending-only businesses always sort
-// into the tier3 bucket regardless of what tier they're stored as.
-const TIER_ORDER = sql`CASE ${EFFECTIVE_TIER} WHEN 'tier1' THEN 1 WHEN 'tier2' THEN 2 ELSE 3 END`;
 
 // Sponsored sort helpers for /listings/[cat] — correlated subqueries to
 // avoid duplicate rows from a LEFT JOIN when a business holds multiple
@@ -66,6 +45,25 @@ const SPONSORED_FLAG = sql`CASE WHEN EXISTS (
   AND sp.status = 'active'
   AND now() BETWEEN sp.start_date AND sp.end_date
 ) THEN 0 ELSE 1 END`;
+
+// Display slot precedence — 1 = top, 2 = mid, 3 = regular. Placeholder 9
+// for sponsored rows whose tier or display_slot lookup is null (defensive;
+// with the schema NOT NULL constraint this should never fire).
+const SPONSORED_SLOT_ORDER = sql`COALESCE((
+  SELECT MIN(
+    CASE st.display_slot
+      WHEN 'top' THEN 1
+      WHEN 'mid' THEN 2
+      WHEN 'regular' THEN 3
+      ELSE 9
+    END
+  )
+  FROM sponsorship sp
+  LEFT JOIN sponsorship_tier st ON st.id = sp.tier_id
+  WHERE sp.business_id = businesses.id
+  AND sp.status = 'active'
+  AND now() BETWEEN sp.start_date AND sp.end_date
+), 9)`;
 
 const SPONSORED_TIER_PRIORITY = sql`COALESCE((
   SELECT MIN(st.priority)
@@ -136,13 +134,11 @@ async function fetchExtraCategoryIds(
   return out;
 }
 
-// Row shape accepted by attachRelations. Public list queries select
-// `is_paid_active` alongside the row so toBusiness can demote pending-only
-// businesses to tier3 for display. Admin queries omit the flag and get the
-// stored tier as-is.
-type BusinessRowWithVisibility = typeof businesses.$inferSelect & {
-  is_paid_active?: boolean;
-};
+// Row shape accepted by attachRelations. `is_paid_active` used to travel
+// alongside the row to demote pending-only businesses to tier3 for
+// display — under the placement-single-axis refactor, placement is
+// entirely sponsorship-driven, so the shape is now just the raw row.
+type BusinessRowWithVisibility = typeof businesses.$inferSelect;
 
 /** Rejects when the given category slug does not resolve to an active
  *  level-2 (subcategory) row. Shared enforcement for createBusiness and
@@ -231,7 +227,7 @@ export async function getFeaturedRandom(
   limit: number,
 ): Promise<Business[]> {
   const rows = await db
-    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+    .select({ ...getTableColumns(businesses) })
     .from(businesses)
     .where(and(isNull(businesses.deleted_at), HAS_ACTIVE_SPONSORSHIP))
     .orderBy(sql`random()`)
@@ -257,7 +253,7 @@ export async function getFeaturedRandomForCategory(
     .innerJoin(categories, eq(businessCategories.category_id, categories.id))
     .where(inArray(categories.slug, slugs));
   const rows = await db
-    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+    .select({ ...getTableColumns(businesses) })
     .from(businesses)
     .where(
       and(
@@ -279,7 +275,7 @@ export async function getBusinessesByCategory(
   category: string,
 ): Promise<Business[]> {
   const rows = await db
-    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+    .select({ ...getTableColumns(businesses) })
     .from(businesses)
     .where(
       and(
@@ -290,9 +286,9 @@ export async function getBusinessesByCategory(
     )
     .orderBy(
       SPONSORED_FLAG,
+      SPONSORED_SLOT_ORDER,
       SPONSORED_TIER_PRIORITY,
       desc(SPONSORED_AMOUNT_CENTS),
-      TIER_ORDER,
       asc(businesses.name),
     );
   return attachRelations(db, rows);
@@ -310,7 +306,7 @@ export async function getAllBusinesses(
   const builder = db
     .select()
     .from(businesses)
-    .orderBy(TIER_ORDER, asc(businesses.name));
+    .orderBy(asc(businesses.name));
   const rows = await (where ? builder.where(where) : builder);
   return attachRelationsAdmin(db, rows);
 }
@@ -403,14 +399,14 @@ export async function getBusinessesByCategoryPaged(
 
   const [rows, countRows] = await Promise.all([
     db
-      .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+      .select({ ...getTableColumns(businesses) })
       .from(businesses)
       .where(where)
       .orderBy(
         SPONSORED_FLAG,
+        SPONSORED_SLOT_ORDER,
         SPONSORED_TIER_PRIORITY,
         desc(SPONSORED_AMOUNT_CENTS),
-        TIER_ORDER,
         asc(businesses.name),
       )
       .limit(input.pageSize)
@@ -456,10 +452,10 @@ export async function getAllBusinessesPaged(
 
   const [rows, countRows] = await Promise.all([
     db
-      .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+      .select({ ...getTableColumns(businesses) })
       .from(businesses)
       .where(where)
-      .orderBy(TIER_ORDER, asc(businesses.name))
+      .orderBy(asc(businesses.name))
       .limit(input.pageSize)
       .offset(offset),
     db.select({ value: count() }).from(businesses).where(where),
@@ -476,7 +472,7 @@ export async function getBusinessById(
   id: string,
 ): Promise<Business | null> {
   const [row] = await db
-    .select({ ...getTableColumns(businesses), is_paid_active: IS_PAID_ACTIVE })
+    .select({ ...getTableColumns(businesses) })
     .from(businesses)
     .where(and(eq(businesses.id, id), isNull(businesses.deleted_at), VISIBLE))
     .limit(1);
@@ -584,10 +580,6 @@ export async function getBusinessOwnerLookup(
 
 // ─── Mappers ─────────────────────────────────────────────────────────────────
 
-function isValidTier(value: string): value is BusinessTier {
-  return (VALID_TIERS as readonly string[]).includes(value);
-}
-
 function toImage(row: typeof businessImages.$inferSelect): BusinessImage {
   return {
     id: row.id,
@@ -603,19 +595,10 @@ export function toBusiness(
   images: BusinessImage[],
   extra_category_ids: string[],
 ): Business {
-  // Pending-only businesses (is_paid_active === false) display as tier3
-  // regardless of the stored tier column, so Featured/Sponsored placement
-  // stays reserved for paid listings.
-  const storedTier = isValidTier(row.tier) ? row.tier : "tier3";
-  const tier: Business["tier"] =
-    row.is_paid_active === false ? "tier3" : storedTier;
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    // DB rows are unvalidated text; coerce to the union or fall back to a
-    // safe default. Invalid rows simply render under tier3 / their raw
-    // category — they don't crash the page.
     category: row.category,
     description: row.description,
     phone: row.phone,
@@ -628,7 +611,6 @@ export function toBusiness(
     hours: row.hours ?? null,
     aira_review: row.aira_review ?? null,
     rating: row.rating ?? null,
-    tier,
     verified: row.verified,
     city_id: row.city_id ?? null,
     business_type: row.business_type ?? null,
@@ -681,10 +663,6 @@ export async function createBusiness(
       message: "Slug already in use",
     });
   }
-  // tier is intentionally omitted — the DB column default ('tier3') takes
-  // over, and the subscription service upgrades the column via
-  // recomputeBusinessTier when an active-paid subscription is created.
-  // See .mstack/reviews/2026-06-15-membership-plan-tier.md.
   const [row] = await db
     .insert(businesses)
     .values({

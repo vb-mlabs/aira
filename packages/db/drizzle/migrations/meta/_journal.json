@@ -253,6 +253,13 @@
       "when": 1783939859150,
       "tag": "0035_typical_red_shift",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1783945720060,
+      "tag": "0036_fluffy_leader",
+      "breakpoints": true
     }
   ]
 }

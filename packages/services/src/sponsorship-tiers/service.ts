@@ -51,6 +51,7 @@ export async function createSponsorshipTier(
       city_id: input.city_id,
       name: input.name,
       priority: input.priority,
+      display_slot: input.display_slot,
     })
     .returning()
   const row = rows[0]

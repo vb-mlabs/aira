@@ -7,7 +7,6 @@ import { getCategoryMeta } from "../category-meta";
 import { RatingPill } from "./RatingPill";
 import { FavoriteHeart } from "./FavoriteHeart";
 import { SocialIcons } from "./SocialIcons";
-import { TierPill } from "./TierPill";
 import { resolveMediaUrl } from "../../../lib/api/client";
 
 interface BusinessHeroProps {
@@ -127,7 +126,6 @@ export function BusinessHero({
               businessId={business.id}
               isFavorited={isFavorited}
             />
-            <TierPill tier={business.tier} />
           </View>
         </View>
       </View>

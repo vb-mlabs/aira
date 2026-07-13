@@ -6,9 +6,9 @@ import { ChevronDown, Search, Store, X } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
 import { Pagination } from "./pagination"
-import { TierSection } from "./tier-section"
-import { getCategoryMeta, VALID_TIERS } from "../index"
-import type { Business, BusinessCategory, BusinessTier } from "../types"
+import { BusinessCard } from "./business-card"
+import { getCategoryMeta } from "../index"
+import type { Business, BusinessCategory } from "../types"
 import type { Category } from "@aira/validators/categories"
 
 interface ListingViewProps {
@@ -119,11 +119,10 @@ export function ListingView({
     router.push(`/listings/${e.target.value}`)
   }
 
-  // Group the current page's items by tier. TierSection itself drops
-  // sections that have zero items, so empty tiers won't render headers.
-  const byTier = Object.fromEntries(
-    VALID_TIERS.map((t) => [t, items.filter((b) => b.tier === t)]),
-  ) as Record<BusinessTier, Business[]>
+  // Placement-single-axis Task 5 will reintroduce the two-section
+  // (Sponsored + Regular) structure. Meantime the sort is already
+  // sponsorship-driven via getBusinessesByCategoryPaged, so a flat map
+  // preserves the ordering users see.
 
   return (
     <div>
@@ -231,17 +230,18 @@ export function ListingView({
             }
           />
         ) : (
-          <div className="space-y-6">
-            {VALID_TIERS.map((tier) => (
-              <TierSection
-                key={tier}
-                tier={tier}
-                businesses={byTier[tier]}
-                isSignedIn={isSignedIn}
-                favIds={favIdSet}
-              />
+          <ul className="space-y-3">
+            {items.map((b) => (
+              <li key={b.id}>
+                <BusinessCard
+                  business={b}
+                  isSignedIn={isSignedIn}
+                  isFavorited={favIdSet?.has(b.id) ?? false}
+                  showCategory={false}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
         <Pagination

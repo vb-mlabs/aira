@@ -10,27 +10,12 @@
 import { z } from "zod";
 import { BusinessImageSchema } from "./business-image";
 
-export const VALID_TIERS = ["tier1", "tier2", "tier3"] as const;
-export type BusinessTier = (typeof VALID_TIERS)[number];
-
-/** Single source of truth for human-readable tier labels. Every UI surface
- *  (admin tables, plan picker, public business card badge, tier section
- *  header) imports from here so the labels can't drift. Mobile + web both
- *  consume @aira/validators so they get the same map.
- *
- *  Why these labels:
- *    - tier1 is the top-of-listing premium slot ("Sponsored")
- *    - tier2 is the mid-tier paid slot ("Sponsored Level 2") — matches the
- *      label tier-section.tsx already uses and replaces the inconsistent
- *      "Featured" string that used to live in business-card.tsx:76
- *    - tier3 is the unpaid default ("Regular") — public cards skip the
- *      badge entirely for this tier, but admin surfaces still need a label
- */
-export const TIER_LABELS: Record<BusinessTier, string> = {
-  tier1: "Sponsored",
-  tier2: "Sponsored Level 2",
-  tier3: "Regular",
-};
+// VALID_TIERS / TIER_LABELS / BusinessTier / BusinessTierSchema were
+// removed in the placement-single-axis refactor (2026-07-13). Placement
+// is now controlled entirely by sponsorship; membership subscriptions
+// just gate whether a business is listed. See
+// packages/validators/src/sponsorship-tiers.ts for the display_slot enum
+// that replaces the tier concept.
 
 export const VALID_BUSINESS_TYPES = [
   "storefront",
@@ -58,7 +43,6 @@ export type YearsOperating = (typeof VALID_YEARS_OPERATING)[number];
  *  in updateCategoryOp keep the contract enforced. */
 export type BusinessCategory = string;
 
-export const BusinessTierSchema = z.enum(VALID_TIERS);
 export const BusinessCategorySchema = z.string().min(1);
 
 export const BusinessSchema = z.object({
@@ -79,7 +63,6 @@ export const BusinessSchema = z.object({
   /** Editorial rating 0–5. Step granularity (0.5) is enforced by the admin UI,
    *  not the API. NULL = unrated; 0 also renders as "no rating" per PRD F11. */
   rating: z.number().min(0).max(5).nullable(),
-  tier: BusinessTierSchema,
   verified: z.boolean(),
   city_id: z.string().nullable(),
   business_type: z.string().nullable(),
@@ -161,12 +144,6 @@ export type BusinessAdminDetailOutput = z.infer<
   typeof BusinessAdminDetailOutputSchema
 >;
 
-// businesses.tier is no longer admin-writable through this surface — the
-// column is now a denormalised cache maintained by the subscription
-// service whenever an active-paid subscription set changes. See
-// .mstack/reviews/2026-06-15-membership-plan-tier.md (Task 5). Sending
-// `tier` here yields a Zod unrecognized_keys error (the schema is
-// .strict()), which is the intentional boundary feedback.
 export const BusinessUpdateInputSchema = z
   .object({
     id: z.string().min(1),
@@ -209,11 +186,6 @@ export type BusinessUpdateInput = z.infer<typeof BusinessUpdateInputSchema>;
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-// businesses.tier is no longer admin-writable through this surface — see
-// the same note above BusinessUpdateInputSchema. New businesses default
-// to tier3 via the DB column default; subscription activation upgrades
-// them via recomputeBusinessTier in
-// packages/services/src/business-subscriptions/service.ts.
 export const BusinessCreateInputSchema = z
   .object({
     name: z.string().min(1),

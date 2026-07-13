@@ -8,7 +8,6 @@ import { getCategoryMeta } from "../category-meta";
 import { RatingPill } from "./RatingPill";
 import { SocialIcons } from "./SocialIcons";
 import { FavoriteHeart } from "./FavoriteHeart";
-import { TierPill } from "./TierPill";
 
 interface BusinessCardProps {
   business: Business;
@@ -137,14 +136,13 @@ export function BusinessCard({
 
         {/* Action column — heart at top, tier badge in the middle (web
             puts it above the More Info chevron analogue), More Info
-            pill at bottom. Tier3 businesses render no badge; the gap
-            stays consistent because TierPill returns null cleanly. */}
+            pill at bottom. Sponsorship badge / slot chrome is Task 6
+            of the placement-single-axis refactor. */}
         <View className="items-end justify-between" style={{ gap: 6 }}>
           <FavoriteHeart
             businessId={business.id}
             isFavorited={isFavorited}
           />
-          <TierPill tier={business.tier} />
           <View className="rounded-full bg-primary px-2.5 py-1">
             <Text className="text-[10px] font-bold uppercase tracking-wide text-primaryForeground">
               More Info

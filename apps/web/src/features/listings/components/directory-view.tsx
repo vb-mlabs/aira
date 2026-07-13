@@ -5,11 +5,9 @@ import { useRouter } from "next/navigation"
 import { Loader2, Search, Store, X } from "lucide-react"
 import { cn } from "@aira/ui-web/utils"
 import { EmptyState } from "@/lib/ui"
-import { TierSection } from "./tier-section"
-import { VALID_TIERS } from "../index"
-import type { Business, BusinessTier } from "../types"
+import { BusinessCard } from "./business-card"
 import { apiClient } from "@/lib/api-client"
-import type { BusinessListOutput } from "@aira/validators/businesses"
+import type { Business, BusinessListOutput } from "@aira/validators/businesses"
 import type { Category } from "@aira/validators/categories"
 
 interface DirectoryViewProps {
@@ -107,9 +105,9 @@ export function DirectoryView({
 
   const hasMore = items.length < total
 
-  const byTier = Object.fromEntries(
-    VALID_TIERS.map((t) => [t, items.filter((b) => b.tier === t)]),
-  ) as Record<BusinessTier, Business[]>
+  // Placement-single-axis Task 5 will reintroduce the two-section
+  // (Sponsored + Regular) structure. Flat map preserves the
+  // sponsorship-driven ordering already coming from the query.
 
   return (
     <div>
@@ -186,17 +184,17 @@ export function DirectoryView({
             }
           />
         ) : (
-          <div className="space-y-6">
-            {VALID_TIERS.map((tier) => (
-              <TierSection
-                key={tier}
-                tier={tier}
-                businesses={byTier[tier]}
-                isSignedIn={isSignedIn}
-                favIds={favIdSet}
-              />
+          <ul className="space-y-3">
+            {items.map((b) => (
+              <li key={b.id}>
+                <BusinessCard
+                  business={b}
+                  isSignedIn={isSignedIn}
+                  isFavorited={favIdSet?.has(b.id) ?? false}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
         {hasMore && (

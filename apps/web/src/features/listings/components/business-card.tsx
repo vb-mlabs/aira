@@ -2,7 +2,6 @@ import Link from "next/link"
 import { BadgeCheck } from "lucide-react"
 import { brand } from "@aira/config"
 import { cn } from "@aira/ui-web/utils"
-import { TIER_LABELS } from "@aira/validators"
 import { getCategoryMeta } from "../category-meta"
 import { FavoriteButton } from "./favorite-button"
 import { RatingPill } from "./rating-pill"
@@ -125,7 +124,6 @@ export function BusinessCard({
             isSignedIn={isSignedIn}
           />
         )}
-        <TierPill tier={business.tier} />
         {interactive ? (
           <Link
             href={`/listings/${business.category}/${business.id}`}
@@ -144,22 +142,6 @@ export function BusinessCard({
   )
 }
 
-function TierPill({ tier }: { tier: Business["tier"] }) {
-  if (tier === "tier3") return null
-  // Label comes from the shared TIER_LABELS map so the badge matches the
-  // tier-section heading exactly. Previously tier2 said "Featured" here
-  // while tier-section said "Sponsored Level 2" — a long-standing
-  // inconsistency this collapses.
-  const bg = tier === "tier1" ? "bg-sponsored-top text-sponsored-top-foreground" : "bg-sponsored-mid text-sponsored-mid-foreground"
-  return (
-    <span
-      className={cn(
-        "flex-shrink-0 rounded-full px-1.5 py-px text-[0.55rem] font-bold tracking-wide",
-        bg,
-      )}
-    >
-      {TIER_LABELS[tier]}
-    </span>
-  )
-}
+// TierPill removed — replaced with sponsorship-driven pill in Task 5 of the
+// placement-single-axis refactor.
 

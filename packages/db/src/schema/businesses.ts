@@ -82,8 +82,6 @@ export const businesses = pgTable(
     hours: text("hours"),
     /** Editorial review written by the AIRA team. Shown on the detail page. */
     aira_review: text("aira_review"),
-    /** One of VALID_TIERS — validated in query layer. Defaults to bottom tier. */
-    tier: text("tier").notNull().default("tier3"),
     verified: boolean("verified").notNull().default(false),
     /** Admin-only free-text log of the verification decision — call
      *  refs, licence numbers, photo comparison notes. Nullable; capped
@@ -117,12 +115,12 @@ export const businesses = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    index("businesses_category_tier_idx").on(table.category, table.tier),
-    index("businesses_tier_idx").on(table.tier),
     // Partial index for the active subset so public reads skip archived rows.
-    // The composite (category, tier) covers the hot getBusinessesByCategory path.
+    // Covers the hot getBusinessesByCategory path; sort is now
+    // sponsorship-driven (see packages/services/src/businesses/queries.ts)
+    // so tier is no longer part of the index shape.
     index("businesses_active_idx")
-      .on(table.category, table.tier)
+      .on(table.category)
       .where(sql`${table.deleted_at} IS NULL`),
     // Partial index on the linked subset — supports the my-listings query,
     // admin "Has owner" filter, and broadcast targeting. Most rows are

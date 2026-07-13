@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { CreditCard, Plus } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
-import { TIER_LABELS } from "@aira/validators"
 import { listMembershipPlansOp } from "@/server/operations/membership-plans"
 import { AdminBadge } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
@@ -43,7 +42,6 @@ export default async function AdminMembershipPlansPage() {
             <thead className="border-b border-border bg-muted/40">
               <tr>
                 <th className="px-4 py-3 text-left font-semibold">Name</th>
-                <th className="px-4 py-3 text-left font-semibold">Tier</th>
                 <th className="px-4 py-3 text-left font-semibold">Price</th>
                 <th className="px-4 py-3 text-left font-semibold">Duration</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
@@ -64,11 +62,6 @@ export default async function AdminMembershipPlansPage() {
                         {plan.description}
                       </p>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center rounded-full border border-border bg-muted/30 px-2 py-0.5 text-xs font-medium text-foreground">
-                      {TIER_LABELS[plan.tier]}
-                    </span>
                   </td>
                   <td className="px-4 py-3 tabular-nums">
                     ${(plan.price_cents / 100).toFixed(2)}

@@ -9,12 +9,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { VALID_TIERS, type Business, type BusinessTier } from "@aira/validators";
+import type { Business } from "@aira/validators";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { SubcategoryPicker } from "../../../features/listings/components/SubcategoryPicker";
-import { TierSection } from "../../../features/listings/components/TierSection";
+import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { VerifiedFilterChip } from "../../../features/listings/components/VerifiedFilterChip";
 import { useFavoriteIds } from "../../../features/favorites/hooks";
 import {
@@ -170,13 +170,14 @@ export default function CategoryListingScreen() {
             }}
             scrollEventThrottle={200}
           >
-            {groupByTier(rootItems).map((group) => (
-              <TierSection
-                key={group.tier}
-                tier={group.tier}
-                businesses={group.businesses}
-                favIds={favIdSet}
-              />
+            {rootItems.map((business) => (
+              <View key={business.id} style={{ marginBottom: 12 }}>
+                <BusinessCard
+                  business={business}
+                  showCategory={false}
+                  isFavorited={favIdSet.has(business.id)}
+                />
+              </View>
             ))}
             {list.isFetchingNextPage ? (
               <View className="py-4 items-center">
@@ -270,13 +271,14 @@ export default function CategoryListingScreen() {
               <EmptyState title="No businesses in this category yet." />
             )
           ) : (
-            groupByTier(items).map((group) => (
-              <TierSection
-                key={group.tier}
-                tier={group.tier}
-                businesses={group.businesses}
-                favIds={favIdSet}
-              />
+            items.map((business) => (
+              <View key={business.id} style={{ marginBottom: 12 }}>
+                <BusinessCard
+                  business={business}
+                  showCategory={false}
+                  isFavorited={favIdSet.has(business.id)}
+                />
+              </View>
             ))
           )}
           {list.isFetchingNextPage ? (
@@ -290,17 +292,7 @@ export default function CategoryListingScreen() {
   );
 }
 
-interface TierGroup {
-  tier: BusinessTier;
-  businesses: Business[];
-}
-
-/** Bucket the flat page-flatten into fixed tier order (tier1 →
- *  tier2 → tier3). Empty tiers still produce an entry so keying stays
- *  stable across renders; TierSection short-circuits on empty. */
-function groupByTier(items: Business[]): TierGroup[] {
-  return VALID_TIERS.map<TierGroup>((tier) => ({
-    tier,
-    businesses: items.filter((b) => b.tier === tier),
-  }));
-}
+// Tier grouping removed in placement-single-axis refactor. The two-section
+// (Sponsored + Regular) structure will be reintroduced in Task 6 of the
+// same refactor once sponsorship-driven grouping data flows through the
+// mobile API layer.

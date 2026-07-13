@@ -46,20 +46,12 @@ export async function startCrons(): Promise<void> {
   const { JOB_NAME: rrJob, runRenewalReminder } = await import("./renewal-reminder")
   const { JOB_NAME: purgeJob, runPurgeSoftDeleted } = await import("./purge-soft-deleted")
   const { JOB_NAME: expireJob, runExpirePosts } = await import("./expire-posts")
-  const { JOB_NAME: backfillTiersJob, runBackfillBusinessTiers } = await import(
-    "./backfill-business-tiers"
-  )
 
   registerRunner(subJob, runSubscriptionRollover)
   registerRunner(spJob, runSponsorshipRollover)
   registerRunner(rrJob, runRenewalReminder)
   registerRunner(purgeJob, runPurgeSoftDeleted)
   registerRunner(expireJob, runExpirePosts)
-  // Backfill is registered (so /admin/cron's Run-now button works) but
-  // intentionally NOT scheduled — it's a one-shot manual job; the next
-  // line would have been scheduleJob(backfillTiersJob, ...) but no cron
-  // expression applies.
-  registerRunner(backfillTiersJob, runBackfillBusinessTiers)
 
   await scheduleJob(subJob, "5 0 * * *", runSubscriptionRollover)
   await scheduleJob(spJob, "0 * * * *", runSponsorshipRollover)

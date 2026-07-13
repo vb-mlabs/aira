@@ -4,10 +4,8 @@
 
 export type {
   Business,
-  BusinessTier,
   BusinessCategory,
 } from "./types"
-export { VALID_TIERS } from "./types"
 
 export {
   CATEGORY_META,
@@ -21,4 +19,3 @@ export { BusinessDetail } from "./components/business-detail"
 export { CategoryRow } from "./components/category-row"
 export { StatCard } from "./components/stat-card"
 export { SocialLinks } from "./components/social-icons"
-export { TierSection } from "./components/tier-section"

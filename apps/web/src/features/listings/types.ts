@@ -4,8 +4,6 @@
 // `@/features/listings` keep working without churn.
 
 export {
-  VALID_TIERS,
-  type BusinessTier,
   type BusinessCategory,
   type Business,
 } from "@aira/validators/businesses"

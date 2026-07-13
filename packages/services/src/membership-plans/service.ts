@@ -3,7 +3,6 @@ import "server-only"
 import { eq } from "drizzle-orm"
 import { membershipPlans } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
-import type { BusinessTier } from "@aira/validators/businesses"
 import type {
   MembershipPlan,
   MembershipPlanCreateInput,
@@ -23,7 +22,6 @@ export async function createMembershipPlan(
       description: input.description ?? null,
       price_cents: input.price_cents,
       duration_months: input.duration_months,
-      tier: input.tier,
     })
     .returning()
   const row = rows[0]
@@ -31,7 +29,6 @@ export async function createMembershipPlan(
   return {
     ...row,
     description: row.description ?? null,
-    tier: row.tier as BusinessTier,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
   }
@@ -53,7 +50,6 @@ export async function updateMembershipPlan(
   return {
     ...row,
     description: row.description ?? null,
-    tier: row.tier as BusinessTier,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
   }
