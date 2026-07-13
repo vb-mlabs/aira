@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
+import { HamburgerButton } from "../../../components/nav/HamburgerButton";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
@@ -38,6 +39,7 @@ export default function PostBoardScreen() {
       <Stack.Screen
         options={{
           title: `Post on ${brand.name}`,
+          headerLeft: () => <HamburgerButton />,
           headerRight: () => (
             <Pressable
               accessibilityRole="button"
