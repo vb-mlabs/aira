@@ -272,12 +272,29 @@ function CategoryGroup({ root, subs, pathname }: CategoryGroupProps) {
   const open = clickOpen || routeActive;
   const meta = getCategoryMeta(root.slug);
 
+  // Single tap on a root with subs = toggle expand (no navigation).
+  // Roots without subs render via DrawerRow (which does navigate on tap).
+  // Sub-rows below still navigate. Diverges from web's parallel behaviour
+  // where the parent row navigates and the chevron button toggles —
+  // mobile taps are less precise so we consolidate to one tappable region.
   return (
     <View>
-      <View
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={root.name}
+        accessibilityHint={
+          open
+            ? `Collapse ${root.name} subcategories`
+            : `Expand ${root.name} subcategories`
+        }
+        accessibilityState={{ expanded: open }}
+        onPress={() => setClickOpen((v) => !v)}
         style={{
           flexDirection: "row",
           alignItems: "center",
+          gap: 12,
+          paddingHorizontal: 20,
+          paddingVertical: 10,
           borderBottomWidth: 1,
           borderBottomColor: TINT_LIGHT_HAIRLINE,
           backgroundColor: routeActive
@@ -285,59 +302,29 @@ function CategoryGroup({ root, subs, pathname }: CategoryGroupProps) {
             : "transparent",
         }}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={root.name}
-          onPress={() => router.push(`/listings/${root.slug}` as never)}
+        <MaterialCommunityIcons
+          name={meta.iconName}
+          size={18}
+          color={TINT_LIGHT}
+          style={{ opacity: 0.9 }}
+        />
+        <Text
           style={{
+            color: TINT_LIGHT,
+            fontSize: 14,
             flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            paddingHorizontal: 20,
-            paddingVertical: 10,
+            fontWeight: parentActive ? "700" : "400",
           }}
+          numberOfLines={1}
         >
-          <MaterialCommunityIcons
-            name={meta.iconName}
-            size={18}
-            color={TINT_LIGHT}
-            style={{ opacity: 0.9 }}
-          />
-          <Text
-            style={{
-              color: TINT_LIGHT,
-              fontSize: 14,
-              flex: 1,
-              fontWeight: parentActive ? "700" : "400",
-            }}
-            numberOfLines={1}
-          >
-            {root.name}
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={
-            open ? `Hide ${root.name} subcategories` : `Show ${root.name} subcategories`
-          }
-          onPress={() => setClickOpen((v) => !v)}
-          hitSlop={8}
-          style={{
-            width: 36,
-            height: 36,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 8,
-          }}
-        >
-          <MaterialCommunityIcons
-            name={open ? "chevron-down" : "chevron-right"}
-            size={14}
-            color={TINT_LIGHT_MUTED}
-          />
-        </Pressable>
-      </View>
+          {root.name}
+        </Text>
+        <MaterialCommunityIcons
+          name={open ? "chevron-down" : "chevron-right"}
+          size={14}
+          color={TINT_LIGHT_MUTED}
+        />
+      </Pressable>
       {open
         ? subs.map((sub) => {
             const childActive = pathname.startsWith(`/listings/${sub.slug}`);
