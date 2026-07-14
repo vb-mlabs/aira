@@ -2,10 +2,9 @@ import Link from "next/link"
 import { AlertTriangle, Layers, Plus } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { listSponsorshipTiersOp } from "@/server/operations/sponsorship-tiers"
-import { AdminBadge } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
-import { DISPLAY_SLOT_LABELS } from "@aira/validators/sponsorship-tiers"
 import { AdminPageHeader } from "../../_components/page-header"
+import { TierList } from "./_components/tier-list"
 
 export const metadata = { title: "Admin · Sponsorship Tiers" }
 export const dynamic = "force-dynamic"
@@ -67,44 +66,7 @@ export default async function AdminSponsorshipTiersPage() {
         />
       ) : (
         <>
-          <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border bg-muted/40">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold">Name</th>
-                  <th className="px-4 py-3 text-left font-semibold">Priority</th>
-                  <th className="px-4 py-3 text-left font-semibold">Slot</th>
-                  <th className="px-4 py-3 text-left font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {tiers.map((tier) => (
-                  <tr key={tier.id} className="hover:bg-muted/20">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/settings/sponsorship-tiers/${tier.id}`}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        {tier.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 tabular-nums text-muted-foreground">
-                      {tier.priority}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {DISPLAY_SLOT_LABELS[tier.display_slot]}
-                    </td>
-                    <td className="px-4 py-3">
-                      <AdminBadge
-                        variant={tier.active ? "active" : "inactive"}
-                        label={tier.active ? "Active" : "Inactive"}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TierList tiers={tiers} />
           <p className="text-xs text-muted-foreground">
             Tiers determine sort priority on category listing pages — lower
             number wins. The Slot column controls which section a sponsored
