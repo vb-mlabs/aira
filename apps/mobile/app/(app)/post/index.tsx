@@ -8,7 +8,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, router } from "expo-router";
+import { router } from "expo-router";
+import { TopBar } from "../../../components/nav/TopBar";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
 import { HamburgerButton } from "../../../components/nav/HamburgerButton";
@@ -36,28 +37,31 @@ export default function PostBoardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen
-        options={{
-          title: `Post on ${brand.name}`,
-          headerLeft: () => <HamburgerButton />,
-          headerRight: () => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="New post"
-              onPress={() => {
-                router.push("/post/new" as never);
-              }}
-              hitSlop={8}
-              style={{ paddingHorizontal: 8 }}
-            >
-              <MaterialCommunityIcons
-                name="plus"
-                size={24}
-                color="#3D2814"
-              />
-            </Pressable>
-          ),
-        }}
+      <TopBar
+        title={`Post on ${brand.name}`}
+        left={<HamburgerButton />}
+        right={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="New post"
+            onPress={() => {
+              router.push("/post/new" as never);
+            }}
+            hitSlop={8}
+            style={{
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <MaterialCommunityIcons
+              name="plus"
+              size={24}
+              color="#3D2814"
+            />
+          </Pressable>
+        }
       />
 
       {/* Search */}

@@ -1,30 +1,14 @@
 import * as React from "react";
 import { Stack } from "expo-router";
-import { BackButton } from "../../../components/nav/BackButton";
 
 /**
- * Stack layout for /(app)/post/* routes — gives index, [id], and new
- * proper headers with back navigation.
+ * Stack layout for /(app)/post/*.
  *
- * Registered as the visible "Post" tab in (app)/_layout.tsx. The bottom
- * tab resolves to post/index.tsx (the board); router.push pushes into
- * the stack for /post/<id> and /post/new.
- *
- * Header colors match listings/_layout.tsx so the chrome reads
- * consistently across the app.
+ * Native header is hidden — every screen renders <TopBar /> at the top
+ * of its JSX. The new-post composer (post/new.tsx) keeps its own
+ * Stack.Screen options for sheet presentation (pageSheet + detents),
+ * but no longer relies on the native header for its title/Cancel.
  */
 export default function PostLayout() {
-  return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: "#EAE0CB" },
-        headerTintColor: "#3D2814",
-        headerTitleStyle: { fontWeight: "600" },
-        headerBackVisible: false,
-        // Custom back arrow on nested screens (post/[id], post/new).
-        // Post tab-root (post/index.tsx) overrides with <HamburgerButton />.
-        headerLeft: () => <BackButton />,
-      }}
-    />
-  );
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

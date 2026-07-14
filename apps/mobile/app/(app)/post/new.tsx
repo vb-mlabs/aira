@@ -13,6 +13,7 @@ import { ApiError } from "../../../lib/api/client";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { useToast } from "../../../components/ui/Toast";
+import { TopBar } from "../../../components/nav/TopBar";
 import { useCreatePost } from "../../../features/community/hooks";
 
 const TITLE_MAX = 120;
@@ -21,12 +22,11 @@ const PHONE_MAX = 30;
 
 const HELPER_VISIBLE = "Visible to other signed-in members.";
 
-// Rendered inline as headerLeft. Defined at module scope so React
-// Navigation sees a stable function identity across parent re-renders —
-// hoisting this and the SCREEN_OPTIONS object below fixes the "screen
-// reloads on every keystroke" bug on iOS (Radha 2026-07-06 UAT). When
-// options identity changes each render, react-navigation reconciles
-// the header + sheet detents and iOS visibly relayouts.
+// Rendered as the left slot of the TopBar inside the sheet content.
+// Kept at module scope for stable function identity across
+// re-renders — same reason as the SCREEN_OPTIONS object below: an
+// unstable identity contributed to the "screen reloads on every
+// keystroke" bug on iOS (Radha 2026-07-06 UAT).
 function HeaderCancel() {
   return (
     <Pressable
@@ -46,6 +46,10 @@ function HeaderCancel() {
 // dismiss. sheetGrabberVisible shows the horizontal grabber pill so
 // the drag affordance is discoverable.
 //
+// headerShown:false is inherited from the post stack layout — the
+// composer renders a shared <TopBar /> inside its content area
+// instead of relying on the native bar (see nav/TopBar.tsx for why).
+//
 // History note: an earlier attempt used presentation:"formSheet" with
 // the same detent config (commit 1db5b94 → reverted in cccedbd) — on
 // iOS formSheet renders as a small centered iPad-style card, which
@@ -54,7 +58,6 @@ function HeaderCancel() {
 // controls the height. Android ignores the sheet-* options and falls
 // back to a full-screen slide-up modal (react-navigation limitation).
 const SCREEN_OPTIONS = {
-  title: "New post",
   presentation: "pageSheet" as const,
   // Fractional detents (native-stack 6.10+): 0.5 = half height, 1.0 =
   // near-full. Sheet opens at index 0 (half) so the user sees enough of
@@ -63,7 +66,6 @@ const SCREEN_OPTIONS = {
   sheetInitialDetentIndex: 0,
   sheetGrabberVisible: true,
   sheetCornerRadius: 20,
-  headerLeft: () => <HeaderCancel />,
 };
 
 /**
@@ -123,6 +125,7 @@ export default function PostComposerScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
       <Stack.Screen options={SCREEN_OPTIONS} />
+      <TopBar title="New post" left={<HeaderCancel />} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
