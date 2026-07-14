@@ -2,9 +2,9 @@ import Link from "next/link"
 import { CreditCard, Plus } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { listMembershipPlansOp } from "@/server/operations/membership-plans"
-import { AdminBadge } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
 import { AdminPageHeader } from "../../_components/page-header"
+import { PlanList } from "./_components/plan-list"
 
 export const metadata = { title: "Admin · Membership Plans" }
 export const dynamic = "force-dynamic"
@@ -37,50 +37,7 @@ export default async function AdminMembershipPlansPage() {
           action={{ label: "New plan", href: "/admin/settings/membership-plans/new" }}
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Name</th>
-                <th className="px-4 py-3 text-left font-semibold">Price</th>
-                <th className="px-4 py-3 text-left font-semibold">Duration</th>
-                <th className="px-4 py-3 text-left font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {plans.map((plan) => (
-                <tr key={plan.id} className="hover:bg-muted/20">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/settings/membership-plans/${plan.id}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {plan.name}
-                    </Link>
-                    {plan.description && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {plan.description}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums">
-                    ${(plan.price_cents / 100).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {plan.duration_months}{" "}
-                    {plan.duration_months === 1 ? "month" : "months"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <AdminBadge
-                      variant={plan.active ? "active" : "inactive"}
-                      label={plan.active ? "Active" : "Inactive"}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <PlanList plans={plans} />
       )}
     </div>
   )
