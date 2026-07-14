@@ -8,9 +8,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ApiError } from "../../../../../lib/api/client";
 import { Button } from "../../../../../components/ui/Button";
+import { BackButton } from "../../../../../components/nav/BackButton";
+import { TopBar } from "../../../../../components/nav/TopBar";
 import { Dialog } from "../../../../../components/ui/Dialog";
 import { Input } from "../../../../../components/ui/Input";
 import { Skeleton } from "../../../../../components/ui/Skeleton";
@@ -71,7 +73,7 @@ export default function PostEditScreen() {
   if (!id || (detail.isFetched && !post)) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: "Not found" }} />
+        <TopBar title="Not found" left={<BackButton />} />
         <EmptyState
           title="Post not found."
           description="It may have been removed or is no longer visible to you."
@@ -83,7 +85,7 @@ export default function PostEditScreen() {
   if (detail.isLoading || !primed) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: "Edit post" }} />
+        <TopBar title="Edit post" left={<BackButton />} />
         <View className="mt-4 px-5" style={{ gap: 16 }}>
           <Skeleton width="100%" height={40} borderRadius={8} />
           <Skeleton width="100%" height={120} borderRadius={8} />
@@ -147,7 +149,7 @@ export default function PostEditScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "Edit post" }} />
+      <TopBar title="Edit post" left={<BackButton />} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}

@@ -1,10 +1,11 @@
 import * as React from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
-import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { brand } from "@aira/config";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { useToast } from "../../../components/ui/Toast";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { EmptyNotificationsIllustration } from "../../../lib/illustrations/empty-notifications";
 import {
   useNotifications,
@@ -94,30 +95,36 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <Stack.Screen
-        options={{
-          title: "Notifications",
-          headerRight: () =>
-            rows.length > 0 ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Mark all as read"
-                hitSlop={12}
-                onPress={async () => {
-                  try {
-                    await markAllRead.mutateAsync();
-                  } catch {
-                    toast.show({
-                      message: "Couldn't mark all read",
-                      kind: "error",
-                    });
-                  }
-                }}
-              >
-                <Text className="pr-2 text-base text-foreground">Mark all</Text>
-              </Pressable>
-            ) : null,
-        }}
+      <TopBar
+        title="Notifications"
+        left={<BackButton />}
+        right={
+          rows.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Mark all as read"
+              hitSlop={12}
+              onPress={async () => {
+                try {
+                  await markAllRead.mutateAsync();
+                } catch {
+                  toast.show({
+                    message: "Couldn't mark all read",
+                    kind: "error",
+                  });
+                }
+              }}
+              style={{
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text className="text-sm text-foreground">Mark all</Text>
+            </Pressable>
+          ) : null
+        }
       />
       {isLoading ? (
         <View className="px-4 pt-4" style={{ gap: 12 }}>

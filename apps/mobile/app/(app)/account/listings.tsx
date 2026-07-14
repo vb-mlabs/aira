@@ -8,9 +8,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
 import { brand } from "@aira/config";
 import { Skeleton } from "../../../components/ui/Skeleton";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { useFavoriteIds } from "../../../features/favorites/hooks";
 import { useMyListings } from "../../../features/listings/hooks";
@@ -28,7 +29,7 @@ export default function MyListingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "My Listings" }} />
+      <TopBar title="My Listings" left={<BackButton />} />
       {list.isLoading ? (
         <View className="mt-4 px-5" style={{ gap: 12 }}>
           {[0, 1, 2].map((i) => (

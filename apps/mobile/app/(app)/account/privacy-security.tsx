@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
 import { useToast } from "../../../components/ui/Toast";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { requestPermissionAndRegister } from "../../../lib/push";
 
 /**
@@ -65,7 +66,7 @@ export default function PrivacySecurityScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "Privacy & Security" }} />
+      <TopBar title="Privacy & Security" left={<BackButton />} />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Relocated "Enable notifications" row from the legacy hub —
             this is the only non-content thing on the page. */}

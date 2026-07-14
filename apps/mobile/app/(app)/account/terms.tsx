@@ -1,8 +1,9 @@
 import * as React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
 import { brand } from "@aira/config";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 
 /**
  * /account/terms — short terms of service text. Brand voice; not a
@@ -33,7 +34,7 @@ function Section({
 export default function TermsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "Terms" }} />
+      <TopBar title="Terms" left={<BackButton />} />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="px-5 pt-5">
           <Text className="font-display text-2xl font-bold text-foreground">

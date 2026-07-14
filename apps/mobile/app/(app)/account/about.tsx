@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { brand } from "@aira/config";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 
 /**
  * /account/about — brand block + support email + marketing version
@@ -19,7 +20,7 @@ const VERSION = Constants.expoConfig?.version ?? "0.0.0";
 export default function AboutScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "About" }} />
+      <TopBar title="About" left={<BackButton />} />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Brand hero — logo + wordmark + tagline */}
         <View className="items-center px-6 pt-8">

@@ -1,8 +1,9 @@
 import * as React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
 import { ApiError } from "@aira/api";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { Avatar } from "../../../components/ui/Avatar";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
@@ -59,7 +60,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "My Profile" }} />
+      <TopBar title="My Profile" left={<BackButton />} />
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 16 }}
       >

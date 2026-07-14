@@ -1,8 +1,9 @@
 import * as React from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { MyPostRow } from "../../../features/community/components/MyPostRow";
 import { useMyCommunityPosts } from "../../../features/community/hooks";
 
@@ -21,7 +22,7 @@ export default function MyPostsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "My Posts" }} />
+      <TopBar title="My Posts" left={<BackButton />} />
       {list.isLoading ? (
         <View className="mt-4 px-5" style={{ gap: 12 }}>
           {[0, 1, 2].map((i) => (

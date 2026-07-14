@@ -1,8 +1,10 @@
 import * as React from "react";
 import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, router } from "expo-router";
+import { router } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { BusinessCard } from "../../../features/listings/components/BusinessCard";
 import { useFavoriteIds, useFavorites } from "../../../features/favorites/hooks";
 
@@ -24,7 +26,7 @@ export default function FavoritesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: "Favorites" }} />
+      <TopBar title="Favorites" left={<BackButton />} />
       {list.isLoading ? (
         <View className="mt-4 px-5" style={{ gap: 12 }}>
           {[0, 1, 2, 3].map((i) => (

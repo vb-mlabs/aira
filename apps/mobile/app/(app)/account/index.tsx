@@ -1,12 +1,13 @@
 import * as React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { Stack, router } from "expo-router";
+import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Avatar } from "../../../components/ui/Avatar";
 import { Dialog } from "../../../components/ui/Dialog";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { useToast } from "../../../components/ui/Toast";
 import { HamburgerButton } from "../../../components/nav/HamburgerButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { useMe, useSignOut } from "../../../features/auth/hooks";
 import { usePickAndUploadAvatar } from "../../../features/avatar/hooks";
 import { useDeleteAccount } from "../../../features/profile/hooks";
@@ -91,13 +92,7 @@ export default function AccountScreen() {
   // and the Tabs bar owns the bottom.
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen
-        options={{
-          title: "Account",
-          headerBackVisible: false,
-          headerLeft: () => <HamburgerButton />,
-        }}
-      />
+      <TopBar title="Account" left={<HamburgerButton />} />
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         {/* Avatar header — px-5 unifies gutter with every other tab
             (Home, Categories, Listings) and matches the inset row
