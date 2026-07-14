@@ -37,6 +37,11 @@ const AdminBusinessItemSchema = BusinessAdminSchema.extend({
   latest_payment_status: z.enum(["paid", "pending", "overdue"]).nullable(),
   latest_subscription_end_date: z.string().nullable(),
   latest_subscription_days_remaining: z.number().int().nullable(),
+  /** Name of the membership plan on the latest subscription. Null when
+   *  the business has no subscription OR when the subscription's
+   *  plan_id is null (plan was deleted from under it — FK is
+   *  onDelete: "set null"). Admin UI collapses both cases to "—". */
+  latest_plan_name: z.string().nullable(),
   /** Resolved owner record via getBusinessOwnerLookup. null when
    *  owner_user_id is null OR when the referenced user has been
    *  deleted/anonymised (INNER JOIN drops those rows). */
@@ -120,14 +125,24 @@ export const listAllBusinessesAdminOp = defineOperation({
     })
 
     // Fetch latest subscription per business in one query using DISTINCT ON.
+    // LEFT JOIN membership_plan so the row carries the plan name for the
+    // admin table's Subscription column; JOIN is LEFT because a
+    // subscription may have plan_id: null (plan was deleted — FK is
+    // onDelete: "set null").
     const latestSubs = await db.execute<{
       business_id: string
       payment_status: "paid" | "pending" | "overdue"
       end_date: string
+      plan_name: string | null
     }>(sql`
-      SELECT DISTINCT ON (business_id) business_id, payment_status, end_date
-      FROM business_subscription
-      ORDER BY business_id, end_date DESC
+      SELECT DISTINCT ON (bs.business_id)
+        bs.business_id,
+        bs.payment_status,
+        bs.end_date,
+        mp.name AS plan_name
+      FROM business_subscription bs
+      LEFT JOIN membership_plan mp ON bs.plan_id = mp.id
+      ORDER BY bs.business_id, bs.end_date DESC
     `)
 
     // Pre-compute days_remaining server-side so the admin businesses
@@ -174,6 +189,7 @@ export const listAllBusinessesAdminOp = defineOperation({
         latest_subscription_days_remaining: sub
           ? Math.ceil((new Date(sub.end_date).getTime() - nowMs) / DAY_MS)
           : null,
+        latest_plan_name: sub?.plan_name ?? null,
         owner: ownerLookup.get(b.id) ?? null,
       }
     })
