@@ -63,3 +63,26 @@ export const deactivateSponsorshipTierOp = defineOperation({
     return { tier }
   },
 })
+
+// Hard-delete. Refuses when sponsorships reference the tier (via the
+// service-level SponsorshipTierHasSponsorshipsError guard). The UI
+// hides the Delete button when sponsorship_count > 0, but the guard
+// here is the source of truth for the race case.
+export const deleteSponsorshipTierOp = defineOperation({
+  name: "admin.sponsorship-tiers.delete",
+  input: z.object({ id: z.string().min(1) }).strict(),
+  output: z.object({ tier: z.any() }),
+  permission: "super_admin",
+  handler: async (db, _ctx, { id }) => {
+    try {
+      const tier = await tiersService.deleteSponsorshipTier(db, id)
+      if (!tier) throw ApiError.notFound("sponsorship_tier.not_found", "Tier not found")
+      return { tier }
+    } catch (err) {
+      if (err instanceof tiersService.SponsorshipTierHasSponsorshipsError) {
+        throw ApiError.badRequest("sponsorship_tier.has_sponsorships", err.message)
+      }
+      throw err
+    }
+  },
+})
