@@ -1,8 +1,10 @@
 import * as React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
+import { BackButton } from "../../../components/nav/BackButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { CommentThread } from "../../../features/community/components/CommentThread";
 import { ContactReveal } from "../../../features/community/components/ContactReveal";
@@ -27,7 +29,7 @@ export default function PostDetailScreen() {
   if (detail.isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: "Loading…" }} />
+        <TopBar title="Loading…" left={<BackButton />} />
         <View className="mt-4 px-5" style={{ gap: 12 }}>
           <Skeleton width="80%" height={28} />
           <Skeleton width="40%" height={16} />
@@ -41,7 +43,7 @@ export default function PostDetailScreen() {
   if (!post) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: "Not found" }} />
+        <TopBar title="Not found" left={<BackButton />} />
         <EmptyState
           title="Post not found."
           description="It may have been removed or is no longer visible to you."
@@ -52,7 +54,7 @@ export default function PostDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <TopBar title={headerTitle} left={<BackButton />} />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
