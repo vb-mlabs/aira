@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: "AIRA",
   slug: "aira-mobile",
   scheme: "aira",
-  version: "0.1.0",
+  version: "0.1.1",
   // EAS Update OTA scope. Updates only flow within the same marketing
   // `version` string — bumping `version` invalidates in-flight OTAs and
   // is the deliberate ceremony at every store release. See
@@ -31,7 +31,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: "./assets/splash.png",
     resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    // Cream background matches the app-wide surface colour so the
+    // launch splash reads as visual continuation of the app rather
+    // than a stark white flash before render.
+    backgroundColor: "#EAE0CB",
     dark: {
       image: "./assets/splash-dark.png",
       backgroundColor: "#000000",
