@@ -8,10 +8,12 @@
 import { useState } from "react"
 import { AdminBadge } from "@/features/admin"
 import { PlanDetailsModal } from "@/features/admin/components/plan-details-modal"
-import type { MembershipPlan } from "@aira/validators/membership-plans"
+import type { MembershipPlanListItem } from "@aira/validators/membership-plans"
 
 interface PlanListProps {
-  plans: MembershipPlan[]
+  // MembershipPlanListItem (base plan + subscription_count) — needed
+  // so PlanDetailsModal can decide whether the Delete button renders.
+  plans: MembershipPlanListItem[]
 }
 
 export function PlanList({ plans }: PlanListProps) {

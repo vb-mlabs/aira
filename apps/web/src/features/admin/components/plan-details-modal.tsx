@@ -19,16 +19,20 @@ import { X } from "lucide-react"
 import { Button } from "@aira/ui-web/button"
 import { AdminBadge } from "../index"
 import { PlanDeactivateConfirmDialog } from "./plan-deactivate-confirm-dialog"
-import type { MembershipPlan } from "@aira/validators/membership-plans"
+import { PlanDeleteConfirmDialog } from "./plan-delete-confirm-dialog"
+import type { MembershipPlanListItem } from "@aira/validators/membership-plans"
 
 interface PlanDetailsModalProps {
-  plan: MembershipPlan | null
+  // MembershipPlanListItem (extends MembershipPlan with subscription_count)
+  // — needed to decide whether the Delete button renders.
+  plan: MembershipPlanListItem | null
   onClose: () => void
 }
 
 export function PlanDetailsModal({ plan, onClose }: PlanDetailsModalProps) {
   const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   function handleOpenChange(next: boolean) {
     if (!next) onClose()
@@ -45,6 +49,12 @@ export function PlanDetailsModal({ plan, onClose }: PlanDetailsModalProps) {
 
   function handleDeactivated() {
     setConfirmOpen(false)
+    onClose()
+    router.refresh()
+  }
+
+  function handleDeleted() {
+    setDeleteOpen(false)
     onClose()
     router.refresh()
   }
@@ -131,6 +141,12 @@ export function PlanDetailsModal({ plan, onClose }: PlanDetailsModalProps) {
                   </dl>
                 </div>
 
+                {/* Footer button order (left → right): Deactivate | Delete
+                    | Edit. Softest destructive leftmost, hardest
+                    destructive middle, primary action (Edit) rightmost —
+                    matches native modal-footer convention. Delete is
+                    hidden when subscription_count > 0; Deactivate is
+                    hidden when plan.active === false. */}
                 <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-6 py-4">
                   {plan.active && (
                     <Button
@@ -141,6 +157,17 @@ export function PlanDetailsModal({ plan, onClose }: PlanDetailsModalProps) {
                       className="text-destructive hover:bg-destructive/10"
                     >
                       Deactivate
+                    </Button>
+                  )}
+                  {plan.subscription_count === 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDeleteOpen(true)}
+                      className="text-destructive hover:bg-destructive/10"
+                    >
+                      Delete
                     </Button>
                   )}
                   <Button
@@ -159,12 +186,20 @@ export function PlanDetailsModal({ plan, onClose }: PlanDetailsModalProps) {
       </Dialog.Root>
 
       {plan && (
-        <PlanDeactivateConfirmDialog
-          plan={plan}
-          open={confirmOpen}
-          onClose={() => setConfirmOpen(false)}
-          onDeactivated={handleDeactivated}
-        />
+        <>
+          <PlanDeactivateConfirmDialog
+            plan={plan}
+            open={confirmOpen}
+            onClose={() => setConfirmOpen(false)}
+            onDeactivated={handleDeactivated}
+          />
+          <PlanDeleteConfirmDialog
+            plan={plan}
+            open={deleteOpen}
+            onClose={() => setDeleteOpen(false)}
+            onDeleted={handleDeleted}
+          />
+        </>
       )}
     </>
   )
