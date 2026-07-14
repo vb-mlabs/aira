@@ -9,7 +9,7 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import { cn } from "@aira/ui-web/utils"
-import type { Sponsorship } from "@aira/validators/sponsorships"
+import type { SponsorshipListItem } from "@aira/validators/sponsorships"
 import type { SponsorshipTier } from "@aira/validators/sponsorship-tiers"
 
 interface SponsorshipsSectionProps {
@@ -50,7 +50,7 @@ export function SponsorshipsSection({
   businessCategoryNames,
 }: SponsorshipsSectionProps) {
   const router = useRouter()
-  const [sponsorships, setSponsorships] = useState<Sponsorship[]>([])
+  const [sponsorships, setSponsorships] = useState<SponsorshipListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
@@ -58,7 +58,7 @@ export function SponsorshipsSection({
 
   async function fetchSponsorships() {
     try {
-      const res = await apiClient.get<{ items: Sponsorship[] }>(
+      const res = await apiClient.get<{ items: SponsorshipListItem[] }>(
         `/api/v1/admin/businesses/${businessId}/sponsorships`,
         { query: { business_id: businessId } },
       )
@@ -141,8 +141,10 @@ export function SponsorshipsSection({
                         {sp.status}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {sp.tier_id ? sp.tier_id.slice(0, 8) + "…" : "—"}
+                    <td className="px-3 py-2 text-foreground">
+                      {sp.tier_name ?? (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="px-3 py-2 tabular-nums">
                       ${(sp.amount_cents / 100).toFixed(2)}

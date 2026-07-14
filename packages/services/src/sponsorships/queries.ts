@@ -1,9 +1,12 @@
 import "server-only"
 
 import { eq } from "drizzle-orm"
-import { sponsorships } from "@aira/db/schema"
+import { sponsorships, sponsorshipTiers } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
-import type { Sponsorship } from "@aira/validators/sponsorships"
+import type {
+  Sponsorship,
+  SponsorshipListItem,
+} from "@aira/validators/sponsorships"
 
 export function toSponsorship(
   row: typeof sponsorships.$inferSelect,
@@ -23,13 +26,24 @@ export function toSponsorship(
 export async function listSponsorshipsByBusiness(
   db: Database,
   businessId: string,
-): Promise<Sponsorship[]> {
+): Promise<SponsorshipListItem[]> {
+  // LEFT JOIN sponsorship_tier so the admin sponsorships table can
+  // render the tier NAME instead of the raw tier_id. LEFT because
+  // tier_id is nullable AND the FK is onDelete: "set null" — an
+  // orphaned reference should still surface the sponsorship row.
   const rows = await db
-    .select()
+    .select({
+      sp: sponsorships,
+      tier_name: sponsorshipTiers.name,
+    })
     .from(sponsorships)
+    .leftJoin(sponsorshipTiers, eq(sponsorships.tier_id, sponsorshipTiers.id))
     .where(eq(sponsorships.business_id, businessId))
     .orderBy(sponsorships.end_date)
-  return rows.map(toSponsorship)
+  return rows.map(({ sp, tier_name }) => ({
+    ...toSponsorship(sp),
+    tier_name: tier_name ?? null,
+  }))
 }
 
 export async function getSponsorshipById(

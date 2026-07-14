@@ -48,7 +48,16 @@ export const SponsorshipUpdateInputSchema = z
   .strict()
 export type SponsorshipUpdateInput = z.infer<typeof SponsorshipUpdateInputSchema>
 
+/** List-item variant — extends base with the joined tier name so the
+ *  admin sponsorships table can render "{name}" instead of the raw
+ *  tier_id. Null when the sponsorship has no tier_id OR when the
+ *  referenced tier no longer exists (FK is onDelete: "set null"). */
+export const SponsorshipListItemSchema = SponsorshipSchema.extend({
+  tier_name: z.string().nullable(),
+})
+export type SponsorshipListItem = z.infer<typeof SponsorshipListItemSchema>
+
 export const SponsorshipListOutputSchema = z.object({
-  items: z.array(SponsorshipSchema),
+  items: z.array(SponsorshipListItemSchema),
 })
 export type SponsorshipListOutput = z.infer<typeof SponsorshipListOutputSchema>
