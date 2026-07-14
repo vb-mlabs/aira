@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-13
 **Slug:** 2026-07-13-mobile-drawer-and-all-listings
-**Status:** reviewed
+**Status:** implemented
 **Author:** /mlabs-plan (framer@millionlabs.co.uk)
 
 ---
