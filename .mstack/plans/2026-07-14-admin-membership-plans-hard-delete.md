@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-14
 **Slug:** 2026-07-14-admin-membership-plans-hard-delete
-**Status:** reviewed
+**Status:** implemented
 **Author:** /mlabs-plan (framer@millionlabs.co.uk, via /mlabs-auto)
 
 ---
