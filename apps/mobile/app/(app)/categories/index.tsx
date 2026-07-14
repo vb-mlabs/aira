@@ -8,9 +8,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { HamburgerButton } from "../../../components/nav/HamburgerButton";
+import { TopBar } from "../../../components/nav/TopBar";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import {
@@ -86,12 +87,7 @@ export default function ListingsTabScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen
-        options={{
-          title: "Listings",
-          headerLeft: () => <HamburgerButton />,
-        }}
-      />
+      <TopBar title="Listings" left={<HamburgerButton />} />
 
       {/* ── Sticky header controls ─────────────────────────── */}
       <View className="px-5 pt-3" style={{ gap: 12 }}>
