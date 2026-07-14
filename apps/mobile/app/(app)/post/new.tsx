@@ -2,7 +2,6 @@ import * as React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
@@ -13,6 +12,7 @@ import { ApiError } from "../../../lib/api/client";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { useToast } from "../../../components/ui/Toast";
+import { BackButton } from "../../../components/nav/BackButton";
 import { TopBar } from "../../../components/nav/TopBar";
 import { useCreatePost } from "../../../features/community/hooks";
 
@@ -21,24 +21,6 @@ const BODY_MAX = 1000;
 const PHONE_MAX = 30;
 
 const HELPER_VISIBLE = "Visible to other signed-in members.";
-
-// Rendered as the left slot of the TopBar inside the sheet content.
-// Kept at module scope for stable function identity across
-// re-renders — same reason as the SCREEN_OPTIONS object below: an
-// unstable identity contributed to the "screen reloads on every
-// keystroke" bug on iOS (Radha 2026-07-06 UAT).
-function HeaderCancel() {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Cancel"
-      onPress={() => router.back()}
-      hitSlop={8}
-    >
-      <Text className="pr-2 text-base text-foreground">Cancel</Text>
-    </Pressable>
-  );
-}
 
 // presentation: "pageSheet" + iOS 15+ sheet detents give the composer
 // a proper bottom-sheet feel — slides up from the bottom, snaps to
@@ -125,7 +107,7 @@ export default function PostComposerScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
       <Stack.Screen options={SCREEN_OPTIONS} />
-      <TopBar title="New post" left={<HeaderCancel />} />
+      <TopBar title="New post" left={<BackButton />} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
