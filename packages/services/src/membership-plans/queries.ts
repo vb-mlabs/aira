@@ -1,9 +1,12 @@
 import "server-only"
 
-import { eq, and } from "drizzle-orm"
-import { membershipPlans } from "@aira/db/schema"
+import { eq, and, sql } from "drizzle-orm"
+import { membershipPlans, businessSubscriptions } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
-import type { MembershipPlan } from "@aira/validators/membership-plans"
+import type {
+  MembershipPlan,
+  MembershipPlanListItem,
+} from "@aira/validators/membership-plans"
 
 function toMembershipPlan(row: typeof membershipPlans.$inferSelect): MembershipPlan {
   return {
@@ -18,15 +21,32 @@ export async function listMembershipPlans(
   db: Database,
   cityId: string,
   includeInactive = false,
-): Promise<MembershipPlan[]> {
+): Promise<MembershipPlanListItem[]> {
   const conditions = includeInactive
     ? [eq(membershipPlans.city_id, cityId)]
     : [eq(membershipPlans.city_id, cityId), eq(membershipPlans.active, true)]
+
+  // Correlated subquery — one COUNT per plan row. Fine at expected plan
+  // volumes (~5-20 per city); if this ever needs to scale, swap for
+  // LEFT JOIN + GROUP BY.
+  const subscriptionCount = sql<number>`(
+    SELECT COUNT(*)::int
+    FROM ${businessSubscriptions}
+    WHERE ${businessSubscriptions.plan_id} = ${membershipPlans.id}
+  )`.as("subscription_count")
+
   const rows = await db
-    .select()
+    .select({
+      plan: membershipPlans,
+      subscription_count: subscriptionCount,
+    })
     .from(membershipPlans)
     .where(and(...conditions))
-  return rows.map(toMembershipPlan)
+
+  return rows.map(({ plan, subscription_count }) => ({
+    ...toMembershipPlan(plan),
+    subscription_count: Number(subscription_count),
+  }))
 }
 
 export async function getMembershipPlanById(

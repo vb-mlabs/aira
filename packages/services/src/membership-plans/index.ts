@@ -3,4 +3,6 @@ export {
   createMembershipPlan,
   updateMembershipPlan,
   deactivateMembershipPlan,
+  deleteMembershipPlan,
+  MembershipPlanHasSubscriptionsError,
 } from "./service"
