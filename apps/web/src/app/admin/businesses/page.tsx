@@ -14,8 +14,6 @@ import { RenewingFilter } from "./_components/renewing-filter"
 export const metadata = { title: "Admin · Businesses" }
 export const dynamic = "force-dynamic"
 
-type PaymentStatus = "paid" | "pending" | "overdue"
-
 interface PageProps {
   searchParams: Promise<{
     archived?: string
@@ -113,8 +111,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left font-semibold">Name</th>
                 <th className="px-4 py-3 text-left font-semibold">Category</th>
                 <th className="px-4 py-3 text-left font-semibold">Subscription</th>
-                <th className="px-4 py-3 text-left font-semibold">Owner</th>
-                <th className="px-4 py-3 text-left font-semibold">Contact person</th>
+                <th className="px-4 py-3 text-left font-semibold">Due date</th>
                 <th className="px-4 py-3 text-left font-semibold">Verified</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
               </tr>
@@ -154,45 +151,24 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                     <td className="px-4 py-3 text-muted-foreground">
                       {b.category}
                     </td>
-                    <td className="px-4 py-3">
-                      {b.latest_payment_status ? (
-                        <div>
-                          <AdminBadge
-                            variant={b.latest_payment_status as PaymentStatus}
-                            label={b.latest_payment_status}
-                          />
-                          {days !== null && endDate !== null && (
-                            <span
-                              className={cn(
-                                "mt-0.5 block text-[11px] leading-tight",
-                                isOverdue
-                                  ? "font-bold uppercase tracking-wide text-destructive"
-                                  : isCritical
-                                    ? "font-semibold text-destructive"
-                                    : "text-muted-foreground",
-                              )}
-                            >
-                              {expiryLabel(days, endDate)}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
+                    <td className="px-4 py-3 text-foreground">
+                      {b.latest_plan_name ?? (
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {b.owner ? (
-                        <span className="block truncate">
-                          {b.owner.name || b.owner.email}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/60">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {b.contact_person ? (
-                        <span className="block max-w-[150px] truncate">
-                          {b.contact_person}
+                    <td className="px-4 py-3">
+                      {days !== null && endDate !== null ? (
+                        <span
+                          className={cn(
+                            "text-sm",
+                            isOverdue
+                              ? "font-bold uppercase tracking-wide text-destructive"
+                              : isCritical
+                                ? "font-semibold text-destructive"
+                                : "text-muted-foreground",
+                          )}
+                        >
+                          {expiryLabel(days, endDate)}
                         </span>
                       ) : (
                         <span className="text-muted-foreground/60">—</span>
