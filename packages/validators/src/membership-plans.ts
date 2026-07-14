@@ -13,6 +13,16 @@ export const MembershipPlanSchema = z.object({
 })
 export type MembershipPlan = z.infer<typeof MembershipPlanSchema>
 
+// List-item variant: base plan + rolled-up subscription reference count.
+// Emitted by admin.membership-plans.list so the admin UI can gate the
+// hard-delete action on subscription_count === 0 without a second fetch.
+// Base MembershipPlanSchema stays untouched so consumers that don't need
+// the count (PlanForm, single-plan fetches) keep their existing shape.
+export const MembershipPlanListItemSchema = MembershipPlanSchema.extend({
+  subscription_count: z.number().int().nonnegative(),
+})
+export type MembershipPlanListItem = z.infer<typeof MembershipPlanListItemSchema>
+
 export const MembershipPlanCreateInputSchema = z
   .object({
     city_id: z.string().min(1),
@@ -37,6 +47,6 @@ export const MembershipPlanUpdateInputSchema = z
 export type MembershipPlanUpdateInput = z.infer<typeof MembershipPlanUpdateInputSchema>
 
 export const MembershipPlanListOutputSchema = z.object({
-  items: z.array(MembershipPlanSchema),
+  items: z.array(MembershipPlanListItemSchema),
 })
 export type MembershipPlanListOutput = z.infer<typeof MembershipPlanListOutputSchema>
