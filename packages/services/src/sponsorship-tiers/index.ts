@@ -3,4 +3,6 @@ export {
   createSponsorshipTier,
   updateSponsorshipTier,
   deactivateSponsorshipTier,
+  deleteSponsorshipTier,
+  SponsorshipTierHasSponsorshipsError,
 } from "./service"

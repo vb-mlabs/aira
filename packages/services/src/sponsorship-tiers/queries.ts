@@ -1,9 +1,13 @@
 import "server-only"
 
-import { eq, and } from "drizzle-orm"
-import { sponsorshipTiers } from "@aira/db/schema"
+import { eq, and, sql } from "drizzle-orm"
+import { sponsorshipTiers, sponsorships } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
-import type { SponsorshipTier, DisplaySlot } from "@aira/validators/sponsorship-tiers"
+import type {
+  SponsorshipTier,
+  SponsorshipTierListItem,
+  DisplaySlot,
+} from "@aira/validators/sponsorship-tiers"
 
 export function toSponsorshipTier(
   row: typeof sponsorshipTiers.$inferSelect,
@@ -24,16 +28,34 @@ export async function listSponsorshipTiers(
   db: Database,
   cityId: string,
   includeInactive = false,
-): Promise<SponsorshipTier[]> {
+): Promise<SponsorshipTierListItem[]> {
   const conditions = includeInactive
     ? [eq(sponsorshipTiers.city_id, cityId)]
     : [eq(sponsorshipTiers.city_id, cityId), eq(sponsorshipTiers.active, true)]
+
+  // Correlated subquery — one COUNT per tier row. Same pattern as
+  // listMembershipPlans; trivial at expected tier volumes (~5-20
+  // per city). Swap for LEFT JOIN + GROUP BY if it ever needs to scale.
+  const sponsorshipCount = sql<number>`(
+    SELECT COUNT(*)::int
+    FROM ${sponsorships}
+    WHERE ${sponsorships.tier_id} = ${sponsorshipTiers.id}
+  )`.as("sponsorship_count")
+
   const rows = await db
-    .select()
+    .select({
+      tier: sponsorshipTiers,
+      sponsorship_count: sponsorshipCount,
+    })
     .from(sponsorshipTiers)
     .where(and(...conditions))
+    // Priority ordering is functional (lower = better placement); preserve.
     .orderBy(sponsorshipTiers.priority)
-  return rows.map(toSponsorshipTier)
+
+  return rows.map(({ tier, sponsorship_count }) => ({
+    ...toSponsorshipTier(tier),
+    sponsorship_count: Number(sponsorship_count),
+  }))
 }
 
 export async function getSponsorshipTierById(
