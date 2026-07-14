@@ -36,6 +36,17 @@ export const SponsorshipTierSchema = z.object({
 })
 export type SponsorshipTier = z.infer<typeof SponsorshipTierSchema>
 
+// List-item variant: base tier + rolled-up sponsorship reference count.
+// Emitted by admin.sponsorship-tiers.list so the admin UI can gate the
+// hard-delete action on sponsorship_count === 0 without a second fetch.
+// Base SponsorshipTierSchema stays untouched so consumers that don't
+// need the count (TierForm, sponsorships-section fetches) keep their
+// existing shape.
+export const SponsorshipTierListItemSchema = SponsorshipTierSchema.extend({
+  sponsorship_count: z.number().int().nonnegative(),
+})
+export type SponsorshipTierListItem = z.infer<typeof SponsorshipTierListItemSchema>
+
 export const SponsorshipTierCreateInputSchema = z.object({
   city_id: z.string().min(1),
   name: z.string().min(1).max(100),
@@ -54,6 +65,6 @@ export const SponsorshipTierUpdateInputSchema = z.object({
 export type SponsorshipTierUpdateInput = z.infer<typeof SponsorshipTierUpdateInputSchema>
 
 export const SponsorshipTierListOutputSchema = z.object({
-  items: z.array(SponsorshipTierSchema),
+  items: z.array(SponsorshipTierListItemSchema),
 })
 export type SponsorshipTierListOutput = z.infer<typeof SponsorshipTierListOutputSchema>
