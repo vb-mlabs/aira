@@ -61,3 +61,27 @@ export const deactivateMembershipPlanOp = defineOperation({
     return { plan }
   },
 })
+
+// Hard-delete. Refuses when subscriptions reference the plan (the
+// service-level MembershipPlanHasSubscriptionsError guard). The UI
+// hides the Delete button when subscription_count > 0, but the guard
+// here is the source of truth — a subscription created after the list
+// was fetched would race past the UI hide.
+export const deleteMembershipPlanOp = defineOperation({
+  name: "admin.membership-plans.delete",
+  input: z.object({ id: z.string().min(1) }).strict(),
+  output: z.object({ plan: z.any() }),
+  permission: "super_admin",
+  handler: async (db, _ctx, { id }) => {
+    try {
+      const plan = await plansService.deleteMembershipPlan(db, id)
+      if (!plan) throw ApiError.notFound("membership_plan.not_found", "Plan not found")
+      return { plan }
+    } catch (err) {
+      if (err instanceof plansService.MembershipPlanHasSubscriptionsError) {
+        throw ApiError.badRequest("membership_plan.has_subscriptions", err.message)
+      }
+      throw err
+    }
+  },
+})
