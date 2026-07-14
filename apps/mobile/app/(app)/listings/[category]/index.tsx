@@ -8,7 +8,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect, Stack, router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { BackButton } from "../../../../components/nav/BackButton";
+import { TopBar } from "../../../../components/nav/TopBar";
 import type { Business } from "@aira/validators";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { EmptyState } from "../../../../features/listings/components/EmptyState";
@@ -131,7 +133,7 @@ export default function CategoryListingScreen() {
 
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: headerTitle }} />
+        <TopBar title={headerTitle} left={<BackButton />} />
         {list.isLoading ? (
           <View className="mt-4 px-5" style={{ gap: 12 }}>
             {[0, 1, 2, 3].map((i) => (
@@ -229,7 +231,7 @@ export default function CategoryListingScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <TopBar title={headerTitle} left={<BackButton />} />
 
       {/* Controls */}
       <View className="px-5 pt-3" style={{ gap: 12 }}>

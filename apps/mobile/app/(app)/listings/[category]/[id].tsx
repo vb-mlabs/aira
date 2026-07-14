@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Button } from "../../../../components/ui/Button";
 import { Skeleton } from "../../../../components/ui/Skeleton";
@@ -13,6 +13,8 @@ import { EmptyState } from "../../../../features/listings/components/EmptyState"
 import { Gallery } from "../../../../features/listings/components/Gallery";
 import { useFavoriteIds } from "../../../../features/favorites/hooks";
 import { useBusinessDetail } from "../../../../features/listings/hooks";
+import { BackButton } from "../../../../components/nav/BackButton";
+import { TopBar } from "../../../../components/nav/TopBar";
 import { useOriginAwareBack } from "../../../../lib/nav/useOriginAwareBack";
 
 // Hex matches the secondaryForeground token (#301d0d) so the
@@ -68,7 +70,7 @@ export default function BusinessDetailScreen() {
   if (detail.isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: "Loading…" }} />
+        <TopBar title="Loading…" left={<BackButton />} />
         <View
           style={{
             width: "100%",
@@ -89,7 +91,7 @@ export default function BusinessDetailScreen() {
   if (!business) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <Stack.Screen options={{ title: "Not found" }} />
+        <TopBar title="Not found" left={<BackButton />} />
         <EmptyState
           title="Business not found."
           description="It may have been removed or is no longer active."
@@ -100,7 +102,7 @@ export default function BusinessDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <TopBar title={headerTitle} left={<BackButton />} />
       <ScrollView
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
