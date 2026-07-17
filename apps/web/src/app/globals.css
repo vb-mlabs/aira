@@ -311,15 +311,15 @@
 }
 
 /* Google Places `<gmp-place-autocomplete>` — used in the admin business
-   detail address modal. The element ships its own internal CSS that gives
-   the input a white square box; override with !important so it matches the
-   app's <Input> primitive (rounded-2xl, transparent, border-input).
+   detail address modal.
 
-   Older SDK versions rendered the input in the light DOM (descendant
-   selectors reach it); newer SDK versions (v=weekly, late 2026 onward)
-   moved it into Shadow DOM and expose a `::part(...)` theming API. We
-   ship BOTH selector styles so the widget looks correct on whichever
-   SDK the browser has cached. */
+   Two things fight our styling: (a) Google now renders the input inside
+   Shadow DOM (needs `::part()` or their `--gmp-mat-*` custom properties
+   to reach), and (b) the element inherits `color-scheme: light dark` so
+   it can flip to a dark surface when the OS prefers dark, even inside a
+   light-theme admin page. Force light color-scheme + Material tokens
+   mapped to our design tokens, then zero out any leftover container
+   chrome via `::part()`. */
 gmp-place-autocomplete {
   display: block !important;
   width: 100% !important;
@@ -327,40 +327,38 @@ gmp-place-autocomplete {
   border: 0 !important;
   padding: 0 !important;
   font-family: inherit !important;
+  /* Force light color-scheme so Google's internal MD3 palette resolves
+     to light-mode surfaces regardless of the browser's prefers-color-scheme. */
+  color-scheme: light !important;
+
+  /* Google's official theming hooks — Material Design 3 tokens.
+     https://developers.google.com/maps/documentation/javascript/place-autocomplete#style */
+  --gmp-mat-color-surface: var(--popover);
+  --gmp-mat-color-surface-container: var(--popover);
+  --gmp-mat-color-on-surface: var(--popover-foreground);
+  --gmp-mat-color-on-surface-variant: var(--muted-foreground);
+  --gmp-mat-color-primary: var(--ring);
+  --gmp-mat-color-outline: var(--input);
+  --gmp-mat-color-outline-decorative: var(--border);
+  --gmp-mat-color-hover-state-layer: color-mix(in oklch, var(--accent) 60%, transparent);
+  --gmp-mat-color-focus-state-layer: color-mix(in oklch, var(--ring) 30%, transparent);
+  --gmp-mat-font-family: inherit;
 }
 
-/* Light-DOM path — older SDK. */
-gmp-place-autocomplete input {
-  height: 45px !important;
-  width: 100% !important;
-  border-radius: var(--radius-2xl) !important;
-  border: 1px solid var(--input) !important;
-  background-color: transparent !important;
-  padding: 0.25rem 0.75rem !important;
-  font-family: inherit !important;
-  font-size: 0.875rem !important;
-  color: var(--foreground) !important;
-  outline: none !important;
-  box-shadow: none !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-gmp-place-autocomplete input::placeholder {
-  color: var(--muted-foreground) !important;
-}
-gmp-place-autocomplete input:focus-visible {
-  border-color: var(--ring) !important;
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent) !important;
-}
-
-/* Shadow-DOM path — newer SDK. Google exposes the internal input +
-   container + prediction list via `part` attributes. */
+/* Zero out ANY container chrome Google renders around the input so
+   there's only one visible border/ring — ours on `::part(input)`. */
 gmp-place-autocomplete::part(main-container),
-gmp-place-autocomplete::part(input-container) {
+gmp-place-autocomplete::part(input-container),
+gmp-place-autocomplete::part(container),
+gmp-place-autocomplete::part(wrapper) {
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
   box-shadow: none !important;
+  outline: none !important;
 }
+
+/* The visible input. */
 gmp-place-autocomplete::part(input) {
   height: 45px !important;
   width: 100% !important;
@@ -380,9 +378,37 @@ gmp-place-autocomplete::part(input):focus {
   border-color: var(--ring) !important;
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent) !important;
 }
+
+/* Suggestions dropdown — force the popover surface + text colours across
+   every candidate part name Google exposes in different SDK versions. */
+gmp-place-autocomplete::part(prediction-container),
+gmp-place-autocomplete::part(prediction-list),
+gmp-place-autocomplete::part(dropdown),
+gmp-place-autocomplete::part(popover),
+gmp-place-autocomplete::part(listbox) {
+  background-color: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-card) !important;
+}
 gmp-place-autocomplete::part(prediction-item),
-gmp-place-autocomplete::part(prediction-item-main-text),
-gmp-place-autocomplete::part(prediction-item-secondary-text) {
-  color: var(--foreground) !important;
+gmp-place-autocomplete::part(item) {
+  background-color: transparent !important;
+  color: var(--popover-foreground) !important;
   font-family: inherit !important;
+}
+gmp-place-autocomplete::part(prediction-item-main-text),
+gmp-place-autocomplete::part(item-main-text) {
+  color: var(--popover-foreground) !important;
+  font-family: inherit !important;
+}
+gmp-place-autocomplete::part(prediction-item-secondary-text),
+gmp-place-autocomplete::part(item-secondary-text) {
+  color: var(--muted-foreground) !important;
+  font-family: inherit !important;
+}
+gmp-place-autocomplete::part(prediction-item-icon),
+gmp-place-autocomplete::part(item-icon) {
+  color: var(--muted-foreground) !important;
 }
