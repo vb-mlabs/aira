@@ -240,7 +240,7 @@ export function PlacesAddressInput({
   // outline is visible. Matches the `<Input>` primitive at
   // packages/ui-web/src/components/input.tsx.
   return (
-    <div className="h-[45px] w-full rounded-2xl border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+    <div className="h-[45px] w-full border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
       <div ref={containerRef} className="h-full w-full" />
     </div>
   )
