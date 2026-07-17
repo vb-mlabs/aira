@@ -49,7 +49,6 @@ export default async function AdminWaitlistPage({ searchParams }: PageProps) {
         ? `Showing ${items.length} of ${total} · older signups hidden`
         : `${items.length} total`
 
-  const downloadLabel = tab === "consumer" ? "Download consumers CSV" : "Download businesses CSV"
   const downloadHref = `/api/v1/admin/waitlist.csv?type=${tab}`
 
   return (
@@ -65,7 +64,7 @@ export default async function AdminWaitlistPage({ searchParams }: PageProps) {
               className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-transparent px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               <Download className="size-3.5" aria-hidden />
-              {downloadLabel}
+              Download CSV
             </a>
           ) : null
         }
