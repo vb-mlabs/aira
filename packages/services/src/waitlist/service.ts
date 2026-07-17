@@ -85,6 +85,46 @@ export async function listAdmin(
   return { items, total }
 }
 
+/** Unbounded newest-first export for one waitlist type. Used by the
+ *  CSV route so admins can download the full list for email outreach.
+ *  Same row shape as listAdmin — no total, no LIMIT. */
+export async function exportAdmin(
+  db: Database,
+  args: { type: WaitlistType },
+): Promise<WaitlistAdminListItem[]> {
+  const rows = await db
+    .select({
+      id: waitlist.id,
+      type: waitlist.type,
+      email: waitlist.email,
+      created_at: waitlist.created_at,
+      source: waitlist.source,
+      full_name: waitlist.full_name,
+      business_name: waitlist.business_name,
+      phone: waitlist.phone,
+      preferred_contact: waitlist.preferred_contact,
+      preferred_time: waitlist.preferred_time,
+    })
+    .from(waitlist)
+    .where(eq(waitlist.type, args.type))
+    .orderBy(desc(waitlist.created_at))
+
+  return rows.map((r) => ({
+    id: r.id,
+    type: r.type as WaitlistAdminListItem["type"],
+    email: r.email,
+    created_at: r.created_at.toISOString(),
+    source: r.source as WaitlistAdminListItem["source"],
+    full_name: r.full_name,
+    business_name: r.business_name,
+    phone: r.phone,
+    preferred_contact:
+      r.preferred_contact as WaitlistAdminListItem["preferred_contact"],
+    preferred_time:
+      r.preferred_time as WaitlistAdminListItem["preferred_time"],
+  }))
+}
+
 /** Per-type counts for the page header tiles. Single grouped query;
  *  defaults missing types to 0 so the output shape is always full. */
 export async function getCounts(

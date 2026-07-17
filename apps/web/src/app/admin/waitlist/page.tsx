@@ -6,6 +6,7 @@
 // the same view. Tables are client components — they need the apiClient
 // for delete and clipboard APIs for copy.
 
+import { Download } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import {
   getWaitlistCountsOp,
@@ -48,9 +49,27 @@ export default async function AdminWaitlistPage({ searchParams }: PageProps) {
         ? `Showing ${items.length} of ${total} · older signups hidden`
         : `${items.length} total`
 
+  const downloadLabel = tab === "consumer" ? "Download consumers CSV" : "Download businesses CSV"
+  const downloadHref = `/api/v1/admin/waitlist.csv?type=${tab}`
+
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Waitlist" subtitle={subtitle} />
+      <AdminPageHeader
+        title="Waitlist"
+        subtitle={subtitle}
+        actions={
+          items.length > 0 ? (
+            <a
+              href={downloadHref}
+              download
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-transparent px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Download className="size-3.5" aria-hidden />
+              {downloadLabel}
+            </a>
+          ) : null
+        }
+      />
 
       <WaitlistCountsHeader counts={counts} />
 
