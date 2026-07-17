@@ -11,8 +11,12 @@ export const BusinessSubscriptionSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
   amount_cents: z.number().int().nonnegative(),
-  /** Only present in admin contexts — never exposed on public responses. */
-  payment_evidence_url: z.string().url().nullable(),
+  /**
+   * Only present in admin contexts — never exposed on public responses.
+   * Not `.url()`: the Replit storage driver returns relative paths through
+   * the `/api/storage/[...key]` proxy (see apps/web/src/lib/storage/drivers/replit.ts).
+   */
+  payment_evidence_url: z.string().min(1).nullable(),
   notes: z.string().nullable(),
   recorded_by: z.string().nullable(),
   created_at: z.string(),
@@ -28,7 +32,8 @@ export const BusinessSubscriptionCreateInputSchema = z
     start_date: z.string().datetime(),
     end_date: z.string().datetime(),
     amount_cents: z.number().int().nonnegative(),
-    payment_evidence_url: z.string().url().nullable().optional(),
+    // Not `.url()` — see BusinessSubscriptionSchema.
+    payment_evidence_url: z.string().min(1).nullable().optional(),
     notes: z.string().max(1000).nullable().optional(),
     recorded_by: z.string().max(200).nullable().optional(),
   })
@@ -42,7 +47,8 @@ export const BusinessSubscriptionUpdateInputSchema = z
     start_date: z.string().datetime().optional(),
     end_date: z.string().datetime().optional(),
     amount_cents: z.number().int().nonnegative().optional(),
-    payment_evidence_url: z.string().url().nullable().optional(),
+    // Not `.url()` — see BusinessSubscriptionSchema.
+    payment_evidence_url: z.string().min(1).nullable().optional(),
     notes: z.string().max(1000).nullable().optional(),
   })
   .strict()
