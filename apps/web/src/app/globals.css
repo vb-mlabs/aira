@@ -358,12 +358,14 @@ gmp-place-autocomplete::part(wrapper) {
   outline: none !important;
 }
 
-/* The visible input. */
+/* The visible input. Border/focus-ring live on the React wrapper in
+   PlacesAddressInput — the widget itself is borderless so we don't get
+   competing outlines. */
 gmp-place-autocomplete::part(input) {
-  height: 45px !important;
+  height: 100% !important;
   width: 100% !important;
-  border-radius: var(--radius-2xl) !important;
-  border: 1px solid var(--input) !important;
+  border: 0 !important;
+  border-radius: inherit !important;
   background-color: transparent !important;
   padding: 0.25rem 0.75rem !important;
   font-family: inherit !important;
@@ -371,12 +373,12 @@ gmp-place-autocomplete::part(input) {
   color: var(--foreground) !important;
   outline: none !important;
   box-shadow: none !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 gmp-place-autocomplete::part(input):focus-visible,
 gmp-place-autocomplete::part(input):focus {
-  border-color: var(--ring) !important;
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent) !important;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Suggestions dropdown — force the popover surface + text colours across

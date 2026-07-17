@@ -234,9 +234,14 @@ export function PlacesAddressInput({
     )
   }
 
-  // Styling for the `<gmp-place-autocomplete>` host + its internal input
-  // lives in apps/web/src/app/globals.css — Google ships internal CSS for
-  // the element that needs !important (and ::part selectors on newer SDKs)
-  // to override.
-  return <div ref={containerRef} />
+  // Own the border/ring on this wrapper (focus-within reacts to focus on
+  // the widget's internal input, even through Shadow DOM). The widget
+  // itself is styled borderless in globals.css so only this wrapper's
+  // outline is visible. Matches the `<Input>` primitive at
+  // packages/ui-web/src/components/input.tsx.
+  return (
+    <div className="h-[45px] w-full rounded-2xl border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+      <div ref={containerRef} className="h-full w-full" />
+    </div>
+  )
 }
