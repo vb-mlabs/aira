@@ -3,7 +3,7 @@
 **Started:** 2026-07-17 16:14
 **Source:** user-report (multiple requestIds: 6a8e9e35, 34e1ae48, b663853c, db8a4b93, 6f15f45f, 563b5fc1)
 **Status:** fixed
-**Commit:** <pending>
+**Commit:** 3aa520f
 
 ## Symptom / repro
 
