@@ -382,12 +382,19 @@ gmp-place-autocomplete::part(input):focus {
 }
 
 /* Suggestions dropdown — force the popover surface + text colours across
-   every candidate part name Google exposes in different SDK versions. */
+   every candidate part name Google exposes in different SDK versions.
+   `position: fixed` is critical: the widget is often rendered inside a
+   modal with `overflow-hidden` (see AdminFormModal). Fixed lets the
+   dropdown escape ancestor overflow. Google computes top/left from the
+   input's viewport-relative getBoundingClientRect, so fixed lands
+   correctly. */
 gmp-place-autocomplete::part(prediction-container),
 gmp-place-autocomplete::part(prediction-list),
 gmp-place-autocomplete::part(dropdown),
 gmp-place-autocomplete::part(popover),
 gmp-place-autocomplete::part(listbox) {
+  position: fixed !important;
+  z-index: 9999 !important;
   background-color: var(--popover) !important;
   color: var(--popover-foreground) !important;
   border: 1px solid var(--border) !important;
