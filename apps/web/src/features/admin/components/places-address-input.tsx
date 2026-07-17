@@ -11,14 +11,24 @@
 //   - When the SDK loads, `<gmp-place-autocomplete>` registers itself as a
 //     custom element. We poll `customElements.whenDefined(...)` and fall
 //     back to a plain <Input> after 4 s if registration never completes.
-//   - On mount we reach into the element's internal <input> to seed it
-//     with the existing value so editors see what's stored rather than an
-//     empty field. The element has no documented controlled-value API,
-//     but the input is rendered in the light DOM and is reachable via
-//     `querySelector('input')`.
+//   - The element has no documented controlled-value API. Older SDK
+//     versions rendered the inner <input> in the light DOM; newer ones
+//     put it inside Shadow DOM. `getInternalInput()` reaches into both.
+//     We seed on mount, re-seed when `value` changes externally, and
+//     write the selected place's formatted address back after gmp-select
+//     so the visible field always matches parent state.
 
 import { useEffect, useRef, useState } from "react"
 import { Input } from "@aira/ui-web/input"
+
+/** Returns the widget's internal <input>, whether Google renders it in
+ *  the light DOM (older SDK) or inside Shadow DOM (v=weekly, late 2026+). */
+function getInternalInput(el: HTMLElement): HTMLInputElement | null {
+  return (
+    (el.shadowRoot?.querySelector("input") as HTMLInputElement | null) ??
+    (el.querySelector("input") as HTMLInputElement | null)
+  )
+}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -66,6 +76,11 @@ export function PlacesAddressInput({
   placeholder = "Start typing an address…",
 }: PlacesAddressInputProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const elementRef = useRef<HTMLElement | null>(null)
+  // Track the last value we wrote INTO the input so we don't overwrite the
+  // user's in-progress typing. External value changes (form reset, parent
+  // re-seed, gmp-select result) need to be reflected; local typing does not.
+  const lastWrittenValueRef = useRef<string>("")
   const [sdkState, setSdkState] = useState<"loading" | "ready" | "absent">(
     "loading",
   )
@@ -136,14 +151,18 @@ export function PlacesAddressInput({
     if (id) el.id = id
     el.setAttribute("placeholder", placeholder)
     container.appendChild(el)
+    elementRef.current = el
 
-    // Seed the internal input with the existing value. The element
-    // renders its <input> in the light DOM on the next tick after
-    // append, so wait one frame before reaching for it.
-    if (value) {
+    // Seed the internal input with the existing value. Two ticks: the
+    // element may attach its shadow root asynchronously after append.
+    const seedValue = value
+    if (seedValue) {
       requestAnimationFrame(() => {
-        const input = el.querySelector("input")
-        if (input && !input.value) input.value = value
+        const input = getInternalInput(el)
+        if (input && !input.value) {
+          input.value = seedValue
+          lastWrittenValueRef.current = seedValue
+        }
       })
     }
 
@@ -158,7 +177,17 @@ export function PlacesAddressInput({
       place
         .fetchFields({ fields: ["formattedAddress"] })
         .then(() => {
-          if (place.formattedAddress) onChange(place.formattedAddress)
+          if (!place.formattedAddress) return
+          onChange(place.formattedAddress)
+          // Write the selected address into the visible input so the
+          // field reflects what was picked. The element does not always
+          // populate its own input from the selected place across SDK
+          // versions, and we don't want to depend on that.
+          const input = getInternalInput(el)
+          if (input) {
+            input.value = place.formattedAddress
+            lastWrittenValueRef.current = place.formattedAddress
+          }
         })
         .catch(() => {
           // Silent: a place fetch failure shouldn't break the form. The
@@ -169,13 +198,28 @@ export function PlacesAddressInput({
     el.addEventListener("gmp-select", handleSelect)
     return () => {
       el.removeEventListener("gmp-select", handleSelect)
+      elementRef.current = null
       // Don't clear container.innerHTML on cleanup — React strict-mode
       // double-mount would race against the next mount.
     }
-    // `value` intentionally omitted from deps — it's only used as a
-    // one-shot seed on mount; updating it shouldn't rebuild the element.
+    // `value` used only as one-shot mount seed; external changes are
+    // handled by the sync effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sdkState, id, placeholder, onChange])
+
+  // Sync external value changes (form reset, parent re-seed) into the
+  // internal input without rebuilding the element. Skips when the value
+  // already matches what we last wrote — that means the change came from
+  // local typing or our own onChange, not an external mutation.
+  useEffect(() => {
+    const el = elementRef.current
+    if (!el) return
+    if (value === lastWrittenValueRef.current) return
+    const input = getInternalInput(el)
+    if (!input) return
+    input.value = value
+    lastWrittenValueRef.current = value
+  }, [value])
 
   // SDK absent → identical UX to pre-migration: plain controlled input.
   if (sdkState === "absent") {
@@ -192,16 +236,7 @@ export function PlacesAddressInput({
 
   // Styling for the `<gmp-place-autocomplete>` host + its internal input
   // lives in apps/web/src/app/globals.css — Google ships internal CSS for
-  // the element that needs !important to override.
-  return (
-    <div className="space-y-1.5">
-      <div ref={containerRef} />
-      {value && (
-        <p className="text-xs text-muted-foreground">
-          Current:{" "}
-          <span className="text-foreground">{value}</span>
-        </p>
-      )}
-    </div>
-  )
+  // the element that needs !important (and ::part selectors on newer SDKs)
+  // to override.
+  return <div ref={containerRef} />
 }

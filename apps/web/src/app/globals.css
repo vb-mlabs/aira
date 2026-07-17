@@ -313,8 +313,13 @@
 /* Google Places `<gmp-place-autocomplete>` — used in the admin business
    detail address modal. The element ships its own internal CSS that gives
    the input a white square box; override with !important so it matches the
-   app's <Input> primitive (rounded-2xl, transparent, border-input). The
-   inner <input> is in the light DOM, so descendant selectors reach it. */
+   app's <Input> primitive (rounded-2xl, transparent, border-input).
+
+   Older SDK versions rendered the input in the light DOM (descendant
+   selectors reach it); newer SDK versions (v=weekly, late 2026 onward)
+   moved it into Shadow DOM and expose a `::part(...)` theming API. We
+   ship BOTH selector styles so the widget looks correct on whichever
+   SDK the browser has cached. */
 gmp-place-autocomplete {
   display: block !important;
   width: 100% !important;
@@ -323,6 +328,8 @@ gmp-place-autocomplete {
   padding: 0 !important;
   font-family: inherit !important;
 }
+
+/* Light-DOM path — older SDK. */
 gmp-place-autocomplete input {
   height: 45px !important;
   width: 100% !important;
@@ -343,4 +350,39 @@ gmp-place-autocomplete input::placeholder {
 gmp-place-autocomplete input:focus-visible {
   border-color: var(--ring) !important;
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent) !important;
+}
+
+/* Shadow-DOM path — newer SDK. Google exposes the internal input +
+   container + prediction list via `part` attributes. */
+gmp-place-autocomplete::part(main-container),
+gmp-place-autocomplete::part(input-container) {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+gmp-place-autocomplete::part(input) {
+  height: 45px !important;
+  width: 100% !important;
+  border-radius: var(--radius-2xl) !important;
+  border: 1px solid var(--input) !important;
+  background-color: transparent !important;
+  padding: 0.25rem 0.75rem !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  color: var(--foreground) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+gmp-place-autocomplete::part(input):focus-visible,
+gmp-place-autocomplete::part(input):focus {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent) !important;
+}
+gmp-place-autocomplete::part(prediction-item),
+gmp-place-autocomplete::part(prediction-item-main-text),
+gmp-place-autocomplete::part(prediction-item-secondary-text) {
+  color: var(--foreground) !important;
+  font-family: inherit !important;
 }
