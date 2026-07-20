@@ -54,7 +54,20 @@ export const updateSubscriptionOp = defineOperation({
   input: BusinessSubscriptionUpdateInputSchema,
   output: z.object({ subscription: z.any() }),
   permission: "admin",
-  handler: async (db, _ctx, input) => {
+  handler: async (db, ctx, input) => {
+    // Resolve first so we can key the audit row to the parent business —
+    // the update input doesn't carry business_id. 404 here short-circuits
+    // the update path with the same code the handler would emit below.
+    const existing = await subsService.getSubscriptionById(db, input.id)
+    if (!existing)
+      throw ApiError.notFound("subscription.not_found", "Subscription not found")
+    const audit = createAudit(db)
+    await audit({
+      actorId: ctx.userId,
+      action: "business.subscription_updated",
+      target: { type: "business", id: existing.business_id },
+      meta: { kind: "business.subscription_updated" },
+    })
     const subscription = await subsService.updateSubscription(db, input)
     if (!subscription)
       throw ApiError.notFound("subscription.not_found", "Subscription not found")
