@@ -4,7 +4,7 @@
 **Source:** user-report (decision reversal from review
 2026-07-20-admin-edit-sponsorship)
 **Status:** fixed
-**Commit:** _pending_
+**Commit:** 97ad6bd
 
 ## Symptom / repro
 

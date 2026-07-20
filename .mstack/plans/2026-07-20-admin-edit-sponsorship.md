@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-20
 **Slug:** 2026-07-20-admin-edit-sponsorship
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
