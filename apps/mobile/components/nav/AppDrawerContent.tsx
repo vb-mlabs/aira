@@ -9,10 +9,11 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useLocalSearchParams, usePathname } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
 import { useDrawer } from "./DrawerProvider";
+import { useBuildBackHref } from "../../lib/nav/useBuildBackHref";
 import { useCategories } from "../../features/listings/hooks";
 import { getCategoryMeta } from "../../features/listings/category-meta";
 import type { Category } from "@aira/validators";
@@ -48,7 +49,6 @@ export function AppDrawerContent() {
   const { closeDrawer } = useDrawer();
   const cats = useCategories();
   const pathname = usePathname();
-  const searchParams = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const lastPathname = React.useRef(pathname);
 
@@ -65,16 +65,9 @@ export function AppDrawerContent() {
   // `?from=<encoded-current-screen>` param. useOriginAwareBack on the
   // category-listing screen honours this, so OS back gestures return
   // the user to whichever screen the drawer was opened from — same
-  // treatment BusinessCard applies to biz-detail pushes.
-  const from = React.useMemo(() => {
-    const qs = new URLSearchParams();
-    for (const [k, v] of Object.entries(searchParams)) {
-      if (k === "from") continue;
-      if (typeof v === "string" && v.length > 0) qs.set(k, v);
-    }
-    const query = qs.toString();
-    return query ? `${pathname}?${query}` : pathname;
-  }, [pathname, searchParams]);
+  // treatment BusinessCard applies to biz-detail pushes. See
+  // lib/nav/buildBackHref.ts for why route segments must be excluded.
+  const from = useBuildBackHref();
 
   return (
     <ImageBackground
