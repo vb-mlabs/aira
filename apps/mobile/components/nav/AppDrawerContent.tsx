@@ -215,7 +215,7 @@ export function AppDrawerContent() {
         <Text
           style={{
             color: TINT_LIGHT_MUTED,
-            fontSize: 10,
+            fontSize: 12,
             letterSpacing: 0.5,
             textAlign: "center",
           }}

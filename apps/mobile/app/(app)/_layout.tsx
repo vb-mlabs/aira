@@ -91,7 +91,7 @@ export default function AppLayout() {
           headerTintColor: "#3D2814",
           headerTitleStyle: { fontWeight: "600" },
           tabBarShowLabel: true,
-          tabBarLabelStyle: { fontSize: 11 },
+          tabBarLabelStyle: { fontSize: 12 },
           // Cream bg + dark-brown active tint mirror the Post/Listings
           // stack header chrome so the top and bottom edges read as one
           // continuous frame around the content. borderTopColor uses the

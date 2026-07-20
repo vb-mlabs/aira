@@ -15,7 +15,7 @@ export function StatCard({ value, label }: StatCardProps) {
       <Text className="text-center font-display text-3xl font-semibold text-primary">
         {value}
       </Text>
-      <Text className="mt-1.5 text-center text-[10px] font-semibold uppercase tracking-wider text-mutedForeground">
+      <Text className="mt-1.5 text-center text-xs font-semibold uppercase tracking-wider text-mutedForeground">
         {label}
       </Text>
     </View>

@@ -169,7 +169,7 @@ export function BusinessCard({
             isFavorited={isFavorited}
           />
           <SponsoredPill slot={business.sponsored_slot} />
-          <Text className="text-[10px] font-bold uppercase tracking-wide text-primary">
+          <Text className="text-xs font-bold uppercase tracking-wide text-primary">
             More Info
           </Text>
         </View>
@@ -192,7 +192,7 @@ function SponsoredPill({ slot }: { slot: Business["sponsored_slot"] }) {
     >
       <Text
         className={textClass}
-        style={{ fontSize: 9, fontWeight: "700", letterSpacing: 0.5 }}
+        style={{ fontSize: 12, fontWeight: "700", letterSpacing: 0.5 }}
       >
         Sponsored
       </Text>

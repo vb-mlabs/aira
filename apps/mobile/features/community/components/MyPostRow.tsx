@@ -56,7 +56,7 @@ export function MyPostRow({ post }: MyPostRowProps) {
             style={{ backgroundColor: status.bg }}
           >
             <Text
-              className="text-[10px] font-bold uppercase tracking-wide"
+              className="text-xs font-bold uppercase tracking-wide"
               style={{ color: status.fg }}
             >
               {status.label}

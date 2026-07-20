@@ -66,9 +66,9 @@ export function NotificationBell() {
             <Text
               style={{
                 color: BADGE_FG,
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: "700",
-                lineHeight: 12,
+                lineHeight: 14,
               }}
             >
               {label}

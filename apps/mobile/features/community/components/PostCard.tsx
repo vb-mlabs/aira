@@ -41,7 +41,7 @@ export function PostCard({ post }: PostCardProps) {
           style={{ width: 36, height: 36 }}
           accessibilityElementsHidden
         >
-          <Text className="text-[11px] font-bold text-primaryForeground">
+          <Text className="text-xs font-bold text-primaryForeground">
             {initialsOf(post.author_name)}
           </Text>
         </View>
