@@ -215,13 +215,13 @@ function CommentRowAdmin({
           {row.user_name ?? "Unknown"}
         </span>
         <span
-          className="text-[11px] text-muted-foreground"
+          className="text-xs text-muted-foreground"
           suppressHydrationWarning
         >
           {relativeTime(row.created_at)}
         </span>
         {isHidden && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning-foreground">
+          <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-xs font-medium text-warning-foreground">
             Hidden
           </span>
         )}

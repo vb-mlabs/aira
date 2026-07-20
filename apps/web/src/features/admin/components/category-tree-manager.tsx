@@ -222,7 +222,7 @@ function SortableChildRow({ child }: { child: Category }) {
 }
 
 function ActiveBadge({ active, small }: { active: boolean; small?: boolean }) {
-  const cls = small ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-xs"
+  const cls = small ? "px-1.5 py-0.5 text-xs" : "px-2 py-0.5 text-xs"
   if (active) {
     return (
       <span

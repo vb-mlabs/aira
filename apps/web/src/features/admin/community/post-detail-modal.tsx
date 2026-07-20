@@ -130,7 +130,7 @@ export function PostDetailModal({
               >
                 <h3
                   id="admin-contact-heading"
-                  className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+                  className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
                 >
                   Contact
                 </h3>
@@ -299,7 +299,7 @@ export function PostDetailModal({
 function Cell({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">
+      <dt className="text-xs uppercase tracking-wider text-muted-foreground">
         {label}
       </dt>
       <dd className="mt-0.5 text-sm">{value}</dd>

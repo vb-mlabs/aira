@@ -39,7 +39,7 @@ export function WaitlistTabs({ current, counts }: WaitlistTabsProps) {
             <span>{tab.label}</span>
             <span
               className={cn(
-                "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                "rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums",
                 active
                   ? "bg-primary-foreground/15 text-primary-foreground"
                   : "bg-muted text-muted-foreground",

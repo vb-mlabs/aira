@@ -350,7 +350,7 @@ function CategoryEditModal({
           <div className="space-y-5 overflow-y-auto px-6 py-5">
             {/* Preview — live projection of primary + extras as chips. */}
             <div className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-3">
-              <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Preview
               </p>
               <CategoryPreview
@@ -561,7 +561,7 @@ function CategoryTwoPanelPicker({
     <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-xl bg-card">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             {mode === "primary" ? "Set primary" : "Add category"}
           </p>
           <h3 className="font-display text-lg text-foreground">
@@ -744,7 +744,7 @@ function CoreFieldsSection({
             business looks at a glance" in one card. Uploads/deletes
             save immediately via the control's own fetch + refresh. */}
         <div className="space-y-2 border-t border-border pt-4">
-          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Gallery
           </p>
           <p className="text-xs text-muted-foreground">
@@ -1728,7 +1728,7 @@ function AiraReviewEditModal({
 
           <div className="space-y-5 overflow-y-auto px-6 py-5">
             <div className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-3">
-              <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Preview
               </p>
               <AiraReviewPreview rating={previewRating} review={airaReview} />

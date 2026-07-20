@@ -62,7 +62,7 @@ export function AuditTable({ rows, emptyMessage }: AuditTableProps) {
                 <td className="px-4 py-3 align-top">
                   {row.target_type ? (
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground">
                         {row.target_type}
                       </span>
                       <RenderAuditTarget row={row} />

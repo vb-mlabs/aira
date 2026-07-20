@@ -113,7 +113,7 @@ function Header({ user }: { user: AdminUserRow }) {
       <p className="mt-1 text-sm text-muted-foreground">
         {user.email}{" "}
         {user.email_verified ? null : (
-          <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-foreground">
+          <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs font-semibold text-muted-foreground">
             unverified
           </span>
         )}

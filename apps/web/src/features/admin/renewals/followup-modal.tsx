@@ -329,7 +329,7 @@ export function FollowupModal({ row, open, onClose }: FollowupModalProps) {
                         disabled={pending}
                         className="max-w-[140px]"
                       />
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         Drops from the queue until this date passes.
                       </p>
                     </div>
@@ -376,7 +376,7 @@ export function FollowupModal({ row, open, onClose }: FollowupModalProps) {
 function Cell({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">
+      <dt className="text-xs uppercase tracking-wider text-muted-foreground">
         {label}
       </dt>
       <dd className="mt-0.5 text-sm">{value}</dd>
