@@ -171,6 +171,8 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
       )
     case "business.subscription_voided":
       return <>Voided subscription</>
+    case "business.subscription_updated":
+      return <>Updated subscription</>
     case "business.sponsorship_assigned":
       return (
         <>

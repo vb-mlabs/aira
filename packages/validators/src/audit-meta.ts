@@ -98,6 +98,7 @@ export type AuditMeta =
       end_date: string;
     }
   | { kind: "business.subscription_voided" }
+  | { kind: "business.subscription_updated" }
   | {
       kind: "business.sponsorship_assigned";
       tier_id: string;
@@ -250,6 +251,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "business.verification_changed",
   "business.subscription_recorded",
   "business.subscription_voided",
+  "business.subscription_updated",
   "business.sponsorship_assigned",
   "business.sponsorship_cancelled",
   "business.sponsorship_updated",
@@ -316,6 +318,7 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.sponsorship_updated": "Sponsorship updated",
     "business.sponsorship_evidence_uploaded": "Sponsorship evidence uploaded",
     "business.subscription_voided": "Subscription voided",
+    "business.subscription_updated": "Subscription updated",
     "community.post_deleted": "Post deleted",
     "community.post_edited": "Post edited",
     "community.post_reverted_to_pending": "Post reverted to pending",
