@@ -48,7 +48,7 @@ export function BottomTabBar() {
             href={tab.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 py-2 text-[0.65rem]",
+              "flex flex-1 flex-col items-center gap-0.5 py-2 text-xs",
               active
                 ? "font-bold text-primary"
                 : "text-muted-foreground hover:text-foreground",

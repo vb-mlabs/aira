@@ -166,7 +166,7 @@ export function AppSidebar({ onClose, tree, isAdmin }: AppSidebarProps) {
             <Globe className="size-4" />
           </a>
         </div>
-        <p className="text-[0.65rem] tracking-wide text-sidebar-foreground/70">
+        <p className="text-xs tracking-wide text-sidebar-foreground/70">
           Operated by {brand.legalEntity}
         </p>
       </footer>

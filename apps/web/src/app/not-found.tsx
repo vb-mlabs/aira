@@ -24,7 +24,7 @@ export default function NotFound() {
             {brand.name}
           </span>
         </Link>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
           404
         </div>
         <h1 className="mt-3 text-balance text-4xl font-extrabold tracking-tighter">

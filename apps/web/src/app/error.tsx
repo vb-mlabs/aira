@@ -42,7 +42,7 @@ export default function GlobalError({
             {brand.name}
           </span>
         </Link>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-destructive">
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-destructive">
           Something went wrong
         </div>
         <h1 className="mt-3 text-balance text-4xl font-extrabold tracking-tighter">
@@ -53,7 +53,7 @@ export default function GlobalError({
           we&apos;ll keep an eye out.
         </p>
         {error.digest ? (
-          <p className="mt-4 font-mono text-[11px] text-muted-foreground">
+          <p className="mt-4 font-mono text-xs text-muted-foreground">
             Reference · {error.digest}
           </p>
         ) : null}
