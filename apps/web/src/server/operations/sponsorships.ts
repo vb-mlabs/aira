@@ -54,7 +54,21 @@ export const updateSponsorshipOp = defineOperation({
   input: SponsorshipUpdateInputSchema,
   output: z.object({ sponsorship: z.any() }),
   permission: "admin",
-  handler: async (db, _ctx, input) => {
+  handler: async (db, ctx, input) => {
+    // Resolve the sponsorship first so we can key the audit row to the
+    // parent business — the update input doesn't carry business_id. 404
+    // here also short-circuits the update path with the same code the
+    // handler would emit below.
+    const existing = await spService.getSponsorshipById(db, input.id)
+    if (!existing)
+      throw ApiError.notFound("sponsorship.not_found", "Sponsorship not found")
+    const audit = createAudit(db)
+    await audit({
+      actorId: ctx.userId,
+      action: "business.sponsorship_updated",
+      target: { type: "business", id: existing.business_id },
+      meta: { kind: "business.sponsorship_updated" },
+    })
     const sponsorship = await spService.updateSponsorship(db, input)
     if (!sponsorship)
       throw ApiError.notFound("sponsorship.not_found", "Sponsorship not found")
