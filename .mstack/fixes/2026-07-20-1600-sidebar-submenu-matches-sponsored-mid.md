@@ -3,7 +3,7 @@
 **Started:** 2026-07-20 16:00
 **Source:** user-report
 **Status:** fixed
-**Commit:** _pending_
+**Commit:** 918165e
 
 ## Symptom / repro
 
@@ -77,3 +77,23 @@ tokens; no design-layer edit.
 - None. If future design work moves the mobile drawer off inline sRGB
   literals onto NativeWind classes (there's already a mobile Tailwind
   config), do it as a dedicated pass rather than folding into this fix.
+
+## Correction (commit — pending)
+
+The initial fix (commit `918165e`) used the flat `--sponsored-mid`
+color token. User pointed out that the Sponsored section header on the
+category page uses the `tier1-texture.webp` image, not a flat color,
+and asked for parity with the actual texture. Corrected:
+
+- Web `app-sidebar.tsx`: dropped the `bg-sponsored-mid` class; the
+  child Link now sets `backgroundImage: url("/textures/tier1-texture.webp")`
+  inline (matches how `slot-section.tsx:41-44` renders the same texture
+  on the "Sponsored" section header).
+- Expo mobile `AppDrawerContent.tsx`: dropped the `TIER2_HEX` solid
+  background; the child Pressable now wraps its content in an
+  `<ImageBackground source={require("../../assets/textures/tier1-texture.webp")}>`
+  (already imported at the top of the file). Removed the now-unused
+  `TIER2_HEX` constant.
+- Text color + bullet remain cream (`sponsored-mid-foreground` /
+  `TINT_LIGHT` @ 0.6) — legible against the burnt-orange texture the
+  same way they were against the flat color.

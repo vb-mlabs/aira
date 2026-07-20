@@ -28,7 +28,6 @@ const NISARGA_WEBSITE_URL = "https://nisargacorp.com";
 const TINT_LIGHT = "#F3EBDD"; // sidebar-foreground (cream on olive)
 const TINT_LIGHT_MUTED = "rgba(243,235,221,0.72)";
 const TINT_LIGHT_HAIRLINE = "rgba(243,235,221,0.14)";
-const TIER2_HEX = "#C97638"; // burnt-orange sub-cat pill accent
 
 /**
  * Contents of the slide-in mobile drawer. Structurally 1:1 with the web
@@ -361,37 +360,46 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
                   } as never)
                 }
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 12,
-                  paddingLeft: 48,
-                  paddingRight: 20,
-                  paddingVertical: 8,
                   borderBottomWidth: 1,
                   borderBottomColor: TINT_LIGHT_HAIRLINE,
-                  backgroundColor: TIER2_HEX,
                 }}
               >
-                <View
+                {/* Same tier1-texture the web submenu now uses (and the
+                    "Sponsored" section header on category pages). Keeps
+                    the visual identity consistent across web + mobile. */}
+                <ImageBackground
+                  source={require("../../assets/textures/tier1-texture.webp")}
+                  resizeMode="cover"
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 3,
-                    backgroundColor: TINT_LIGHT,
-                    opacity: 0.6,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    paddingLeft: 48,
+                    paddingRight: 20,
+                    paddingVertical: 8,
                   }}
-                />
-                <Text
-                  style={{
-                    color: TINT_LIGHT,
-                    fontSize: 12,
-                    flex: 1,
-                    fontWeight: childActive ? "700" : "400",
-                  }}
-                  numberOfLines={1}
                 >
-                  {sub.name}
-                </Text>
+                  <View
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: TINT_LIGHT,
+                      opacity: 0.6,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color: TINT_LIGHT,
+                      fontSize: 12,
+                      flex: 1,
+                      fontWeight: childActive ? "700" : "400",
+                    }}
+                    numberOfLines={1}
+                  >
+                    {sub.name}
+                  </Text>
+                </ImageBackground>
               </Pressable>
             );
           })
