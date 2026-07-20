@@ -35,6 +35,7 @@ export const sponsorships = pgTable(
     end_date: timestamp("end_date").notNull(),
     amount_cents: integer("amount_cents").notNull(),
     notes: text("notes"),
+    payment_evidence_url: text("payment_evidence_url"),
     recorded_by: text("recorded_by"),
     created_at: timestamp("created_at").defaultNow().notNull(),
     updated_at: timestamp("updated_at")

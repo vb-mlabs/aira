@@ -1,0 +1,1 @@
+ALTER TABLE "sponsorship" ADD COLUMN "payment_evidence_url" text;
