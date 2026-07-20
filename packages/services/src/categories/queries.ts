@@ -1,7 +1,19 @@
 // Category service — counts (existing) + full DB-backed CRUD.
 
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { businesses, categories } from "@aira/db/schema";
+
+// Same visibility gate the public business queries apply: a business
+// counts only when it has an active (paid or pending), in-window
+// subscription. Inlined here to keep the categories module independent
+// of businesses/queries internals, mirroring the favorites/queries.ts
+// precedent — extract only if a fourth site appears.
+const VISIBLE = sql`EXISTS (
+  SELECT 1 FROM business_subscription bs
+  WHERE bs.business_id = businesses.id
+  AND bs.payment_status IN ('paid', 'pending')
+  AND now() BETWEEN bs.start_date AND bs.end_date
+)`;
 import type { Database } from "@aira/db/client";
 import { createAudit, type AuditClient } from "@aira/db/audit";
 import type { Category } from "@aira/validators/categories";
@@ -18,6 +30,7 @@ export async function getBusinessCountsByCategory(
       count: sql<number>`count(*)::int`,
     })
     .from(businesses)
+    .where(and(isNull(businesses.deleted_at), VISIBLE))
     .groupBy(businesses.category);
 
   return Object.fromEntries(rows.map((r) => [r.category, r.count]));

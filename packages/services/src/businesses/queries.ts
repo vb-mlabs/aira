@@ -531,7 +531,7 @@ export async function countActiveBusinesses(db: Database): Promise<number> {
   const [row] = await db
     .select({ value: count() })
     .from(businesses)
-    .where(isNull(businesses.deleted_at));
+    .where(and(isNull(businesses.deleted_at), VISIBLE));
   return Number(row?.value ?? 0);
 }
 
