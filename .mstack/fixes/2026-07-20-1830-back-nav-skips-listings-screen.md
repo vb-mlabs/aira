@@ -3,7 +3,7 @@
 **Started:** 2026-07-20 18:30
 **Source:** debug/2026-07-20-1810-back-nav-skips-listings
 **Status:** fixed
-**Commit:** _pending_
+**Commit:** 591d6ef
 
 ## Symptom / repro
 
