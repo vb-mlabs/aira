@@ -171,7 +171,7 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <div className="mb-4 text-[11px] font-bold uppercase tracking-[2px] text-muted-foreground">
+      <div className="mb-4 text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
         {title}
       </div>
       <ul className="space-y-1">
@@ -193,7 +193,7 @@ function FooterColumn({
 function GetListedColumn() {
   return (
     <div>
-      <div className="mb-4 text-[11px] font-bold uppercase tracking-[2px] text-muted-foreground">
+      <div className="mb-4 text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
         Get listed
       </div>
       <ul className="space-y-1">

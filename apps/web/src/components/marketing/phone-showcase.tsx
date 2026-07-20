@@ -30,7 +30,7 @@ export function PhoneShowcase() {
         </div>
 
         <div>
-          <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
+          <span className="block text-xs font-bold uppercase tracking-[3px] text-brand-gold">
             The app
           </span>
           <h2 className="mt-3.5 font-display text-[32px] font-semibold leading-[1.15] text-foreground md:text-[40px]">

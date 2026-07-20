@@ -25,7 +25,7 @@ export function MarketingNav() {
             <span className="block font-display text-[22px] font-bold tracking-[1.5px] text-foreground">
               AIRA
             </span>
-            <span className="block text-[11px] tracking-[0.5px] text-muted-foreground">
+            <span className="block text-xs tracking-[0.5px] text-muted-foreground">
               by {brand.parentName}
             </span>
           </span>

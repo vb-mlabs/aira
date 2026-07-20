@@ -373,7 +373,7 @@ export function GetListedDialog({
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-[color:oklch(0.25_0.04_60_/_60%)] backdrop-blur-sm data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity duration-200" />
         <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-32px)] w-[min(520px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl bg-card shadow-[0_40px_80px_-20px_oklch(0.25_0.04_60_/_50%)] outline-none data-[starting-style]:opacity-0 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[ending-style]:scale-95 transition-[transform,opacity] duration-200">
           <div className="overflow-y-auto px-8 py-7 text-card-foreground md:px-10">
-            <span className="block text-[11px] font-bold uppercase tracking-[3px] text-brand-gold">
+            <span className="block text-xs font-bold uppercase tracking-[3px] text-brand-gold">
               Early access
             </span>
             <Dialog.Title className="mt-1.5 font-display text-[26px] font-bold leading-tight text-foreground">
