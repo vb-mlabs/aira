@@ -369,9 +369,7 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
                   paddingVertical: 8,
                   borderBottomWidth: 1,
                   borderBottomColor: TINT_LIGHT_HAIRLINE,
-                  backgroundColor: childActive
-                    ? "rgba(243,235,221,0.10)"
-                    : "transparent",
+                  backgroundColor: TIER2_HEX,
                 }}
               >
                 <View
@@ -379,7 +377,8 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
                     width: 6,
                     height: 6,
                     borderRadius: 3,
-                    backgroundColor: TIER2_HEX,
+                    backgroundColor: TINT_LIGHT,
+                    opacity: 0.6,
                   }}
                 />
                 <Text

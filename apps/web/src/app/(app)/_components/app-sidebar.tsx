@@ -279,14 +279,14 @@ function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
               key={sub.id}
               href={`/listings/${sub.slug}`}
               className={cn(
-                "flex items-center gap-3 border-b border-sidebar-border py-2 pl-12 pr-5 text-xs transition-colors hover:bg-sidebar-foreground/5",
-                childActive && "bg-sidebar-foreground/10 font-bold",
+                "flex items-center gap-3 border-b border-sidebar-border py-2 pl-12 pr-5 text-xs transition-[filter] bg-sponsored-mid text-sponsored-mid-foreground hover:brightness-95",
+                childActive && "font-bold",
               )}
               aria-current={childActive ? "page" : undefined}
             >
               <span
                 aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-[color:var(--tier2)]"
+                className="size-1.5 shrink-0 rounded-full bg-sponsored-mid-foreground/60"
               />
               <span className="flex-1 truncate">{sub.name}</span>
             </Link>
