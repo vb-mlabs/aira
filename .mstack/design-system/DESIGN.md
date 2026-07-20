@@ -127,14 +127,36 @@ Kept the shadcn 8-step ramp. Cormorant has tighter optical weight than Inter, so
 
 | Step | Size | Line height | Use |
 | --- | --- | --- | --- |
-| xs | 0.75rem | 1rem | meta, badges, "by Nisarga" |
-| sm | 0.875rem | 1.25rem | secondary body, captions |
+| xs | 0.75rem | 1rem | **decorative micro-labels only** — see rule below |
+| sm | 0.875rem | 1.25rem | secondary body, captions, meta, "by Nisarga" |
 | base | 1rem | 1.5rem | body, default UI |
 | lg | 1.125rem | 1.75rem | lead paragraphs |
 | xl | 1.25rem | 1.75rem | section heading |
 | 2xl | 1.5rem | 2rem | page heading |
 | 3xl | 1.875rem | 2.25rem | hero sub |
 | 4xl | 2.25rem | 2.5rem | hero ("AIRA" wordmark, "About AIRA") |
+
+### Minimum sizes (enforced 2026-07-20)
+
+**Body / UI text: 14px (sm) minimum.** Never smaller for anything a user
+is expected to read — nav labels, links, form fields, buttons, card
+descriptions, list rows, dialog copy, error messages.
+
+**Decorative micro-labels: 12px (xs) minimum floor.** Explicit
+exemption for non-reading text that carries meaning through position or
+color rather than the word itself — status pills, "Sponsored" chips,
+counter badges. Below 12px is not permitted anywhere, even on mobile.
+
+**Nothing below 12px, ever.** Historical usages of
+`text-[0.55rem]` (~8.8px) and `text-[0.65rem]` (~10.4px) on business
+cards were audited 2026-07-20 as violations; a call-site sweep is
+scheduled through the pipeline. Mobile `fontSize: 10` / `fontSize: 11`
+usages are treated identically.
+
+This rule flows from the PRD persona requirement (older demographic) —
+the same reason mobile tap targets are ≥ 44px. Enforcement is manual
+today; a lint rule that catches raw `text-[<arbitrary>]` values below
+`0.75rem` is a follow-up worth considering.
 
 ## Radius
 
@@ -151,7 +173,7 @@ Base bumped from `0.625rem` (10px, MLabs default) to **`0.875rem` (14px)** to ma
 
 Tailwind defaults kept. Notable AIRA conventions:
 - Mobile tap targets ≥ 44px (PRD persona requirement — older demographic).
-- Body text never below 14px (sm).
+- Body / UI text ≥ 14px (sm). Decorative micro-labels ≥ 12px (xs). See **Typography → Minimum sizes** for the full rule + exemption.
 - Generous vertical rhythm on long-form screens (My Account list rows are 48-56px tall).
 
 ## Motion

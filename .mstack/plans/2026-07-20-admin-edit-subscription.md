@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-20
 **Slug:** 2026-07-20-admin-edit-subscription
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
