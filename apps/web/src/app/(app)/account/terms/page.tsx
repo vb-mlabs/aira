@@ -100,7 +100,7 @@ export default function TermsPage() {
         </div>
       </SectionCard>
 
-      <p className="text-center text-[0.65rem] tracking-wide text-muted-foreground">
+      <p className="text-center text-xs tracking-wide text-muted-foreground">
         Operated by {brand.legalEntity}
       </p>
     </div>

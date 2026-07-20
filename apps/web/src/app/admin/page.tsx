@@ -140,7 +140,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
       <p className="font-display text-3xl font-semibold leading-none text-primary">
         {value}
       </p>
-      <p className="mt-2 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
     </div>

@@ -80,7 +80,7 @@ export default async function AccountPage() {
 
       <SignOutButton className="mt-2 w-full rounded-xl border border-primary py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/5 disabled:opacity-60" />
 
-      <p className="mt-6 text-center text-[0.65rem] tracking-wide text-muted-foreground">
+      <p className="mt-6 text-center text-xs tracking-wide text-muted-foreground">
         Operated by {brand.legalEntity}
       </p>
     </div>
@@ -96,7 +96,7 @@ function Group({
 }) {
   return (
     <section className="mb-6">
-      <h2 className="mb-2 px-1 text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+      <h2 className="mb-2 px-1 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </h2>
       <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
