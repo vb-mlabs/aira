@@ -33,7 +33,7 @@ export function NotificationBell() {
       {showBadge && (
         <span
           className={cn(
-            "absolute -right-1 -top-1 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-primary px-1 text-[0.65rem] font-semibold leading-4 text-primary-foreground",
+            "absolute -right-1 -top-1 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-4 text-primary-foreground",
           )}
         >
           {display}

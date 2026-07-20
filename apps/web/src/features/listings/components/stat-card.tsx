@@ -9,7 +9,7 @@ export function StatCard({ value, label }: StatCardProps) {
       <p className="font-display text-3xl font-semibold leading-none text-primary">
         {value}
       </p>
-      <p className="mt-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="mt-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
     </div>

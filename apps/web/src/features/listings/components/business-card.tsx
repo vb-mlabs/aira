@@ -129,12 +129,12 @@ export function BusinessCard({
           <Link
             href={`/listings/${business.category}/${business.id}`}
             aria-label={`More info about ${business.name}`}
-            className="relative z-10 inline-flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="relative z-10 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             More Info
           </Link>
         ) : (
-          <span className="relative z-10 inline-flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary">
+          <span className="relative z-10 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-primary">
             More Info
           </span>
         )}
@@ -156,7 +156,7 @@ function SponsoredPill({ slot }: { slot: Business["sponsored_slot"] }) {
   return (
     <span
       className={cn(
-        "flex-shrink-0 rounded-full px-1.5 py-px text-[0.55rem] font-bold tracking-wide",
+        "flex-shrink-0 rounded-full px-1 py-px text-xs font-bold tracking-wide",
         bg,
       )}
     >

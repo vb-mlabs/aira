@@ -86,7 +86,7 @@ export function PostCard({
           <StatusPill status={post.status} />
         </div>
         {isAuthor ? (
-          <p className="text-[11px] text-muted-foreground">Your post</p>
+          <p className="text-xs text-muted-foreground">Your post</p>
         ) : (
           <Button
             type="button"
@@ -179,7 +179,7 @@ export function PostCardReadOnly({ post }: { post: PostRow }) {
 function StatusPill({ status }: { status: PostRow["status"] }) {
   if (status === "approved") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
         <span aria-hidden className="size-1 rounded-full bg-primary" />
         Open
       </span>
@@ -187,20 +187,20 @@ function StatusPill({ status }: { status: PostRow["status"] }) {
   }
   if (status === "expired") {
     return (
-      <span className="inline-flex shrink-0 items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+      <span className="inline-flex shrink-0 items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
         Closed
       </span>
     )
   }
   if (status === "pending") {
     return (
-      <span className="inline-flex shrink-0 items-center rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning-foreground">
+      <span className="inline-flex shrink-0 items-center rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning-foreground">
         Pending
       </span>
     )
   }
   return (
-    <span className="inline-flex shrink-0 items-center rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
+    <span className="inline-flex shrink-0 items-center rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
       Not approved
     </span>
   )

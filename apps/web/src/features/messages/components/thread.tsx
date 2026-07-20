@@ -258,7 +258,7 @@ function MessageBubble({
         {message.body}
       </div>
       {!mine && (
-        <p className="px-2 text-[0.65rem] text-muted-foreground">
+        <p className="px-2 text-xs text-muted-foreground">
           {message.sender_name}
         </p>
       )}
@@ -288,7 +288,7 @@ function PendingBubble({
       >
         {pending.body}
       </div>
-      <p className="px-2 text-[0.65rem] text-muted-foreground">
+      <p className="px-2 text-xs text-muted-foreground">
         {failed ? (
           <>
             <span className="text-destructive">Failed</span>{" · "}

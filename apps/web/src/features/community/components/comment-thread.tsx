@@ -265,7 +265,7 @@ function CommentRowView({
             {row.user_name ?? "Unknown"}
           </span>
           <span
-            className="text-[11px] text-muted-foreground"
+            className="text-xs text-muted-foreground"
             suppressHydrationWarning
           >
             {relativeTime(row.created_at)}
@@ -275,7 +275,7 @@ function CommentRowView({
           <div className="flex shrink-0 items-center gap-1">
             {confirming ? (
               <>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   Delete?
                 </span>
                 <button

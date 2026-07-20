@@ -53,7 +53,7 @@ export function PostDetailModal({
                   {post.author_name}
                 </Dialog.Title>
                 <Dialog.Description
-                  className="text-[11px] text-muted-foreground"
+                  className="text-xs text-muted-foreground"
                   suppressHydrationWarning
                 >
                   {relativeTime(post.created_at)}
@@ -86,7 +86,7 @@ export function PostDetailModal({
               >
                 <h3
                   id="contact-heading"
-                  className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+                  className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
                 >
                   Contact
                 </h3>
