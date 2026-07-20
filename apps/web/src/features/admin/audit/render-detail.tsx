@@ -180,6 +180,10 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
       )
     case "business.sponsorship_cancelled":
       return <>Cancelled sponsorship</>
+    case "business.sponsorship_updated":
+      return <>Updated sponsorship</>
+    case "business.sponsorship_evidence_uploaded":
+      return <>Uploaded sponsorship evidence</>
     case "business.subscription_followup":
       return (
         <>

@@ -105,6 +105,8 @@ export type AuditMeta =
       amount_cents: number;
     }
   | { kind: "business.sponsorship_cancelled" }
+  | { kind: "business.sponsorship_updated" }
+  | { kind: "business.sponsorship_evidence_uploaded" }
   // S5 — AppSetting admin edits. target.id = AppSetting.key (stable id is
   // the row id, but the key is what humans recognise in /admin/cron and
   // /admin/settings). Used by F17 (reminder_schedule) and future keys.
@@ -250,6 +252,8 @@ export const KNOWN_AUDIT_ACTIONS = [
   "business.subscription_voided",
   "business.sponsorship_assigned",
   "business.sponsorship_cancelled",
+  "business.sponsorship_updated",
+  "business.sponsorship_evidence_uploaded",
   "app_setting.updated",
   "community.post_deleted",
   "community.post_edited",
@@ -309,6 +313,8 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.subscription_followup": "Renewal follow-up",
     "business.sponsorship_assigned": "Sponsorship assigned",
     "business.sponsorship_cancelled": "Sponsorship cancelled",
+    "business.sponsorship_updated": "Sponsorship updated",
+    "business.sponsorship_evidence_uploaded": "Sponsorship evidence uploaded",
     "business.subscription_voided": "Subscription voided",
     "community.post_deleted": "Post deleted",
     "community.post_edited": "Post edited",
