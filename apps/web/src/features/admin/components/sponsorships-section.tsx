@@ -1,8 +1,17 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Ban, X } from "lucide-react"
+import {
+  Plus,
+  Ban,
+  X,
+  Pencil,
+  Upload,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react"
+import { useDropzone } from "react-dropzone"
 import { Dialog } from "@base-ui/react/dialog"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
@@ -41,6 +50,10 @@ function formatDate(iso: string): string {
   })
 }
 
+function toDateInputValue(iso: string): string {
+  return iso.slice(0, 10)
+}
+
 function toISODatetime(dateStr: string): string {
   return `${dateStr}T00:00:00.000Z`
 }
@@ -53,6 +66,10 @@ export function SponsorshipsSection({
   const [sponsorships, setSponsorships] = useState<SponsorshipListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  // Non-null when the dialog is being opened for Edit rather than Add.
+  // Clearing this on close is what flips the dialog back to Add mode
+  // next time it opens.
+  const [editingSp, setEditingSp] = useState<SponsorshipListItem | null>(null)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -94,6 +111,16 @@ export function SponsorshipsSection({
     }
   }
 
+  function openAdd() {
+    setEditingSp(null)
+    setOpen(true)
+  }
+
+  function openEdit(sp: SponsorshipListItem) {
+    setEditingSp(sp)
+    setOpen(true)
+  }
+
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -103,7 +130,7 @@ export function SponsorshipsSection({
           size="sm"
           variant="outline"
           className="gap-1.5"
-          onClick={() => setOpen(true)}
+          onClick={openAdd}
         >
           <Plus className="size-3.5" aria-hidden />
           Add
@@ -124,49 +151,72 @@ export function SponsorshipsSection({
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Tier</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Amount</th>
                   <th className="px-3 py-2 text-left font-medium text-muted-foreground">Period</th>
+                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Evidence</th>
                   <th className="px-3 py-2" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sponsorships.map((sp) => (
-                  <tr key={sp.id} className="hover:bg-muted/20">
-                    <td className="px-3 py-2">
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                          STATUS_STYLES[sp.status as SponsorshipStatus] ??
-                            "bg-muted text-muted-foreground",
-                        )}
-                      >
-                        {sp.status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-foreground">
-                      {sp.tier_name ?? (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 tabular-nums">
-                      ${(sp.amount_cents / 100).toFixed(2)}
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {formatDate(sp.start_date)} – {formatDate(sp.end_date)}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {sp.status !== "cancelled" && sp.status !== "expired" && (
-                        <button
-                          type="button"
-                          onClick={() => handleCancel(sp.id)}
-                          disabled={cancellingId === sp.id}
-                          className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-                          aria-label="Cancel sponsorship"
+                {sponsorships.map((sp) => {
+                  const editable = sp.status === "scheduled" || sp.status === "active"
+                  return (
+                    <tr key={sp.id} className="hover:bg-muted/20">
+                      <td className="px-3 py-2">
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize",
+                            STATUS_STYLES[sp.status as SponsorshipStatus] ??
+                              "bg-muted text-muted-foreground",
+                          )}
                         >
-                          <Ban className="size-3.5" aria-hidden />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          {sp.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-foreground">
+                        {sp.tier_name ?? (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums">
+                        ${(sp.amount_cents / 100).toFixed(2)}
+                      </td>
+                      <td className="px-3 py-2 text-muted-foreground">
+                        {formatDate(sp.start_date)} – {formatDate(sp.end_date)}
+                      </td>
+                      <td className="px-3 py-2">
+                        <EvidenceCell
+                          sp={sp}
+                          businessId={businessId}
+                          onUploaded={fetchSponsorships}
+                        />
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          {editable && (
+                            <button
+                              type="button"
+                              onClick={() => openEdit(sp)}
+                              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                              aria-label="Edit sponsorship"
+                            >
+                              <Pencil className="size-3.5" aria-hidden />
+                            </button>
+                          )}
+                          {editable && (
+                            <button
+                              type="button"
+                              onClick={() => handleCancel(sp.id)}
+                              disabled={cancellingId === sp.id}
+                              className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                              aria-label="Cancel sponsorship"
+                            >
+                              <Ban className="size-3.5" aria-hidden />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -179,23 +229,136 @@ export function SponsorshipsSection({
         )}
       </div>
 
-      <AddSponsorshipDialog
+      <SponsorshipDialog
         businessId={businessId}
         businessCategoryNames={businessCategoryNames}
         open={open}
+        sponsorship={editingSp}
         onOpenChange={(v) => {
           setOpen(v)
-          if (!v) fetchSponsorships()
+          if (!v) {
+            setEditingSp(null)
+            fetchSponsorships()
+          }
         }}
       />
     </section>
   )
 }
 
-interface AddSponsorshipDialogProps {
+// ── Evidence cell ────────────────────────────────────────────────────────────
+
+interface EvidenceCellProps {
+  sp: SponsorshipListItem
+  businessId: string
+  onUploaded: () => void
+}
+
+function EvidenceCell({ sp, businessId, onUploaded }: EvidenceCellProps) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const onDrop = useCallback(
+    async (accepted: File[]) => {
+      const file = accepted[0]
+      if (!file) return
+      setError(null)
+      setUploading(true)
+      try {
+        const form = new FormData()
+        form.append("file", file)
+        const res = await fetch(
+          `/api/v1/admin/businesses/${businessId}/sponsorships/${sp.id}/evidence`,
+          { method: "POST", body: form },
+        )
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => null)) as
+            | { error?: { message?: string } }
+            | null
+          throw new Error(payload?.error?.message ?? "Upload failed.")
+        }
+        onUploaded()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed.")
+      } finally {
+        setUploading(false)
+      }
+    },
+    [businessId, sp.id, onUploaded],
+  )
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/jpeg": [],
+      "image/png": [],
+      "image/webp": [],
+      "application/pdf": [],
+    },
+    maxFiles: 1,
+    disabled: uploading,
+  })
+
+  if (sp.payment_evidence_url) {
+    return (
+      <a
+        href={sp.payment_evidence_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-primary hover:underline"
+      >
+        View
+      </a>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div
+        {...getRootProps()}
+        className={cn(
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-input px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40",
+          isDragActive && "border-primary bg-primary/5 text-primary",
+          uploading && "cursor-wait opacity-70",
+        )}
+        aria-label="Upload payment evidence"
+      >
+        <input {...getInputProps()} />
+        {uploading ? (
+          <>
+            <Loader2 className="size-3 animate-spin" aria-hidden />
+            Uploading…
+          </>
+        ) : (
+          <>
+            <Upload className="size-3" aria-hidden />
+            {isDragActive ? "Drop file" : "Upload"}
+          </>
+        )}
+      </div>
+      {error ? (
+        <span
+          className="inline-flex items-center gap-1 text-xs text-destructive"
+          role="alert"
+        >
+          <AlertTriangle className="size-3" aria-hidden />
+          {error}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+// ── Dialog (Add + Edit) ──────────────────────────────────────────────────────
+
+interface SponsorshipDialogProps {
   businessId: string
   businessCategoryNames: string[]
   open: boolean
+  /** When provided, the dialog opens in Edit mode: fields pre-fill from
+   *  this row, submit PATCHes instead of POSTs, amount renders read-only.
+   *  Null = Add mode. */
+  sponsorship: SponsorshipListItem | null
   onOpenChange: (open: boolean) => void
 }
 
@@ -203,13 +366,15 @@ function tierLabel(t: SponsorshipTier): string {
   return `${t.name} (priority ${t.priority})`
 }
 
-function AddSponsorshipDialog({
+function SponsorshipDialog({
   businessId,
   businessCategoryNames,
   open,
+  sponsorship,
   onOpenChange,
-}: AddSponsorshipDialogProps) {
+}: SponsorshipDialogProps) {
   const router = useRouter()
+  const isEdit = sponsorship !== null
   const [tiers, setTiers] = useState<SponsorshipTier[]>([])
   const [tierId, setTierId] = useState("")
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -219,25 +384,37 @@ function AddSponsorshipDialog({
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  useEffect(() => {
-    if (!open) return
+  // Load tiers + seed form state whenever the dialog opens (either
+  // mode) or the target row swaps. Wrapping the setState fan-out in a
+  // named function keeps React 19's set-state-in-effect rule happy —
+  // the rule fires on inline synchronous setState calls, not on a
+  // function invocation. Mirrors the SponsorshipsSection.fetchSponsorships
+  // pattern above.
+  function loadAndSeed() {
     apiClient
       .get<{ items: SponsorshipTier[] }>("/api/v1/admin/sponsorship-tiers?includeInactive=false")
       .then((r) => setTiers(r.data?.items ?? []))
       .catch(() => {})
-  }, [open])
-
-  function resetForm() {
-    setTierId("")
-    setStartDate(new Date().toISOString().slice(0, 10))
-    setEndDate("")
-    setAmountDollars("")
-    setNotes("")
+    if (sponsorship) {
+      setTierId(sponsorship.tier_id ?? "")
+      setStartDate(toDateInputValue(sponsorship.start_date))
+      setEndDate(toDateInputValue(sponsorship.end_date))
+      setAmountDollars((sponsorship.amount_cents / 100).toFixed(2))
+      setNotes(sponsorship.notes ?? "")
+    } else {
+      setTierId("")
+      setStartDate(new Date().toISOString().slice(0, 10))
+      setEndDate("")
+      setAmountDollars("")
+      setNotes("")
+    }
     setError(null)
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { if (open) loadAndSeed() }, [open, sponsorship?.id])
+
   function handleClose(v: boolean) {
-    if (!v) resetForm()
     onOpenChange(v)
   }
 
@@ -245,11 +422,6 @@ function AddSponsorshipDialog({
     e.preventDefault()
     setError(null)
 
-    const amount_cents = Math.round(parseFloat(amountDollars) * 100)
-    if (isNaN(amount_cents) || amount_cents < 0) {
-      setError("Enter a valid amount.")
-      return
-    }
     if (!endDate) {
       setError("End date is required.")
       return
@@ -257,17 +429,37 @@ function AddSponsorshipDialog({
 
     startTransition(async () => {
       try {
-        await apiClient.post(
-          `/api/v1/admin/businesses/${businessId}/sponsorships`,
-          {
-            business_id: businessId,
-            tier_id: tierId || null,
-            start_date: toISODatetime(startDate),
-            end_date: toISODatetime(endDate),
-            amount_cents,
-            notes: notes.trim() || null,
-          },
-        )
+        if (isEdit && sponsorship) {
+          // Edit: only send the editable fields (tier, dates, notes).
+          // Amount is intentionally locked at Add-time and NOT re-sent.
+          await apiClient.patch(
+            `/api/v1/admin/businesses/${businessId}/sponsorships/${sponsorship.id}`,
+            {
+              id: sponsorship.id,
+              tier_id: tierId || null,
+              start_date: toISODatetime(startDate),
+              end_date: toISODatetime(endDate),
+              notes: notes.trim() || null,
+            },
+          )
+        } else {
+          const amount_cents = Math.round(parseFloat(amountDollars) * 100)
+          if (isNaN(amount_cents) || amount_cents < 0) {
+            setError("Enter a valid amount.")
+            return
+          }
+          await apiClient.post(
+            `/api/v1/admin/businesses/${businessId}/sponsorships`,
+            {
+              business_id: businessId,
+              tier_id: tierId || null,
+              start_date: toISODatetime(startDate),
+              end_date: toISODatetime(endDate),
+              amount_cents,
+              notes: notes.trim() || null,
+            },
+          )
+        }
         router.refresh()
         handleClose(false)
       } catch (err) {
@@ -283,7 +475,7 @@ function AddSponsorshipDialog({
         <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex w-[min(540px,94vw)] max-h-[90svh] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card-hover)]">
           <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-5">
             <Dialog.Title className="font-display text-xl text-foreground">
-              Add sponsorship
+              {isEdit ? "Edit sponsorship" : "Add sponsorship"}
             </Dialog.Title>
             <Dialog.Close
               className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -349,18 +541,27 @@ function AddSponsorshipDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="sp-amount">Amount (USD)</Label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">$</span>
-                <Input
+              {isEdit ? (
+                <p
                   id="sp-amount"
-                  value={amountDollars}
-                  onChange={(e) => setAmountDollars(e.target.value)}
-                  className="pl-7"
-                  placeholder="0.00"
-                  inputMode="decimal"
-                  required
-                />
-              </div>
+                  className="text-sm text-muted-foreground tabular-nums"
+                >
+                  ${amountDollars} <span className="text-xs">(locked)</span>
+                </p>
+              ) : (
+                <div className="relative">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">$</span>
+                  <Input
+                    id="sp-amount"
+                    value={amountDollars}
+                    onChange={(e) => setAmountDollars(e.target.value)}
+                    className="pl-7"
+                    placeholder="0.00"
+                    inputMode="decimal"
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -383,7 +584,11 @@ function AddSponsorshipDialog({
 
             <div className="flex gap-3 pt-1">
               <Button type="submit" disabled={pending}>
-                {pending ? "Saving…" : "Add sponsorship"}
+                {pending
+                  ? "Saving…"
+                  : isEdit
+                    ? "Save changes"
+                    : "Add sponsorship"}
               </Button>
               <Button
                 type="button"
