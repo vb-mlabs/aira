@@ -17,6 +17,10 @@ export const SponsorshipSchema = z.object({
   end_date: z.string(),
   amount_cents: z.number().int().nonnegative(),
   notes: z.string().nullable(),
+  // Relative /api/storage/... path returned by the storage driver — use
+  // .min(1), NOT .url(), so the schema doesn't reject valid stored values
+  // (see .claude/memory/storage-driver-relative-urls.md, commit 3aa520f).
+  payment_evidence_url: z.string().nullable(),
   recorded_by: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -44,6 +48,7 @@ export const SponsorshipUpdateInputSchema = z
     end_date: z.string().datetime().optional(),
     amount_cents: z.number().int().nonnegative().optional(),
     notes: z.string().max(1000).nullable().optional(),
+    payment_evidence_url: z.string().min(1).nullable().optional(),
   })
   .strict()
 export type SponsorshipUpdateInput = z.infer<typeof SponsorshipUpdateInputSchema>
