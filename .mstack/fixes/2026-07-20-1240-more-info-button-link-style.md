@@ -3,7 +3,7 @@
 **Started:** 2026-07-20 12:40
 **Source:** user-report
 **Status:** fixed
-**Commit:** _pending — set below after commit_
+**Commit:** 77e547e
 
 ## Symptom / repro
 
