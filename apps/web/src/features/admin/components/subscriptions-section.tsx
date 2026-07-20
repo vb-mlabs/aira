@@ -3,7 +3,15 @@
 import { useState, useEffect, useTransition, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useDropzone } from "react-dropzone"
-import { Plus, Trash2, Upload, Loader2, X, AlertTriangle } from "lucide-react"
+import {
+  Plus,
+  Trash2,
+  Upload,
+  Loader2,
+  X,
+  AlertTriangle,
+  Pencil,
+} from "lucide-react"
 import { Dialog } from "@base-ui/react/dialog"
 import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
@@ -57,6 +65,9 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
   const [planById, setPlanById] = useState<Map<string, MembershipPlan>>(new Map())
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  // Non-null when the dialog is being opened for Edit rather than Add.
+  // Clearing this on close flips the dialog back to Add mode next open.
+  const [editingSub, setEditingSub] = useState<BusinessSubscription | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -108,6 +119,16 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
     }
   }
 
+  function openAdd() {
+    setEditingSub(null)
+    setOpen(true)
+  }
+
+  function openEdit(sub: BusinessSubscription) {
+    setEditingSub(sub)
+    setOpen(true)
+  }
+
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -117,7 +138,7 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
           size="sm"
           variant="outline"
           className="gap-1.5"
-          onClick={() => setOpen(true)}
+          onClick={openAdd}
         >
           <Plus className="size-3.5" aria-hidden />
           Add
@@ -169,32 +190,32 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
                       {formatDate(sub.start_date)} – {formatDate(sub.end_date)}
                     </td>
                     <td className="px-3 py-2">
-                      {sub.payment_evidence_url ? (
-                        <a
-                          href={sub.payment_evidence_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          View
-                        </a>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-warning">
-                          <AlertTriangle className="size-3" aria-hidden />
-                          No evidence
-                        </span>
-                      )}
+                      <EvidenceCell
+                        sub={sub}
+                        businessId={businessId}
+                        onUploaded={fetchSubs}
+                      />
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(sub.id)}
-                        disabled={deletingId === sub.id}
-                        className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-                        aria-label="Delete subscription"
-                      >
-                        <Trash2 className="size-3.5" aria-hidden />
-                      </button>
+                      <div className="inline-flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(sub)}
+                          className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          aria-label="Edit subscription"
+                        >
+                          <Pencil className="size-3.5" aria-hidden />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(sub.id)}
+                          disabled={deletingId === sub.id}
+                          className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                          aria-label="Delete subscription"
+                        >
+                          <Trash2 className="size-3.5" aria-hidden />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -210,26 +231,151 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
         )}
       </div>
 
-      <AddSubscriptionDialog
+      <SubscriptionDialog
         businessId={businessId}
         open={open}
+        subscription={editingSub}
+        planById={planById}
         onOpenChange={(v) => {
           setOpen(v)
-          if (!v) fetchSubs()
+          if (!v) {
+            setEditingSub(null)
+            fetchSubs()
+          }
         }}
       />
     </section>
   )
 }
 
-interface AddSubscriptionDialogProps {
+// ── Evidence cell ────────────────────────────────────────────────────────────
+
+interface EvidenceCellProps {
+  sub: BusinessSubscription
+  businessId: string
+  onUploaded: () => void
+}
+
+function EvidenceCell({ sub, businessId, onUploaded }: EvidenceCellProps) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const onDrop = useCallback(
+    async (accepted: File[]) => {
+      const file = accepted[0]
+      if (!file) return
+      setError(null)
+      setUploading(true)
+      try {
+        const form = new FormData()
+        form.append("file", file)
+        const res = await fetch(
+          `/api/v1/admin/businesses/${businessId}/subscriptions/${sub.id}/evidence`,
+          { method: "POST", body: form },
+        )
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => null)) as
+            | { error?: { message?: string } }
+            | null
+          throw new Error(payload?.error?.message ?? "Upload failed.")
+        }
+        onUploaded()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed.")
+      } finally {
+        setUploading(false)
+      }
+    },
+    [businessId, sub.id, onUploaded],
+  )
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/jpeg": [],
+      "image/png": [],
+      "image/webp": [],
+      "application/pdf": [],
+    },
+    maxFiles: 1,
+    disabled: uploading,
+  })
+
+  if (sub.payment_evidence_url) {
+    return (
+      <a
+        href={sub.payment_evidence_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-primary hover:underline"
+      >
+        View
+      </a>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div
+        {...getRootProps()}
+        className={cn(
+          "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-input px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40",
+          isDragActive && "border-primary bg-primary/5 text-primary",
+          uploading && "cursor-wait opacity-70",
+        )}
+        aria-label="Upload payment evidence"
+      >
+        <input {...getInputProps()} />
+        {uploading ? (
+          <>
+            <Loader2 className="size-3 animate-spin" aria-hidden />
+            Uploading…
+          </>
+        ) : (
+          <>
+            <Upload className="size-3" aria-hidden />
+            {isDragActive ? "Drop file" : "Upload"}
+          </>
+        )}
+      </div>
+      {error ? (
+        <span
+          className="inline-flex items-center gap-1 text-xs text-destructive"
+          role="alert"
+        >
+          <AlertTriangle className="size-3" aria-hidden />
+          {error}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+// ── Dialog (Add + Edit) ──────────────────────────────────────────────────────
+
+interface SubscriptionDialogProps {
   businessId: string
   open: boolean
+  /** When provided, the dialog opens in Edit mode: fields pre-fill from
+   *  this row, submit PATCHes instead of POSTs, plan renders locked, and
+   *  evidence upload is skipped (post-hoc upload lives in the row cell).
+   *  Null = Add mode. */
+  subscription: BusinessSubscription | null
+  /** Plan lookup used for read-only display of the locked plan name in
+   *  Edit mode. Passed down rather than re-fetched. */
+  planById: Map<string, MembershipPlan>
   onOpenChange: (open: boolean) => void
 }
 
-function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscriptionDialogProps) {
+function SubscriptionDialog({
+  businessId,
+  open,
+  subscription,
+  planById,
+  onOpenChange,
+}: SubscriptionDialogProps) {
   const router = useRouter()
+  const isEdit = subscription !== null
   const [plans, setPlans] = useState<MembershipPlan[]>([])
   const [planId, setPlanId] = useState("")
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("paid")
@@ -242,13 +388,36 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  useEffect(() => {
-    if (!open) return
+  // Load plans + seed form state whenever the dialog opens (either mode)
+  // or the target row swaps. Wrapping the setState fan-out in a named
+  // function keeps React 19's set-state-in-effect rule happy — same
+  // pattern as sponsorships-section.tsx's loadAndSeed.
+  function loadAndSeed() {
     apiClient
       .get<{ items: MembershipPlan[] }>("/api/v1/admin/membership-plans?includeInactive=false")
       .then((r) => setPlans(r.data?.items ?? []))
       .catch(() => {})
-  }, [open])
+    if (subscription) {
+      setPlanId(subscription.plan_id ?? "")
+      setPaymentStatus(subscription.payment_status as PaymentStatus)
+      setStartDate(toDateInputValue(subscription.start_date))
+      setEndDate(toDateInputValue(subscription.end_date))
+      setAmountDollars((subscription.amount_cents / 100).toFixed(2))
+      setNotes(subscription.notes ?? "")
+    } else {
+      setPlanId("")
+      setPaymentStatus("paid")
+      setStartDate(new Date().toISOString().slice(0, 10))
+      setEndDate("")
+      setAmountDollars("")
+      setNotes("")
+    }
+    setEvidenceFile(null)
+    setError(null)
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { if (open) loadAndSeed() }, [open, subscription?.id])
 
   function handlePlanChange(id: string) {
     setPlanId(id)
@@ -261,6 +430,11 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
 
   function handleStartDateChange(val: string) {
     setStartDate(val)
+    // Auto-shift end_date from plan duration is Add-mode convenience.
+    // In Edit mode the admin may be extending a lapsed subscription
+    // (moving start earlier while keeping end); auto-shift would fight
+    // that intent.
+    if (isEdit) return
     const plan = plans.find((p) => p.id === planId)
     if (plan) {
       setEndDate(addMonthsToDate(val, plan.duration_months))
@@ -283,19 +457,7 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
     disabled: uploading || pending,
   })
 
-  function resetForm() {
-    setPlanId("")
-    setPaymentStatus("paid")
-    setStartDate(new Date().toISOString().slice(0, 10))
-    setEndDate("")
-    setAmountDollars("")
-    setNotes("")
-    setEvidenceFile(null)
-    setError(null)
-  }
-
   function handleClose(v: boolean) {
-    if (!v) resetForm()
     onOpenChange(v)
   }
 
@@ -316,32 +478,49 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
     startTransition(async () => {
       setUploading(false)
       try {
-        const res = await apiClient.post<{ subscription: BusinessSubscription }>(
-          `/api/v1/admin/businesses/${businessId}/subscriptions`,
-          {
-            business_id: businessId,
-            plan_id: planId || null,
-            payment_status: paymentStatus,
-            start_date: toISODatetime(startDate),
-            end_date: toISODatetime(endDate),
-            amount_cents,
-            notes: notes.trim() || null,
-          },
-        )
-
-        if (evidenceFile && res.subscription?.id) {
-          setUploading(true)
-          const form = new FormData()
-          form.append("file", evidenceFile)
-          const evRes = await fetch(
-            `/api/v1/admin/businesses/${businessId}/subscriptions/${res.subscription.id}/evidence`,
-            { method: "POST", body: form },
+        if (isEdit && subscription) {
+          // Edit: PATCH the editable fields. plan_id is schema-locked;
+          // evidence upload is a row-level flow (post-hoc dropzone), not
+          // part of the Edit submit.
+          await apiClient.patch(
+            `/api/v1/admin/businesses/${businessId}/subscriptions/${subscription.id}`,
+            {
+              id: subscription.id,
+              payment_status: paymentStatus,
+              start_date: toISODatetime(startDate),
+              end_date: toISODatetime(endDate),
+              amount_cents,
+              notes: notes.trim() || null,
+            },
           )
-          if (!evRes.ok) {
-            const payload = await evRes.json().catch(() => null)
-            throw new Error(payload?.error?.message ?? "Evidence upload failed.")
+        } else {
+          const res = await apiClient.post<{ subscription: BusinessSubscription }>(
+            `/api/v1/admin/businesses/${businessId}/subscriptions`,
+            {
+              business_id: businessId,
+              plan_id: planId || null,
+              payment_status: paymentStatus,
+              start_date: toISODatetime(startDate),
+              end_date: toISODatetime(endDate),
+              amount_cents,
+              notes: notes.trim() || null,
+            },
+          )
+
+          if (evidenceFile && res.subscription?.id) {
+            setUploading(true)
+            const form = new FormData()
+            form.append("file", evidenceFile)
+            const evRes = await fetch(
+              `/api/v1/admin/businesses/${businessId}/subscriptions/${res.subscription.id}/evidence`,
+              { method: "POST", body: form },
+            )
+            if (!evRes.ok) {
+              const payload = await evRes.json().catch(() => null)
+              throw new Error(payload?.error?.message ?? "Evidence upload failed.")
+            }
+            setUploading(false)
           }
-          setUploading(false)
         }
 
         router.refresh()
@@ -353,6 +532,10 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
     })
   }
 
+  const lockedPlanName = subscription?.plan_id
+    ? planById.get(subscription.plan_id)?.name ?? subscription.plan_id
+    : null
+
   return (
     <Dialog.Root open={open} onOpenChange={handleClose}>
       <Dialog.Portal>
@@ -360,7 +543,7 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
         <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex w-[min(540px,94vw)] max-h-[90svh] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card-hover)]">
           <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-5">
             <Dialog.Title className="font-display text-xl text-foreground">
-              Add subscription
+              {isEdit ? "Edit subscription" : "Add subscription"}
             </Dialog.Title>
             <Dialog.Close
               className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -373,19 +556,29 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
           <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="sub-plan">Plan</Label>
-              <select
-                id="sub-plan"
-                value={planId}
-                onChange={(e) => handlePlanChange(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-              >
-                <option value="">— Custom (no plan) —</option>
-                {plans.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} · ${(p.price_cents / 100).toFixed(2)} / {p.duration_months}mo
-                  </option>
-                ))}
-              </select>
+              {isEdit ? (
+                <p
+                  id="sub-plan"
+                  className="text-sm text-muted-foreground"
+                >
+                  Plan: <span className="text-foreground">{lockedPlanName ?? "— (no plan)"}</span>{" "}
+                  <span className="text-xs">(locked)</span>
+                </p>
+              ) : (
+                <select
+                  id="sub-plan"
+                  value={planId}
+                  onChange={(e) => handlePlanChange(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                >
+                  <option value="">— Custom (no plan) —</option>
+                  {plans.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} · ${(p.price_cents / 100).toFixed(2)} / {p.duration_months}mo
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -453,30 +646,32 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Payment evidence</Label>
-              <div
-                {...getRootProps()}
-                className={cn(
-                  "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors",
-                  isDragActive
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                  (uploading || pending) && "pointer-events-none opacity-60",
-                )}
-              >
-                <input {...getInputProps()} />
-                {evidenceFile ? (
-                  <span className="font-medium text-foreground">{evidenceFile.name}</span>
-                ) : (
-                  <>
-                    <Upload className="size-5" aria-hidden />
-                    <span>{isDragActive ? "Drop to attach" : "Drop file or click to browse"}</span>
-                    <span className="text-xs">JPEG, PNG, WebP or PDF · max 5 MB · optional</span>
-                  </>
-                )}
+            {!isEdit && (
+              <div className="space-y-1.5">
+                <Label>Payment evidence</Label>
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors",
+                    isDragActive
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                    (uploading || pending) && "pointer-events-none opacity-60",
+                  )}
+                >
+                  <input {...getInputProps()} />
+                  {evidenceFile ? (
+                    <span className="font-medium text-foreground">{evidenceFile.name}</span>
+                  ) : (
+                    <>
+                      <Upload className="size-5" aria-hidden />
+                      <span>{isDragActive ? "Drop to attach" : "Drop file or click to browse"}</span>
+                      <span className="text-xs">JPEG, PNG, WebP or PDF · max 5 MB · optional</span>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {error && (
               <p className="text-sm text-destructive" role="alert">
@@ -493,6 +688,8 @@ function AddSubscriptionDialog({ businessId, open, onOpenChange }: AddSubscripti
                   </>
                 ) : pending ? (
                   "Saving…"
+                ) : isEdit ? (
+                  "Save changes"
                 ) : (
                   "Add subscription"
                 )}
