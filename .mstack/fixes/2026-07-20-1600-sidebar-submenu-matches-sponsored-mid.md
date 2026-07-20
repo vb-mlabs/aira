@@ -78,7 +78,21 @@ tokens; no design-layer edit.
   literals onto NativeWind classes (there's already a mobile Tailwind
   config), do it as a dedicated pass rather than folding into this fix.
 
-## Correction (commit — pending)
+## Correction 2 (final — pending commit): tier2, not tier1
+
+Second correction on top of `75a3fd2`. User clarified the target is
+the **mid-tier section header** on `/listings/<slug>` (mobile), which
+uses `tier2-texture.webp` — not `tier1-texture.webp` (which is the
+top-tier header). The mobile category screen at
+`apps/mobile/app/(app)/listings/[category]/index.tsx:22-29` stacks three
+SlotSections (top/mid/regular) each with its own texture; web only
+renders two (Sponsored + Regular = tier1 + tier3) but the tier2 asset
+is present in `apps/web/public/textures/` and is now referenced by the
+sidebar. Web + mobile submenus both now point at
+`tier2-texture.webp`; everything else in the previous correction
+stays.
+
+## Correction 1 (commit `75a3fd2`)
 
 The initial fix (commit `918165e`) used the flat `--sponsored-mid`
 color token. User pointed out that the Sponsored section header on the

@@ -282,13 +282,13 @@ function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
                 "flex items-center gap-3 border-b border-sidebar-border py-2 pl-12 pr-5 text-xs transition-[filter] text-sponsored-mid-foreground hover:brightness-95",
                 childActive && "font-bold",
               )}
-              // Same tier1-texture the "Sponsored" section header on the
-              // listing page uses (slot-section.tsx). Tiling the image
-              // across each row keeps the visual identity consistent
-              // between the submenu and the sponsored section without
-              // introducing a new asset.
+              // Same tier2-texture the mid-slot "Sponsored" section
+              // header uses on the mobile category screen
+              // (apps/mobile/app/(app)/listings/[category]/index.tsx:28).
+              // Sidebar submenu shares that visual identity with the
+              // mid-tier section header.
               style={{
-                backgroundImage: "url(/textures/tier1-texture.webp)",
+                backgroundImage: "url(/textures/tier2-texture.webp)",
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}

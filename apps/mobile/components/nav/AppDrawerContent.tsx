@@ -364,11 +364,11 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
                   borderBottomColor: TINT_LIGHT_HAIRLINE,
                 }}
               >
-                {/* Same tier1-texture the web submenu now uses (and the
-                    "Sponsored" section header on category pages). Keeps
-                    the visual identity consistent across web + mobile. */}
+                {/* Same tier2-texture the mid-slot "Sponsored" section
+                    header uses on the category screen
+                    (app/(app)/listings/[category]/index.tsx:28). */}
                 <ImageBackground
-                  source={require("../../assets/textures/tier1-texture.webp")}
+                  source={require("../../assets/textures/tier2-texture.webp")}
                   resizeMode="cover"
                   style={{
                     flexDirection: "row",
