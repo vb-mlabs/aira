@@ -15,6 +15,7 @@ export function toSponsorship(
     ...row,
     tier_id: row.tier_id ?? null,
     notes: row.notes ?? null,
+    payment_evidence_url: row.payment_evidence_url ?? null,
     recorded_by: row.recorded_by ?? null,
     start_date: row.start_date.toISOString(),
     end_date: row.end_date.toISOString(),
