@@ -427,11 +427,15 @@ function SponsorshipDialog({
       return
     }
 
+    const amount_cents = Math.round(parseFloat(amountDollars) * 100)
+    if (isNaN(amount_cents) || amount_cents < 0) {
+      setError("Enter a valid amount.")
+      return
+    }
+
     startTransition(async () => {
       try {
         if (isEdit && sponsorship) {
-          // Edit: only send the editable fields (tier, dates, notes).
-          // Amount is intentionally locked at Add-time and NOT re-sent.
           await apiClient.patch(
             `/api/v1/admin/businesses/${businessId}/sponsorships/${sponsorship.id}`,
             {
@@ -439,15 +443,11 @@ function SponsorshipDialog({
               tier_id: tierId || null,
               start_date: toISODatetime(startDate),
               end_date: toISODatetime(endDate),
+              amount_cents,
               notes: notes.trim() || null,
             },
           )
         } else {
-          const amount_cents = Math.round(parseFloat(amountDollars) * 100)
-          if (isNaN(amount_cents) || amount_cents < 0) {
-            setError("Enter a valid amount.")
-            return
-          }
           await apiClient.post(
             `/api/v1/admin/businesses/${businessId}/sponsorships`,
             {
@@ -541,27 +541,18 @@ function SponsorshipDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="sp-amount">Amount (USD)</Label>
-              {isEdit ? (
-                <p
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">$</span>
+                <Input
                   id="sp-amount"
-                  className="text-sm text-muted-foreground tabular-nums"
-                >
-                  ${amountDollars} <span className="text-xs">(locked)</span>
-                </p>
-              ) : (
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground text-sm">$</span>
-                  <Input
-                    id="sp-amount"
-                    value={amountDollars}
-                    onChange={(e) => setAmountDollars(e.target.value)}
-                    className="pl-7"
-                    placeholder="0.00"
-                    inputMode="decimal"
-                    required
-                  />
-                </div>
-              )}
+                  value={amountDollars}
+                  onChange={(e) => setAmountDollars(e.target.value)}
+                  className="pl-7"
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">
