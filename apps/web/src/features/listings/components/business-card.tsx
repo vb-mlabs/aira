@@ -129,12 +129,12 @@ export function BusinessCard({
           <Link
             href={`/listings/${business.category}/${business.id}`}
             aria-label={`More info about ${business.name}`}
-            className="relative z-10 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="relative z-10 inline-flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             More Info
           </Link>
         ) : (
-          <span className="relative z-10 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary-foreground">
+          <span className="relative z-10 inline-flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wide text-primary">
             More Info
           </span>
         )}

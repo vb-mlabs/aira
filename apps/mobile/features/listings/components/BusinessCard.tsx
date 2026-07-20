@@ -169,11 +169,9 @@ export function BusinessCard({
             isFavorited={isFavorited}
           />
           <SponsoredPill slot={business.sponsored_slot} />
-          <View className="rounded-full bg-primary px-2.5 py-1">
-            <Text className="text-[10px] font-bold uppercase tracking-wide text-primaryForeground">
-              More Info
-            </Text>
-          </View>
+          <Text className="text-[10px] font-bold uppercase tracking-wide text-primary">
+            More Info
+          </Text>
         </View>
       </View>
     </Pressable>
