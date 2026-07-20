@@ -40,7 +40,8 @@ export async function POST(
 
   try {
     const { url } = await processAndStoreEvidence({
-      subscriptionId: subId,
+      domain: "subscription",
+      id: subId,
       bytes,
       contentType: file.type,
     })

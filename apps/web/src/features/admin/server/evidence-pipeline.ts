@@ -26,8 +26,13 @@ export class EvidencePipelineError extends Error {
   }
 }
 
+export type EvidenceDomain = "subscription" | "sponsorship"
+
 export async function processAndStoreEvidence(args: {
-  subscriptionId: string
+  /** Which domain owns the evidence — drives the storage-key prefix so
+   *  subscription vs sponsorship uploads stay operationally separable. */
+  domain: EvidenceDomain
+  id: string
   bytes: Buffer
   contentType: string
 }): Promise<{ url: string }> {
@@ -61,7 +66,8 @@ export async function processAndStoreEvidence(args: {
         .toBuffer()
     } catch (err) {
       logger.warn("evidence image decode failed", {
-        subscriptionId: args.subscriptionId,
+        domain: args.domain,
+        id: args.id,
         message: String(err),
       })
       throw new EvidencePipelineError(
@@ -73,7 +79,11 @@ export async function processAndStoreEvidence(args: {
     finalContentType = "image/jpeg"
   }
 
-  const key = `business-subscriptions/${args.subscriptionId}/${crypto.randomUUID()}.${ext}`
+  // Pluralized domain prefix — `subscriptions/` and `sponsorships/`.
+  // Pre-existing subscription evidence files uploaded under the previous
+  // `business-subscriptions/` prefix remain reachable via their stored
+  // URL; only NEW subscription uploads land at the new prefix.
+  const key = `${args.domain}s/${args.id}/${crypto.randomUUID()}.${ext}`
   const { url } = await storage.upload({ key, body, contentType: finalContentType })
   return { url }
 }
