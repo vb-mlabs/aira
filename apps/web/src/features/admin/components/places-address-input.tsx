@@ -9,11 +9,14 @@
 // couldn't drop the transform without breaking every other admin
 // dialog's centering.
 //
-// Using `google.maps.places.AutocompleteService` + `PlacesService.getDetails`
-// (the classic API, not deprecated for existing customers). We own the
-// input styling (matches every other admin input via the shared
-// primitive) and the dropdown layout, so the layout and z-index quirks
-// of the shadow-DOM widget are no longer in play.
+// Uses the Places API (New): `AutocompleteSuggestion.fetchAutocompleteSuggestions`
+// + `Place.fetchFields`. We deliberately do NOT use the legacy
+// `AutocompleteService` / `PlacesService` classes — those hit the
+// old Places API endpoint, which many Google Cloud API keys have
+// restricted OFF while leaving "Places API (New)" enabled (an
+// ApiTargetBlockedMapError console signal). The new classes hit the
+// same endpoints the `<gmp-place-autocomplete>` widget used, so any
+// key that supported that widget supports this code path.
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Input } from "@aira/ui-web/input"
@@ -21,9 +24,9 @@ import { MapPin, Loader2 } from "lucide-react"
 
 interface Prediction {
   place_id: string
-  description: string
   main_text: string
   secondary_text: string
+  full_text: string
 }
 
 interface PlacesAddressInputProps {
@@ -35,6 +38,35 @@ interface PlacesAddressInputProps {
 
 type SdkState = "loading" | "ready" | "absent"
 
+// Minimal shape of the Places-API-New classes we touch. `@types/google.maps`
+// covers this but we narrow to what we consume so the loader typings stay
+// tight.
+interface PlacesNewLibrary {
+  AutocompleteSuggestion: {
+    fetchAutocompleteSuggestions: (
+      request: {
+        input: string
+        sessionToken?: unknown
+      },
+    ) => Promise<{
+      suggestions: Array<{
+        placePrediction: {
+          placeId: string
+          text: { text: string }
+          mainText?: { text: string } | null
+          secondaryText?: { text: string } | null
+          toPlace: () => {
+            fetchFields: (opts: { fields: string[] }) => Promise<{
+              place: { formattedAddress?: string | null }
+            }>
+          }
+        } | null
+      }>
+    }>
+  }
+  AutocompleteSessionToken: new () => unknown
+}
+
 export function PlacesAddressInput({
   id,
   value,
@@ -42,18 +74,15 @@ export function PlacesAddressInput({
   placeholder = "Start typing an address…",
 }: PlacesAddressInputProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
-  // AutocompleteService returns predictions; PlacesService.getDetails
-  // turns a place_id into the formatted address. Session token groups
-  // both into one billable session per Google's pricing model.
-  const autocompleteServiceRef =
-    useRef<google.maps.places.AutocompleteService | null>(null)
-  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null)
-  const sessionTokenRef =
-    useRef<google.maps.places.AutocompleteSessionToken | null>(null)
+  const placesLibRef = useRef<PlacesNewLibrary | null>(null)
+  const sessionTokenRef = useRef<unknown>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Track the last value we called onChange for internally so external
   // parent updates (form reset) don't retrigger a fetch loop.
   const lastLocalValueRef = useRef<string>(value)
+  // Increments on every keystroke; only the newest fetch is allowed to
+  // populate results (guards against out-of-order network responses).
+  const fetchSeqRef = useRef(0)
 
   const [sdkState, setSdkState] = useState<SdkState>("loading")
   const [predictions, setPredictions] = useState<Prediction[]>([])
@@ -81,13 +110,8 @@ export function PlacesAddressInput({
       }
       const places = (await window.google.maps.importLibrary(
         "places",
-      )) as google.maps.PlacesLibrary
-      autocompleteServiceRef.current = new places.AutocompleteService()
-      // PlacesService needs an attribution container; a detached div
-      // works fine and is never rendered.
-      placesServiceRef.current = new places.PlacesService(
-        document.createElement("div"),
-      )
+      )) as unknown as PlacesNewLibrary
+      placesLibRef.current = places
       sessionTokenRef.current = new places.AutocompleteSessionToken()
     }
 
@@ -108,27 +132,43 @@ export function PlacesAddressInput({
   }, [])
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const fetchPredictions = useCallback((input: string) => {
-    const svc = autocompleteServiceRef.current
+  const fetchPredictions = useCallback(async (input: string) => {
+    const lib = placesLibRef.current
     const token = sessionTokenRef.current
-    if (!svc || !token) return
+    if (!lib || !token) return
+    const seq = ++fetchSeqRef.current
     setLoadingPredictions(true)
-    svc.getPlacePredictions({ input, sessionToken: token }, (results) => {
-      setLoadingPredictions(false)
-      if (!results) {
-        setPredictions([])
-        setOpen(false)
-        return
-      }
-      const mapped: Prediction[] = results.map((r) => ({
-        place_id: r.place_id,
-        description: r.description,
-        main_text: r.structured_formatting?.main_text ?? r.description,
-        secondary_text: r.structured_formatting?.secondary_text ?? "",
-      }))
+    try {
+      const { suggestions } =
+        await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input,
+          sessionToken: token,
+        })
+      if (seq !== fetchSeqRef.current) return
+      const mapped: Prediction[] = suggestions.flatMap((s) => {
+        const p = s.placePrediction
+        if (!p) return []
+        return [
+          {
+            place_id: p.placeId,
+            full_text: p.text.text,
+            main_text: p.mainText?.text ?? p.text.text,
+            secondary_text: p.secondaryText?.text ?? "",
+          },
+        ]
+      })
       setPredictions(mapped)
       setOpen(mapped.length > 0)
-    })
+    } catch {
+      // Silent: a fetch failure shouldn't spam the admin. Dropdown just
+      // stays empty and the field remains a plain input for that keystroke.
+      if (seq === fetchSeqRef.current) {
+        setPredictions([])
+        setOpen(false)
+      }
+    } finally {
+      if (seq === fetchSeqRef.current) setLoadingPredictions(false)
+    }
   }, [])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -145,32 +185,45 @@ export function PlacesAddressInput({
     debounceRef.current = setTimeout(() => fetchPredictions(v), 250)
   }
 
-  function handleSelect(p: Prediction) {
-    const svc = placesServiceRef.current
+  async function handleSelect(p: Prediction) {
+    const lib = placesLibRef.current
     const token = sessionTokenRef.current
-    if (!svc || !token) {
-      lastLocalValueRef.current = p.description
-      onChange(p.description)
+    // Look up the underlying suggestion again to build the Place object.
+    // We hold onto the placePrediction implicitly by re-issuing a
+    // fetch — but that costs another autocomplete call. Simpler and
+    // cheaper: fall back to the visible full text if the details fetch
+    // fails or the SDK isn't ready, so selecting always makes progress.
+    const commit = (addr: string) => {
+      lastLocalValueRef.current = addr
+      onChange(addr)
       setOpen(false)
+      if (lib) sessionTokenRef.current = new lib.AutocompleteSessionToken()
+    }
+    if (!lib || !token) {
+      commit(p.full_text)
       return
     }
-    svc.getDetails(
-      {
-        placeId: p.place_id,
-        fields: ["formatted_address"],
-        sessionToken: token,
-      },
-      (place) => {
-        const addr = place?.formatted_address ?? p.description
-        lastLocalValueRef.current = addr
-        onChange(addr)
-        setOpen(false)
-        // Start a fresh session for the next lookup — sessions cover
-        // one autocomplete-to-details flow per Google's billing.
-        const g = window.google?.maps?.places
-        if (g) sessionTokenRef.current = new g.AutocompleteSessionToken()
-      },
-    )
+    try {
+      const { suggestions } =
+        await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input: p.full_text,
+          sessionToken: token,
+        })
+      const match = suggestions
+        .map((s) => s.placePrediction)
+        .find((pp) => pp?.placeId === p.place_id)
+      if (!match) {
+        commit(p.full_text)
+        return
+      }
+      const place = match.toPlace()
+      const { place: filled } = await place.fetchFields({
+        fields: ["formattedAddress"],
+      })
+      commit(filled.formattedAddress ?? p.full_text)
+    } catch {
+      commit(p.full_text)
+    }
   }
 
   // Close the dropdown when clicking anywhere outside the wrapper.
