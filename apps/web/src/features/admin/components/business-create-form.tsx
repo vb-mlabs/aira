@@ -359,12 +359,13 @@ export function BusinessCreateForm({
         </p>
       )}
 
-      {/* Sticky save bar — sits flush against the scroll container's
-          bottom edge (the AdminFormModal's <div className="overflow-y-auto
-          px-6 py-5">), so admins can submit from anywhere in the form
-          without scrolling. Negative -mx-6 / -mb-5 cancels the modal
-          body's padding so the divider runs edge-to-edge. */}
-      <div className="sticky bottom-0 -mx-6 -mb-5 flex gap-3 border-t border-border bg-card px-6 py-4">
+      {/* Sticky save bar — sits flush against the modal's bottom edge.
+          Requires AdminFormModal's body div to have no bottom padding
+          (pt-5, not py-5) so `sticky bottom-0` positions the border-box
+          bottom exactly at the modal's inner edge. Negative -mx-6
+          cancels the modal body's horizontal padding so the divider
+          runs edge-to-edge. */}
+      <div className="sticky bottom-0 -mx-6 flex gap-3 border-t border-border bg-card px-6 py-4">
         <Button type="submit" disabled={pending}>
           {pending ? "Creating…" : "Create business"}
         </Button>

@@ -109,7 +109,7 @@ export function CategoryForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5 pb-5">
         <div className="space-y-1.5">
           <Label htmlFor="cat-name">Name</Label>
           <Input

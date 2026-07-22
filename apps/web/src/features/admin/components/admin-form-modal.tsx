@@ -44,7 +44,12 @@ export function AdminFormModal({ title, description, backHref, children }: Admin
               <X className="size-4" aria-hidden />
             </Dialog.Close>
           </div>
-          <div className="overflow-y-auto px-6 py-5">{children}</div>
+          {/* pt-5 only (not py-5): the scroll container has no bottom
+              padding so a form's sticky footer with `bottom-0` sits
+              flush against the modal's inner bottom edge. Forms without
+              a sticky footer add their own pb-5 to keep breathing room
+              under their action row. */}
+          <div className="overflow-y-auto px-6 pt-5">{children}</div>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

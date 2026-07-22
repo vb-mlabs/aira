@@ -59,7 +59,7 @@ export function CityForm({ city }: CityFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5 pb-5">
       <div className="space-y-1.5">
         <Label htmlFor="city-name">Name</Label>
         <Input
