@@ -1,65 +1,29 @@
 "use client"
 
-// Google Places Autocomplete address widget — migrated 2026-06-15 to the
-// new `<gmp-place-autocomplete>` Web Component (PlaceAutocompleteElement).
-// The legacy `google.maps.places.Autocomplete` constructor is in deprecation
-// (Mar 2025 notice; no removal date but new customers can't use it).
+// Places autocomplete against a plain `<Input>` + our own dropdown.
+// Replaces the earlier `<gmp-place-autocomplete>` widget, which
+// misbehaved inside AdminFormModal: the modal's translate(-50%,-50%)
+// centering created a new containing block, and the widget's internal
+// `position: fixed` dropdown resolved modal-relative instead of
+// viewport-relative — flipping upward and clipping on the right. We
+// couldn't drop the transform without breaking every other admin
+// dialog's centering.
 //
-// Loading model:
-//   - The admin layout injects the Maps JS API <script> with libraries=places
-//     + loading=async + v=weekly only when GOOGLE_MAPS_API_KEY is set.
-//   - When the SDK loads, `<gmp-place-autocomplete>` registers itself as a
-//     custom element. We poll `customElements.whenDefined(...)` and fall
-//     back to a plain <Input> after 4 s if registration never completes.
-//   - The element has no documented controlled-value API. Older SDK
-//     versions rendered the inner <input> in the light DOM; newer ones
-//     put it inside Shadow DOM. `getInternalInput()` reaches into both.
-//     We seed on mount, re-seed when `value` changes externally, and
-//     write the selected place's formatted address back after gmp-select
-//     so the visible field always matches parent state.
+// Using `google.maps.places.AutocompleteService` + `PlacesService.getDetails`
+// (the classic API, not deprecated for existing customers). We own the
+// input styling (matches every other admin input via the shared
+// primitive) and the dropdown layout, so the layout and z-index quirks
+// of the shadow-DOM widget are no longer in play.
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Input } from "@aira/ui-web/input"
+import { MapPin, Loader2 } from "lucide-react"
 
-/** Returns the widget's internal <input>, whether Google renders it in
- *  the light DOM (older SDK) or inside Shadow DOM (v=weekly, late 2026+). */
-function getInternalInput(el: HTMLElement): HTMLInputElement | null {
-  return (
-    (el.shadowRoot?.querySelector("input") as HTMLInputElement | null) ??
-    (el.querySelector("input") as HTMLInputElement | null)
-  )
-}
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      "gmp-place-autocomplete": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          placeholder?: string
-        },
-        HTMLElement
-      >
-    }
-  }
-
-  interface Window {
-    google?: {
-      maps?: {
-        importLibrary?: (name: string) => Promise<unknown>
-      }
-    }
-  }
-}
-
-/** Minimal shape of `google.maps.places.PlacePrediction` we touch — typing
- *  `@types/google.maps` for the new element wasn't stable at migration
- *  time, so we narrow to just the bit we use. */
-interface PlacePredictionLike {
-  toPlace: () => {
-    fetchFields: (opts: { fields: string[] }) => Promise<unknown>
-    formattedAddress?: string
-  }
+interface Prediction {
+  place_id: string
+  description: string
+  main_text: string
+  secondary_text: string
 }
 
 interface PlacesAddressInputProps {
@@ -69,43 +33,39 @@ interface PlacesAddressInputProps {
   placeholder?: string
 }
 
+type SdkState = "loading" | "ready" | "absent"
+
 export function PlacesAddressInput({
   id,
   value,
   onChange,
   placeholder = "Start typing an address…",
 }: PlacesAddressInputProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const elementRef = useRef<HTMLElement | null>(null)
-  // Track the last value we wrote INTO the input so we don't overwrite the
-  // user's in-progress typing. External value changes (form reset, parent
-  // re-seed, gmp-select result) need to be reflected; local typing does not.
-  const lastWrittenValueRef = useRef<string>("")
-  const [sdkState, setSdkState] = useState<"loading" | "ready" | "absent">(
-    "loading",
-  )
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  // AutocompleteService returns predictions; PlacesService.getDetails
+  // turns a place_id into the formatted address. Session token groups
+  // both into one billable session per Google's pricing model.
+  const autocompleteServiceRef =
+    useRef<google.maps.places.AutocompleteService | null>(null)
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null)
+  const sessionTokenRef =
+    useRef<google.maps.places.AutocompleteSessionToken | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Track the last value we called onChange for internally so external
+  // parent updates (form reset) don't retrigger a fetch loop.
+  const lastLocalValueRef = useRef<string>(value)
 
-  // Probe for the custom element. With `loading=async` the Maps script
-  // returns just a bootstrap loader — the places library + element
-  // registration only happen when something calls
-  // `google.maps.importLibrary("places")`. Without that call,
-  // `customElements.whenDefined("gmp-place-autocomplete")` would hang
-  // forever and the 4 s timeout fired, dropping us to the plain input.
-  //
-  // Flow: wait for the loader stub → import the places library → wait
-  // for the custom element to register → mark ready. Falls back to a
-  // plain controlled input if any step times out.
+  const [sdkState, setSdkState] = useState<SdkState>("loading")
+  const [predictions, setPredictions] = useState<Prediction[]>([])
+  const [open, setOpen] = useState(false)
+  const [loadingPredictions, setLoadingPredictions] = useState(false)
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (typeof window === "undefined" || typeof customElements === "undefined") {
+    if (typeof window === "undefined") {
       setSdkState("absent")
       return
     }
-    if (customElements.get("gmp-place-autocomplete")) {
-      setSdkState("ready")
-      return
-    }
-
     let cancelled = false
     const timeout = setTimeout(() => {
       if (!cancelled) setSdkState("absent")
@@ -117,10 +77,18 @@ export function PlacesAddressInput({
         if (performance.now() - start > 6000) {
           throw new Error("Google Maps loader did not appear")
         }
-        await new Promise((resolve) => setTimeout(resolve, 50))
+        await new Promise((r) => setTimeout(r, 50))
       }
-      await window.google.maps.importLibrary("places")
-      await customElements.whenDefined("gmp-place-autocomplete")
+      const places = (await window.google.maps.importLibrary(
+        "places",
+      )) as google.maps.PlacesLibrary
+      autocompleteServiceRef.current = new places.AutocompleteService()
+      // PlacesService needs an attribution container; a detached div
+      // works fine and is never rendered.
+      placesServiceRef.current = new places.PlacesService(
+        document.createElement("div"),
+      )
+      sessionTokenRef.current = new places.AutocompleteSessionToken()
     }
 
     load()
@@ -140,92 +108,90 @@ export function PlacesAddressInput({
   }, [])
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Mount the element imperatively so we own the gmp-select listener and
-  // attribute setup without having to round-trip through React render.
+  const fetchPredictions = useCallback((input: string) => {
+    const svc = autocompleteServiceRef.current
+    const token = sessionTokenRef.current
+    if (!svc || !token) return
+    setLoadingPredictions(true)
+    svc.getPlacePredictions({ input, sessionToken: token }, (results) => {
+      setLoadingPredictions(false)
+      if (!results) {
+        setPredictions([])
+        setOpen(false)
+        return
+      }
+      const mapped: Prediction[] = results.map((r) => ({
+        place_id: r.place_id,
+        description: r.description,
+        main_text: r.structured_formatting?.main_text ?? r.description,
+        secondary_text: r.structured_formatting?.secondary_text ?? "",
+      }))
+      setPredictions(mapped)
+      setOpen(mapped.length > 0)
+    })
+  }, [])
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = e.target.value
+    lastLocalValueRef.current = v
+    onChange(v)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (sdkState !== "ready") return
+    if (!v.trim()) {
+      setPredictions([])
+      setOpen(false)
+      return
+    }
+    debounceRef.current = setTimeout(() => fetchPredictions(v), 250)
+  }
+
+  function handleSelect(p: Prediction) {
+    const svc = placesServiceRef.current
+    const token = sessionTokenRef.current
+    if (!svc || !token) {
+      lastLocalValueRef.current = p.description
+      onChange(p.description)
+      setOpen(false)
+      return
+    }
+    svc.getDetails(
+      {
+        placeId: p.place_id,
+        fields: ["formatted_address"],
+        sessionToken: token,
+      },
+      (place) => {
+        const addr = place?.formatted_address ?? p.description
+        lastLocalValueRef.current = addr
+        onChange(addr)
+        setOpen(false)
+        // Start a fresh session for the next lookup — sessions cover
+        // one autocomplete-to-details flow per Google's billing.
+        const g = window.google?.maps?.places
+        if (g) sessionTokenRef.current = new g.AutocompleteSessionToken()
+      },
+    )
+  }
+
+  // Close the dropdown when clicking anywhere outside the wrapper.
   useEffect(() => {
-    const container = containerRef.current
-    if (!container || sdkState !== "ready") return
-
-    container.innerHTML = ""
-    const el = document.createElement("gmp-place-autocomplete") as HTMLElement
-    if (id) el.id = id
-    el.setAttribute("placeholder", placeholder)
-    container.appendChild(el)
-    elementRef.current = el
-
-    // Seed the internal input with the existing value. Two ticks: the
-    // element may attach its shadow root asynchronously after append.
-    const seedValue = value
-    if (seedValue) {
-      requestAnimationFrame(() => {
-        const input = getInternalInput(el)
-        if (input && !input.value) {
-          input.value = seedValue
-          lastWrittenValueRef.current = seedValue
-        }
-      })
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      const wrap = wrapRef.current
+      if (!wrap) return
+      if (!wrap.contains(e.target as Node)) setOpen(false)
     }
+    document.addEventListener("mousedown", onDown)
+    return () => document.removeEventListener("mousedown", onDown)
+  }, [open])
 
-    function handleSelect(event: Event) {
-      // The `gmp-select` event puts `placePrediction` directly on the
-      // event object (per Google's samples), not under `event.detail`.
-      const placePrediction = (event as unknown as {
-        placePrediction?: PlacePredictionLike
-      }).placePrediction
-      if (!placePrediction) return
-      const place = placePrediction.toPlace()
-      place
-        .fetchFields({ fields: ["formattedAddress"] })
-        .then(() => {
-          if (!place.formattedAddress) return
-          onChange(place.formattedAddress)
-          // Write the selected address into the visible input so the
-          // field reflects what was picked. The element does not always
-          // populate its own input from the selected place across SDK
-          // versions, and we don't want to depend on that.
-          const input = getInternalInput(el)
-          if (input) {
-            input.value = place.formattedAddress
-            lastWrittenValueRef.current = place.formattedAddress
-          }
-        })
-        .catch(() => {
-          // Silent: a place fetch failure shouldn't break the form. The
-          // admin can retry by picking another suggestion.
-        })
-    }
-
-    el.addEventListener("gmp-select", handleSelect)
-    return () => {
-      el.removeEventListener("gmp-select", handleSelect)
-      elementRef.current = null
-      // Don't clear container.innerHTML on cleanup — React strict-mode
-      // double-mount would race against the next mount.
-    }
-    // `value` used only as one-shot mount seed; external changes are
-    // handled by the sync effect below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdkState, id, placeholder, onChange])
-
-  // Sync external value changes (form reset, parent re-seed) into the
-  // internal input without rebuilding the element. Skips when the value
-  // already matches what we last wrote — that means the change came from
-  // local typing or our own onChange, not an external mutation.
-  useEffect(() => {
-    const el = elementRef.current
-    if (!el) return
-    if (value === lastWrittenValueRef.current) return
-    const input = getInternalInput(el)
-    if (!input) return
-    input.value = value
-    lastWrittenValueRef.current = value
-  }, [value])
-
-  // SDK absent → identical UX to pre-migration: plain controlled input.
+  // SDK absent → plain controlled input, no autocomplete. Same UX as
+  // the fallback in the previous widget-based implementation.
   if (sdkState === "absent") {
     return (
       <Input
         id={id}
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -234,16 +200,70 @@ export function PlacesAddressInput({
     )
   }
 
-  // Own the border/ring on this wrapper (focus-within reacts to focus on
-  // the widget's internal input, even through Shadow DOM). The widget
-  // itself is styled borderless in globals.css so only this wrapper's
-  // outline is visible. Height + rounding + border match the `<Input>`
-  // primitive at packages/ui-web/src/components/input.tsx so this field
-  // is visually indistinguishable from the plain text inputs above and
-  // below it inside the same modal.
   return (
-    <div className="h-[45px] w-full rounded-2xl border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
-      <div ref={containerRef} className="h-full w-full" />
+    <div ref={wrapRef} className="relative">
+      <Input
+        id={id}
+        type="text"
+        value={value}
+        onChange={handleChange}
+        onFocus={() => {
+          if (predictions.length > 0) setOpen(true)
+        }}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-md border border-border bg-popover shadow-[var(--shadow-card)]"
+        >
+          {predictions.map((p) => (
+            <li
+              key={p.place_id}
+              role="option"
+              aria-selected={false}
+              // onMouseDown fires before input blur, so the click
+              // registers even though clicking the item takes focus
+              // away from the input (which would otherwise trigger
+              // outside-click close before the handler runs).
+              onMouseDown={(e) => {
+                e.preventDefault()
+                handleSelect(p)
+              }}
+              className="flex cursor-pointer items-start gap-2 border-b border-border/60 px-3 py-2 last:border-b-0 hover:bg-accent"
+            >
+              <MapPin
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm text-popover-foreground">
+                  {p.main_text}
+                </div>
+                {p.secondary_text && (
+                  <div className="truncate text-xs text-muted-foreground">
+                    {p.secondary_text}
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+          {/* "Powered by Google" — required by Places ToS whenever
+              predictions are shown without a Google map on the page. */}
+          <li className="border-t border-border bg-muted/30 px-3 py-1.5 text-right text-[10px] text-muted-foreground">
+            Powered by Google
+          </li>
+        </ul>
+      )}
+      {loadingPredictions && (
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+          <Loader2
+            className="size-4 animate-spin text-muted-foreground"
+            aria-hidden
+          />
+        </div>
+      )}
     </div>
   )
 }
