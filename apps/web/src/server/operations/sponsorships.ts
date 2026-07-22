@@ -51,15 +51,24 @@ export const createSponsorshipOp = defineOperation({
 
 export const updateSponsorshipOp = defineOperation({
   name: "admin.sponsorships.update",
-  input: SponsorshipUpdateInputSchema,
+  // Route: PATCH /businesses/[id]/sponsorships/[spId]. runFromRequest
+  // merges path params after the body, so the path's `id` (businessId) wins
+  // over the body's `id` (sponsorship.id). Extend the shared schema so both
+  // segment IDs are accepted and the handler uses `spId` for the child
+  // lookup — mirrors the pattern in cancelSponsorshipOp.
+  input: SponsorshipUpdateInputSchema.omit({ id: true }).extend({
+    id: z.string().min(1),   // business ID from [id] path segment
+    spId: z.string().min(1), // sponsorship ID from [spId] path segment
+  }),
   output: z.object({ sponsorship: z.any() }),
   permission: "admin",
   handler: async (db, ctx, input) => {
+    const { spId, id: _businessId, ...updateFields } = input
     // Resolve the sponsorship first so we can key the audit row to the
-    // parent business — the update input doesn't carry business_id. 404
-    // here also short-circuits the update path with the same code the
-    // handler would emit below.
-    const existing = await spService.getSponsorshipById(db, input.id)
+    // parent business — the update input doesn't carry business_id in its
+    // editable fields. 404 here also short-circuits the update path with
+    // the same code the handler would emit below.
+    const existing = await spService.getSponsorshipById(db, spId)
     if (!existing)
       throw ApiError.notFound("sponsorship.not_found", "Sponsorship not found")
     const audit = createAudit(db)
@@ -69,7 +78,10 @@ export const updateSponsorshipOp = defineOperation({
       target: { type: "business", id: existing.business_id },
       meta: { kind: "business.sponsorship_updated" },
     })
-    const sponsorship = await spService.updateSponsorship(db, input)
+    const sponsorship = await spService.updateSponsorship(db, {
+      id: spId,
+      ...updateFields,
+    })
     if (!sponsorship)
       throw ApiError.notFound("sponsorship.not_found", "Sponsorship not found")
     return { sponsorship }

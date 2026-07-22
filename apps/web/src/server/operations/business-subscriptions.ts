@@ -51,14 +51,24 @@ export const createSubscriptionOp = defineOperation({
 
 export const updateSubscriptionOp = defineOperation({
   name: "admin.subscriptions.update",
-  input: BusinessSubscriptionUpdateInputSchema,
+  // Route: PATCH /businesses/[id]/subscriptions/[subId]. runFromRequest
+  // merges path params after the body, so the path's `id` (businessId) wins
+  // over the body's `id` (subscription.id). Extend the shared schema so both
+  // segment IDs are accepted and the handler uses `subId` for the child
+  // lookup — mirrors the pattern in deleteSubscriptionOp.
+  input: BusinessSubscriptionUpdateInputSchema.omit({ id: true }).extend({
+    id: z.string().min(1),    // business ID from [id] path segment
+    subId: z.string().min(1), // subscription ID from [subId] path segment
+  }),
   output: z.object({ subscription: z.any() }),
   permission: "admin",
   handler: async (db, ctx, input) => {
+    const { subId, id: _businessId, ...updateFields } = input
     // Resolve first so we can key the audit row to the parent business —
-    // the update input doesn't carry business_id. 404 here short-circuits
-    // the update path with the same code the handler would emit below.
-    const existing = await subsService.getSubscriptionById(db, input.id)
+    // the update input doesn't carry business_id in its editable fields.
+    // 404 here short-circuits the update path with the same code the
+    // handler would emit below.
+    const existing = await subsService.getSubscriptionById(db, subId)
     if (!existing)
       throw ApiError.notFound("subscription.not_found", "Subscription not found")
     const audit = createAudit(db)
@@ -68,7 +78,10 @@ export const updateSubscriptionOp = defineOperation({
       target: { type: "business", id: existing.business_id },
       meta: { kind: "business.subscription_updated" },
     })
-    const subscription = await subsService.updateSubscription(db, input)
+    const subscription = await subsService.updateSubscription(db, {
+      id: subId,
+      ...updateFields,
+    })
     if (!subscription)
       throw ApiError.notFound("subscription.not_found", "Subscription not found")
     return { subscription }
