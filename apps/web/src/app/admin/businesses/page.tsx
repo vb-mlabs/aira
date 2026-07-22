@@ -149,7 +149,7 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {b.category}
+                      {b.category_name ?? b.category}
                     </td>
                     <td className="px-4 py-3 text-foreground">
                       {b.latest_plan_name ?? (
