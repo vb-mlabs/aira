@@ -47,18 +47,18 @@ export default function BusinessDetailScreen() {
   // routing as the tap-based back buttons below.
   useOriginAwareBack();
 
-  // Origin-aware back: return the user to exactly where they came from
-  // (Home, filtered Listings tab, category detail) instead of popping
-  // to a stale stack entry or a URL-hierarchical parent. Falls back to
-  // router.back() when no `from` was provided (universal-link arrival,
-  // notification tap, etc.), then to Home if there's no history at all.
+  // Prefer stack pop over router.replace(from): the stack knows
+  // exactly what's underneath (Home → subcategory → detail) and
+  // preserves the previous screen's state. router.replace(from) is
+  // reserved for deep-link entries (notification tap, shared URL)
+  // where the stack is empty. Matches components/nav/BackButton.tsx.
   const goBack = React.useCallback(() => {
-    if (from) {
-      router.replace(from as never);
-      return;
-    }
     if (router.canGoBack()) {
       router.back();
+      return;
+    }
+    if (from) {
+      router.replace(from as never);
       return;
     }
     router.replace("/(app)" as never);

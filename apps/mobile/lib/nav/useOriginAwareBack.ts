@@ -16,15 +16,21 @@ import {
  * safe to call unconditionally from any nested screen.
  *
  * ─── Why ─────────────────────────────────────────────────────────────
- * Our BackButton uses router.replace(from) when the user taps it, which
- * jumps directly to the origin. But react-navigation's OS back handlers
- * (iOS `gestureEnabled: true`, Android BackHandler) fire the raw
- * `goBack()` stack action directly — they never see our custom button.
- * That's why users can hit "back" from a business detail via the header
- * arrow and land on Home, but swipe back and land on the URL-hierarchical
- * parent (a stale `/listings/<cat>` entry that redirects to the
- * All-Listings tab). This hook closes the gap by hooking beforeRemove,
- * which fires for BOTH tap-based back and OS gesture back.
+ * Screens can be reached two ways: (a) via in-app navigation (Home →
+ * subcategory → detail), in which case the stack has real entries
+ * underneath and natural back navigation pops to the correct place;
+ * (b) via a deep-link entry (universal link, push notification, shared
+ * URL), where the current screen is the ONLY entry in the stack and a
+ * natural back would exit the app or dead-end. This hook handles (b)
+ * only — when `canGoBack()` is false, intercept back-like actions and
+ * route to `?from=<href>` so the user lands somewhere sensible.
+ *
+ * When `canGoBack()` is true we let the native gesture / hardware back
+ * proceed unmodified — that's the fix for the "back goes to Home
+ * instead of the previous subcategory" regression: pushing screens
+ * with router.push builds the correct stack, and letting the natural
+ * pop happen is more reliable than router.replace(from) (which can
+ * mis-resolve against hidden-tab routes and reset to Home).
  *
  * ─── Loop guard ──────────────────────────────────────────────────────
  * Calling `router.replace` inside the listener triggers the current
@@ -46,6 +52,9 @@ export function useOriginAwareBack(): void {
     let intercepted = false;
     const unsub = navigation.addListener("beforeRemove", (e) => {
       if (intercepted) return;
+      // In-app navigation has a real stack to pop back to — let the
+      // native handler do it. Only intercept for deep-link arrivals.
+      if (router.canGoBack()) return;
       // Only intercept back-like actions (user gesture, hardware back,
       // header chevron pop). Programmatic REPLACE/PUSH-that-removes-this
       // has a different action.type and we should let those pass.

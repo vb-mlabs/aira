@@ -10,9 +10,10 @@ const HEADER_TINT = "#3D2814";
 
 interface BackButtonProps {
   /** Override the default back behaviour. When omitted, the button
-   *  respects `?from=` on the current URL (origin-aware — mirrors the
-   *  business-detail "Go back" logic), falls through to router.back()
-   *  when there's history, and lands on Home if the stack is empty. */
+   *  prefers `router.back()` (pops the stack — most reliable, retains
+   *  the previous screen's state), falls back to `?from=<href>` for
+   *  deep-link entries (push notification / shared URL) where there
+   *  is no stack history to pop, and finally lands on Home. */
   onPress?: () => void;
 }
 
@@ -24,9 +25,20 @@ interface BackButtonProps {
  * hidden at the Stack layout level (headerBackVisible: false); this
  * component replaces it.
  *
- * Default behaviour prefers an explicit `?from=<href>` URL parameter
- * over stack pop, so screens pushed with origin-aware routing (see
- * BusinessCard) return the user to exactly where they came from.
+ * Priority order:
+ *   1. `router.back()` when there's stack history — always the correct
+ *      answer for a user navigating in-app (Home → subcategory →
+ *      detail), because the stack knows exactly what was underneath.
+ *   2. `?from=<href>` fallback for deep-link entries (opened from a
+ *      push notification, shared URL, etc.) where the stack is empty
+ *      and we still want to land somewhere sensible.
+ *   3. Home as the last-resort landing.
+ *
+ * Previously the priority was inverted (from-first), which broke in
+ * the Home → drawer submenu → detail flow: `router.replace(from)` in
+ * a nested screen of the hidden `listings` tab resolved the target
+ * URL against the visible tabs and landed on Home instead of the
+ * subcategory. Stack-back sidesteps the URL-resolution hazard entirely.
  */
 export function BackButton({ onPress }: BackButtonProps) {
   const params = useLocalSearchParams<{ from?: string }>();
@@ -40,12 +52,12 @@ export function BackButton({ onPress }: BackButtonProps) {
       onPress();
       return;
     }
-    if (from) {
-      router.replace(from as never);
-      return;
-    }
     if (router.canGoBack()) {
       router.back();
+      return;
+    }
+    if (from) {
+      router.replace(from as never);
       return;
     }
     router.replace("/(app)" as never);
