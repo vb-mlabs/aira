@@ -69,7 +69,11 @@ export function SubcategoryPicker({
     // is redundant. If the user taps the current row we no-op below.
     showActionSheetWithOptions(
       {
-        title: `Browse ${root.name}`,
+        // Category name alone — action sheet titles render bold by
+        // system convention on both iOS (UIAlertController) and
+        // Android (JS renderer), so the name reads as the sheet's
+        // header without needing a "Browse" verb.
+        title: root.name,
         options,
         cancelButtonIndex,
         tintColor: PRIMARY,
