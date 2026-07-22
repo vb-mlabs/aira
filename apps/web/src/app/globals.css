@@ -346,11 +346,20 @@ gmp-place-autocomplete {
 }
 
 /* Zero out ANY container chrome Google renders around the input so
-   there's only one visible border/ring — ours on `::part(input)`. */
+   there's only one visible border/ring — ours on the React wrapper.
+   Part names vary across SDK versions; enumerate the ones Google has
+   shipped so we don't paint over one only to have the next release
+   render a new default chrome layer. */
 gmp-place-autocomplete::part(main-container),
 gmp-place-autocomplete::part(input-container),
 gmp-place-autocomplete::part(container),
-gmp-place-autocomplete::part(wrapper) {
+gmp-place-autocomplete::part(wrapper),
+gmp-place-autocomplete::part(text-field),
+gmp-place-autocomplete::part(textfield),
+gmp-place-autocomplete::part(input-wrapper),
+gmp-place-autocomplete::part(input-field),
+gmp-place-autocomplete::part(mdc-text-field),
+gmp-place-autocomplete::part(mdc-notched-outline) {
   background: transparent !important;
   border: 0 !important;
   padding: 0 !important;
@@ -358,10 +367,17 @@ gmp-place-autocomplete::part(wrapper) {
   outline: none !important;
 }
 
-/* The visible input. Border/focus-ring live on the React wrapper in
-   PlacesAddressInput — the widget itself is borderless so we don't get
-   competing outlines. */
-gmp-place-autocomplete::part(input) {
+/* The visible input. Cover the historic `::part(input)` selector, the
+   newer text-field variants Google uses in some SDK builds, AND a plain
+   light-DOM descendant selector as a last-resort fallback for builds
+   where the input renders outside any exposed shadow part (in which
+   case ::part() silently no-ops and typed text inherits Google's own
+   Material Design default color — often near-transparent on our
+   transparent wrapper, hence "typed text isn't visible"). */
+gmp-place-autocomplete::part(input),
+gmp-place-autocomplete::part(text-input),
+gmp-place-autocomplete::part(textfield-input),
+gmp-place-autocomplete input {
   height: 100% !important;
   width: 100% !important;
   border: 0 !important;
@@ -375,10 +391,20 @@ gmp-place-autocomplete::part(input) {
   box-shadow: none !important;
 }
 gmp-place-autocomplete::part(input):focus-visible,
-gmp-place-autocomplete::part(input):focus {
+gmp-place-autocomplete::part(input):focus,
+gmp-place-autocomplete input:focus-visible,
+gmp-place-autocomplete input:focus {
   border: 0 !important;
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* Placeholder color on the internal input — Google's default is a
+   very low-contrast grey that reads as "no placeholder" against our
+   transparent wrapper. */
+gmp-place-autocomplete input::placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
 }
 
 /* Suggestions dropdown — force the popover surface + text colours across
@@ -420,4 +446,24 @@ gmp-place-autocomplete::part(item-secondary-text) {
 gmp-place-autocomplete::part(prediction-item-icon),
 gmp-place-autocomplete::part(item-icon) {
   color: var(--muted-foreground) !important;
+}
+
+/* "Powered by Google" attribution — Google Maps ToS requires it to be
+   visible, but the widget's default rendering puts a prominent horizontal
+   strip below the predictions that reads like unlabeled chrome. Force it
+   to be a muted, single-line, right-aligned mark so it blends into the
+   dropdown footer rather than intruding as its own row. Do NOT hide with
+   display:none — that violates ToS. */
+gmp-place-autocomplete::part(attribution),
+gmp-place-autocomplete::part(logo),
+gmp-place-autocomplete::part(powered-by-google),
+gmp-place-autocomplete::part(google-logo),
+gmp-place-autocomplete::part(attribution-container) {
+  padding: 0.375rem 0.75rem !important;
+  border-top: 1px solid var(--border) !important;
+  background: color-mix(in oklch, var(--muted) 40%, transparent) !important;
+  font-size: 0.6875rem !important;
+  color: var(--muted-foreground) !important;
+  text-align: right !important;
+  opacity: 0.85 !important;
 }

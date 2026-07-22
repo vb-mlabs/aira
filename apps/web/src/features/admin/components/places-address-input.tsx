@@ -237,10 +237,12 @@ export function PlacesAddressInput({
   // Own the border/ring on this wrapper (focus-within reacts to focus on
   // the widget's internal input, even through Shadow DOM). The widget
   // itself is styled borderless in globals.css so only this wrapper's
-  // outline is visible. Matches the `<Input>` primitive at
-  // packages/ui-web/src/components/input.tsx.
+  // outline is visible. Height + rounding + border match the `<Input>`
+  // primitive at packages/ui-web/src/components/input.tsx so this field
+  // is visually indistinguishable from the plain text inputs above and
+  // below it inside the same modal.
   return (
-    <div className="h-[45px] w-full border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+    <div className="h-[45px] w-full rounded-2xl border border-input bg-transparent transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
       <div ref={containerRef} className="h-full w-full" />
     </div>
   )
