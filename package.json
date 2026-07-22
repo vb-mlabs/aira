@@ -26,8 +26,8 @@
     "claude": "HOME=$PWD CLAUDE_CODE_OAUTH_TOKEN=$CLAUDE_CODE_OAUTH_TOKEN claude"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-code": "^2.1.150",
     "@aira/config": "workspace:*",
+    "@anthropic-ai/claude-code": "^2.1.217",
     "drizzle-kit": "^0.31.10",
     "lefthook": "^2.1.6",
     "syncpack": "15.1.2",
