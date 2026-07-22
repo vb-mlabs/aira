@@ -35,13 +35,14 @@ interface PhoneInputProps {
 }
 
 /**
- * E.164 caps a phone number at 15 digits (excluding the leading `+`).
- * Enforcing this in the input keeps garbage-long entries from ever
- * being accepted — without it, AsYouType silently gives up formatting
- * once the input exceeds any country's valid length and appends raw
- * digits, which reads as "the formatter is broken".
+ * 12-digit cap sized to the two countries this admin actually serves:
+ * US (+1 + 10-digit subscriber = 11) and India (+91 + 10-digit
+ * subscriber = 12). E.164's absolute max is 15 but the extra headroom
+ * is only used by outlier German / Chinese landlines with extensions
+ * — irrelevant here, and letting the field accept longer numbers just
+ * hides typo entries that would never be dialable anyway.
  */
-const MAX_DIGITS = 15
+const MAX_DIGITS = 12
 
 function formatPhone(raw: string, country: CountryCode): string {
   // Keep only digits and a leading + (the format detector uses the +
