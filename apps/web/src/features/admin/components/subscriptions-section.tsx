@@ -20,6 +20,10 @@ import { apiClient } from "@/lib/api-client"
 import { cn } from "@aira/ui-web/utils"
 import type { BusinessSubscription } from "@aira/validators/business-subscriptions"
 import type { MembershipPlan } from "@aira/validators/membership-plans"
+import {
+  deriveDisplayStatus,
+  type DisplayStatus,
+} from "./subscription-display-status"
 
 interface SubscriptionsSectionProps {
   businessId: string
@@ -27,10 +31,11 @@ interface SubscriptionsSectionProps {
 
 type PaymentStatus = "paid" | "pending" | "overdue"
 
-const STATUS_STYLES: Record<PaymentStatus, string> = {
+const STATUS_STYLES: Record<DisplayStatus, string> = {
   paid: "bg-success/15 text-success",
   pending: "bg-warning/15 text-warning",
   overdue: "bg-destructive/15 text-destructive",
+  expired: "bg-muted text-muted-foreground",
 }
 
 function formatDate(iso: string): string {
@@ -164,17 +169,22 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {subs.map((sub) => (
+                {subs.map((sub) => {
+                  // Superseded rows (end_date before the newest row's
+                  // start_date) render as "Expired" regardless of stored
+                  // payment_status — the DB still holds the last known state.
+                  const displayStatus = deriveDisplayStatus(sub, subs)
+                  return (
                   <tr key={sub.id} className="hover:bg-muted/20">
                     <td className="px-3 py-2">
                       <span
                         className={cn(
                           "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                          STATUS_STYLES[sub.payment_status as PaymentStatus] ??
+                          STATUS_STYLES[displayStatus] ??
                             "bg-muted text-muted-foreground",
                         )}
                       >
-                        {sub.payment_status}
+                        {displayStatus}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
@@ -218,7 +228,8 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
