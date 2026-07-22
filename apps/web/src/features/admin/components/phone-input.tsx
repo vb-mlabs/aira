@@ -4,12 +4,19 @@
 // AsYouType. Strips any non-digit / non-'+' character on the way in
 // (so alphabets can't sneak into the DB) and re-formats the whole value
 // after every keystroke, matching whichever country the number belongs
-// to (detected from the leading + or defaultCountry). Numbers with no
-// country context group as XXX-XXX-XXXX for the first 10 digits.
+// to (detected from the leading + or defaultCountry).
 //
-// Storage contract: the component's `value` prop is the FORMATTED
-// string. If the caller needs pure digits (e.g. WhatsApp's wa.me/<digits>
-// URL), strip non-digits at submit time.
+// The DISPLAY value is always re-derived from `value` via the same
+// formatter, so:
+//   - Pre-existing DB data (raw digits or half-formatted strings) gets
+//     reformatted on mount, not just on user input.
+//   - Formatting is idempotent — feeding an already-formatted string
+//     back through the formatter yields the same string, so React's
+//     controlled-input contract stays stable.
+//
+// Storage contract: the parent's `value` state is the FORMATTED string.
+// If the caller needs pure digits (e.g. WhatsApp's wa.me/<digits> URL),
+// strip non-digits at submit time.
 
 import { AsYouType, type CountryCode } from "libphonenumber-js"
 import { Input } from "@aira/ui-web/input"
@@ -27,6 +34,30 @@ interface PhoneInputProps {
   defaultCountry?: CountryCode
 }
 
+/**
+ * E.164 caps a phone number at 15 digits (excluding the leading `+`).
+ * Enforcing this in the input keeps garbage-long entries from ever
+ * being accepted — without it, AsYouType silently gives up formatting
+ * once the input exceeds any country's valid length and appends raw
+ * digits, which reads as "the formatter is broken".
+ */
+const MAX_DIGITS = 15
+
+function formatPhone(raw: string, country: CountryCode): string {
+  // Keep only digits and a leading + (the format detector uses the +
+  // to switch to international mode). Anything else — alphabets, stray
+  // punctuation, brackets, spaces — is dropped.
+  const cleaned = raw.replace(/[^\d+]/g, "")
+  // A `+` only counts as a country-code prefix at position 0. Any
+  // interior + is noise.
+  const withPlus = cleaned.startsWith("+")
+  const digits = (withPlus ? cleaned.slice(1) : cleaned)
+    .replace(/\+/g, "")
+    .slice(0, MAX_DIGITS)
+  const normalized = withPlus ? "+" + digits : digits
+  return new AsYouType(country).input(normalized)
+}
+
 export function PhoneInput({
   id,
   value,
@@ -34,19 +65,13 @@ export function PhoneInput({
   placeholder,
   defaultCountry = "IN",
 }: PhoneInputProps) {
+  // Derive the displayed value by feeding `value` through the same
+  // formatter used on input — idempotent, so already-formatted values
+  // pass through unchanged and stale DB values get reformatted on mount.
+  const displayValue = formatPhone(value, defaultCountry)
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    // Keep only digits and a leading + (the format detector uses the
-    // + to switch to international mode). Anything else — alphabets,
-    // stray punctuation, brackets, spaces — is dropped before it can
-    // reach the formatter or the parent state.
-    const cleaned = e.target.value.replace(/[^\d+]/g, "")
-    // A `+` only counts as a country-code prefix at position 0. Any
-    // interior + is noise.
-    const normalized = cleaned.startsWith("+")
-      ? "+" + cleaned.slice(1).replace(/\+/g, "")
-      : cleaned.replace(/\+/g, "")
-    const formatter = new AsYouType(defaultCountry)
-    onChange(formatter.input(normalized))
+    onChange(formatPhone(e.target.value, defaultCountry))
   }
 
   return (
@@ -55,7 +80,7 @@ export function PhoneInput({
       type="tel"
       inputMode="tel"
       autoComplete="tel"
-      value={value}
+      value={displayValue}
       onChange={handleChange}
       placeholder={placeholder}
     />
