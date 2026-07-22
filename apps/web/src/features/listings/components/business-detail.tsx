@@ -30,7 +30,7 @@ export function BusinessDetail({
   isSignedIn = false,
   isFavorited = false,
 }: BusinessDetailProps) {
-  const category = getCategoryMeta(business.category)
+  const category = getCategoryMeta(business.category, business.category_name)
   const Icon = category.icon
 
   return (

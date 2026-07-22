@@ -83,6 +83,12 @@ export const BusinessSchema = z.object({
   images: BusinessImageSchema.array().default([]),
   /** IDs of extra categories from the business_category join table. Empty when none. */
   extra_category_ids: z.string().array().default([]),
+  /** Human-readable display name resolved from `category` (a slug) via the
+   *  categories table. Populated by listing queries; NULL when no matching
+   *  category row exists (stale slug, deleted category). Consumers fall
+   *  back to `category` (the slug) or a hardcoded meta map for known
+   *  seeded slugs. */
+  category_name: z.string().nullable().default(null),
   /** Populated by listing queries when the business has an active,
    *  in-window sponsorship — the display_slot from its sponsorship's
    *  tier row. NULL when the business has no active sponsorship. Drives

@@ -34,7 +34,7 @@ export function BusinessHero({
   business,
   isFavorited = false,
 }: BusinessHeroProps) {
-  const category = getCategoryMeta(business.category);
+  const category = getCategoryMeta(business.category, business.category_name);
 
   return (
     <View>

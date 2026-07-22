@@ -135,6 +135,7 @@ const PREVIEW_BUSINESS: Business = {
   updated_at: "2026-01-01T00:00:00Z",
   images: [],
   extra_category_ids: [],
+  category_name: null,
 }
 
 function ListingCardPreview() {

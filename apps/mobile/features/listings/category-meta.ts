@@ -59,11 +59,20 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   },
 };
 
-export function getCategoryMeta(slug: string): CategoryMeta {
+/** `resolvedName` — the display name looked up from the DB categories
+ *  table via `business.category_name`. When provided, it wins over the
+ *  slug for the fallback path so admin-created categories render their
+ *  real name instead of the raw slug. Seeded slugs keep their curated
+ *  metadata (icon + description). Mirrors the web version at
+ *  apps/web/src/features/listings/category-meta.ts. */
+export function getCategoryMeta(
+  slug: string,
+  resolvedName?: string | null,
+): CategoryMeta {
   return (
     CATEGORY_META[slug] ?? {
       slug,
-      displayName: slug,
+      displayName: resolvedName ?? slug,
       description: "",
       iconName: "tag",
     }

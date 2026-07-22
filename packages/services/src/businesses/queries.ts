@@ -155,6 +155,47 @@ async function fetchExtraCategoryIds(
   return out;
 }
 
+/**
+ * Batch-resolve category display names from `businesses.category` (a
+ * legacy plain-text slug column) → `categories.name`. Returns a
+ * `Map<business_id, category_name>`.
+ *
+ * categories.slug is unique per city, so we key by (city_id, slug). A
+ * slug-only fallback handles businesses whose city_id is still null
+ * (F25 back-fill pending) — the first category with a matching slug
+ * wins. Callers treat `null` as "unresolved, fall back to slug".
+ */
+async function fetchCategoryNames(
+  db: Database,
+  rows: Array<{ id: string; city_id: string | null; category: string }>,
+): Promise<Map<string, string>> {
+  if (rows.length === 0) return new Map();
+  const slugs = Array.from(new Set(rows.map((r) => r.category).filter(Boolean)));
+  if (slugs.length === 0) return new Map();
+  const catRows = await db
+    .select({
+      city_id: categories.city_id,
+      slug: categories.slug,
+      name: categories.name,
+    })
+    .from(categories)
+    .where(inArray(categories.slug, slugs));
+  const cityScoped = new Map<string, string>();
+  const slugOnly = new Map<string, string>();
+  for (const r of catRows) {
+    cityScoped.set(`${r.city_id}:${r.slug}`, r.name);
+    if (!slugOnly.has(r.slug)) slugOnly.set(r.slug, r.name);
+  }
+  const out = new Map<string, string>();
+  for (const r of rows) {
+    const name =
+      (r.city_id && cityScoped.get(`${r.city_id}:${r.category}`)) ||
+      slugOnly.get(r.category);
+    if (name) out.set(r.id, name);
+  }
+  return out;
+}
+
 // Row shape accepted by attachRelations. `sponsored_slot` flows on public
 // listing queries so the frontend can bucket rows into Sponsored / Regular
 // sections; admin queries omit it.
@@ -203,12 +244,18 @@ export async function attachRelations(
   rows: BusinessRowWithVisibility[],
 ): Promise<Business[]> {
   const ids = rows.map((r) => r.id);
-  const [imagesMap, catsMap] = await Promise.all([
+  const [imagesMap, catsMap, nameMap] = await Promise.all([
     fetchImages(db, ids),
     fetchExtraCategoryIds(db, ids),
+    fetchCategoryNames(db, rows),
   ]);
   return rows.map((row) =>
-    toBusiness(row, imagesMap.get(row.id) ?? [], catsMap.get(row.id) ?? []),
+    toBusiness(
+      row,
+      imagesMap.get(row.id) ?? [],
+      catsMap.get(row.id) ?? [],
+      nameMap.get(row.id) ?? null,
+    ),
   );
 }
 
@@ -222,15 +269,17 @@ async function attachRelationsAdmin(
   rows: BusinessRowWithVisibility[],
 ): Promise<BusinessAdmin[]> {
   const ids = rows.map((r) => r.id);
-  const [imagesMap, catsMap] = await Promise.all([
+  const [imagesMap, catsMap, nameMap] = await Promise.all([
     fetchImages(db, ids),
     fetchExtraCategoryIds(db, ids),
+    fetchCategoryNames(db, rows),
   ]);
   return rows.map((row) =>
     toBusinessAdmin(
       row,
       imagesMap.get(row.id) ?? [],
       catsMap.get(row.id) ?? [],
+      nameMap.get(row.id) ?? null,
     ),
   );
 }
@@ -622,6 +671,7 @@ export function toBusiness(
   row: BusinessRowWithVisibility,
   images: BusinessImage[],
   extra_category_ids: string[],
+  category_name: string | null = null,
 ): Business {
   return {
     id: row.id,
@@ -649,6 +699,7 @@ export function toBusiness(
     updated_at: new Date(row.updated_at).toISOString(),
     images,
     extra_category_ids,
+    category_name,
     sponsored_slot: row.sponsored_slot ?? null,
   };
 }
@@ -661,9 +712,10 @@ function toBusinessAdmin(
   row: BusinessRowWithVisibility,
   images: BusinessImage[],
   extra_category_ids: string[],
+  category_name: string | null = null,
 ): BusinessAdmin {
   return {
-    ...toBusiness(row, images, extra_category_ids),
+    ...toBusiness(row, images, extra_category_ids, category_name),
     contact_person: row.contact_person ?? null,
     verification_notes: row.verification_notes ?? null,
   };

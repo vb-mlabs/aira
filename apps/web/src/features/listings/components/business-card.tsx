@@ -40,7 +40,7 @@ export function BusinessCard({
   interactive = true,
   showCategory = true,
 }: BusinessCardProps) {
-  const category = getCategoryMeta(business.category)
+  const category = getCategoryMeta(business.category, business.category_name)
   const Icon = category.icon
 
   return (

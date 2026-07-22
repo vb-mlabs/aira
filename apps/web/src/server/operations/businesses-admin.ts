@@ -8,7 +8,7 @@ import "server-only"
 // freshness gate via defineOperation's "admin" permission.
 
 import { and, desc, eq, gte, lte, inArray, sql } from "drizzle-orm"
-import { businessSubscriptions, categories } from "@aira/db/schema"
+import { businessSubscriptions } from "@aira/db/schema"
 import { businesses as businessesService } from "@aira/services"
 import { brand } from "@aira/config"
 import {
@@ -46,12 +46,6 @@ const AdminBusinessItemSchema = BusinessAdminSchema.extend({
    *  owner_user_id is null OR when the referenced user has been
    *  deleted/anonymised (INNER JOIN drops those rows). */
   owner: BusinessOwnerSchema.nullable(),
-  /** Human-readable category name resolved from `businesses.category`
-   *  (a slug in the legacy text column) against the categories table.
-   *  Null when the slug doesn't match any category row for the
-   *  business's city — the admin table falls back to the raw slug in
-   *  that case so at least SOMETHING renders. */
-  category_name: z.string().nullable(),
 })
 
 const AdminBusinessListInputSchema = BusinessListInputSchema.extend({
@@ -186,41 +180,8 @@ export const listAllBusinessesAdminOp = defineOperation({
       filtered.map((b) => b.id),
     )
 
-    // Batch-resolve category display names. `businesses.category` is a
-    // legacy plain-text slug — the join to categories.name is done here
-    // so the admin table can show "Restaurants" instead of "restaurants".
-    // categories.slug is unique per city, so we key by city_id + slug.
-    // Null city_id (F25 back-fill still pending) falls back to any
-    // matching slug regardless of city — best-effort, better than
-    // dropping to the raw slug.
-    const categorySlugs = Array.from(
-      new Set(filtered.map((b) => b.category).filter(Boolean)),
-    )
-    const categoryRows = categorySlugs.length
-      ? await db
-          .select({
-            city_id: categories.city_id,
-            slug: categories.slug,
-            name: categories.name,
-          })
-          .from(categories)
-          .where(inArray(categories.slug, categorySlugs))
-      : []
-    const cityScopedName = new Map<string, string>()
-    const slugOnlyName = new Map<string, string>()
-    for (const r of categoryRows) {
-      cityScopedName.set(`${r.city_id}:${r.slug}`, r.name)
-      // First match wins for the slug-only fallback used by
-      // businesses with a null city_id.
-      if (!slugOnlyName.has(r.slug)) slugOnlyName.set(r.slug, r.name)
-    }
-
     const allItemsWithOwner = filtered.map((b) => {
       const sub = subMap.get(b.id)
-      const categoryName =
-        (b.city_id && cityScopedName.get(`${b.city_id}:${b.category}`)) ||
-        slugOnlyName.get(b.category) ||
-        null
       return {
         ...b,
         latest_payment_status: sub?.payment_status ?? null,
@@ -230,7 +191,6 @@ export const listAllBusinessesAdminOp = defineOperation({
           : null,
         latest_plan_name: sub?.plan_name ?? null,
         owner: ownerLookup.get(b.id) ?? null,
-        category_name: categoryName,
       }
     })
 

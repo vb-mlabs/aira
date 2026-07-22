@@ -49,7 +49,7 @@ export function BusinessCard({
   isFavorited = false,
   showCategory = true,
 }: BusinessCardProps) {
-  const category = getCategoryMeta(business.category);
+  const category = getCategoryMeta(business.category, business.category_name);
   // Build the origin href (pathname + genuine query params, excluding
   // route segments) so the business detail screen's "Go back" button
   // can return the user to exactly where they came from — Home, the

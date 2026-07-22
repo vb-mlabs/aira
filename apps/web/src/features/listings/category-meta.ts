@@ -72,15 +72,25 @@ export const CATEGORY_META: Record<BusinessCategory, CategoryMeta> = {
 }
 
 /** Safe lookup for any slug (seeded or admin-created). Returns the
- *  curated metadata when known, or a generic `Tag`-icon + slug-as-name
- *  fallback so consumers never read `undefined`. Prefer this over
- *  indexing `CATEGORY_META` directly in new code. */
-export function getCategoryMeta(slug: string): CategoryMeta {
+ *  curated metadata when known, or a generic `Tag`-icon + name fallback
+ *  so consumers never read `undefined`. Prefer this over indexing
+ *  `CATEGORY_META` directly in new code.
+ *
+ *  `resolvedName` — the display name looked up from the DB categories
+ *  table via `business.category_name`. When provided, it wins over the
+ *  slug for the fallback path so admin-created categories render their
+ *  real name (e.g. "Yoga Studios") instead of the raw slug
+ *  ("yoga-studios"). Seeded slugs still use their curated metadata
+ *  including icon. */
+export function getCategoryMeta(
+  slug: string,
+  resolvedName?: string | null,
+): CategoryMeta {
   const known = (CATEGORY_META as Record<string, CategoryMeta | undefined>)[slug]
   if (known) return known
   return {
     slug,
-    displayName: slug,
+    displayName: resolvedName ?? slug,
     description: "",
     icon: Tag,
   }
