@@ -16,28 +16,22 @@ import {
  * safe to call unconditionally from any nested screen.
  *
  * ─── Why ─────────────────────────────────────────────────────────────
- * Screens can be reached two ways: (a) via in-app navigation (Home →
- * subcategory → detail), in which case the stack has real entries
- * underneath and natural back navigation pops to the correct place;
- * (b) via a deep-link entry (universal link, push notification, shared
- * URL), where the current screen is the ONLY entry in the stack and a
- * natural back would exit the app or dead-end. This hook handles (b)
- * only — when `canGoBack()` is false, intercept back-like actions and
- * route to `?from=<href>` so the user lands somewhere sensible.
- *
- * When `canGoBack()` is true we let the native gesture / hardware back
- * proceed unmodified — that's the fix for the "back goes to Home
- * instead of the previous subcategory" regression: pushing screens
- * with router.push builds the correct stack, and letting the natural
- * pop happen is more reliable than router.replace(from) (which can
- * mis-resolve against hidden-tab routes and reset to Home).
+ * The tap-based BackButton uses `router.dismissTo(from)` (see
+ * components/nav/BackButton.tsx), which pops the current stack back
+ * to `from` if it's present, or navigates to `from` as a fresh screen
+ * if not. iOS edge-swipe / Android hardware back fire the raw stack
+ * `goBack` instead — bypassing the button — which can pop across a
+ * cross-tab entry (e.g. Home → Post → subcategory → detail, where a
+ * naive goBack pops detail to subcategory, but a second unintended
+ * swipe would pop to Post). Intercept those OS gestures so they also
+ * go through dismissTo(from) and honour the intended origin.
  *
  * ─── Loop guard ──────────────────────────────────────────────────────
- * Calling `router.replace` inside the listener triggers the current
+ * Calling `router.dismissTo` inside the listener triggers the current
  * screen to unmount — which fires beforeRemove a second time as the
  * screen is being removed. We guard with a local `intercepted` flag so
  * the second fire falls through to the default action (the removal
- * caused by our replace) instead of re-dispatching.
+ * caused by our dismissTo) instead of re-dispatching.
  */
 export function useOriginAwareBack(): void {
   const navigation = useNavigation();
@@ -52,9 +46,6 @@ export function useOriginAwareBack(): void {
     let intercepted = false;
     const unsub = navigation.addListener("beforeRemove", (e) => {
       if (intercepted) return;
-      // In-app navigation has a real stack to pop back to — let the
-      // native handler do it. Only intercept for deep-link arrivals.
-      if (router.canGoBack()) return;
       // Only intercept back-like actions (user gesture, hardware back,
       // header chevron pop). Programmatic REPLACE/PUSH-that-removes-this
       // has a different action.type and we should let those pass.
@@ -65,7 +56,7 @@ export function useOriginAwareBack(): void {
       }
       e.preventDefault();
       intercepted = true;
-      router.replace(from as never);
+      router.dismissTo(from as never);
     });
     return unsub;
   }, [navigation, from]);

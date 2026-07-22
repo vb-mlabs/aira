@@ -10,10 +10,10 @@ const HEADER_TINT = "#3D2814";
 
 interface BackButtonProps {
   /** Override the default back behaviour. When omitted, the button
-   *  prefers `router.back()` (pops the stack — most reliable, retains
-   *  the previous screen's state), falls back to `?from=<href>` for
-   *  deep-link entries (push notification / shared URL) where there
-   *  is no stack history to pop, and finally lands on Home. */
+   *  prefers `router.dismissTo(from)` — pops the current stack back to
+   *  `from` if it's in the stack, or navigates to `from` as a fresh
+   *  screen if not. Falls back to `router.back()` when no `from` param
+   *  is present, and lands on Home if the stack is empty. */
   onPress?: () => void;
 }
 
@@ -26,19 +26,25 @@ interface BackButtonProps {
  * component replaces it.
  *
  * Priority order:
- *   1. `router.back()` when there's stack history — always the correct
- *      answer for a user navigating in-app (Home → subcategory →
- *      detail), because the stack knows exactly what was underneath.
- *   2. `?from=<href>` fallback for deep-link entries (opened from a
- *      push notification, shared URL, etc.) where the stack is empty
- *      and we still want to land somewhere sensible.
+ *   1. `router.dismissTo(from)` when `from` is present — the correct
+ *      primitive for "return to origin" navigation. Pops screens off
+ *      the current stack until `from` is on top (preserves state), or
+ *      replaces the current screen with `from` if it isn't in the
+ *      stack (deep-link entry). Stays inside the current tab.
+ *   2. `router.back()` fallback when no `from` — pops one screen.
  *   3. Home as the last-resort landing.
  *
- * Previously the priority was inverted (from-first), which broke in
- * the Home → drawer submenu → detail flow: `router.replace(from)` in
- * a nested screen of the hidden `listings` tab resolved the target
- * URL against the visible tabs and landed on Home instead of the
- * subcategory. Stack-back sidesteps the URL-resolution hazard entirely.
+ * Prior attempts:
+ *   - `router.replace(from)` first: broke Scenario 1 (Home → drawer
+ *     submenu → detail → back landed on Home instead of subcategory)
+ *     because `replace` resolves against the visible tab set and the
+ *     `listings` tab is href: null.
+ *   - `router.back()` first: fixed Scenario 1 but broke Scenario 2
+ *     (Home → Post → back → subcategory → detail → back landed on
+ *     Post) because `back` pops the previous stack entry unconditionally.
+ *   - `router.dismissTo(from)` (this): both scenarios resolve to the
+ *     subcategory because dismissTo knows the intended destination
+ *     AND uses stack-pop when possible.
  */
 export function BackButton({ onPress }: BackButtonProps) {
   const params = useLocalSearchParams<{ from?: string }>();
@@ -52,12 +58,12 @@ export function BackButton({ onPress }: BackButtonProps) {
       onPress();
       return;
     }
-    if (router.canGoBack()) {
-      router.back();
+    if (from) {
+      router.dismissTo(from as never);
       return;
     }
-    if (from) {
-      router.replace(from as never);
+    if (router.canGoBack()) {
+      router.back();
       return;
     }
     router.replace("/(app)" as never);
