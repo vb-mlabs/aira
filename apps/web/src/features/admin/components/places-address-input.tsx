@@ -261,7 +261,18 @@ export function PlacesAddressInput({
         value={value}
         onChange={handleChange}
         onFocus={() => {
-          if (predictions.length > 0) setOpen(true)
+          // Re-open with what we already have if the user just
+          // navigated back into the field. If there's nothing cached
+          // (e.g. edit flow with a pre-filled address, or after
+          // selecting a suggestion earlier), fire a fresh fetch so
+          // focusing an input that HAS text always shows options.
+          if (predictions.length > 0) {
+            setOpen(true)
+            return
+          }
+          if (sdkState === "ready" && value.trim()) {
+            fetchPredictions(value)
+          }
         }}
         placeholder={placeholder}
         autoComplete="off"
