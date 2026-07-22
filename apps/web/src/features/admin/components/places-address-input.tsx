@@ -83,6 +83,18 @@ export function PlacesAddressInput({
   // Increments on every keystroke; only the newest fetch is allowed to
   // populate results (guards against out-of-order network responses).
   const fetchSeqRef = useRef(0)
+  // Cache placePrediction objects keyed by place_id for the current
+  // suggestion list, so handleSelect can call .toPlace().fetchFields()
+  // directly without a second autocomplete round-trip (which would
+  // both cost an extra billable call and start a new session).
+  type LivePrediction = {
+    toPlace: () => {
+      fetchFields: (opts: { fields: string[] }) => Promise<{
+        place: { formattedAddress?: string | null }
+      }>
+    }
+  }
+  const predictionMapRef = useRef<Map<string, LivePrediction>>(new Map())
 
   const [sdkState, setSdkState] = useState<SdkState>("loading")
   const [predictions, setPredictions] = useState<Prediction[]>([])
@@ -145,9 +157,11 @@ export function PlacesAddressInput({
           sessionToken: token,
         })
       if (seq !== fetchSeqRef.current) return
+      predictionMapRef.current.clear()
       const mapped: Prediction[] = suggestions.flatMap((s) => {
         const p = s.placePrediction
         if (!p) return []
+        predictionMapRef.current.set(p.placeId, p)
         return [
           {
             place_id: p.placeId,
@@ -187,37 +201,23 @@ export function PlacesAddressInput({
 
   async function handleSelect(p: Prediction) {
     const lib = placesLibRef.current
-    const token = sessionTokenRef.current
-    // Look up the underlying suggestion again to build the Place object.
-    // We hold onto the placePrediction implicitly by re-issuing a
-    // fetch — but that costs another autocomplete call. Simpler and
-    // cheaper: fall back to the visible full text if the details fetch
+    const live = predictionMapRef.current.get(p.place_id)
+    // Commit falls back to the visible full text if the details fetch
     // fails or the SDK isn't ready, so selecting always makes progress.
     const commit = (addr: string) => {
       lastLocalValueRef.current = addr
       onChange(addr)
       setOpen(false)
+      // Fresh session token for the next lookup — sessions cover one
+      // autocomplete-to-details flow per Google's billing model.
       if (lib) sessionTokenRef.current = new lib.AutocompleteSessionToken()
     }
-    if (!lib || !token) {
+    if (!lib || !live) {
       commit(p.full_text)
       return
     }
     try {
-      const { suggestions } =
-        await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-          input: p.full_text,
-          sessionToken: token,
-        })
-      const match = suggestions
-        .map((s) => s.placePrediction)
-        .find((pp) => pp?.placeId === p.place_id)
-      if (!match) {
-        commit(p.full_text)
-        return
-      }
-      const place = match.toPlace()
-      const { place: filled } = await place.fetchFields({
+      const { place: filled } = await live.toPlace().fetchFields({
         fields: ["formattedAddress"],
       })
       commit(filled.formattedAddress ?? p.full_text)
