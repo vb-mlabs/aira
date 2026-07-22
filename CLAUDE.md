@@ -212,6 +212,74 @@ publicly reachable HTTPS host (the phone can't hit `localhost:3000`). See
 (`.env.local` for Expo Go, `eas.json` env for native builds,
 `.env.production.local` for OTA updates).
 
+## OTA updates via EAS
+
+The full runway lives in `/mstack-expo`; the notes below are the
+project-specific state + the two Replit-ish gotchas that trip you up
+if you invoke `eas-cli` directly.
+
+**Current runtime in the field (as of 2026-07-22).** Build **8** on
+runtime **`0.1.1`** (iOS + Android, submitted 2026-07-14). The repo's
+`apps/mobile/app.config.ts` has `version: "0.1.1"` and
+`runtimeVersion.policy: "appVersion"`, so a plain OTA targets `0.1.1`
+by default — no `--runtime-version` override needed. **Update the
+"current runtime in the field" line above whenever a new store build
+ships** — it's the source of truth for whether a new OTA reaches users.
+
+**Preflight — always check BOTH lists together.** `eas update:list`
+alone can mislead: if the last OTAs used a `--runtime-version 0.1.0`
+override to catch stragglers on older native builds, the newest rows
+show `0.1.0` even though the current store build is on `0.1.1`.
+Cross-check against `eas build:list`:
+
+```bash
+pnpm dlx eas-cli build:list --status finished --limit 5 --json | \
+  node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>JSON.parse(d).forEach(b=>console.log(b.appBuildVersion,b.platform,b.runtimeVersion,b.appVersion,b.createdAt.slice(0,10))))"
+
+pnpm dlx eas-cli update:list --branch production --limit 5
+```
+
+**The command that actually publishes.** Two gotchas: you must be in
+`apps/mobile/` (that's where `app.config.ts` + `eas.json` live), and
+`EAS_PROJECT_ID` must be set as an env var when running through
+`pnpm dlx` — the CLI in non-interactive mode doesn't auto-detect the
+project link the way interactive mode does. Without the env var:
+`EAS project not configured. Must configure EAS project by running
+'eas init' before this command can be run in non-interactive mode.`
+
+```bash
+cd apps/mobile
+EAS_PROJECT_ID="21065081-2afd-43d4-aef7-7ce10de55a8b" \
+  pnpm dlx eas-cli update --branch production --message "<short summary>"
+```
+
+**Reaching legacy runtime users.** Users still on native build 6/7
+(runtime `0.1.0`) do NOT receive OTAs published on `0.1.1`. To cover
+them, publish a second OTA with `--runtime-version 0.1.0` in addition
+to the default push. Do this only if store-adoption data shows a
+meaningful `0.1.0` population still active.
+
+**Rollback.** Prior update group IDs are on the dashboard
+(https://expo.dev/accounts/million-labs/projects/aira-mobile/updates).
+Republish the last known-good group to roll back:
+
+```bash
+cd apps/mobile
+EAS_PROJECT_ID="21065081-2afd-43d4-aef7-7ce10de55a8b" \
+  pnpm dlx eas-cli update:republish --branch production --group <prior-group-id>
+```
+
+Verify the exact CLI flag against live docs — the rollback subcommand
+has changed between CLI versions.
+
+**When OTA is NOT enough (native rebuild required).** Bumping
+`version` in `app.config.ts` (e.g. `0.1.1` → `0.1.2`), any change to
+plugins / permissions / icon / splash, adding/removing/updating a
+native-code dependency, or an Expo SDK upgrade. Those need
+`eas build --profile production --platform all` → `eas submit`. Bump
+the "current runtime in the field" line above once the new build
+lands on users' phones.
+
 ## When in doubt
 
 - New feature → `/mlabs-plan`, not direct edits to `apps/` or `packages/`.
