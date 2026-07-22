@@ -8,7 +8,7 @@ description: Prior overdue subscription stays labeled "Overdue" after a new subs
 **Started:** 2026-07-22 13:10
 **Source:** user-report (admin app)
 **Env:** localhost (unit-level repro — no dev server required)
-**Status:** hypothesis-verified → ready-for-code (Option A chosen)
+**Status:** implemented (see [.mstack/code/2026-07-22-1310-subscription-overdue-not-expired-on-renewal/report.md](../../code/2026-07-22-1310-subscription-overdue-not-expired-on-renewal/report.md); commits `4ffbcf4`, `51c90d4`)
 **Investigator:** /mlabs-debug
 
 ## Symptom
