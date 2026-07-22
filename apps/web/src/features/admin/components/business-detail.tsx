@@ -12,6 +12,7 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
+import { PhoneInput } from "./phone-input"
 import type { Business } from "@/features/listings"
 import type { BusinessAdmin } from "@aira/validators/businesses"
 import { RatingPill } from "@/features/listings/components/rating-pill"
@@ -1267,11 +1268,11 @@ function ContactDetailsEditModal({
           <div className="space-y-5 overflow-y-auto px-6 py-5">
             <div className="space-y-1.5">
               <Label htmlFor="b-phone">Phone</Label>
-              <Input
+              <PhoneInput
                 id="b-phone"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 404 555 1234"
+                onChange={setPhone}
+                placeholder="98765 43210"
               />
             </div>
             <div className="space-y-1.5">
@@ -1312,11 +1313,11 @@ function ContactDetailsEditModal({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="b-whatsapp">WhatsApp number</Label>
-              <Input
+              <PhoneInput
                 id="b-whatsapp"
                 value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="Include country code, e.g. 14045551234"
+                onChange={setWhatsapp}
+                placeholder="+91 98765 43210"
               />
             </div>
 

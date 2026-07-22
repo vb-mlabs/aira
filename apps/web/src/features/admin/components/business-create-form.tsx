@@ -15,6 +15,7 @@ import {
   VALID_YEARS_OPERATING,
 } from "@aira/validators/businesses"
 import { PlacesAddressInput } from "./places-address-input"
+import { PhoneInput } from "./phone-input"
 
 function slugify(name: string): string {
   return name
@@ -268,12 +269,11 @@ export function BusinessCreateForm({
         </h3>
         <div className="space-y-1.5">
           <Label htmlFor="bc-phone">Phone</Label>
-          <Input
+          <PhoneInput
             id="bc-phone"
-            type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+1 404 555 1234"
+            onChange={setPhone}
+            placeholder="98765 43210"
           />
         </div>
         <div className="space-y-1.5">
@@ -342,13 +342,11 @@ export function BusinessCreateForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bc-whatsapp">WhatsApp number</Label>
-          <Input
+          <PhoneInput
             id="bc-whatsapp"
-            type="tel"
-            inputMode="tel"
             value={whatsappNumber}
-            onChange={(e) => setWhatsappNumber(e.target.value)}
-            placeholder="Include country code, e.g. 14045551234"
+            onChange={setWhatsappNumber}
+            placeholder="+91 98765 43210"
           />
         </div>
       </div>
