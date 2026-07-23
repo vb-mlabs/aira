@@ -27,10 +27,13 @@ function ctxFor(userId: string): CallerContext {
 
 /** Build a `db` whose select() chain resolves to [{ value: activeCount }]
  *  — matches how countActivePostsForUser reads its result. `insertSpy` (if
- *  provided) is invoked when createPost reaches the insert stage. */
+ *  provided) is invoked when createPost reaches the insert stage. Typed
+ *  as a plain function rather than ReturnType<typeof vi.fn> because
+ *  Vitest 4's Mock union type breaks TS's `?.(…)` optional-call
+ *  narrowing. */
 function makeDb(opts: {
   activeCount: number
-  insertSpy?: ReturnType<typeof vi.fn>
+  insertSpy?: (vals: Record<string, unknown>) => void
   postRow?: {
     id: string
     title: string
