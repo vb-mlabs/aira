@@ -18,6 +18,19 @@ export const CommunityPostStatusSchema = z.enum(COMMUNITY_POST_STATUSES);
 export const COMMUNITY_POST_TITLE_MAX = 120;
 export const COMMUNITY_POST_BODY_MAX = 1000;
 
+/** Per-user cap on ACTIVE posts (status = 'pending' OR 'approved'). Rejected
+ *  and expired posts don't count. Server-enforced in
+ *  packages/services/src/community/service.ts's createPost; the two clients
+ *  fetch getMyCommunityPostLimitsOp to render a proactive cap-reached state
+ *  on the composer CTA (see review 2026-07-22-post-cap-3-active). */
+export const MAX_ACTIVE_POSTS_PER_USER = 3;
+
+/** Canonical reached-cap caption. Exported here so web + mobile can't drift
+ *  on wording. Users can't manually expire a post — the only lever is
+ *  delete, so the copy names that lever explicitly. */
+export const POST_CAP_REACHED_CAPTION =
+  "You've reached 3 active posts. Delete one to add another.";
+
 /** Public row — what end users see on the board and detail page. Excludes
  *  rejected_reason and the raw user_id (the post author's display name is
  *  exposed via `author_name`). Rejected posts are never returned through the
@@ -123,6 +136,24 @@ export const CreatePostOutputSchema = z.object({
   post: PostRowSchema,
 });
 export type CreatePostOutput = z.infer<typeof CreatePostOutputSchema>;
+
+// ─── My post limits (proactive cap-reached client hint) ────────────────────
+
+/** Signed-in caller's own limits. No inputs — permission gate provides
+ *  identity. Empty-object schema keeps the operation surface strict. */
+export const MyPostLimitsInputSchema = z.object({}).strict();
+export type MyPostLimitsInput = z.infer<typeof MyPostLimitsInputSchema>;
+
+/** { active, max, remaining } — cheap enough to fetch on every board
+ *  render. `active` is the count of pending+approved posts owned by the
+ *  caller; `max` mirrors MAX_ACTIVE_POSTS_PER_USER; `remaining` is
+ *  `max - active`, floored at 0. */
+export const MyPostLimitsOutputSchema = z.object({
+  active: z.number().int().nonnegative(),
+  max: z.number().int().positive(),
+  remaining: z.number().int().nonnegative(),
+});
+export type MyPostLimitsOutput = z.infer<typeof MyPostLimitsOutputSchema>;
 
 // ─── Author-side edit / delete (user owns the row) ─────────────────────────
 
