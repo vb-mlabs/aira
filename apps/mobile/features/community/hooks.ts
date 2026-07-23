@@ -10,6 +10,7 @@ import {
   deleteMyCommunityPost,
   editMyCommunityPost,
   getCommunityPost,
+  getMyPostLimits,
   listCommunityComments,
   listCommunityPosts,
   listMyCommunityPosts,
@@ -64,13 +65,18 @@ export function useComments(postId: string | undefined) {
 /** Create a new post — composer submit. Invalidates the board so the
  *  new pending post lands on /account/posts (P2c) cleanly, and the
  *  composer's caller can router.replace to the detail screen which
- *  re-fetches via usePost. */
+ *  re-fetches via usePost. Also invalidates my-post-limits so the
+ *  board CTA flips to cap-reached on the 3rd successful create without
+ *  waiting for staleTime — locked review decision. */
 export function useCreatePost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreatePostInput) => createCommunityPost(input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["community", "posts"] });
+      void qc.invalidateQueries({
+        queryKey: ["community", "my-post-limits"],
+      });
     },
   });
 }
@@ -160,14 +166,31 @@ export function useEditMyPost(postId: string) {
 }
 
 /** Delete your own community post. Cascades through post_interest +
- *  community_comment server-side. Invalidates the my-posts list. */
+ *  community_comment server-side. Invalidates the my-posts list and
+ *  my-post-limits so the board CTA re-enables the moment a user frees
+ *  a slot from /account/posts — locked review decision. */
 export function useDeleteMyPost(postId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => deleteMyCommunityPost(postId),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["community", "my-posts"] });
+      void qc.invalidateQueries({
+        queryKey: ["community", "my-post-limits"],
+      });
       void qc.removeQueries({ queryKey: ["community", "post", postId] });
     },
+  });
+}
+
+/** Caller's { active, max, remaining } cap state. Drives the composer
+ *  CTA on the board and the composer screen. Small payload — TanStack
+ *  Query defaults are fine; the two mutations above invalidate on
+ *  success so proactive UX doesn't drift. */
+export function useMyPostLimits() {
+  return useQuery({
+    queryKey: ["community", "my-post-limits"],
+    queryFn: getMyPostLimits,
+    staleTime: 30_000,
   });
 }

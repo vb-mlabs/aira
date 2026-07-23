@@ -17,7 +17,8 @@ import { Skeleton } from "../../../components/ui/Skeleton";
 import { EmptyState } from "../../../features/listings/components/EmptyState";
 import { SearchBar } from "../../../features/listings/components/SearchBar";
 import { PostCard } from "../../../features/community/components/PostCard";
-import { usePosts } from "../../../features/community/hooks";
+import { usePosts, useMyPostLimits } from "../../../features/community/hooks";
+import { POST_CAP_REACHED_CAPTION } from "@aira/validators/community";
 
 /**
  * Community / Post on AIRA board. Mirrors web's /community page:
@@ -27,13 +28,19 @@ import { usePosts } from "../../../features/community/hooks";
 export default function PostBoardScreen() {
   const [q, setQ] = React.useState("");
   const list = usePosts(q);
+  const limits = useMyPostLimits();
 
   const pages = list.data?.pages ?? [];
   const items = pages.flatMap((p) => p.items);
+  // Undefined during the initial fetch — treat as "unknown, allow"
+  // (server-side gate is the source of truth if the user taps
+  // through). Reactive fallback matches the web treatment.
+  const capReached = limits.data?.remaining === 0;
 
   const onRefresh = React.useCallback(() => {
     void list.refetch();
-  }, [list]);
+    void limits.refetch();
+  }, [list, limits]);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
@@ -43,8 +50,10 @@ export default function PostBoardScreen() {
         right={
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="New post"
+            accessibilityLabel={capReached ? "Post limit reached" : "New post"}
+            disabled={capReached}
             onPress={() => {
+              if (capReached) return;
               router.push("/post/new" as never);
             }}
             hitSlop={8}
@@ -53,6 +62,7 @@ export default function PostBoardScreen() {
               height: 44,
               alignItems: "center",
               justifyContent: "center",
+              opacity: capReached ? 0.4 : 1,
             }}
           >
             <MaterialCommunityIcons
@@ -72,6 +82,28 @@ export default function PostBoardScreen() {
           placeholder="Search community posts…"
         />
       </View>
+
+      {/* Cap-reached caption — visible above the list when the user
+          holds MAX_ACTIVE_POSTS_PER_USER active rows. Same wording as
+          the web caption (POST_CAP_REACHED_CAPTION), keeps the two
+          surfaces in lockstep. */}
+      {capReached ? (
+        <View className="mx-5 mt-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
+          <Text className="text-xs text-mutedForeground">
+            {POST_CAP_REACHED_CAPTION}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Manage my posts"
+            onPress={() => router.push("/account/posts" as never)}
+            className="mt-1 self-start"
+          >
+            <Text className="text-xs font-semibold text-primary">
+              Manage my posts →
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {/* List */}
       {list.isLoading ? (
@@ -116,9 +148,18 @@ export default function PostBoardScreen() {
                 </Text>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Create the first post"
-                  onPress={() => router.push("/post/new" as never)}
+                  accessibilityLabel={
+                    capReached
+                      ? "Post limit reached"
+                      : "Create the first post"
+                  }
+                  disabled={capReached}
+                  onPress={() => {
+                    if (capReached) return;
+                    router.push("/post/new" as never);
+                  }}
                   className="mt-5 rounded-full bg-primary px-5 py-2.5"
+                  style={{ opacity: capReached ? 0.5 : 1 }}
                 >
                   <Text className="text-sm font-bold text-primaryForeground">
                     Create the first post

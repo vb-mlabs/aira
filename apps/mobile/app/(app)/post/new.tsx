@@ -14,7 +14,11 @@ import { Input } from "../../../components/ui/Input";
 import { useToast } from "../../../components/ui/Toast";
 import { BackButton } from "../../../components/nav/BackButton";
 import { TopBar } from "../../../components/nav/TopBar";
-import { useCreatePost } from "../../../features/community/hooks";
+import { useCreatePost, useMyPostLimits } from "../../../features/community/hooks";
+import {
+  MAX_ACTIVE_POSTS_PER_USER,
+  POST_CAP_REACHED_CAPTION,
+} from "@aira/validators/community";
 
 const TITLE_MAX = 120;
 const BODY_MAX = 1000;
@@ -65,6 +69,7 @@ const SCREEN_OPTIONS = {
  */
 export default function PostComposerScreen() {
   const create = useCreatePost();
+  const limits = useMyPostLimits();
   const toast = useToast();
 
   const [title, setTitle] = React.useState("");
@@ -76,6 +81,10 @@ export default function PostComposerScreen() {
   const pending = create.isPending;
   const titleTrimmed = title.trim();
   const submitDisabled = pending || titleTrimmed.length === 0;
+  // Deep-link / back-nav gate: matches the board CTAs. Reactive
+  // fallback: if limits hasn't loaded yet, allow through — server 409
+  // is the source of truth.
+  const capReached = limits.data?.remaining === 0;
 
   async function onSubmit() {
     setError(null);
@@ -102,6 +111,39 @@ export default function PostComposerScreen() {
         kind: "error",
       });
     }
+  }
+
+  if (capReached) {
+    return (
+      <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
+        <Stack.Screen options={SCREEN_OPTIONS} />
+        <TopBar title="New post" left={<BackButton />} />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 32,
+            gap: 16,
+          }}
+        >
+          <Text className="text-center text-base font-semibold text-foreground">
+            {POST_CAP_REACHED_CAPTION}
+          </Text>
+          <Text className="text-center text-sm text-mutedForeground">
+            Delete one to add another, or wait for one to auto-expire.
+          </Text>
+          <Button
+            fullWidth
+            size="lg"
+            onPress={() => router.replace("/account/posts" as never)}
+            accessibilityLabel="Manage my posts"
+          >
+            Manage my posts
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -202,7 +244,8 @@ export default function PostComposerScreen() {
           </Button>
 
           <Text className="text-center text-xs text-mutedForeground">
-            Your post will be reviewed before it appears on the board.
+            Your post will be reviewed before it appears on the board. You
+            can have up to {MAX_ACTIVE_POSTS_PER_USER} active posts at a time.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

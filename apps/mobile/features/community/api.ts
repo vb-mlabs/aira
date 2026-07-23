@@ -14,9 +14,11 @@ import type {
   ListCommentsOutput,
   ListPostsInput,
   ListPostsOutput,
+  MyPostLimitsOutput,
   PostRow,
   CommentRow,
 } from "@aira/validators";
+import { MAX_ACTIVE_POSTS_PER_USER } from "@aira/validators/community";
 
 /** GET /api/v1/community/posts — paginated board. Non-admin callers see only
  *  approved posts (service-side filter). */
@@ -117,4 +119,22 @@ export async function editMyCommunityPost(
  *  Cascades through post_interest + community_comment on the server. */
 export async function deleteMyCommunityPost(id: string): Promise<void> {
   await apiDelete(`/api/v1/community/posts/${encodeURIComponent(id)}`);
+}
+
+/** GET /api/v1/community/posts/limits — caller's active post count +
+ *  MAX_ACTIVE_POSTS_PER_USER + remaining. Drives the composer's
+ *  proactive cap-reached UX on the board CTA and the new-post screen.
+ *  Reactive fallback: if the fetch fails, default to full remaining so
+ *  createPost's 409 remains the source of truth. */
+export async function getMyPostLimits(): Promise<MyPostLimitsOutput> {
+  const res = await apiGet<MyPostLimitsOutput>(
+    "/api/v1/community/posts/limits",
+  );
+  return (
+    res.data ?? {
+      active: 0,
+      max: MAX_ACTIVE_POSTS_PER_USER,
+      remaining: MAX_ACTIVE_POSTS_PER_USER,
+    }
+  );
 }
