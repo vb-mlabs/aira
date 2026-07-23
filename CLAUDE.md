@@ -102,6 +102,16 @@ caching + workspace filters apply.
   the moment DNS catches up; the apex-only rule is the belt that prevents
   drift in the meantime. Import `brand.url` from `@aira/config` — never
   hand-type the host.
+- **Post on AIRA active-post cap.** Each user may hold up to
+  `MAX_ACTIVE_POSTS_PER_USER` (currently **3**) active community posts
+  at a time — active = `status IN ('pending','approved')`. Constant + the
+  canonical reached-cap caption `POST_CAP_REACHED_CAPTION` live in
+  `packages/validators/src/community.ts`. Enforced server-side only, in
+  `packages/services/src/community/service.ts`'s `createPost`; the two
+  clients call `getMyCommunityPostLimitsOp`
+  (`GET /api/v1/community/posts/limits`) to render the proactive
+  cap-reached state on the composer CTA. Bump the number in the
+  constant when policy changes; grep will already be pointing here.
 
 ## mstack workflow (skills under `.claude/skills/`)
 
