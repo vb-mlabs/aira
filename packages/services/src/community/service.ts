@@ -7,7 +7,7 @@ import "server-only"
 // full decision matrix. The route handlers under
 // apps/web/src/app/api/v1/community/* are thin adapters.
 
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm"
+import { and, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm"
 import {
   app_settings,
   communityPost,
@@ -22,9 +22,11 @@ import type {
   AdminPostRow,
   CommunityPostStatus,
   InterestRow,
+  MyPostLimitsOutput,
   PostRow,
   StatusCounts,
 } from "@aira/validators/community"
+import { MAX_ACTIVE_POSTS_PER_USER } from "@aira/validators/community"
 import { createNotification } from "../notifications"
 
 function auditClient(ctx: CallerContext): "web" | "mobile" {
@@ -204,6 +206,40 @@ export async function getPost(
   return { post: toPostRow(row), is_author: isAuthor }
 }
 
+// ─── Cap helper (createPost + getMyPostLimits share this predicate) ─────────
+
+/** COUNT(*) of pending+approved posts owned by userId. One indexed
+ *  scan via community_post_user_idx. Shared with both the create-gate
+ *  (createPost) and the proactive client hint (getMyPostLimits). */
+async function countActivePostsForUser(
+  db: Database,
+  userId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(communityPost)
+    .where(
+      and(
+        eq(communityPost.user_id, userId),
+        inArray(communityPost.status, ["pending", "approved"]),
+      ),
+    )
+  return row?.value ?? 0
+}
+
+/** Public: the caller's active-post count + cap + remaining slots.
+ *  Consumed by getMyCommunityPostLimitsOp for the composer's proactive
+ *  cap-reached UX. Server-authoritative — clients treat it as a hint
+ *  and rely on createPost's gate as the source of truth. */
+export async function getMyPostLimits(
+  db: Database,
+  ctx: CallerContext,
+): Promise<MyPostLimitsOutput> {
+  const active = await countActivePostsForUser(db, ctx.userId)
+  const remaining = Math.max(0, MAX_ACTIVE_POSTS_PER_USER - active)
+  return { active, max: MAX_ACTIVE_POSTS_PER_USER, remaining }
+}
+
 // ─── Write: create a post ───────────────────────────────────────────────────
 
 export interface CreatePostArgs {
@@ -218,29 +254,16 @@ export async function createPost(
   ctx: CallerContext,
   args: CreatePostArgs,
 ): Promise<{ post: PostRow }> {
-  // One active (pending OR approved) post per user — locked review decision.
-  const [existing] = await db
-    .select({ id: communityPost.id, status: communityPost.status })
-    .from(communityPost)
-    .where(
-      and(
-        eq(communityPost.user_id, ctx.userId),
-        or(
-          eq(communityPost.status, "pending"),
-          eq(communityPost.status, "approved"),
-        ),
-      ),
-    )
-    .limit(1)
+  // Cap on ACTIVE posts (pending OR approved) per user — MAX_ACTIVE_POSTS_PER_USER
+  // in @aira/validators/community. Rejected + expired posts don't count.
+  // Covered by community_post_user_idx.
+  const activeCount = await countActivePostsForUser(db, ctx.userId)
 
-  if (existing) {
+  if (activeCount >= MAX_ACTIVE_POSTS_PER_USER) {
     throw new ApiError({
       status: 409,
       code: "community.active_post_exists",
-      message:
-        existing.status === "pending"
-          ? "You already have a post awaiting moderation."
-          : "You already have an active post. Wait for it to expire or be resolved before posting another.",
+      message: `You've reached ${MAX_ACTIVE_POSTS_PER_USER} active posts. Delete one to add another.`,
     })
   }
 
@@ -844,9 +867,10 @@ export async function deletePost(
 /**
  * Lists the caller's own posts across all statuses (pending + approved +
  * expired + rejected), newest first. Returns AdminPostRow so the author
- * sees their own rejected_reason. No pagination in v1 — most users will
- * have 0 or 1 active post at a time given the 1-active-post limit; only
- * historic rejected/expired rows accumulate.
+ * sees their own rejected_reason. No pagination in v1 — the active-post
+ * cap (MAX_ACTIVE_POSTS_PER_USER in @aira/validators/community) keeps
+ * the concurrent working set small; only historic rejected/expired rows
+ * accumulate over time.
  */
 export async function listMyPosts(
   db: Database,

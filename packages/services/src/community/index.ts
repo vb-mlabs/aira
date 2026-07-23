@@ -22,6 +22,7 @@ export {
   listMyPosts,
   editMyPost,
   deleteMyPost,
+  getMyPostLimits,
 } from "./service"
 
 export {
