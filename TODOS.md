@@ -97,3 +97,8 @@ Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + d
 - [ ] Wire Sentry (@sentry/react-native via Expo config plugin) — 2026-07-20 OTA to production shipped without crash monitoring; flying blind on crash-free sessions. Flip expo.monitoring in mstack config to sentry once wired. — *expo 2026-07-20-1900, 2026-07-20*
 - [ ] Patch-bump expo 54.0.35→~54.0.36 and expo-updates 29.0.18→~29.0.19 before the next native build. OTA-safe today; will bite if a JS bundle assumes the newer API. — *expo 2026-07-20-1900, 2026-07-20*
 - [ ] Resume preview-then-production sequence for the next OTA. 2026-07-20-1900 skipped preview at explicit user direction — not the default. — *expo 2026-07-20-1900, 2026-07-20*
+- [ ] Bulk-delete of expired posts on /account/posts (quick-action to free cap slots) — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
+- [ ] Admin per-user post-cap override (super_admin only) — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
+- [ ] Notify user (push + email) when a post expires so they can post again — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
+- [ ] Analytics events for cap-reached / cap-exceeded submit attempts — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
+- [ ] Promote MAX_ACTIVE_POSTS_PER_USER from constant to app_setting row (mirrors posts_expiry_days precedent) if the number ever needs runtime tuning — *plan 2026-07-22-post-cap-3-active, 2026-07-23*

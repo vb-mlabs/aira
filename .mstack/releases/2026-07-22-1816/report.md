@@ -1,55 +1,61 @@
-# Release — ota (aborted) 2026-07-22 18:16
+# Release — ota (shipped) 2026-07-22 18:16
 
 **App:** AIRA (`com.airabynisarga.app`) · **Platform:** both · **Channel/profile:** production
 **Mode:** ota
-**Status:** no-go (aborted at preflight, awaiting user decision on runtime coherence)
-**Versions:** repo says `version 0.1.1` · users on runtime `0.1.0`
-**Commit:** `a916fd5` · **Update IDs:** — (nothing published)
+**Status:** shipped
+**Versions:** version `0.1.1` · runtime `0.1.1`
+**Commit:** `a916fd5` (tip at publish: `2590e02c*` — includes the auto-checkpoint marker Expo adds)
+**Update group ID:** `436f4b58-f0c8-4718-842c-54730bb11b62`
+**iOS update ID:** `019f8b1f-b77f-7bc6-882f-fca6cf00c428`
+**Android update ID:** `019f8b1f-b77f-7dfc-8e05-b1c990382c06`
+**Dashboard:** https://expo.dev/accounts/million-labs/projects/aira-mobile/updates/436f4b58-f0c8-4718-842c-54730bb11b62
 
-## Preflight
+## Preflight — corrected
+
+Initial preflight incorrectly flagged runtime drift after reading only 3 rows
+from `eas update:list` (which happened to show the last two `0.1.0`
+OTAs) and never checking `eas build:list`. Corrected read of both:
+
+| Native builds | Runtime | Created |
+|---|---|---|
+| Build 8 (iOS + Android) | **0.1.1** | 2026-07-14 |
+| Build 7 iOS / 6 Android | 0.1.0 | 2026-07-06 / 2026-06-30 |
+
+| OTAs on `production` (newest first) | Runtime | When |
+|---|---|---|
+| session sweep: sidebar tier2 + 12px + back-nav fix | **0.1.1** | 2 days ago |
+| TopBar consistency + tree-of-life logo (0.1.0 OTA) | 0.1.0 | 1 week ago |
+| drawer + all-listings + origin-aware nav + composer sheet | 0.1.0 | 1 week ago |
+
+Real state: build 8 is the current store build on runtime `0.1.1` and has
+already received an OTA on `0.1.1`. The `version: "0.1.1"` in the repo IS
+coherent with what users have. No override needed.
 
 | Check | Result | Evidence |
 |---|---|---|
-| EAS auth | ✅ pass | `vinod@millionlabs.co.uk` (owner: vb-mlabs, dev: million-labs) |
-| Git state | ✅ pass | tree clean apart from untracked screenshot assets |
-| Native-diff since last OTA | ✅ pass | 12 mobile-touching commits since `b4d5217`, all JS/TS only; no plugin, permission, entitlement, or Expo SDK change |
-| **Runtime version coherence** | 🚫 **fail** | Last two OTAs pushed on runtime `0.1.0` 1 week ago. Current repo has `version: "0.1.1"` at `apps/mobile/app.config.ts:16`, and `runtimeVersion.policy = "appVersion"`. Publishing today would target `0.1.1` — installed apps are on `0.1.0` → nobody receives the update |
-| expo-doctor | ⚠️ 3 findings (pre-existing) | metro config (intentional monorepo override); react duplicated at 19.1.0 + 19.2.4 (transitive via `use-sync-external-store`); patch mismatches (`expo@54.0.35` vs `~54.0.36`, `expo-updates@29.0.18` vs `~29.0.19`). Not release-blockers on their own, but worth cleaning up in a follow-up |
-| Secrets per profile | not run | preflight aborted before this check |
+| EAS auth | ✅ pass | `vinod@millionlabs.co.uk` (owner: vb-mlabs, dev: million-labs) via `EXPO_TOKEN` |
+| Git state | ✅ pass | tree clean |
+| Native-diff since last OTA on 0.1.1 | ✅ pass | 4 commits since (`a916fd5`, `ceff44b`, `07526c4`, `2f75373`) — all pure JS |
+| Runtime version coherence | ✅ pass | repo `0.1.1` == build 8 runtime `0.1.1` |
+| expo-doctor | ⚠️ 3 pre-existing findings | metro config (intentional monorepo override); react duplicated at 19.1.0 + 19.2.4 (transitive via `use-sync-external-store`); patch mismatches (`expo@54.0.35` vs `~54.0.36`, `expo-updates@29.0.18` vs `~29.0.19`). None new since the last OTA landed successfully |
 
 ## Decision
 
-**No-go on OTA push.** The runtime-drift blocker is exactly the scenario the mstack-expo skill's Iron Rule warns about: "drift between them is how OTAs silently stop applying." Pushing here would produce a green terminal + an update group ID + zero user impact.
+OTA on runtime `0.1.1`. Native binaries in users' hands (build 8) are
+compatible; the changes are JS-only.
 
-## Investigation of the 0.1.1 bump
+## Execution log
 
-Commit `b4d5217` on 2026-07-14 bumped `version: 0.1.0 → 0.1.1` for a new tree-of-life app icon + cream splash background. Commit message explicitly says "native rebuild required" — the icon (1024×1024 baked into the app) and the splash background color live natively, not in JS.
-
-**What was supposed to happen:** an EAS Build + store submission on 0.1.1, users update from stores, then all future OTAs target 0.1.1.
-
-**What actually happened:**
-
-1. `b4d5217` bumped to 0.1.1 (2026-07-14, 8 days ago).
-2. No native EAS Build + store submit for 0.1.1 has landed yet (or none reached users).
-3. Meanwhile the last two OTAs (1 week ago) were pushed on runtime `0.1.0` — someone must have used `eas update --runtime-version 0.1.0` explicitly to bypass the repo's `appVersion` policy and reach installed users.
-4. 12 mobile-touching commits since the bump haven't reached users at all (the runtime-0.1.0 override wasn't repeated after those two updates). These include:
-   - `2f75373` category name resolution across web/mobile
-   - `07526c4` SubcategoryPicker "Browse" prefix removal
-   - `ceff44b` / `a916fd5` back-nav fixes
-   - `591d6ef` back-href route-segment strip
-   - `bb7684a` a11y font-size sweep
-   - Sidebar texture fixes, listing polish, post detail TopBar, etc.
-
-**Also unshipped since 0.1.1 bumped but before it:** the new native app icon + cream splash bg themselves are still not on any user's phone — they only reach users via a store update.
-
-## Options for the user (recap)
-
-1. **Push OTA with `--runtime-version 0.1.0` override.** Fast; today's changes + all backlogged JS reach every user. Doesn't fix the underlying drift.
-2. **Bump repo `version` to `0.1.0` temporarily, push, re-bump.** Same user outcome; noisier git.
-3. **Do a proper native EAS Build for `0.1.1` + store submit.** Correct fix. Users get everything (new icon, new splash, all 12+ JS commits) via store update. Takes 20–30 min per platform + Apple review lag.
-4. **Bump to `0.1.2` first, native rebuild, submit.** Same as #3 but with a fresh version to signal accumulated changes. Cleaner story if the 0.1.1 rebuild was already promised to someone.
-
-**Recommended next step:** option 3 or 4 — the accumulated backlog of unshipped JS changes plus the unshipped native icon/splash asset make a proper 0.1.x native release worth the ceremony. If speed is more important today, option 1 keeps users unblocked on the JS improvements while the native release gets scheduled.
+- `pnpm dlx eas-cli update:list --branch production --limit 10` — enumerated
+  recent OTAs; confirmed most recent is on `0.1.1`.
+- `pnpm dlx eas-cli build:list --status finished --limit 15 --json` —
+  confirmed build 8 on runtime `0.1.1` (2026-07-14, both platforms).
+- User confirmed OTA-to-0.1.1-only strategy.
+- `EAS_PROJECT_ID=21065081-2afd-43d4-aef7-7ce10de55a8b pnpm dlx eas-cli update --branch production --message "category name display + subcategory sheet title + back-nav dismissTo fix (a916fd5)"`
+  from `apps/mobile/`. Non-interactive EAS_PROJECT_ID env var was required
+  because the CLI in `pnpm dlx` doesn't detect the project link the same way
+  interactive-mode does. Ran ~90s (bundle + fingerprint + upload + publish).
+- Published as update group `436f4b58-f0c8-4718-842c-54730bb11b62`.
 
 ## Sources
 
@@ -57,7 +63,35 @@ Commit `b4d5217` on 2026-07-14 bumped `version: 0.1.0 → 0.1.1` for a new tree-
 
 ## Follow-ups
 
-- Investigate why the 0.1.1 native release never shipped after the icon bump (was it in progress? blocked on review? deprioritized?).
-- Decide on the shipping path (option 1 vs 3 vs 4) and re-run `/mstack-expo` accordingly.
-- Consider addressing pre-existing doctor findings in a follow-up branch (dedupe react, bump patches, review metro config comment).
-- After the runtime coherence is restored, revisit `expo.monitoring: "none"` — pushing OTAs to production without Sentry is flying blind per the skill's guidance.
+- **Monitor** — `expo.monitoring: "none"` in mstack config. This OTA
+  shipped without Sentry crash reporting. Watch rule is manual: if any
+  user reports "app broken" in the next few hours, roll back with
+  `eas update:republish` targeting the prior `0.1.1` update group.
+- Address pre-existing doctor findings in a follow-up branch: dedupe
+  react (pin `use-sync-external-store` resolution), bump `expo` +
+  `expo-updates` to the recommended patches, review the metro config
+  override comment.
+- Users still on native build 6/7 (runtime `0.1.0`) did NOT receive this
+  update. Their last OTA was 1 week ago. Consider a second OTA with
+  `--runtime-version 0.1.0` if store-adoption data shows a meaningful
+  0.1.0 population still active.
+- The self-correction on preflight (build-list wasn't queried initially)
+  suggests updating the mstack-expo skill's preflight checklist to
+  explicitly require `build:list` alongside `update:list` when reasoning
+  about runtime coherence. Captured for the skill maintainer.
+
+## Rollback path
+
+If a regression surfaces:
+```
+cd apps/mobile
+EAS_PROJECT_ID=21065081-2afd-43d4-aef7-7ce10de55a8b \
+  pnpm dlx eas-cli update:republish \
+  --branch production \
+  --group 336c9ce0-29e9-467e-a75d-cbb0a92c350e
+```
+The prior known-good `0.1.1` update group is
+`336c9ce0-29e9-467e-a75d-cbb0a92c350e` (2 days ago, "session sweep: sidebar
+tier2 texture + 12px floor + back-nav fix"). Verify the exact CLI syntax
+against live docs before running — the rollback command has changed
+between CLI versions.
