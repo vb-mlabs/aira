@@ -47,7 +47,13 @@ export default async function AdminBusinessDetailPage({ params }: PageProps) {
       children: children.filter((c) => c.active),
     }))
 
-  const cities = cityRes.data?.cities ?? []
+  // Filter inactive cities out of the picker, BUT keep the currently
+  // linked city (even if it's since been deactivated) so its label
+  // still shows in the dropdown. Otherwise the Edit modal would render
+  // the field as "— no city —" for a business tied to an inactive row.
+  const cities = (cityRes.data?.cities ?? []).filter(
+    (c) => c.active || c.id === business.city_id,
+  )
 
   return (
     <BusinessAdminDetail

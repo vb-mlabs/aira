@@ -14,6 +14,21 @@ import { ApiError } from "@aira/api"
 import { z } from "zod"
 import { defineOperation } from "./index"
 
+/** Postgres duplicate-key error code. Emitted when a city insert/update
+ *  hits the `city_slug_key` unique constraint — for example when an
+ *  admin tries to create "Atlanta" after "atlanta" already exists
+ *  (both normalize to `atlanta` via service-layer slugify). */
+const PG_UNIQUE_VIOLATION = "23505"
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: unknown }).code === PG_UNIQUE_VIOLATION
+  )
+}
+
 export const listCitiesAdminOp = defineOperation({
   name: "admin.cities.list",
   input: z.object({}).strict(),
@@ -47,8 +62,19 @@ export const createCityOp = defineOperation({
   output: z.object({ city: z.any() }),
   permission: "super_admin",
   handler: async (db, _ctx, input) => {
-    const city = await citiesService.createCity(db, input)
-    return { city }
+    try {
+      const city = await citiesService.createCity(db, input)
+      return { city }
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw ApiError.badRequest(
+          "cities.duplicate_slug",
+          "A city with that slug already exists. Slugs are case-insensitive.",
+          "slug",
+        )
+      }
+      throw err
+    }
   },
 })
 
@@ -58,8 +84,19 @@ export const updateCityOp = defineOperation({
   output: z.object({ city: z.any() }),
   permission: "super_admin",
   handler: async (db, _ctx, { id, ...data }) => {
-    const city = await citiesService.updateCity(db, id, data)
-    if (!city) throw ApiError.notFound("cities.not_found", "City not found")
-    return { city }
+    try {
+      const city = await citiesService.updateCity(db, id, data)
+      if (!city) throw ApiError.notFound("cities.not_found", "City not found")
+      return { city }
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw ApiError.badRequest(
+          "cities.duplicate_slug",
+          "A city with that slug already exists. Slugs are case-insensitive.",
+          "slug",
+        )
+      }
+      throw err
+    }
   },
 })

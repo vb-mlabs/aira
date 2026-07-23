@@ -6,6 +6,7 @@ import { Button } from "@aira/ui-web/button"
 import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
+import { ApiError } from "@aira/api"
 import type { City } from "@aira/validators/cities"
 
 function slugify(name: string): string {
@@ -52,8 +53,15 @@ export function CityForm({ city }: CityFormProps) {
         }
         router.push("/admin/settings/cities")
         router.refresh()
-      } catch {
-        setError("Failed to save. Please try again.")
+      } catch (err) {
+        // Surface the server's message when it's a known ApiError
+        // (e.g. duplicate slug) so the admin sees the actual reason
+        // instead of the generic "Failed to save."
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Failed to save. Please try again.",
+        )
       }
     })
   }

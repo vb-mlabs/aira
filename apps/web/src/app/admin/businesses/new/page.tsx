@@ -11,7 +11,11 @@ export default async function NewBusinessPage() {
     apiServerFetch(listCitiesForAdminOp, { input: {} }),
     apiServerFetch(listCategoriesTreeOp, { input: {} }),
   ])
-  const cities = citiesRes.data?.cities ?? []
+  // Filter inactive cities out of the picker — inactive rows are
+  // retained in the DB for existing listings' historical FK but should
+  // not be selectable for a new business. Same pattern as the category
+  // tree below.
+  const cities = (citiesRes.data?.cities ?? []).filter((c) => c.active)
   const tree = treeRes.data?.tree ?? []
 
   // Filter to active branches only — inactive roots drop their whole

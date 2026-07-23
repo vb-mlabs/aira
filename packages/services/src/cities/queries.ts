@@ -27,7 +27,13 @@ export async function createCity(
   db: Database,
   input: CityCreateInput,
 ): Promise<City> {
-  const slug = input.slug ?? slugify(input.name);
+  // Normalize any admin-supplied slug through slugify() too, not just
+  // the derived-from-name fallback. Postgres text-unique is byte-exact,
+  // so without normalization "Atlanta" and "atlanta" would coexist as
+  // two rows — the unique constraint doesn't fire on case difference.
+  // slugify() is idempotent for already-well-formed slugs so this is
+  // safe when the admin typed the correct value.
+  const slug = slugify(input.slug ?? input.name);
   const [row] = await db
     .insert(cities)
     .values({ name: input.name, slug, active: input.active ?? true })
@@ -41,9 +47,17 @@ export async function updateCity(
   id: string,
   data: Omit<CityUpdateInput, "id">,
 ): Promise<City | null> {
+  // Same case-normalization as createCity — an update path could
+  // otherwise re-introduce the duplicate by editing an existing row's
+  // slug to a different-case variant of another row's slug.
+  const patch = {
+    ...data,
+    ...(data.slug !== undefined ? { slug: slugify(data.slug) } : {}),
+    updated_at: new Date(),
+  };
   const [row] = await db
     .update(cities)
-    .set({ ...data, updated_at: new Date() })
+    .set(patch)
     .where(eq(cities.id, id))
     .returning();
   return row ? toCity(row) : null;
