@@ -299,43 +299,70 @@ function EvidenceCell({ sp, businessId, onUploaded }: EvidenceCellProps) {
     disabled: uploading,
   })
 
-  if (sp.payment_evidence_url) {
-    return (
-      <a
-        href={sp.payment_evidence_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-primary hover:underline"
-      >
-        View
-      </a>
-    )
-  }
-
   return (
     <div className="flex flex-col gap-1">
-      <div
-        {...getRootProps()}
-        className={cn(
-          "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-input px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40",
-          isDragActive && "border-primary bg-primary/5 text-primary",
-          uploading && "cursor-wait opacity-70",
-        )}
-        aria-label="Upload payment evidence"
-      >
-        <input {...getInputProps()} />
-        {uploading ? (
-          <>
-            <Loader2 className="size-3 animate-spin" aria-hidden />
-            Uploading…
-          </>
-        ) : (
-          <>
-            <Upload className="size-3" aria-hidden />
-            {isDragActive ? "Drop file" : "Upload"}
-          </>
-        )}
-      </div>
+      {sp.payment_evidence_url ? (
+        <div className="flex items-center gap-2">
+          <a
+            href={sp.payment_evidence_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline"
+          >
+            View
+          </a>
+          <span className="text-muted-foreground">·</span>
+          <button
+            type="button"
+            {...getRootProps({
+              onClick: (e) => {
+                e.stopPropagation()
+              },
+            })}
+            className={cn(
+              "text-xs text-primary hover:underline disabled:opacity-70",
+              uploading && "cursor-wait",
+            )}
+            disabled={uploading}
+            aria-label="Replace payment evidence"
+          >
+            <input {...getInputProps()} />
+            {uploading ? (
+              <span className="inline-flex items-center gap-1">
+                <Loader2 className="size-3 animate-spin" aria-hidden />
+                Uploading…
+              </span>
+            ) : isDragActive ? (
+              "Drop to replace"
+            ) : (
+              "Replace"
+            )}
+          </button>
+        </div>
+      ) : (
+        <div
+          {...getRootProps()}
+          className={cn(
+            "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-input px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40",
+            isDragActive && "border-primary bg-primary/5 text-primary",
+            uploading && "cursor-wait opacity-70",
+          )}
+          aria-label="Upload payment evidence"
+        >
+          <input {...getInputProps()} />
+          {uploading ? (
+            <>
+              <Loader2 className="size-3 animate-spin" aria-hidden />
+              Uploading…
+            </>
+          ) : (
+            <>
+              <Upload className="size-3" aria-hidden />
+              {isDragActive ? "Drop file" : "Upload"}
+            </>
+          )}
+        </div>
+      )}
       {error ? (
         <span
           className="inline-flex items-center gap-1 text-xs text-destructive"
@@ -381,6 +408,8 @@ function SponsorshipDialog({
   const [endDate, setEndDate] = useState("")
   const [amountDollars, setAmountDollars] = useState("")
   const [notes, setNotes] = useState("")
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -408,11 +437,28 @@ function SponsorshipDialog({
       setAmountDollars("")
       setNotes("")
     }
+    setEvidenceFile(null)
     setError(null)
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
   useEffect(() => { if (open) loadAndSeed() }, [open, sponsorship?.id])
+
+  const onDrop = useCallback((accepted: File[]) => {
+    setEvidenceFile(accepted[0] ?? null)
+  }, [])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/jpeg": [],
+      "image/png": [],
+      "image/webp": [],
+      "application/pdf": [],
+    },
+    maxFiles: 1,
+    disabled: uploading || pending,
+  })
 
   function handleClose(v: boolean) {
     onOpenChange(v)
@@ -434,7 +480,9 @@ function SponsorshipDialog({
     }
 
     startTransition(async () => {
+      setUploading(false)
       try {
+        let targetId: string
         if (isEdit && sponsorship) {
           await apiClient.patch(
             `/api/v1/admin/businesses/${businessId}/sponsorships/${sponsorship.id}`,
@@ -447,8 +495,9 @@ function SponsorshipDialog({
               notes: notes.trim() || null,
             },
           )
+          targetId = sponsorship.id
         } else {
-          await apiClient.post(
+          const res = await apiClient.post<{ sponsorship: SponsorshipListItem }>(
             `/api/v1/admin/businesses/${businessId}/sponsorships`,
             {
               business_id: businessId,
@@ -459,10 +508,35 @@ function SponsorshipDialog({
               notes: notes.trim() || null,
             },
           )
+          if (!res.sponsorship?.id) {
+            throw new Error("Failed to create sponsorship.")
+          }
+          targetId = res.sponsorship.id
         }
+
+        // Evidence upload (Add + Edit): POST to /evidence overwrites
+        // payment_evidence_url on the sponsorship. Skipped when no new
+        // file was picked, so hitting Save without touching the dropzone
+        // leaves existing evidence intact.
+        if (evidenceFile) {
+          setUploading(true)
+          const form = new FormData()
+          form.append("file", evidenceFile)
+          const evRes = await fetch(
+            `/api/v1/admin/businesses/${businessId}/sponsorships/${targetId}/evidence`,
+            { method: "POST", body: form },
+          )
+          if (!evRes.ok) {
+            const payload = await evRes.json().catch(() => null)
+            throw new Error(payload?.error?.message ?? "Evidence upload failed.")
+          }
+          setUploading(false)
+        }
+
         router.refresh()
         handleClose(false)
       } catch (err) {
+        setUploading(false)
         setError(err instanceof Error ? err.message : "Failed to save.")
       }
     })
@@ -567,6 +641,51 @@ function SponsorshipDialog({
               />
             </div>
 
+            <div className="space-y-1.5">
+              <Label>Payment evidence</Label>
+              {isEdit && sponsorship?.payment_evidence_url && !evidenceFile ? (
+                <p className="text-xs text-muted-foreground">
+                  Current:{" "}
+                  <a
+                    href={sponsorship.payment_evidence_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    View file
+                  </a>
+                  . Drop a new one below to replace it.
+                </p>
+              ) : null}
+              <div
+                {...getRootProps()}
+                className={cn(
+                  "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors",
+                  isDragActive
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                  (uploading || pending) && "pointer-events-none opacity-60",
+                )}
+              >
+                <input {...getInputProps()} />
+                {evidenceFile ? (
+                  <span className="font-medium text-foreground">{evidenceFile.name}</span>
+                ) : (
+                  <>
+                    <Upload className="size-5" aria-hidden />
+                    <span>
+                      {isDragActive
+                        ? "Drop to attach"
+                        : isEdit && sponsorship?.payment_evidence_url
+                          ? "Drop file or click to replace"
+                          : "Drop file or click to browse"}
+                    </span>
+                    <span className="text-xs">JPEG, PNG, WebP or PDF · max 5 MB · optional</span>
+                  </>
+                )}
+              </div>
+            </div>
+
             {error && (
               <p className="text-sm text-destructive" role="alert">
                 {error}
@@ -574,18 +693,20 @@ function SponsorshipDialog({
             )}
 
             <div className="flex gap-3 pt-1">
-              <Button type="submit" disabled={pending}>
-                {pending
-                  ? "Saving…"
-                  : isEdit
-                    ? "Save changes"
-                    : "Add sponsorship"}
+              <Button type="submit" disabled={pending || uploading}>
+                {uploading
+                  ? "Uploading…"
+                  : pending
+                    ? "Saving…"
+                    : isEdit
+                      ? "Save changes"
+                      : "Add sponsorship"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => handleClose(false)}
-                disabled={pending}
+                disabled={pending || uploading}
               >
                 Cancel
               </Button>

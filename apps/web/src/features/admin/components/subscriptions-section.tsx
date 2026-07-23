@@ -312,43 +312,74 @@ function EvidenceCell({ sub, businessId, onUploaded }: EvidenceCellProps) {
     disabled: uploading,
   })
 
-  if (sub.payment_evidence_url) {
-    return (
-      <a
-        href={sub.payment_evidence_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs text-primary hover:underline"
-      >
-        View
-      </a>
-    )
-  }
-
   return (
     <div className="flex flex-col gap-1">
-      <div
-        {...getRootProps()}
-        className={cn(
-          "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-input px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40",
-          isDragActive && "border-primary bg-primary/5 text-primary",
-          uploading && "cursor-wait opacity-70",
-        )}
-        aria-label="Upload payment evidence"
-      >
-        <input {...getInputProps()} />
-        {uploading ? (
-          <>
-            <Loader2 className="size-3 animate-spin" aria-hidden />
-            Uploading…
-          </>
-        ) : (
-          <>
-            <Upload className="size-3" aria-hidden />
-            {isDragActive ? "Drop file" : "Upload"}
-          </>
-        )}
-      </div>
+      {sub.payment_evidence_url ? (
+        <div className="flex items-center gap-2">
+          <a
+            href={sub.payment_evidence_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline"
+          >
+            View
+          </a>
+          <span className="text-muted-foreground">·</span>
+          <button
+            type="button"
+            {...getRootProps({
+              onClick: (e) => {
+                // getRootProps binds a click to open the file picker
+                // via the hidden <input>. We don't need extra logic
+                // beyond that — the empty handler prevents the default
+                // <button> submit behaviour inside surrounding forms.
+                e.stopPropagation()
+              },
+            })}
+            className={cn(
+              "text-xs text-primary hover:underline disabled:opacity-70",
+              uploading && "cursor-wait",
+            )}
+            disabled={uploading}
+            aria-label="Replace payment evidence"
+          >
+            <input {...getInputProps()} />
+            {uploading ? (
+              <span className="inline-flex items-center gap-1">
+                <Loader2 className="size-3 animate-spin" aria-hidden />
+                Uploading…
+              </span>
+            ) : isDragActive ? (
+              "Drop to replace"
+            ) : (
+              "Replace"
+            )}
+          </button>
+        </div>
+      ) : (
+        <div
+          {...getRootProps()}
+          className={cn(
+            "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-input px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted/40",
+            isDragActive && "border-primary bg-primary/5 text-primary",
+            uploading && "cursor-wait opacity-70",
+          )}
+          aria-label="Upload payment evidence"
+        >
+          <input {...getInputProps()} />
+          {uploading ? (
+            <>
+              <Loader2 className="size-3 animate-spin" aria-hidden />
+              Uploading…
+            </>
+          ) : (
+            <>
+              <Upload className="size-3" aria-hidden />
+              {isDragActive ? "Drop file" : "Upload"}
+            </>
+          )}
+        </div>
+      )}
       {error ? (
         <span
           className="inline-flex items-center gap-1 text-xs text-destructive"
@@ -489,10 +520,9 @@ function SubscriptionDialog({
     startTransition(async () => {
       setUploading(false)
       try {
+        let targetId: string
         if (isEdit && subscription) {
-          // Edit: PATCH the editable fields. plan_id is schema-locked;
-          // evidence upload is a row-level flow (post-hoc dropzone), not
-          // part of the Edit submit.
+          // Edit: PATCH the editable fields. plan_id is schema-locked.
           await apiClient.patch(
             `/api/v1/admin/businesses/${businessId}/subscriptions/${subscription.id}`,
             {
@@ -504,6 +534,7 @@ function SubscriptionDialog({
               notes: notes.trim() || null,
             },
           )
+          targetId = subscription.id
         } else {
           const res = await apiClient.post<{ subscription: BusinessSubscription }>(
             `/api/v1/admin/businesses/${businessId}/subscriptions`,
@@ -517,21 +548,29 @@ function SubscriptionDialog({
               notes: notes.trim() || null,
             },
           )
-
-          if (evidenceFile && res.subscription?.id) {
-            setUploading(true)
-            const form = new FormData()
-            form.append("file", evidenceFile)
-            const evRes = await fetch(
-              `/api/v1/admin/businesses/${businessId}/subscriptions/${res.subscription.id}/evidence`,
-              { method: "POST", body: form },
-            )
-            if (!evRes.ok) {
-              const payload = await evRes.json().catch(() => null)
-              throw new Error(payload?.error?.message ?? "Evidence upload failed.")
-            }
-            setUploading(false)
+          if (!res.subscription?.id) {
+            throw new Error("Failed to create subscription.")
           }
+          targetId = res.subscription.id
+        }
+
+        // Evidence upload (Add + Edit): POST to /evidence overwrites
+        // payment_evidence_url on the subscription. Skipped when no new
+        // file was picked, so hitting Save without touching the dropzone
+        // leaves existing evidence intact.
+        if (evidenceFile) {
+          setUploading(true)
+          const form = new FormData()
+          form.append("file", evidenceFile)
+          const evRes = await fetch(
+            `/api/v1/admin/businesses/${businessId}/subscriptions/${targetId}/evidence`,
+            { method: "POST", body: form },
+          )
+          if (!evRes.ok) {
+            const payload = await evRes.json().catch(() => null)
+            throw new Error(payload?.error?.message ?? "Evidence upload failed.")
+          }
+          setUploading(false)
         }
 
         router.refresh()
@@ -657,32 +696,50 @@ function SubscriptionDialog({
               />
             </div>
 
-            {!isEdit && (
-              <div className="space-y-1.5">
-                <Label>Payment evidence</Label>
-                <div
-                  {...getRootProps()}
-                  className={cn(
-                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors",
-                    isDragActive
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
-                    (uploading || pending) && "pointer-events-none opacity-60",
-                  )}
-                >
-                  <input {...getInputProps()} />
-                  {evidenceFile ? (
-                    <span className="font-medium text-foreground">{evidenceFile.name}</span>
-                  ) : (
-                    <>
-                      <Upload className="size-5" aria-hidden />
-                      <span>{isDragActive ? "Drop to attach" : "Drop file or click to browse"}</span>
-                      <span className="text-xs">JPEG, PNG, WebP or PDF · max 5 MB · optional</span>
-                    </>
-                  )}
-                </div>
+            <div className="space-y-1.5">
+              <Label>Payment evidence</Label>
+              {isEdit && subscription?.payment_evidence_url && !evidenceFile ? (
+                <p className="text-xs text-muted-foreground">
+                  Current:{" "}
+                  <a
+                    href={subscription.payment_evidence_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    View file
+                  </a>
+                  . Drop a new one below to replace it.
+                </p>
+              ) : null}
+              <div
+                {...getRootProps()}
+                className={cn(
+                  "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-sm transition-colors",
+                  isDragActive
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                  (uploading || pending) && "pointer-events-none opacity-60",
+                )}
+              >
+                <input {...getInputProps()} />
+                {evidenceFile ? (
+                  <span className="font-medium text-foreground">{evidenceFile.name}</span>
+                ) : (
+                  <>
+                    <Upload className="size-5" aria-hidden />
+                    <span>
+                      {isDragActive
+                        ? "Drop to attach"
+                        : isEdit && subscription?.payment_evidence_url
+                          ? "Drop file or click to replace"
+                          : "Drop file or click to browse"}
+                    </span>
+                    <span className="text-xs">JPEG, PNG, WebP or PDF · max 5 MB · optional</span>
+                  </>
+                )}
               </div>
-            )}
+            </div>
 
             {error && (
               <p className="text-sm text-destructive" role="alert">
