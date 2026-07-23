@@ -1,7 +1,8 @@
 // /api/v1/community/posts — F20 Community Requests Board.
 //
 // GET  → paginated list of approved posts (search via ?q, page via ?page)
-// POST → create a new post (status=pending; enforces 1-active-post limit)
+// POST → create a new post (status=pending; enforces the active-post cap
+//        at MAX_ACTIVE_POSTS_PER_USER — see @aira/validators/community)
 
 import {
   createCommunityPostOp,

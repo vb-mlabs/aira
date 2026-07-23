@@ -5,8 +5,8 @@ import "server-only"
 // Read endpoints (list, getById) require an authed user — they sit behind
 // the (app) auth shell on web and the bearer flow on mobile. Mutations and
 // listInterests use the same "user" permission; the per-operation
-// authorisation (1-active-post limit, self-interest block, author-only
-// respondents) lives inside @aira/services/community.
+// authorisation (MAX_ACTIVE_POSTS_PER_USER cap, self-interest block,
+// author-only respondents) lives inside @aira/services/community.
 
 import { community as communityService } from "@aira/services"
 import { sendNotificationEmail, buildAppLinkUrl } from "@/lib/email"
@@ -25,6 +25,8 @@ import {
   EditMyPostInputSchema,
   EditPostInputSchema,
   EditPostOutputSchema,
+  MyPostLimitsInputSchema,
+  MyPostLimitsOutputSchema,
   MyPostsListInputSchema,
   MyPostsListOutputSchema,
   GetPostInputSchema,
@@ -219,6 +221,19 @@ export const listMyCommunityPostsOp = defineOperation({
   output: MyPostsListOutputSchema,
   permission: "user",
   handler: async (db, ctx) => communityService.listMyPosts(db, ctx),
+})
+
+/** Caller's active-post count vs. the per-user cap. Cheap enough for
+ *  both the web board's RSC fetch and the mobile board's on-mount
+ *  TanStack Query — one indexed COUNT(*) via community_post_user_idx.
+ *  Consumers use `remaining === 0` to render the cap-reached CTA
+ *  state before the user opens the composer. */
+export const getMyCommunityPostLimitsOp = defineOperation({
+  name: "community.getMyPostLimits",
+  input: MyPostLimitsInputSchema,
+  output: MyPostLimitsOutputSchema,
+  permission: "user",
+  handler: async (db, ctx) => communityService.getMyPostLimits(db, ctx),
 })
 
 export const editMyCommunityPostOp = defineOperation({
