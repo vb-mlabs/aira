@@ -8,12 +8,17 @@
 // Shares the four field rows with PostEditForm via <PostFields>.
 
 import { useState, useTransition } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@base-ui/react/dialog"
 import { Plus, X } from "lucide-react"
 import { ApiError } from "@aira/api"
 import { brand } from "@aira/config"
 import { Button } from "@aira/ui-web/button"
+import {
+  MAX_ACTIVE_POSTS_PER_USER,
+  POST_CAP_REACHED_CAPTION,
+} from "@aira/validators/community"
 import { apiClient } from "@/lib/api-client"
 import type { PostRow } from "../types"
 import { PostFields } from "./post-fields"
@@ -21,10 +26,17 @@ import { PostFields } from "./post-fields"
 interface PostCreateFormProps {
   /** Optional trigger label; defaults to "Post on <brand>". */
   triggerLabel?: string
+  /** Server-fetched cap remainder — see /api/v1/community/posts/limits.
+   *  When 0, the Dialog trigger is replaced by a disabled affordance +
+   *  a link to /account/posts so the user can delete a post to free a
+   *  slot. Undefined = old callers (kept for safety); treat as
+   *  "unknown, allow" so the reactive 409 path still works. */
+  remaining?: number
 }
 
 export function PostCreateForm({
   triggerLabel = `Post on ${brand.name}`,
+  remaining,
 }: PostCreateFormProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -76,6 +88,33 @@ export function PostCreateForm({
     })
   }
 
+  const capReached = remaining === 0
+
+  if (capReached) {
+    return (
+      <div className="flex flex-col items-center gap-2 text-center">
+        <Button
+          type="button"
+          size="lg"
+          disabled
+          className="rounded-full bg-muted text-muted-foreground shadow-none"
+        >
+          <Plus aria-hidden />
+          {triggerLabel}
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          {POST_CAP_REACHED_CAPTION}{" "}
+          <Link
+            href="/account/posts"
+            className="font-medium text-primary hover:underline"
+          >
+            Manage my posts
+          </Link>
+        </p>
+      </div>
+    )
+  }
+
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
@@ -101,7 +140,8 @@ export function PostCreateForm({
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
                 Share something with the community — an offer, a request,
                 an item, anything. A moderator will review before it goes
-                live. You can only have one active post at a time.
+                live. You can have up to {MAX_ACTIVE_POSTS_PER_USER} active
+                posts at a time.
               </Dialog.Description>
             </div>
             <Dialog.Close
