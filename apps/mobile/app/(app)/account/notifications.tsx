@@ -2,6 +2,7 @@ import * as React from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { useToast } from "../../../components/ui/Toast";
@@ -147,13 +148,22 @@ export default function NotificationsScreen() {
                 justifyContent: "center",
               }}
             >
-              <Text className="text-sm text-foreground">Mark all read</Text>
+              {/* Double-check glyph — the WhatsApp/Gmail "everything read"
+                  convention. Fits the 44pt icon slot and stays consistent
+                  with post/index's plus icon in the same TopBar right
+                  slot. Text-based "Mark all read" clipped to two lines
+                  inside the slot; users flagged the truncation. */}
+              <MaterialCommunityIcons
+                name="check-all"
+                size={22}
+                color="#3D2814"
+              />
             </Pressable>
           ) : null
         }
       />
       {isLoading ? (
-        <View className="px-4 pt-4" style={{ gap: 12 }}>
+        <View className="px-5 pt-4" style={{ gap: 12 }}>
           <Skeleton height={60} />
           <Skeleton height={60} />
           <Skeleton height={60} />
@@ -174,7 +184,7 @@ export default function NotificationsScreen() {
           renderItem={({ item }) => {
             if (item.kind === "header") {
               return (
-                <Text className="ml-4 mt-4 text-xs uppercase tracking-wider text-mutedForeground">
+                <Text className="mt-5 mb-1 px-5 text-xs uppercase tracking-wider text-mutedForeground">
                   {item.label}
                 </Text>
               );
@@ -219,9 +229,8 @@ export default function NotificationsScreen() {
                   accessibilityRole="link"
                   accessibilityLabel={renderPreview(n.body)}
                   onPress={() => router.push(href as never)}
-                  className="flex-row items-center border-b border-border px-4"
+                  className="flex-row items-center border-b border-border px-5 py-4"
                   style={({ pressed }) => ({
-                    minHeight: 60,
                     opacity: pressed ? 0.6 : 1,
                   })}
                 >
@@ -230,10 +239,7 @@ export default function NotificationsScreen() {
               );
             }
             return (
-              <View
-                className="flex-row items-center border-b border-border px-4"
-                style={{ minHeight: 60 }}
-              >
+              <View className="flex-row items-center border-b border-border px-5 py-4">
                 {rowChildren}
               </View>
             );
