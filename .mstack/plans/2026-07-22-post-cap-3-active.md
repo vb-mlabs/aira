@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22
 **Slug:** 2026-07-22-post-cap-3-active
-**Status:** reviewed
+**Status:** implemented
 **Author:** /mstack-plan (with vinod@millionlabs.co.uk)
 
 ---

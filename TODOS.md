@@ -102,3 +102,4 @@ Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + d
 - [ ] Notify user (push + email) when a post expires so they can post again — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
 - [ ] Analytics events for cap-reached / cap-exceeded submit attempts — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
 - [ ] Promote MAX_ACTIVE_POSTS_PER_USER from constant to app_setting row (mirrors posts_expiry_days precedent) if the number ever needs runtime tuning — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
+- [ ] /mstack-qa the community cap-reached UX on both surfaces — server-side boundary is unit-tested (7/7) but the client CTA gate + invalidation flip needs manual/scripted repro with a seeded 3-post user. — *code 2026-07-22-post-cap-3-active, 2026-07-24*
