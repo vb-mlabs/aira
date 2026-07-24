@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Pressable } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { goBackTo } from "../../lib/nav/goBackTo";
 
 // Cream-header foreground tint used across the app's Stack headers.
 // Mirrors HamburgerButton so the left slot reads consistently whether
@@ -58,15 +59,11 @@ export function BackButton({ onPress }: BackButtonProps) {
       onPress();
       return;
     }
-    if (from) {
-      router.dismissTo(from as never);
-      return;
-    }
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace("/(app)" as never);
+    // Delegate to the shared helper — tab-root origins (Home "/",
+    // Categories/Post/Account) cross tabs via router.replace; nested
+    // origins pop within the current tab's stack via dismissTo. See
+    // lib/nav/goBackTo.ts.
+    goBackTo(from);
   }, [onPress, from]);
 
   return (

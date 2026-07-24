@@ -1,9 +1,6 @@
 import * as React from "react";
-import {
-  router,
-  useLocalSearchParams,
-  useNavigation,
-} from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { goBackTo } from "./goBackTo";
 
 /**
  * Install a `beforeRemove` listener that intercepts back navigation on
@@ -56,7 +53,10 @@ export function useOriginAwareBack(): void {
       }
       e.preventDefault();
       intercepted = true;
-      router.dismissTo(from as never);
+      // Route through the same helper as BackButton so tab-root
+      // origins cross tabs via router.replace instead of failing
+      // silently through dismissTo.
+      goBackTo(from);
     });
     return unsub;
   }, [navigation, from]);

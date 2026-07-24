@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { AboutCard } from "../../../../features/listings/components/AboutCard";
@@ -14,6 +14,7 @@ import { useFavoriteIds } from "../../../../features/favorites/hooks";
 import { useBusinessDetail } from "../../../../features/listings/hooks";
 import { BackButton } from "../../../../components/nav/BackButton";
 import { TopBar } from "../../../../components/nav/TopBar";
+import { goBackTo } from "../../../../lib/nav/goBackTo";
 import { useOriginAwareBack } from "../../../../lib/nav/useOriginAwareBack";
 
 // Hex matches the secondaryForeground token (#301d0d) so the
@@ -46,22 +47,12 @@ export default function BusinessDetailScreen() {
   // routing as the tap-based back buttons below.
   useOriginAwareBack();
 
-  // Prefer router.dismissTo(from): pops back to `from` if it's in the
-  // current stack (preserving state), or falls forward to `from` as
-  // a fresh screen if not (deep-link entry). dismissTo stays within
-  // the current tab and is scoped to the current stack, so it
-  // sidesteps the cross-tab back-history hazards that broke previous
-  // approaches. Matches components/nav/BackButton.tsx.
+  // Shared with BackButton via goBackTo — tab-root origins (e.g. Home
+  // "/" when the user tapped a business card from Home) cross tabs via
+  // router.replace; nested origins pop within the current tab's stack.
+  // See lib/nav/goBackTo.ts.
   const goBack = React.useCallback(() => {
-    if (from) {
-      router.dismissTo(from as never);
-      return;
-    }
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-    router.replace("/(app)" as never);
+    goBackTo(from);
   }, [from]);
 
   const business = detail.data?.business ?? null;
