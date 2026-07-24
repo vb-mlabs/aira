@@ -136,15 +136,31 @@ export const design = {
     },
   },
 
+  // Type scale — Option A shift, 2026-07-24. Each token took the next
+  // step up from the previous scale to make body copy read larger
+  // across web + mobile in one knob; `4xl` gets a fresh top slot
+  // (previous ceiling was 36 / 2.25rem). Size/line pairs preserved so
+  // display type still tightens (large leading loosens with size in
+  // reverse, keeping headings visually settled).
+  //
+  // Both surfaces read this: web via packages/config's tailwind
+  // preset, mobile via scripts/gen-mobile-tailwind.ts which regens
+  // apps/mobile/tailwind.config.js. Bump values here, then always
+  // `pnpm gen:mobile-tw` — the pre-commit `gen:mobile-tw:check`
+  // hook will fail otherwise.
+  //
+  // DESIGN.md a11y floor: body/UI ≥ 14, decorative micro-labels ≥ 12.
+  // New `xs` = 14px lifts the decorative floor above the old body
+  // floor, so this shift also cleans up any lingering sub-14 UI copy.
   type: {
-    xs:    { size: "0.75rem",  line: "1rem"     },
-    sm:    { size: "0.875rem", line: "1.25rem"  },
-    base:  { size: "1rem",     line: "1.5rem"   },
-    lg:    { size: "1.125rem", line: "1.75rem"  },
-    xl:    { size: "1.25rem",  line: "1.75rem"  },
-    "2xl": { size: "1.5rem",   line: "2rem"     },
-    "3xl": { size: "1.875rem", line: "2.25rem"  },
-    "4xl": { size: "2.25rem",  line: "2.5rem"   },
+    xs:    { size: "0.875rem", line: "1.25rem"  },   // 14 / 20
+    sm:    { size: "1rem",     line: "1.5rem"   },   // 16 / 24
+    base:  { size: "1.125rem", line: "1.75rem"  },   // 18 / 28
+    lg:    { size: "1.25rem",  line: "1.75rem"  },   // 20 / 28
+    xl:    { size: "1.5rem",   line: "2rem"     },   // 24 / 32
+    "2xl": { size: "1.875rem", line: "2.25rem"  },   // 30 / 36
+    "3xl": { size: "2.25rem",  line: "2.5rem"   },   // 36 / 40
+    "4xl": { size: "2.5rem",   line: "2.75rem"  },   // 40 / 44 (new top)
   },
 
   fonts: {
