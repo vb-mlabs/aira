@@ -1,6 +1,10 @@
 import * as React from "react";
 import { Linking, Pressable, View } from "react-native";
 import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  formatUSPhoneTel,
+  formatWhatsappDigits,
+} from "../../../lib/format-phone";
 
 interface SocialIconsProps {
   facebook_url?: string | null;
@@ -60,12 +64,17 @@ export function SocialIcons({
   website,
   compact = true,
 }: SocialIconsProps) {
+  // wa.me REQUIRES the country code (bare 10 digits routes to Romania,
+  // country code 4) — formatWhatsappDigits guarantees "1XXXXXXXXXX"
+  // for stored 10-digit US values. tel: uses full E.164 for
+  // unambiguous dialer routing across iOS + Android.
   const waHref = whatsapp_number
-    ? `https://wa.me/${whatsapp_number.replace(/\D/g, "")}`
+    ? `https://wa.me/${formatWhatsappDigits(whatsapp_number)}`
     : null;
+  const telHref = phone ? `tel:${formatUSPhoneTel(phone)}` : null;
 
-  const tel = phone ? (
-    <IconButton key="tel" bg="#16A34A" label="Call" href={`tel:${phone}`}>
+  const tel = telHref ? (
+    <IconButton key="tel" bg="#16A34A" label="Call" href={telHref}>
       <MaterialCommunityIcons
         name="phone"
         size={ICON_SIZE}

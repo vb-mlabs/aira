@@ -2,6 +2,11 @@ import * as React from "react";
 import { Linking, Platform, Pressable, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { Business } from "@aira/validators";
+import {
+  formatUSPhoneTel,
+  formatUSPhoneWithCode,
+  formatWhatsappDigits,
+} from "../../../lib/format-phone";
 
 interface ContactCardProps {
   business: Business;
@@ -99,31 +104,35 @@ export function ContactCard({ business }: ContactCardProps) {
   const rows: { key: string; node: React.ReactNode }[] = [];
 
   if (business.phone) {
+    const phoneRaw = business.phone;
     rows.push({
       key: "phone",
       node: (
         <Row
           icon="phone"
           label="Call"
-          value={business.phone}
+          value={formatUSPhoneWithCode(phoneRaw)}
           onPress={() => {
-            void Linking.openURL(`tel:${business.phone}`);
+            void Linking.openURL(`tel:${formatUSPhoneTel(phoneRaw)}`);
           }}
         />
       ),
     });
   }
   if (business.whatsapp_number) {
-    const digits = business.whatsapp_number.replace(/\D/g, "");
+    const waRaw = business.whatsapp_number;
     rows.push({
       key: "whatsapp",
       node: (
         <Row
           icon="whatsapp"
           label="WhatsApp"
-          value={business.whatsapp_number}
+          value={formatUSPhoneWithCode(waRaw)}
           onPress={() => {
-            void Linking.openURL(`https://wa.me/${digits}`);
+            // wa.me REQUIRES the country code — bare 10 digits routes
+            // to Romania (country code 4). formatWhatsappDigits always
+            // returns "1XXXXXXXXXX" when the stored value has 10+ digits.
+            void Linking.openURL(`https://wa.me/${formatWhatsappDigits(waRaw)}`);
           }}
         />
       ),
