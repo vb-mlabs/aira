@@ -1,9 +1,8 @@
 import * as React from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Button } from "../../../../components/ui/Button";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { AboutCard } from "../../../../features/listings/components/AboutCard";
 import { AiraReviewCard } from "../../../../features/listings/components/AiraReviewCard";
@@ -128,20 +127,31 @@ export default function BusinessDetailScreen() {
             (NOT fullWidth) so it reads as a control, not a CTA.
             Additive to the Stack header chevron + iOS swipe-back /
             Android system back — exists for users who scrolled the
-            full page and don't think to reach for the chevron. */}
+            full page and don't think to reach for the chevron.
+            Rendered as a plain Pressable rather than the shared
+            <Button> primitive: Button wraps its children in a <Text>
+            and nesting <MaterialCommunityIcons /> inside that Text
+            (icon-in-Text) swallowed the tap so onPress never fired.
+            The top BackButton works precisely because it's a
+            Pressable with the icon as a direct child, no Text
+            wrapper — mirror that shape here. */}
         <View className="mt-8 items-center">
-          <Button
-            variant="secondary"
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Go back to previous screen"
             onPress={goBack}
+            className="h-12 flex-row items-center justify-center rounded-lg border border-border bg-secondary px-4"
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
             <MaterialCommunityIcons
               name="arrow-left"
               size={16}
               color={SECONDARY_FG_HEX}
             />
-            {"  Go back"}
-          </Button>
+            <Text className="ml-2 text-base font-medium text-secondaryForeground">
+              Go back
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
