@@ -393,10 +393,14 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
                   <Text
                     style={{
                       color: TINT_LIGHT,
-                      // type.xs (14) — was 12; sub-category rows sit
-                      // one step below the parent row (16 → 14) to
-                      // preserve the visual hierarchy.
-                      fontSize: 14,
+                      // type.sm (16) — matches DrawerRow and
+                      // CategoryGroup root labels so every drawer
+                      // item reads at one consistent size. The
+                      // expanded/active bg tint + the leading bullet
+                      // already separate sub-rows from their parent
+                      // visually, so an extra size delta wasn't
+                      // pulling weight.
+                      fontSize: 16,
                       flex: 1,
                       fontWeight: childActive ? "700" : "400",
                     }}
