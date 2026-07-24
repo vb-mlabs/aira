@@ -13,6 +13,7 @@ import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
 import { PhoneInput } from "./phone-input"
+import { UrlInput } from "./url-input"
 import { fromWhatsappE164, toWhatsappE164 } from "../lib/whatsapp"
 import { formatUSPhoneWithCode } from "@/lib/format-phone"
 import type { Business } from "@/features/listings"
@@ -1285,10 +1286,10 @@ function ContactDetailsEditModal({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="b-website">Website</Label>
-              <Input
+              <UrlInput
                 id="b-website"
                 value={website}
-                onChange={(e) => setWebsite(e.target.value)}
+                onChange={setWebsite}
                 placeholder="https://example.com"
               />
             </div>
@@ -1303,19 +1304,19 @@ function ContactDetailsEditModal({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="b-facebook">Facebook URL</Label>
-              <Input
+              <UrlInput
                 id="b-facebook"
                 value={facebook}
-                onChange={(e) => setFacebook(e.target.value)}
+                onChange={setFacebook}
                 placeholder="https://facebook.com/yourbusiness"
               />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="b-instagram">Instagram URL</Label>
-              <Input
+              <UrlInput
                 id="b-instagram"
                 value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
+                onChange={setInstagram}
                 placeholder="https://instagram.com/yourbusiness"
               />
             </div>
