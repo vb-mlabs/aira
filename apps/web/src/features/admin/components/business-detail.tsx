@@ -1280,7 +1280,7 @@ function ContactDetailsEditModal({
                 id="b-phone"
                 value={phone}
                 onChange={setPhone}
-                placeholder="98765 43210"
+                placeholder="404-555-1234"
               />
             </div>
             <div className="space-y-1.5">
@@ -1325,7 +1325,7 @@ function ContactDetailsEditModal({
                 id="b-whatsapp"
                 value={whatsapp}
                 onChange={setWhatsapp}
-                placeholder="+91 98765 43210"
+                placeholder="404-555-1234"
               />
             </div>
 

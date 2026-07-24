@@ -29,6 +29,8 @@
 import { Input } from "@aira/ui-web/input"
 import { formatUSPhone } from "@/lib/format-phone"
 
+const MAX_DIGITS = 10
+
 interface PhoneInputProps {
   id?: string
   value: string
@@ -67,6 +69,26 @@ export function PhoneInput({
     const el = e.target
     const rawValue = el.value
     const rawCaret = el.selectionStart ?? rawValue.length
+    const rawDigitCount = rawValue.replace(/\D/g, "").length
+    const currentDigitCount = displayValue.replace(/\D/g, "").length
+
+    // Cap enforcement: if the field already has 10 digits and the user
+    // tried to add more, reject the input entirely. Without this, the
+    // formatter's tail-slice (needed for normalizing legacy DB rows
+    // like "+91 …") would silently drop the leading digit — so typing
+    // "1" after "385-489-9966" would produce "854-899-9661" and the
+    // "3" would appear to vanish. React won't re-render when we pass
+    // the same value, so we sync the DOM manually to undo the keypress.
+    if (
+      currentDigitCount >= MAX_DIGITS &&
+      rawDigitCount > currentDigitCount
+    ) {
+      el.value = displayValue
+      const restorePos = Math.max(0, rawCaret - (rawValue.length - displayValue.length))
+      el.setSelectionRange(restorePos, restorePos)
+      return
+    }
+
     // How many digits precede the caret in what the user just typed?
     // This is what we anchor to across the reformat.
     const digitsBeforeCaret = rawValue.slice(0, rawCaret).replace(/\D/g, "")
