@@ -120,12 +120,13 @@ export function BusinessCard({
               className="mt-0.5 flex-row items-center"
               style={{ gap: 8 }}
             >
-              {/* Category + AIRA Stars sized at 12 and non-bold (was
-                  14 regular + 14 semibold from the Option A scale) so
-                  the row fits alongside the actions column's sponsored
-                  chip on tighter cards. text-xs class would put both
-                  back at 14; explicit fontSize keeps them below the
-                  scale bump without needing a mobile-only token. */}
+              {/* Category + AIRA Stars sized at 12 so the row fits
+                  alongside the actions column's sponsored chip on
+                  tighter cards. AIRA Stars keeps its semibold weight
+                  as a deliberate emphasis; category stays regular.
+                  text-xs class would put both back at 14 after the
+                  Option A scale bump — explicit fontSize keeps them
+                  below the scale without a mobile-only token. */}
               {showCategory ? (
                 <Text
                   className="text-mutedForeground"
@@ -138,7 +139,7 @@ export function BusinessCard({
               {business.rating !== null && business.rating > 0 ? (
                 <View className="flex-row items-center" style={{ gap: 6 }}>
                   <Text
-                    className="text-mutedForeground"
+                    className="font-semibold text-mutedForeground"
                     style={{ fontSize: 12 }}
                   >
                     {brand.name} Stars
