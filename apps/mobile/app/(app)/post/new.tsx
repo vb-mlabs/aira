@@ -244,8 +244,10 @@ export default function PostComposerScreen() {
           </Button>
 
           <Text className="text-center text-xs text-mutedForeground">
-            Your post will be reviewed before it appears on the board. You
-            can have up to {MAX_ACTIVE_POSTS_PER_USER} active posts at a time.
+            Share something with the community — an offer, a request, an
+            item, anything. A moderator will review before it goes live.
+            You can only have {MAX_ACTIVE_POSTS_PER_USER} active posts at a
+            time.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

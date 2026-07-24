@@ -140,7 +140,7 @@ export function PostCreateForm({
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
                 Share something with the community — an offer, a request,
                 an item, anything. A moderator will review before it goes
-                live. You can have up to {MAX_ACTIVE_POSTS_PER_USER} active
+                live. You can only have {MAX_ACTIVE_POSTS_PER_USER} active
                 posts at a time.
               </Dialog.Description>
             </div>

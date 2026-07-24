@@ -144,7 +144,9 @@ export default function PostBoardScreen() {
                   No posts yet — be the first to ask.
                 </Text>
                 <Text className="mt-2 text-center text-sm text-mutedForeground">
-                  Share what you need; your neighbors will help.
+                  Post a request for something you need — services,
+                  recommendations, items, or local help. A moderator will
+                  review before it goes live.
                 </Text>
                 <Pressable
                   accessibilityRole="button"

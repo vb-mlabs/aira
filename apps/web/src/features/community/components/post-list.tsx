@@ -108,7 +108,7 @@ export function PostList({ initial, currentUserId }: PostListProps) {
           description={
             activeQuery
               ? "Try a shorter keyword or clear the search."
-              : `Tap “Post on ${brand.name}” above to share a post — a moderator will review it before it goes live.`
+              : "Post a request for something you need — services, recommendations, items, or local help. A moderator will review before it goes live."
           }
         />
       ) : (
