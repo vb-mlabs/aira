@@ -114,41 +114,34 @@ export function BusinessCard({
               </Text>
             ) : null}
           </Text>
-          {(showCategory ||
-            (business.rating !== null && business.rating > 0)) && (
+          {/* Category and AIRA Stars stack on separate lines. The
+              earlier single-row layout collided with the actions
+              column's Sponsored chip and clipped the rating pill on
+              sponsored cards. fontSize 12 kept from the earlier
+              reduction; AIRA Stars keeps its semibold emphasis. */}
+          {showCategory ? (
+            <Text
+              className="mt-0.5 text-mutedForeground"
+              style={{ fontSize: 12 }}
+              numberOfLines={1}
+            >
+              {category.displayName}
+            </Text>
+          ) : null}
+          {business.rating !== null && business.rating > 0 ? (
             <View
               className="mt-0.5 flex-row items-center"
-              style={{ gap: 8 }}
+              style={{ gap: 6 }}
             >
-              {/* Category + AIRA Stars sized at 12 so the row fits
-                  alongside the actions column's sponsored chip on
-                  tighter cards. AIRA Stars keeps its semibold weight
-                  as a deliberate emphasis; category stays regular.
-                  text-xs class would put both back at 14 after the
-                  Option A scale bump — explicit fontSize keeps them
-                  below the scale without a mobile-only token. */}
-              {showCategory ? (
-                <Text
-                  className="text-mutedForeground"
-                  style={{ fontSize: 12 }}
-                  numberOfLines={1}
-                >
-                  {category.displayName}
-                </Text>
-              ) : null}
-              {business.rating !== null && business.rating > 0 ? (
-                <View className="flex-row items-center" style={{ gap: 6 }}>
-                  <Text
-                    className="font-semibold text-mutedForeground"
-                    style={{ fontSize: 12 }}
-                  >
-                    {brand.name} Stars
-                  </Text>
-                  <RatingPill rating={business.rating} showValue={false} />
-                </View>
-              ) : null}
+              <Text
+                className="font-semibold text-mutedForeground"
+                style={{ fontSize: 12 }}
+              >
+                {brand.name} Stars
+              </Text>
+              <RatingPill rating={business.rating} showValue={false} />
             </View>
-          )}
+          ) : null}
           <View className="mt-2">
             <SocialIcons
               facebook_url={business.facebook_url}
