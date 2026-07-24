@@ -16,6 +16,7 @@ import {
 } from "@aira/validators/businesses"
 import { PlacesAddressInput } from "./places-address-input"
 import { PhoneInput } from "./phone-input"
+import { toWhatsappE164 } from "../lib/whatsapp"
 
 function slugify(name: string): string {
   return name
@@ -108,9 +109,12 @@ export function BusinessCreateForm({
             instagram_url: instagramUrl.trim() || null,
             facebook_url: facebookUrl.trim() || null,
             website: website.trim() || null,
-            // Strip non-digits so the WhatsApp wa.me/<digits> link works
-            // on day-one. Matches the edit modal's save path.
-            whatsapp_number: whatsappNumber.replace(/\D/g, "") || null,
+            // WhatsApp: strip non-digits and prepend the US country code
+            // (+1) so wa.me/<digits> resolves to the right country. The
+            // admin sees "404-555-1234" in the field; the DB stores
+            // "14045551234". Null passthrough when empty. Matches
+            // business-detail.tsx's edit-modal save path.
+            whatsapp_number: toWhatsappE164(whatsappNumber),
           },
         )
         router.push(`/admin/businesses/${result.business.id}`)

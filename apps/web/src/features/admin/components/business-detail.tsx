@@ -13,6 +13,7 @@ import { Label } from "@aira/ui-web/label"
 import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
 import { PhoneInput } from "./phone-input"
+import { fromWhatsappE164, toWhatsappE164 } from "../lib/whatsapp"
 import type { Business } from "@/features/listings"
 import type { BusinessAdmin } from "@aira/validators/businesses"
 import { RatingPill } from "@/features/listings/components/rating-pill"
@@ -1213,7 +1214,11 @@ function ContactDetailsEditModal({
   const [hours, setHours] = useState(business.hours ?? "")
   const [facebook, setFacebook] = useState(business.facebook_url ?? "")
   const [instagram, setInstagram] = useState(business.instagram_url ?? "")
-  const [whatsapp, setWhatsapp] = useState(business.whatsapp_number ?? "")
+  // Seed with the 10-digit US portion — DB stores "14045551234", the
+  // input shows "404-555-1234". See lib/whatsapp.ts for the E.164 wrap.
+  const [whatsapp, setWhatsapp] = useState(
+    fromWhatsappE164(business.whatsapp_number),
+  )
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -1226,7 +1231,7 @@ function ContactDetailsEditModal({
         hours: hours.trim() || null,
         facebook_url: facebook.trim() || null,
         instagram_url: instagram.trim() || null,
-        whatsapp_number: whatsapp.replace(/\D/g, "") || null,
+        whatsapp_number: toWhatsappE164(whatsapp),
       })
       if (result?.kind === "error") {
         setError(result.message)

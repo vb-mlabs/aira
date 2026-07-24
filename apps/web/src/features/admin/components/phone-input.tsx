@@ -1,62 +1,29 @@
 "use client"
 
-// Phone input with live per-country formatting via libphonenumber-js's
-// AsYouType. Strips any non-digit / non-'+' character on the way in
-// (so alphabets can't sneak into the DB) and re-formats the whole value
-// after every keystroke, matching whichever country the number belongs
-// to (detected from the leading + or defaultCountry).
+// Strict US phone input — numeric only, capped at 10 digits, live-formatted
+// as XXX-XXX-XXXX. Any non-digit is stripped on the way in (alphabets,
+// leading `+`, parentheses, spaces) so the DB never sees garbage. The
+// display value is always re-derived from `value` via the same formatter,
+// so:
+//   - Pre-existing DB rows (raw digits, half-formatted strings, older
+//     international entries) get normalized on mount, not just on typing.
+//   - Formatting is idempotent — feeding an already-formatted string back
+//     yields the same string, so React's controlled-input contract stays
+//     stable.
 //
-// The DISPLAY value is always re-derived from `value` via the same
-// formatter, so:
-//   - Pre-existing DB data (raw digits or half-formatted strings) gets
-//     reformatted on mount, not just on user input.
-//   - Formatting is idempotent — feeding an already-formatted string
-//     back through the formatter yields the same string, so React's
-//     controlled-input contract stays stable.
-//
-// Storage contract: the parent's `value` state is the FORMATTED string.
-// If the caller needs pure digits (e.g. WhatsApp's wa.me/<digits> URL),
-// strip non-digits at submit time.
+// Storage contract: the parent's `value` state is the formatted string
+// ("404-555-1234"). Callers that need pure digits (e.g. WhatsApp's
+// wa.me/<digits> URL, which requires the +1 country code) strip
+// non-digits at submit time — the caller decides whether to prepend "1".
 
-import { AsYouType, type CountryCode } from "libphonenumber-js"
 import { Input } from "@aira/ui-web/input"
+import { formatUSPhone } from "@/lib/format-phone"
 
 interface PhoneInputProps {
   id?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  /**
-   * ISO-3166 country code used when the user hasn't typed a leading `+`.
-   * The app's brand context is Indian so "IN" is the sensible default;
-   * override at the call site if a specific form needs otherwise.
-   */
-  defaultCountry?: CountryCode
-}
-
-/**
- * 12-digit cap sized to the two countries this admin actually serves:
- * US (+1 + 10-digit subscriber = 11) and India (+91 + 10-digit
- * subscriber = 12). E.164's absolute max is 15 but the extra headroom
- * is only used by outlier German / Chinese landlines with extensions
- * — irrelevant here, and letting the field accept longer numbers just
- * hides typo entries that would never be dialable anyway.
- */
-const MAX_DIGITS = 12
-
-function formatPhone(raw: string, country: CountryCode): string {
-  // Keep only digits and a leading + (the format detector uses the +
-  // to switch to international mode). Anything else — alphabets, stray
-  // punctuation, brackets, spaces — is dropped.
-  const cleaned = raw.replace(/[^\d+]/g, "")
-  // A `+` only counts as a country-code prefix at position 0. Any
-  // interior + is noise.
-  const withPlus = cleaned.startsWith("+")
-  const digits = (withPlus ? cleaned.slice(1) : cleaned)
-    .replace(/\+/g, "")
-    .slice(0, MAX_DIGITS)
-  const normalized = withPlus ? "+" + digits : digits
-  return new AsYouType(country).input(normalized)
 }
 
 export function PhoneInput({
@@ -64,22 +31,23 @@ export function PhoneInput({
   value,
   onChange,
   placeholder,
-  defaultCountry = "IN",
 }: PhoneInputProps) {
-  // Derive the displayed value by feeding `value` through the same
-  // formatter used on input — idempotent, so already-formatted values
-  // pass through unchanged and stale DB values get reformatted on mount.
-  const displayValue = formatPhone(value, defaultCountry)
+  // Derive the displayed value from `value` on every render — idempotent,
+  // so already-formatted values pass through unchanged and stale DB
+  // values (legacy Indian entries, +1-prefixed numbers, raw digits) get
+  // reformatted on mount. formatUSPhone lives in @/lib/format-phone so
+  // the storefront's read-side display uses the exact same rule.
+  const displayValue = formatUSPhone(value)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    onChange(formatPhone(e.target.value, defaultCountry))
+    onChange(formatUSPhone(e.target.value))
   }
 
   return (
     <Input
       id={id}
       type="tel"
-      inputMode="tel"
+      inputMode="numeric"
       autoComplete="tel"
       value={displayValue}
       onChange={handleChange}
