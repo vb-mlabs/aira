@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { brand } from "@aira/config";
 import { TopBar } from "../../../../components/nav/TopBar";
 import { BackButton } from "../../../../components/nav/BackButton";
@@ -19,10 +19,11 @@ import type { NotificationRow } from "../../../../features/notifications/api";
 // filter refused the target ID, and users saw a dead end rather than
 // the notification they were trying to inspect.
 //
-// The "View Post" CTA opens the post detail modal (`/post/[id]`) on
-// top of this one. If that fetch also fails, the user still has this
-// screen behind it and swiping down returns to their notifications
-// list rather than /post's empty state.
+// This is a read-only view: no CTA button. The notification says
+// what happened + who did it + when; if the user wants to see the
+// post itself they navigate there manually. Keeps the sheet quick
+// to scan and removes the "View Post" round-trip that could also
+// dead-end on the same visibility filter.
 
 type Body = NotificationRow["body"];
 
@@ -90,37 +91,6 @@ function subjectLine(body: Body): string | null {
   }
 }
 
-/** Where the CTA should go (or null when there's no downstream to
- *  navigate to — currently only `message`, since mobile has no
- *  messaging surface yet). */
-function ctaRoute(body: Body): string | null {
-  switch (body.kind) {
-    case "post_comment":
-    case "post_interest":
-      return `/post/${body.post_id}`;
-    case "business_broadcast":
-      return "/account/listings";
-    case "generic":
-      return body.href && body.href.startsWith("/") ? body.href : null;
-    case "message":
-      return null;
-  }
-}
-
-function ctaLabel(body: Body): string {
-  switch (body.kind) {
-    case "post_comment":
-    case "post_interest":
-      return "View Post";
-    case "business_broadcast":
-      return "View Listings";
-    case "generic":
-      return "Open";
-    case "message":
-      return "";
-  }
-}
-
 export default function NotificationDetailScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const id = typeof params.id === "string" ? params.id : undefined;
@@ -151,7 +121,6 @@ export default function NotificationDetailScreen() {
   }
 
   const body = notification.body;
-  const route = ctaRoute(body);
   const excerpt = contextExcerpt(body);
   const subject = subjectLine(body);
 
@@ -195,20 +164,6 @@ export default function NotificationDetailScreen() {
             </Text>
           </View>
         ) : null}
-
-        {/* CTA */}
-        {route && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ctaLabel(body)}
-            onPress={() => router.push(route as never)}
-            className="mt-6 self-start rounded-xl bg-primary px-5 py-3"
-          >
-            <Text className="text-sm font-semibold text-primaryForeground">
-              {ctaLabel(body)} →
-            </Text>
-          </Pressable>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
