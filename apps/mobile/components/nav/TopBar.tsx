@@ -72,10 +72,16 @@ export function TopBar({ title, left, right }: TopBarProps) {
         >
           {left}
         </View>
+        {/* Right slot uses minWidth so text actions ("Read all", "Save",
+            etc.) can grow past the 44pt icon-sized tap target; the
+            title's absolute bounds still start at SLOT_WIDTH so it stays
+            centered within the safe zone even when the right slot
+            expands to fit its content. */}
         <View
           style={{
-            width: SLOT_WIDTH,
+            minWidth: SLOT_WIDTH,
             height: CONTENT_HEIGHT,
+            paddingHorizontal: 12,
             alignItems: "center",
             justifyContent: "center",
           }}

@@ -91,7 +91,11 @@ export default function AppLayout() {
           headerShown: true,
           headerStyle: { backgroundColor: "#EAE0CB" },
           headerTintColor: "#3D2814",
-          headerTitleStyle: { fontWeight: "600" },
+          // fontSize matches the JS-rendered TopBar title (20 = design
+          // type.lg). Without this the bottom-tabs default (~17) reads
+          // smaller than the TopBar on every other screen, so Home
+          // looked out of scale after the Option A bump.
+          headerTitleStyle: { fontWeight: "600", fontSize: 20 },
           tabBarShowLabel: true,
           // Aligned with design.ts type.xs (0.875rem = 14px) after
           // Option A. Was 12; hardcoded so it didn't inherit the bump.
