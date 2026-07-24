@@ -101,14 +101,18 @@ export function AppDrawerContent() {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
             className="font-display"
-            style={{ color: TINT_LIGHT, fontSize: 24, lineHeight: 26 }}
+            // design.ts type.2xl (30/36) — bumped from 24/26 with the
+            // Option A shift so the drawer wordmark scales with the app.
+            style={{ color: TINT_LIGHT, fontSize: 30, lineHeight: 34 }}
           >
             {brand.name}
           </Text>
           <Text
             style={{
               color: TINT_LIGHT_MUTED,
-              fontSize: 12,
+              // type.xs (14) — was 12; the tagline sits under the
+              // wordmark and had to move up in step to keep the ratio.
+              fontSize: 14,
               fontStyle: "italic",
               marginTop: 4,
             }}
@@ -187,7 +191,9 @@ export function AppDrawerContent() {
       >
         <Text
           className="font-display"
-          style={{ color: TINT_LIGHT, fontSize: 16, marginBottom: 12 }}
+          // type.base (18) — was 16; Contact Us section header sits at
+          // the same visual weight as other display-font mini-titles.
+          style={{ color: TINT_LIGHT, fontSize: 18, marginBottom: 12 }}
         >
           Contact Us
         </Text>
@@ -208,7 +214,8 @@ export function AppDrawerContent() {
         <Text
           style={{
             color: TINT_LIGHT_MUTED,
-            fontSize: 12,
+            // type.xs (14) — was 12; matches the tagline directly above.
+            fontSize: 14,
             letterSpacing: 0.5,
             textAlign: "center",
           }}
@@ -256,7 +263,8 @@ function DrawerRow({ icon, label, active, onPress }: DrawerRowProps) {
       <Text
         style={{
           color: TINT_LIGHT,
-          fontSize: 14,
+          // type.sm (16) — was 14; primary drawer row label.
+          fontSize: 16,
           flex: 1,
           fontWeight: active ? "700" : "400",
         }}
@@ -324,7 +332,8 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
         <Text
           style={{
             color: TINT_LIGHT,
-            fontSize: 14,
+            // type.sm (16) — matches DrawerRow label.
+            fontSize: 16,
             flex: 1,
             fontWeight: parentActive ? "700" : "400",
           }}
@@ -384,7 +393,10 @@ function CategoryGroup({ root, subs, pathname, from }: CategoryGroupProps) {
                   <Text
                     style={{
                       color: TINT_LIGHT,
-                      fontSize: 12,
+                      // type.xs (14) — was 12; sub-category rows sit
+                      // one step below the parent row (16 → 14) to
+                      // preserve the visual hierarchy.
+                      fontSize: 14,
                       flex: 1,
                       fontWeight: childActive ? "700" : "400",
                     }}

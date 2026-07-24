@@ -33,9 +33,11 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
   return (
     <Text
       style={{
-        fontSize: 22,
+        // Bumped one step with the Option A type-scale shift so tab
+        // glyphs stay visually proportional to the larger labels below.
+        fontSize: 24,
         opacity: focused ? 1 : 0.6,
-        lineHeight: 26,
+        lineHeight: 28,
       }}
     >
       {glyph}
@@ -91,7 +93,9 @@ export default function AppLayout() {
           headerTintColor: "#3D2814",
           headerTitleStyle: { fontWeight: "600" },
           tabBarShowLabel: true,
-          tabBarLabelStyle: { fontSize: 12 },
+          // Aligned with design.ts type.xs (0.875rem = 14px) after
+          // Option A. Was 12; hardcoded so it didn't inherit the bump.
+          tabBarLabelStyle: { fontSize: 14 },
           // Cream bg + dark-brown active tint mirror the Post/Listings
           // stack header chrome so the top and bottom edges read as one
           // continuous frame around the content. borderTopColor uses the

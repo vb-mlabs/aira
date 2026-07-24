@@ -103,7 +103,10 @@ export function TopBar({ title, left, right }: TopBarProps) {
           numberOfLines={1}
           style={{
             color: FG,
-            fontSize: 17,
+            // Aligned to design.ts type.lg (1.25rem = 20px) after the
+            // Option A scale shift. Was 17 (iOS UINavigationBar default);
+            // hardcoded values did not flow through the token bump.
+            fontSize: 20,
             fontWeight: "600",
           }}
         >
