@@ -1,6 +1,7 @@
 import * as React from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { brand } from "@aira/config";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { useToast } from "../../../components/ui/Toast";
@@ -12,6 +13,31 @@ import {
   useMarkAllRead,
 } from "../../../features/notifications/hooks";
 import type { NotificationRow } from "../../../features/notifications/api";
+
+/** Resolve a notification body to a mobile route, or null if there's
+ *  nowhere on the mobile app to go (e.g. `message` kind — mobile has
+ *  no messages surface — or a generic notification whose href is a
+ *  non-relative web URL). Mirrors the per-kind switch in
+ *  apps/web/src/features/notifications/components/notification-item.tsx's
+ *  renderBody, but rewritten for mobile routes: community posts live
+ *  at /post/<id>, business broadcasts land on /account/listings. */
+function hrefFor(body: NotificationRow["body"]): string | null {
+  switch (body.kind) {
+    case "post_interest":
+    case "post_comment":
+      return `/post/${body.post_id}`;
+    case "business_broadcast":
+      return "/account/listings";
+    case "generic":
+      // Only follow relative paths — an arbitrary https:// URL would
+      // need Linking.openURL and isn't guaranteed to resolve inside
+      // the app shell.
+      return body.href && body.href.startsWith("/") ? body.href : null;
+    case "message":
+      // No messaging surface on mobile yet.
+      return null;
+  }
+}
 
 /**
  * Moved from apps/mobile/app/(app)/notifications.tsx in P2c T2. The
@@ -121,7 +147,7 @@ export default function NotificationsScreen() {
                 justifyContent: "center",
               }}
             >
-              <Text className="text-sm text-foreground">Mark all</Text>
+              <Text className="text-sm text-foreground">Mark all read</Text>
             </Pressable>
           ) : null
         }
@@ -155,11 +181,9 @@ export default function NotificationsScreen() {
             }
             const n = item.notification!;
             const isRead = n.read_at !== null;
-            return (
-              <View
-                className="flex-row items-center border-b border-border px-4"
-                style={{ minHeight: 60 }}
-              >
+            const href = hrefFor(n.body);
+            const rowChildren = (
+              <>
                 <View
                   style={{
                     width: 8,
@@ -181,6 +205,36 @@ export default function NotificationsScreen() {
                     {renderPreview(n.body)}
                   </Text>
                 </View>
+              </>
+            );
+            // Rows for notification kinds with a target route (post
+            // interest/comment, business broadcast, relative-href
+            // generic) become Pressable so tap navigates — matches the
+            // web NotificationItem's <Link> wrapping. Rows with no
+            // route (message kind on mobile) stay as plain View so
+            // there's no false tap affordance.
+            if (href) {
+              return (
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel={renderPreview(n.body)}
+                  onPress={() => router.push(href as never)}
+                  className="flex-row items-center border-b border-border px-4"
+                  style={({ pressed }) => ({
+                    minHeight: 60,
+                    opacity: pressed ? 0.6 : 1,
+                  })}
+                >
+                  {rowChildren}
+                </Pressable>
+              );
+            }
+            return (
+              <View
+                className="flex-row items-center border-b border-border px-4"
+                style={{ minHeight: 60 }}
+              >
+                {rowChildren}
               </View>
             );
           }}
