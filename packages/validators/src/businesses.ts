@@ -55,6 +55,9 @@ export const BusinessSchema = z.object({
   website: z.string().nullable(),
   address: z.string().nullable(),
   image_url: z.string().nullable(),
+  // Output-shape URLs stay `z.string().nullable()` — they're what the
+  // service returns, already-validated at write time. Input schemas
+  // below apply the real `z.url()` check on the create/update path.
   facebook_url: z.string().nullable(),
   instagram_url: z.string().nullable(),
   whatsapp_number: z.string().nullable(),
@@ -163,11 +166,24 @@ export const BusinessUpdateInputSchema = z
     category: BusinessCategorySchema.optional(),
     description: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
-    website: z.string().nullable().optional(),
+    // Empty is allowed via .nullable().optional() (the admin form sends
+    // null when the field is blank). A provided string must parse as
+    // a real URL — bare tokens like "facebook.com" or "asdf" are
+    // rejected so the storefront never renders an icon that clicks
+    // nowhere, and href-injection strategies (javascript:, data:) are
+    // blocked at the boundary.
+    website: z.url("Enter a valid URL").nullable().optional(),
     address: z.string().nullable().optional(),
-    facebook_url: z.string().nullable().optional(),
-    instagram_url: z.string().nullable().optional(),
-    whatsapp_number: z.string().nullable().optional(),
+    facebook_url: z.url("Enter a valid URL").nullable().optional(),
+    instagram_url: z.url("Enter a valid URL").nullable().optional(),
+    // Digits-only, 8–15 chars — matches E.164 min/max (country code
+    // included). The admin form already strips non-digits at submit;
+    // this is the server-side defence for any other caller.
+    whatsapp_number: z
+      .string()
+      .regex(/^\d{8,15}$/, "Enter digits only (with country code)")
+      .nullable()
+      .optional(),
     hours: z.string().nullable().optional(),
     aira_review: z.string().nullable().optional(),
     rating: z.number().min(0).max(5).nullable().optional(),
@@ -209,10 +225,16 @@ export const BusinessCreateInputSchema = z
     city_id: z.string().nullable().optional(),
     business_type: z.string().nullable().optional(),
     years_operating: z.string().nullable().optional(),
-    instagram_url: z.string().nullable().optional(),
-    facebook_url: z.string().nullable().optional(),
-    website: z.string().nullable().optional(),
-    whatsapp_number: z.string().nullable().optional(),
+    // Same URL / digit-only checks as BusinessUpdateInputSchema — see
+    // that block for the rationale.
+    instagram_url: z.url("Enter a valid URL").nullable().optional(),
+    facebook_url: z.url("Enter a valid URL").nullable().optional(),
+    website: z.url("Enter a valid URL").nullable().optional(),
+    whatsapp_number: z
+      .string()
+      .regex(/^\d{8,15}$/, "Enter digits only (with country code)")
+      .nullable()
+      .optional(),
     contact_person: z
       .string()
       .trim()
