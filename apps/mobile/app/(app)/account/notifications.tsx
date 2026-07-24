@@ -104,7 +104,7 @@ export default function NotificationsScreen() {
   const rows = React.useMemo(() => groupByDay(data ?? []), [data]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
       <TopBar
         title="Notifications"
         left={<BackButton />}
