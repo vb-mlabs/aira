@@ -99,7 +99,7 @@ export function BusinessCard({
               renders as an icon-font glyph, which Text composes natively. */}
           <Text
             numberOfLines={2}
-            className="font-display text-base leading-tight text-foreground"
+            className="font-display text-lg leading-tight text-foreground"
           >
             {business.name}
             {business.verified ? (
