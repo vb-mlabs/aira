@@ -103,3 +103,6 @@ Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + d
 - [ ] Analytics events for cap-reached / cap-exceeded submit attempts — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
 - [ ] Promote MAX_ACTIVE_POSTS_PER_USER from constant to app_setting row (mirrors posts_expiry_days precedent) if the number ever needs runtime tuning — *plan 2026-07-22-post-cap-3-active, 2026-07-23*
 - [ ] /mstack-qa the community cap-reached UX on both surfaces — server-side boundary is unit-tested (7/7) but the client CTA gate + invalidation flip needs manual/scripted repro with a seeded 3-post user. — *code 2026-07-22-post-cap-3-active, 2026-07-24*
+- [ ] Type-scale QA on-device after OTA group 0be52a62 — check mobile home hero, listings cards, /account/posts row heights at the new sizes; roll back to 436f4b58 if anything looks broken. — *expo 2026-07-24-0921, 2026-07-24*
+- [ ] expo-doctor dedupe follow-up — bump expo to ~54.0.36 and expo-updates to ~29.0.19 via env: load .env.local
+env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.overrides. Do BEFORE next native build. — *expo 2026-07-24-0921, 2026-07-24*
