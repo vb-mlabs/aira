@@ -28,3 +28,32 @@ export function formatUSPhone(raw: string | null | undefined): string {
   if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
 }
+
+/** Display variant — same 10-digit slicing but prefixes "+1 " when a
+ *  full number is present. Used by every read-only surface (storefront
+ *  business detail, admin business detail, anywhere phone/whatsapp is
+ *  shown as text). Partial input (< 10 digits) skips the prefix so the
+ *  caller can still render mid-type without a lonely "+1" artifact. */
+export function formatUSPhoneWithCode(
+  raw: string | null | undefined,
+): string {
+  const local = formatUSPhone(raw)
+  const digitCount = local.replace(/\D/g, "").length
+  return digitCount === MAX_DIGITS ? `+1 ${local}` : local
+}
+
+/** Canonical E.164 form for `href="tel:…"`. Dialers uniformly accept
+ *  the fully-qualified `+14045551234` shape; the raw stored value
+ *  (which may be `"404-555-1234"` post-form or `"+91 …"` legacy) can
+ *  route ambiguously without a country prefix. Returns empty on 0
+ *  digits so `<a href="tel:">` never emits a naked scheme. */
+export function formatUSPhoneTel(raw: string | null | undefined): string {
+  if (!raw) return ""
+  const allDigits = raw.replace(/\D/g, "")
+  const digits =
+    allDigits.length > MAX_DIGITS
+      ? allDigits.slice(-MAX_DIGITS)
+      : allDigits
+  if (digits.length === 0) return ""
+  return `+1${digits}`
+}

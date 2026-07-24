@@ -14,7 +14,7 @@ import { FavoriteButton } from "./favorite-button"
 import { RatingPill } from "./rating-pill"
 import { SocialLinks, GoogleMapsPinIcon } from "./social-icons"
 import { BusinessImageCarousel } from "./business-image-carousel"
-import { formatUSPhone } from "@/lib/format-phone"
+import { formatUSPhoneTel, formatUSPhoneWithCode } from "@/lib/format-phone"
 import type { Business } from "../types"
 
 interface BusinessDetailProps {
@@ -159,10 +159,10 @@ export function BusinessDetail({
             {business.phone && (
               <ContactRow icon={Phone}>
                 <a
-                  href={`tel:${business.phone}`}
+                  href={`tel:${formatUSPhoneTel(business.phone)}`}
                   className="text-primary hover:underline"
                 >
-                  {formatUSPhone(business.phone)}
+                  {formatUSPhoneWithCode(business.phone)}
                 </a>
               </ContactRow>
             )}

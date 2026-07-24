@@ -1,4 +1,5 @@
 import { Globe, Phone } from "lucide-react"
+import { formatUSPhoneTel } from "@/lib/format-phone"
 
 interface SocialLinksProps {
   facebook_url?: string | null
@@ -92,11 +93,16 @@ export function SocialLinks({
       "#6366F1",
       <Globe className="size-4 text-white" aria-hidden />,
     )
+  // tel: href takes canonical E.164 (+14045551234) so dialers on both
+  // web + native shells route unambiguously — the stored phone may be
+  // formatted "404-555-1234" or a legacy raw digit string, both work
+  // through formatUSPhoneTel's normalization.
+  const telHref = phone ? `tel:${formatUSPhoneTel(phone)}` : null
   const tel =
-    phone &&
+    telHref &&
     badge(
       "tel",
-      `tel:${phone}`,
+      telHref,
       "Call",
       "#16A34A",
       <Phone className="size-4 text-white" aria-hidden />,

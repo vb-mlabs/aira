@@ -14,6 +14,7 @@ import { cn } from "@aira/ui-web/utils"
 import { apiClient } from "@/lib/api-client"
 import { PhoneInput } from "./phone-input"
 import { fromWhatsappE164, toWhatsappE164 } from "../lib/whatsapp"
+import { formatUSPhoneWithCode } from "@/lib/format-phone"
 import type { Business } from "@/features/listings"
 import type { BusinessAdmin } from "@aira/validators/businesses"
 import { RatingPill } from "@/features/listings/components/rating-pill"
@@ -1160,7 +1161,9 @@ function ContactPreview({ business }: { business: Business }) {
         <ContactPreviewRow icon={Clock}>{business.hours}</ContactPreviewRow>
       )}
       {business.phone && (
-        <ContactPreviewRow icon={Phone}>{business.phone}</ContactPreviewRow>
+        <ContactPreviewRow icon={Phone}>
+          {formatUSPhoneWithCode(business.phone)}
+        </ContactPreviewRow>
       )}
       {business.website && (
         <ContactPreviewRow icon={Globe}>

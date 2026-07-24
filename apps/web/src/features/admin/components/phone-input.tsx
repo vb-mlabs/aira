@@ -11,6 +11,16 @@
 //     yields the same string, so React's controlled-input contract stays
 //     stable.
 //
+// Cursor preservation: formatting inserts dashes at positions 3 and 6,
+// which shifts every digit right of the caret. Without intervention,
+// React's controlled-input reset drops the caret to the end of the
+// string every keystroke — the user sees the field "shift left" as
+// their typing appears to jump to the end. handleChange records how
+// many digits precede the caret in the RAW pre-format string, then
+// on the next paint restores the caret to the position that follows
+// the same number of digits in the FORMATTED string. Backspace,
+// mid-string edits, and paste all round-trip cleanly.
+//
 // Storage contract: the parent's `value` state is the formatted string
 // ("404-555-1234"). Callers that need pure digits (e.g. WhatsApp's
 // wa.me/<digits> URL, which requires the +1 country code) strip
@@ -24,6 +34,20 @@ interface PhoneInputProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+}
+
+/** Find the position in `formatted` that sits after `digitCount` digits.
+ *  Used to place the caret at the "same logical spot" (measured in
+ *  digits, not chars) after a reformat. */
+function caretAfterNDigits(formatted: string, digitCount: number): number {
+  let seen = 0
+  for (let i = 0; i < formatted.length; i++) {
+    if (/\d/.test(formatted[i]!)) {
+      seen++
+      if (seen === digitCount) return i + 1
+    }
+  }
+  return formatted.length
 }
 
 export function PhoneInput({
@@ -40,7 +64,26 @@ export function PhoneInput({
   const displayValue = formatUSPhone(value)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    onChange(formatUSPhone(e.target.value))
+    const el = e.target
+    const rawValue = el.value
+    const rawCaret = el.selectionStart ?? rawValue.length
+    // How many digits precede the caret in what the user just typed?
+    // This is what we anchor to across the reformat.
+    const digitsBeforeCaret = rawValue.slice(0, rawCaret).replace(/\D/g, "")
+      .length
+    const formatted = formatUSPhone(rawValue)
+    onChange(formatted)
+    // React re-renders synchronously; the DOM value updates on commit.
+    // requestAnimationFrame runs after that commit, giving us a moment
+    // when el.value === formatted and we can set selection to the new
+    // position. If the input has lost focus between now and then
+    // (unlikely mid-type, defensive anyway), skip — an out-of-focus
+    // setSelectionRange steals focus back on some browsers.
+    requestAnimationFrame(() => {
+      if (document.activeElement !== el) return
+      const pos = caretAfterNDigits(formatted, digitsBeforeCaret)
+      el.setSelectionRange(pos, pos)
+    })
   }
 
   return (
