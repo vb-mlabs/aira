@@ -106,3 +106,5 @@ Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + d
 - [ ] Type-scale QA on-device after OTA group 0be52a62 — check mobile home hero, listings cards, /account/posts row heights at the new sizes; roll back to 436f4b58 if anything looks broken. — *expo 2026-07-24-0921, 2026-07-24*
 - [ ] expo-doctor dedupe follow-up — bump expo to ~54.0.36 and expo-updates to ~29.0.19 via env: load .env.local
 env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.overrides. Do BEFORE next native build. — *expo 2026-07-24-0921, 2026-07-24*
+- [ ] Investigate notifications 'Post not found' — usePost(id) returns null for some comment-reply notification post_ids; likely visibility/status filter on the community post fetch — *expo 2026-07-24-1547, 2026-07-24*
+- [ ] Verify /post/[id] modal presentation feels right on real devices; if cross-tab dismiss reads awkward, evaluate a top-level modal group instead of the per-stack presentation flag — *expo 2026-07-24-1547, 2026-07-24*
