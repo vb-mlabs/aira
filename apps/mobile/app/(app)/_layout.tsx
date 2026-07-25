@@ -97,20 +97,35 @@ export default function AppLayout() {
           // looked out of scale after the Option A bump.
           headerTitleStyle: { fontWeight: "600", fontSize: 20 },
           tabBarShowLabel: true,
-          // Aligned with design.ts type.xs (0.875rem = 14px) after
-          // Option A. Was 12; hardcoded so it didn't inherit the bump.
-          tabBarLabelStyle: { fontSize: 14 },
-          // Cream bg + dark-brown active tint mirror the Post/Listings
-          // stack header chrome so the top and bottom edges read as one
-          // continuous frame around the content. borderTopColor uses the
-          // same brown at low opacity for a subtle hairline divider.
+          // Labels: 14px semibold + a dedicated `color` so both active
+          // and inactive labels render in the primary olive (dark
+          // green). Setting color here overrides the tabBarActiveTint /
+          // InactiveTint for text, so we can keep icons full-strength
+          // dark green when active while dimming the inactive icons via
+          // opacity in TabIcon. Bold + brand-green reads much cleaner
+          // than the old dark-brown-at-half-opacity.
+          tabBarLabelStyle: {
+            fontSize: 14,
+            fontWeight: "700",
+            color: "#4F653B",
+          },
+          // Cream bg matches the shared header. Height bumped 64 → 76
+          // for better vertical spacing between icon + label; still
+          // sits above the iOS home-indicator safe-area which the
+          // navigator adds on top. Hairline divider unchanged.
           tabBarStyle: {
-            height: 64,
+            height: 76,
+            paddingTop: 8,
+            paddingBottom: 8,
             backgroundColor: "#EAE0CB",
             borderTopColor: "rgba(61,40,20,0.12)",
           },
-          tabBarActiveTintColor: "#3D2814",
-          tabBarInactiveTintColor: "rgba(61,40,20,0.55)",
+          // Icons: primary olive when active, same green at 55% for
+          // inactive (was dark-brown before — swapping to green so the
+          // whole tab item reads on-brand and the active state
+          // resonates with the CTA color used elsewhere).
+          tabBarActiveTintColor: "#4F653B",
+          tabBarInactiveTintColor: "rgba(79,101,59,0.55)",
         }}
       >
         <Tabs.Screen
