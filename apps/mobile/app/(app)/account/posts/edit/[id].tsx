@@ -15,6 +15,7 @@ import { BackButton } from "../../../../../components/nav/BackButton";
 import { TopBar } from "../../../../../components/nav/TopBar";
 import { Dialog } from "../../../../../components/ui/Dialog";
 import { Input } from "../../../../../components/ui/Input";
+import { PhoneInput } from "../../../../../components/ui/PhoneInput";
 import { Skeleton } from "../../../../../components/ui/Skeleton";
 import { useToast } from "../../../../../components/ui/Toast";
 import { EmptyState } from "../../../../../features/listings/components/EmptyState";
@@ -26,7 +27,6 @@ import {
 
 const TITLE_MAX = 120;
 const BODY_MAX = 1000;
-const PHONE_MAX = 30;
 
 /**
  * /account/posts/edit/[id] — author editor for their own community
@@ -197,13 +197,11 @@ export default function PostEditScreen() {
             </Text>
           </View>
 
-          <Input
+          <PhoneInput
             label="Phone (optional)"
-            placeholder="(404) 555-0100"
+            placeholder="404-555-1234"
             value={phone}
             onChangeText={setPhone}
-            maxLength={PHONE_MAX}
-            keyboardType="phone-pad"
             hint="Visible to other signed-in members."
           />
 

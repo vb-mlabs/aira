@@ -11,6 +11,7 @@ import { Stack, router } from "expo-router";
 import { ApiError } from "../../../lib/api/client";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
+import { PhoneInput } from "../../../components/ui/PhoneInput";
 import { useToast } from "../../../components/ui/Toast";
 import { BackButton } from "../../../components/nav/BackButton";
 import { TopBar } from "../../../components/nav/TopBar";
@@ -22,7 +23,6 @@ import {
 
 const TITLE_MAX = 120;
 const BODY_MAX = 1000;
-const PHONE_MAX = 30;
 
 const HELPER_VISIBLE = "Visible to other signed-in members.";
 
@@ -200,13 +200,11 @@ export default function PostComposerScreen() {
             </Text>
           </View>
 
-          <Input
+          <PhoneInput
             label="Phone (optional)"
-            placeholder="(404) 555-0100"
+            placeholder="404-555-1234"
             value={phone}
             onChangeText={setPhone}
-            maxLength={PHONE_MAX}
-            keyboardType="phone-pad"
             hint={HELPER_VISIBLE}
           />
 
