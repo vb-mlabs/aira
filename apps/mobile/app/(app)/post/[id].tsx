@@ -1,5 +1,11 @@
 import * as React from "react";
-import { ScrollView, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { Skeleton } from "../../../components/ui/Skeleton";
@@ -55,47 +61,62 @@ export default function PostDetailScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
       <TopBar title={headerTitle} left={<BackButton />} />
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }}
-        showsVerticalScrollIndicator={false}
+      {/* KeyboardAvoidingView wraps the scroller so the inline
+          per-comment reply composer (the one deep in CommentThread —
+          not the top-of-thread composer that fits above the fold)
+          stays visible when the keyboard opens. Without this the
+          keyboard just overlays the input and users can't see what
+          they're typing. Same pattern used by post/new.tsx and
+          account/posts/edit/[id].tsx. keyboardShouldPersistTaps
+          "handled" lets a Comment/Cancel tap register on the first
+          touch even when the keyboard has focus. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
       >
-        {/* Author + relative time. Title lives in the Stack header
-            (line above) — the earlier in-body title was a duplicate
-            of it and Radha flagged the visual repeat 2026-07-06. */}
-        <Text className="text-xs text-mutedForeground">
-          {post.author_name} · {relativeTime(post.created_at)}
-        </Text>
-
-        {/* Status banner — renders nothing for approved */}
-        <View className="mt-4">
-          <PostStatusBanner status={post.status} />
-        </View>
-
-        {/* Body */}
-        {post.body ? (
-          <Text className="mt-4 text-sm leading-relaxed text-foreground">
-            {post.body}
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Author + relative time. Title lives in the Stack header
+              (line above) — the earlier in-body title was a duplicate
+              of it and Radha flagged the visual repeat 2026-07-06. */}
+          <Text className="text-xs text-mutedForeground">
+            {post.author_name} · {relativeTime(post.created_at)}
           </Text>
-        ) : null}
 
-        {/* Contact rows — always visible per the locked review decision */}
-        <View className="mt-5">
-          <ContactReveal phone={post.phone} email={post.email} />
-        </View>
+          {/* Status banner — renders nothing for approved */}
+          <View className="mt-4">
+            <PostStatusBanner status={post.status} />
+          </View>
 
-        {/* Report affordance — Apple Guideline 1.2 minimum bar */}
-        <View className="mt-6 flex-row justify-end">
-          <ReportButton kind="post" id={post.id} />
-        </View>
+          {/* Body */}
+          {post.body ? (
+            <Text className="mt-4 text-sm leading-relaxed text-foreground">
+              {post.body}
+            </Text>
+          ) : null}
 
-        {/* Threaded comments. Composer pinned at top; oldest below. */}
-        <View className="mt-8">
-          <CommentThread
-            postId={post.id}
-            acceptsComments={post.status === "approved"}
-          />
-        </View>
-      </ScrollView>
+          {/* Contact rows — always visible per the locked review decision */}
+          <View className="mt-5">
+            <ContactReveal phone={post.phone} email={post.email} />
+          </View>
+
+          {/* Report affordance — Apple Guideline 1.2 minimum bar */}
+          <View className="mt-6 flex-row justify-end">
+            <ReportButton kind="post" id={post.id} />
+          </View>
+
+          {/* Threaded comments. Composer pinned at top; oldest below. */}
+          <View className="mt-8">
+            <CommentThread
+              postId={post.id}
+              acceptsComments={post.status === "approved"}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
