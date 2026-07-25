@@ -97,18 +97,28 @@ export default function AppLayout() {
           // looked out of scale after the Option A bump.
           headerTitleStyle: { fontWeight: "600", fontSize: 20 },
           tabBarShowLabel: true,
-          // Labels: 14px semibold + a dedicated `color` so both active
-          // and inactive labels render in the primary olive (dark
-          // green). Setting color here overrides the tabBarActiveTint /
-          // InactiveTint for text, so we can keep icons full-strength
-          // dark green when active while dimming the inactive icons via
-          // opacity in TabIcon. Bold + brand-green reads much cleaner
-          // than the old dark-brown-at-half-opacity.
-          tabBarLabelStyle: {
-            fontSize: 14,
-            fontWeight: "700",
-            color: "#4F653B",
-          },
+          // Labels render via a function so only the ACTIVE tab is
+          // bold; inactive tabs stay regular weight (400). Both use
+          // the primary olive (#4F653B) — colour comes from us
+          // directly rather than the tabBarActiveTint/InactiveTint so
+          // the whole label row reads on-brand regardless of focus
+          // state. `children` here is the tab's `title` string.
+          //
+          // tabBarLabelStyle can't vary by focus (react-navigation
+          // limitation — it accepts a StyleProp, not a function), so
+          // we own the whole label render.
+          tabBarLabel: ({ focused, children }) => (
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: focused ? "700" : "400",
+                color: "#4F653B",
+              }}
+              numberOfLines={1}
+            >
+              {children}
+            </Text>
+          ),
           // Cream bg matches the shared header. Height bumped 64 → 76
           // for better vertical spacing between icon + label; still
           // sits above the iOS home-indicator safe-area which the
