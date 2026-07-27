@@ -142,10 +142,21 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
   // authoritative check lives server-side; this is UX so admins don't
   // hit the 409 mid-modal. Uses the raw end_date across all rows (not
   // deriveDisplayStatus's "expired" projection) to match the server rule.
-  const eligibleFromMs = Date.now() + RENEWAL_ELIGIBILITY_DAYS * 86_400_000
-  const blockingSub = subs.find(
-    (s) => new Date(s.end_date).getTime() > eligibleFromMs,
-  )
+  //
+  // Date.now() can't sit in render (React 19's purity rule flags impure
+  // reads). Stamp `nowMs` once per subs change via an effect so the
+  // comparison is deterministic per render pass. Initial render treats
+  // Add as unblocked (nowMs = 0) — the effect fires immediately after
+  // mount and reconciles.
+  const [nowMs, setNowMs] = useState(0)
+  function stampNow() { setNowMs(Date.now()) }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { stampNow() }, [subs])
+  const eligibleFromMs = nowMs + RENEWAL_ELIGIBILITY_DAYS * 86_400_000
+  const blockingSub =
+    nowMs === 0
+      ? undefined
+      : subs.find((s) => new Date(s.end_date).getTime() > eligibleFromMs)
   const blockedUntil = blockingSub
     ? new Date(
         new Date(blockingSub.end_date).getTime() -
