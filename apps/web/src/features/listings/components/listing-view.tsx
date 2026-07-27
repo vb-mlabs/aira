@@ -132,7 +132,19 @@ export function ListingView({
       <div className="mb-5">
         <div className="relative inline-flex cursor-pointer items-center gap-1">
           <h1 className="pointer-events-none font-display text-2xl font-semibold text-foreground">
-            {getCategoryMeta(currentCategory).displayName}
+            {/* Pass the resolved DB name as the fallback so
+                admin-created categories (and subcategories) render
+                their real name rather than the raw slug. Seeded
+                category slugs still hit the curated CATEGORY_META
+                display name. Matches the fallback pattern the
+                mobile BusinessCard uses (apps/mobile/features/
+                listings/components/BusinessCard.tsx:53). */}
+            {
+              getCategoryMeta(
+                currentCategory,
+                categories.find((c) => c.slug === currentCategory)?.name,
+              ).displayName
+            }
           </h1>
           <ChevronDown
             className="pointer-events-none size-5 flex-shrink-0 text-foreground"
