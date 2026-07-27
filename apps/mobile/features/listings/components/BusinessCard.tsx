@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import type { Business } from "@aira/validators";
 import { brand } from "@aira/config";
+import { resolveMediaUrl } from "../../../lib/api/client";
 import { useBuildBackHref } from "../../../lib/nav/useBuildBackHref";
 import { getCategoryMeta } from "../category-meta";
 import { RatingPill } from "./RatingPill";
@@ -77,17 +78,29 @@ export function BusinessCard({
         className="flex-row rounded-xl bg-card p-4"
         style={[{ gap: 12 }, CARD_SHADOW]}
       >
-        {/* Avatar — category icon or business image (image fallback in P3 polish) */}
+        {/* Avatar — business logo (if uploaded) or the category icon
+            fallback. resolveMediaUrl is mandatory: business.logo_url is
+            a relative /api/storage/... path from the API and the phone
+            can't resolve that on its own (matches the same wrap used
+            by BusinessHero for image_url). */}
         <View
-          className="items-center justify-center rounded-xl bg-muted"
+          className="items-center justify-center overflow-hidden rounded-xl bg-muted"
           style={{ width: 36, height: 36 }}
           accessibilityElementsHidden
         >
-          <MaterialCommunityIcons
-            name={category.iconName}
-            size={16}
-            color={MUTED_FOREGROUND_HEX}
-          />
+          {business.logo_url ? (
+            <Image
+              source={{ uri: resolveMediaUrl(business.logo_url) }}
+              style={{ width: 36, height: 36 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name={category.iconName}
+              size={16}
+              color={MUTED_FOREGROUND_HEX}
+            />
+          )}
         </View>
 
         {/* Identity column */}
