@@ -1,12 +1,14 @@
 import "server-only"
 
-import { eq, lt, and } from "drizzle-orm"
+import { eq, lt, and, gt, desc } from "drizzle-orm"
 import { businessSubscriptions } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
-import type {
-  BusinessSubscription,
-  BusinessSubscriptionCreateInput,
-  BusinessSubscriptionUpdateInput,
+import { ApiError } from "@aira/api/errors"
+import {
+  RENEWAL_ELIGIBILITY_DAYS,
+  type BusinessSubscription,
+  type BusinessSubscriptionCreateInput,
+  type BusinessSubscriptionUpdateInput,
 } from "@aira/validators/business-subscriptions"
 import { toSubscription, getSubscriptionById } from "./queries"
 
@@ -14,11 +16,45 @@ export async function createSubscription(
   db: Database,
   input: BusinessSubscriptionCreateInput,
 ): Promise<BusinessSubscription> {
+  // One-active-at-a-time + renewal-window rule: block create when the
+  // business already has a subscription whose end_date is further than
+  // RENEWAL_ELIGIBILITY_DAYS in the future. A subscription already
+  // inside the renewal window (or already expired) is fair game — the
+  // admin is recording the renewal itself. payment_status intentionally
+  // ignored: overlap is about the covered PERIOD, not the payment state.
+  // Race window between check and insert is negligible on this
+  // admin-only surface; promote to a partial unique index if it grows.
+  const eligibleFrom = new Date(
+    Date.now() + RENEWAL_ELIGIBILITY_DAYS * 86_400_000,
+  )
+  const [blocking] = await db
+    .select({
+      id: businessSubscriptions.id,
+      end_date: businessSubscriptions.end_date,
+    })
+    .from(businessSubscriptions)
+    .where(
+      and(
+        eq(businessSubscriptions.business_id, input.business_id),
+        gt(businessSubscriptions.end_date, eligibleFrom),
+      ),
+    )
+    .orderBy(desc(businessSubscriptions.end_date))
+    .limit(1)
+  if (blocking) {
+    const endDateLabel = blocking.end_date.toISOString().slice(0, 10)
+    throw new ApiError({
+      status: 409,
+      code: "subscription.not_renewable_yet",
+      message: `This business already has an active subscription until ${endDateLabel}. A new one can be recorded once it's within ${RENEWAL_ELIGIBILITY_DAYS} days of expiring.`,
+    })
+  }
+
   const rows = await db
     .insert(businessSubscriptions)
     .values({
       business_id: input.business_id,
-      plan_id: input.plan_id ?? null,
+      plan_id: input.plan_id,
       payment_status: input.payment_status,
       start_date: new Date(input.start_date),
       end_date: new Date(input.end_date),

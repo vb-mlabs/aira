@@ -40,7 +40,7 @@ export const createSubscriptionOp = defineOperation({
       meta: {
         kind: "business.subscription_recorded",
         payment_status: input.payment_status,
-        plan_id: input.plan_id ?? null,
+        plan_id: input.plan_id,
         end_date: input.end_date,
       },
     })

@@ -18,7 +18,10 @@ import { Input } from "@aira/ui-web/input"
 import { Label } from "@aira/ui-web/label"
 import { apiClient } from "@/lib/api-client"
 import { cn } from "@aira/ui-web/utils"
-import type { BusinessSubscription } from "@aira/validators/business-subscriptions"
+import {
+  RENEWAL_ELIGIBILITY_DAYS,
+  type BusinessSubscription,
+} from "@aira/validators/business-subscriptions"
 import type { MembershipPlan } from "@aira/validators/membership-plans"
 import {
   deriveDisplayStatus,
@@ -134,6 +137,22 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
     setOpen(true)
   }
 
+  // Renewal-window rule mirror. Block Add while the newest subscription's
+  // end_date is further than RENEWAL_ELIGIBILITY_DAYS in the future — the
+  // authoritative check lives server-side; this is UX so admins don't
+  // hit the 409 mid-modal. Uses the raw end_date across all rows (not
+  // deriveDisplayStatus's "expired" projection) to match the server rule.
+  const eligibleFromMs = Date.now() + RENEWAL_ELIGIBILITY_DAYS * 86_400_000
+  const blockingSub = subs.find(
+    (s) => new Date(s.end_date).getTime() > eligibleFromMs,
+  )
+  const blockedUntil = blockingSub
+    ? new Date(
+        new Date(blockingSub.end_date).getTime() -
+          RENEWAL_ELIGIBILITY_DAYS * 86_400_000,
+      )
+    : null
+
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -144,6 +163,12 @@ export function SubscriptionsSection({ businessId }: SubscriptionsSectionProps) 
           variant="outline"
           className="gap-1.5"
           onClick={openAdd}
+          disabled={blockingSub !== undefined}
+          title={
+            blockingSub && blockedUntil
+              ? `Current subscription ends ${formatDate(blockingSub.end_date)}. Renewal opens ${formatDate(blockedUntil.toISOString())}.`
+              : undefined
+          }
         >
           <Plus className="size-3.5" aria-hidden />
           Add
@@ -315,47 +340,14 @@ function EvidenceCell({ sub, businessId, onUploaded }: EvidenceCellProps) {
   return (
     <div className="flex flex-col gap-1">
       {sub.payment_evidence_url ? (
-        <div className="flex items-center gap-2">
-          <a
-            href={sub.payment_evidence_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline"
-          >
-            View
-          </a>
-          <span className="text-muted-foreground">·</span>
-          <button
-            type="button"
-            {...getRootProps({
-              onClick: (e) => {
-                // getRootProps binds a click to open the file picker
-                // via the hidden <input>. We don't need extra logic
-                // beyond that — the empty handler prevents the default
-                // <button> submit behaviour inside surrounding forms.
-                e.stopPropagation()
-              },
-            })}
-            className={cn(
-              "text-xs text-primary hover:underline disabled:opacity-70",
-              uploading && "cursor-wait",
-            )}
-            disabled={uploading}
-            aria-label="Replace payment evidence"
-          >
-            <input {...getInputProps()} />
-            {uploading ? (
-              <span className="inline-flex items-center gap-1">
-                <Loader2 className="size-3 animate-spin" aria-hidden />
-                Uploading…
-              </span>
-            ) : isDragActive ? (
-              "Drop to replace"
-            ) : (
-              "Replace"
-            )}
-          </button>
-        </div>
+        <a
+          href={sub.payment_evidence_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-primary hover:underline"
+        >
+          View
+        </a>
       ) : (
         <div
           {...getRootProps()}
@@ -507,6 +499,13 @@ function SubscriptionDialog({
     e.preventDefault()
     setError(null)
 
+    // Plan is required for Add. Edit locks plan_id (see the isEdit branch
+    // above) so this only fires in Add mode.
+    if (!isEdit && !planId) {
+      setError("Select a plan.")
+      return
+    }
+
     const amount_cents = Math.round(parseFloat(amountDollars) * 100)
     if (isNaN(amount_cents) || amount_cents < 0) {
       setError("Enter a valid amount.")
@@ -540,7 +539,7 @@ function SubscriptionDialog({
             `/api/v1/admin/businesses/${businessId}/subscriptions`,
             {
               business_id: businessId,
-              plan_id: planId || null,
+              plan_id: planId,
               payment_status: paymentStatus,
               start_date: toISODatetime(startDate),
               end_date: toISODatetime(endDate),
@@ -619,9 +618,16 @@ function SubscriptionDialog({
                   id="sub-plan"
                   value={planId}
                   onChange={(e) => handlePlanChange(e.target.value)}
+                  required
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
                 >
-                  <option value="">— Custom (no plan) —</option>
+                  {/* Disabled placeholder — plan is required. `required`
+                      on <select> treats an empty <option value=""> as
+                      invalid, which surfaces the browser's built-in
+                      "please select an item" prompt on submit. */}
+                  <option value="" disabled>
+                    Select a plan…
+                  </option>
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} · ${(p.price_cents / 100).toFixed(2)} / {p.duration_months}mo

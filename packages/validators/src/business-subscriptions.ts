@@ -24,10 +24,26 @@ export const BusinessSubscriptionSchema = z.object({
 })
 export type BusinessSubscription = z.infer<typeof BusinessSubscriptionSchema>
 
+/**
+ * Renewal-eligibility window. A business is allowed to record a new
+ * subscription once the currently-active one is within this many days of
+ * its end_date (or already past it). Enforced server-side in
+ * createSubscription; the modal mirrors the rule to disable the Add
+ * button before the admin fills out the form.
+ *
+ * 30 days matches the widest "Renewing in" filter option on the admin
+ * Manage Listings page — the same conceptual window admins already
+ * reason about when triaging renewals.
+ */
+export const RENEWAL_ELIGIBILITY_DAYS = 30
+
 export const BusinessSubscriptionCreateInputSchema = z
   .object({
     business_id: z.string().min(1),
-    plan_id: z.string().min(1).nullable().optional(),
+    // Required — every subscription must map to a membership plan so
+    // duration + amount are traceable. The one-active-per-business rule
+    // is enforced separately in the service.
+    plan_id: z.string().min(1),
     payment_status: PaymentStatusSchema,
     start_date: z.string().datetime(),
     end_date: z.string().datetime(),
