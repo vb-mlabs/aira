@@ -19,6 +19,11 @@ export const OUTPUT_WIDTH = 1200
 export const OUTPUT_HEIGHT = 800
 export const FEATURE_WIDTH = 1200
 export const FEATURE_HEIGHT = 630
+/** Square logo output — 512 is the standard app-icon size, sharp on
+ *  high-DPR mobile (36pt tile at 3× = 108px) with headroom for future
+ *  larger surfaces (detail sidebar, share cards). PNG output preserves
+ *  transparency; typical file size ~30–80 KB. */
+export const LOGO_SIZE = 512
 
 export type ImagePipelineErrorCode =
   | "invalid_mime"
@@ -108,6 +113,49 @@ export async function processAndStoreFeatureImage(args: {
   })
 
   await businessesService.setBusinessFeatureImage(db, args.businessId, url)
+
+  return { url }
+}
+
+export async function processAndStoreBusinessLogo(args: {
+  businessId: string
+  bytes: Buffer
+  contentType: string
+}): Promise<{ url: string }> {
+  if (!ALLOWED_MIME.includes(args.contentType as (typeof ALLOWED_MIME)[number])) {
+    throw new ImagePipelineError("invalid_mime", "Upload a JPEG, PNG, or WebP image.")
+  }
+  if (args.bytes.length > MAX_BYTES) {
+    throw new ImagePipelineError("too_large", "That image is too large. Max 8 MB.")
+  }
+
+  let resized: Buffer
+  try {
+    // Client crops square, but the server does a defensive cover-resize
+    // as belt-and-braces so out-of-modal callers (or a malformed cropped
+    // blob) can never leave a non-square file on disk. .png() preserves
+    // transparency — the whole point of picking PNG over JPEG here.
+    resized = await sharp(args.bytes)
+      .rotate()
+      .resize(LOGO_SIZE, LOGO_SIZE, { fit: "cover", position: "centre" })
+      .png()
+      .toBuffer()
+  } catch (err) {
+    logger.warn("business logo decode failed", {
+      businessId: args.businessId,
+      message: String(err),
+    })
+    throw new ImagePipelineError("decode_failed", "We couldn't read that image. Try a different file.")
+  }
+
+  const key = `businesses/${args.businessId}/logo-${crypto.randomUUID()}.png`
+  const { url } = await storage.upload({
+    key,
+    body: resized,
+    contentType: "image/png",
+  })
+
+  await businessesService.setBusinessLogo(db, args.businessId, url)
 
   return { url }
 }

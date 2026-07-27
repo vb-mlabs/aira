@@ -118,6 +118,7 @@ const PREVIEW_BUSINESS: Business = {
   website: "https://example.com",
   address: "Atlanta, GA",
   image_url: null,
+  logo_url: null,
   facebook_url: "https://facebook.com/urbanrootsfl",
   instagram_url: "https://instagram.com/urbanrootsfl",
   whatsapp_number: "+14041234567",
