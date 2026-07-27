@@ -8,7 +8,7 @@ import { useMe } from "../../features/auth/hooks";
  *
  * Gate: a verified session bounces back to /(app). Unverified-with-session
  * users (signed up but haven't clicked the email link) stay inside (auth)
- * so they can reach check-email.tsx / verify.tsx — bouncing them on raw
+ * so they can reach check-email.tsx / verify-email.tsx — bouncing them on raw
  * me.data presence would make those screens unreachable.
  *
  * While me.isPending, render the stack rather than null so refetches on

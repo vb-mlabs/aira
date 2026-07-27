@@ -66,21 +66,19 @@ function matchesUniversalLinkPattern(rawUrl: string): boolean {
   })
 }
 
-/**
- * The CURRENT verify hook body from packages/auth/src/server.ts:122
- * (passthrough). Once the fix lands, this helper's role is replaced
- * by a URL rewriter that produces a Universal-Link-friendly path.
- */
+// After the fix landed (2026-07-27), the auth hooks pipe Better Auth's
+// raw URL through rewriteAuthEmailUrl before handing it to the email
+// template. Both helpers below delegate to it — before the fix, this
+// import didn't exist and the spec failed on the shape assertion
+// (recorded in .mstack/debug/2026-07-27-1200-auth-emails-open-web/report.md).
+import { rewriteAuthEmailUrl } from "../../../../packages/auth/src/rewrite-auth-email-url"
+
 function currentVerifyHookEmittedUrl(rawUrl: string): string {
-  return rawUrl
+  return rewriteAuthEmailUrl(rawUrl)
 }
 
-/**
- * The CURRENT reset hook body from packages/auth/src/server.ts:110
- * (also passthrough). Same story.
- */
 function currentResetHookEmittedUrl(rawUrl: string): string {
-  return rawUrl
+  return rewriteAuthEmailUrl(rawUrl)
 }
 
 describe("emailed auth URLs must match iOS Universal Link path patterns", () => {

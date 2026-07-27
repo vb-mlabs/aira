@@ -16,6 +16,7 @@ import type { Database } from "@aira/db/client"
 import { createAdminBootstrapHook } from "./hooks/admin-bootstrap"
 import { createBanCheckHook } from "./hooks/ban-check"
 import { createSuperAdminBootstrapHook } from "./hooks/super-admin-bootstrap"
+import { rewriteAuthEmailUrl } from "./rewrite-auth-email-url"
 
 export interface AuthLogger {
   info: (message: string, meta?: Record<string, unknown>) => void
@@ -108,10 +109,13 @@ export function createAuth({
       requireEmailVerification: true,
       minPasswordLength: 8,
       sendResetPassword: async ({ user, url }) => {
+        // Rewrite Better Auth's API-prefixed URL so iOS Universal Links
+        // (`/reset-password*`) can catch the tap on-device. See
+        // rewrite-auth-email-url.ts + .mstack/debug/2026-07-27-1200-auth-emails-open-web/report.md.
         await email.sendPasswordResetEmail({
           to: user.email,
           name: user.name,
-          resetUrl: url,
+          resetUrl: rewriteAuthEmailUrl(url),
         })
       },
     },
@@ -120,10 +124,12 @@ export function createAuth({
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
+        // Rewrite to /verify-email so Universal Links can catch the tap
+        // on-device. See rewrite-auth-email-url.ts.
         await email.sendVerifyEmail({
           to: user.email,
           name: user.name,
-          verifyUrl: url,
+          verifyUrl: rewriteAuthEmailUrl(url),
         })
       },
     },
@@ -156,10 +162,13 @@ export function createAuth({
         // an attacker with a leaked session: they can't move the account to
         // an email they control without also controlling the old inbox.
         sendChangeEmailConfirmation: async ({ user, url }) => {
+          // Same rewrite as sendVerificationEmail — change-email reuses
+          // Better Auth's verify token pattern so the URL shape and
+          // Universal Link concern are identical.
           await email.sendVerifyEmail({
             to: user.email,
             name: user.name,
-            verifyUrl: url,
+            verifyUrl: rewriteAuthEmailUrl(url),
           })
         },
       },
