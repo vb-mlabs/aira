@@ -121,6 +121,13 @@ export function SponsorshipsSection({
     setOpen(true)
   }
 
+  // A business may only carry ONE non-terminal sponsorship at a time —
+  // authoritative check lives in the create service; this local flag
+  // just disables the Add button so admins don't hit the 409 mid-modal.
+  const hasLiveSponsorship = sponsorships.some(
+    (sp) => sp.status === "active" || sp.status === "scheduled",
+  )
+
   return (
     <section className="rounded-lg border border-border bg-card">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -131,6 +138,12 @@ export function SponsorshipsSection({
           variant="outline"
           className="gap-1.5"
           onClick={openAdd}
+          disabled={hasLiveSponsorship}
+          title={
+            hasLiveSponsorship
+              ? "Cancel the active or scheduled sponsorship before adding a new one."
+              : undefined
+          }
         >
           <Plus className="size-3.5" aria-hidden />
           Add
@@ -302,43 +315,14 @@ function EvidenceCell({ sp, businessId, onUploaded }: EvidenceCellProps) {
   return (
     <div className="flex flex-col gap-1">
       {sp.payment_evidence_url ? (
-        <div className="flex items-center gap-2">
-          <a
-            href={sp.payment_evidence_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline"
-          >
-            View
-          </a>
-          <span className="text-muted-foreground">·</span>
-          <button
-            type="button"
-            {...getRootProps({
-              onClick: (e) => {
-                e.stopPropagation()
-              },
-            })}
-            className={cn(
-              "text-xs text-primary hover:underline disabled:opacity-70",
-              uploading && "cursor-wait",
-            )}
-            disabled={uploading}
-            aria-label="Replace payment evidence"
-          >
-            <input {...getInputProps()} />
-            {uploading ? (
-              <span className="inline-flex items-center gap-1">
-                <Loader2 className="size-3 animate-spin" aria-hidden />
-                Uploading…
-              </span>
-            ) : isDragActive ? (
-              "Drop to replace"
-            ) : (
-              "Replace"
-            )}
-          </button>
-        </div>
+        <a
+          href={sp.payment_evidence_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-primary hover:underline"
+        >
+          View
+        </a>
       ) : (
         <div
           {...getRootProps()}
@@ -468,6 +452,11 @@ function SponsorshipDialog({
     e.preventDefault()
     setError(null)
 
+    if (!tierId) {
+      setError("Select a tier.")
+      return
+    }
+
     if (!endDate) {
       setError("End date is required.")
       return
@@ -488,7 +477,7 @@ function SponsorshipDialog({
             `/api/v1/admin/businesses/${businessId}/sponsorships/${sponsorship.id}`,
             {
               id: sponsorship.id,
-              tier_id: tierId || null,
+              tier_id: tierId,
               start_date: toISODatetime(startDate),
               end_date: toISODatetime(endDate),
               amount_cents,
@@ -501,7 +490,7 @@ function SponsorshipDialog({
             `/api/v1/admin/businesses/${businessId}/sponsorships`,
             {
               business_id: businessId,
-              tier_id: tierId || null,
+              tier_id: tierId,
               start_date: toISODatetime(startDate),
               end_date: toISODatetime(endDate),
               amount_cents,
@@ -566,9 +555,15 @@ function SponsorshipDialog({
                 id="sp-tier"
                 value={tierId}
                 onChange={(e) => setTierId(e.target.value)}
+                required
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
               >
-                <option value="">— No tier —</option>
+                {/* Disabled placeholder — a tier is required. The `required`
+                    attribute on <select> treats an empty <option value="">
+                    as invalid, which is exactly what we want. */}
+                <option value="" disabled>
+                  Select a tier…
+                </option>
                 {tiers.map((t) => (
                   <option key={t.id} value={t.id}>
                     {tierLabel(t)}

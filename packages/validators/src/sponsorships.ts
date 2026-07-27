@@ -30,7 +30,10 @@ export type Sponsorship = z.infer<typeof SponsorshipSchema>
 export const SponsorshipCreateInputSchema = z
   .object({
     business_id: z.string().min(1),
-    tier_id: z.string().min(1).nullable().optional(),
+    // Required — every sponsorship must map to a tier so the placement
+    // (top/mid/regular slot) is deterministic. The one-active-per-business
+    // rule is enforced separately in the service.
+    tier_id: z.string().min(1),
     start_date: z.string().datetime(),
     end_date: z.string().datetime(),
     amount_cents: z.number().int().nonnegative(),
@@ -43,7 +46,10 @@ export type SponsorshipCreateInput = z.infer<typeof SponsorshipCreateInputSchema
 export const SponsorshipUpdateInputSchema = z
   .object({
     id: z.string().min(1),
-    tier_id: z.string().min(1).nullable().optional(),
+    // Optional (leaving it out means "unchanged") but not nullable — once
+    // set, a sponsorship can be re-tiered but not de-tiered. Mirrors the
+    // create-side required rule.
+    tier_id: z.string().min(1).optional(),
     start_date: z.string().datetime().optional(),
     end_date: z.string().datetime().optional(),
     amount_cents: z.number().int().nonnegative().optional(),

@@ -1,8 +1,9 @@
 import "server-only"
 
-import { eq, lt, gte, and } from "drizzle-orm"
+import { eq, lt, gte, and, inArray } from "drizzle-orm"
 import { sponsorships } from "@aira/db/schema"
 import type { Database } from "@aira/db/client"
+import { ApiError } from "@aira/api/errors"
 import type {
   Sponsorship,
   SponsorshipCreateInput,
@@ -14,6 +15,31 @@ export async function createSponsorship(
   db: Database,
   input: SponsorshipCreateInput,
 ): Promise<Sponsorship> {
+  // One-active-per-business rule: block create when there's already a
+  // sponsorship in a non-terminal state (active OR scheduled) for the
+  // same business. Cancelled + expired rows don't count — those are
+  // historical. Race window between this check and the insert is small
+  // enough for the admin surface; if it becomes a problem, promote to
+  // a unique partial index.
+  const existing = await db
+    .select({ id: sponsorships.id, status: sponsorships.status })
+    .from(sponsorships)
+    .where(
+      and(
+        eq(sponsorships.business_id, input.business_id),
+        inArray(sponsorships.status, ["active", "scheduled"]),
+      ),
+    )
+    .limit(1)
+  if (existing[0]) {
+    throw new ApiError({
+      status: 409,
+      code: "sponsorship.already_active",
+      message:
+        "This business already has an active or scheduled sponsorship. Cancel it before adding a new one.",
+    })
+  }
+
   const startDate = new Date(input.start_date)
   const endDate = new Date(input.end_date)
   const now = new Date()
@@ -24,7 +50,7 @@ export async function createSponsorship(
     .insert(sponsorships)
     .values({
       business_id: input.business_id,
-      tier_id: input.tier_id ?? null,
+      tier_id: input.tier_id,
       status: initialStatus,
       start_date: startDate,
       end_date: endDate,
