@@ -43,6 +43,12 @@ export default async function AdminRenewalsPage({ searchParams }: PageProps) {
   // /admin/businesses. z.enum in the validator will silently drop
   // anything else, but the page can safely short-circuit here.
   const showAll = sp.showAll === "1"
+  // Single Date.now() stamp for the render. RSCs run once per request
+  // on the server — no concurrent-render concern — but react-hooks/purity
+  // fires on ANY call site, so we suppress at the hoist point rather
+  // than at every filter callback.
+  // eslint-disable-next-line react-hooks/purity
+  const nowMs = Date.now()
 
   const res = await apiServerFetch(listFollowupQueueOp, {
     input: { withinDays, includeAll: showAll },
@@ -66,7 +72,7 @@ export default async function AdminRenewalsPage({ searchParams }: PageProps) {
           r.last_outcome !== "paid" &&
           r.last_outcome !== "refused" &&
           r.scheduled_next !== null &&
-          new Date(r.scheduled_next).getTime() > Date.now(),
+          new Date(r.scheduled_next).getTime() > nowMs,
       ).length
     : 0
   const dueSoon = items.length - overdue - resolved - scheduled
