@@ -70,6 +70,13 @@ const inActiveQueue = sql`NOT EXISTS (
 
 export interface ListQueueOpts {
   withinDays: number
+  /** When true, drops the `inActiveQueue` predicate so resolved
+   *  (`paid`/`refused`) and scheduled-future rows are returned too.
+   *  Ordering groups them at the tail so active work stays at the top.
+   *  Defaults false — the queue is a "current work" view and the
+   *  toggle is a diagnostic surface. See
+   *  .mstack/reviews/2026-07-27-renewals-visibility.md. */
+  includeAll?: boolean
 }
 
 export interface ListQueueResult {
@@ -90,6 +97,7 @@ export async function listQueue(
 ): Promise<ListQueueResult> {
   const days = Math.trunc(opts.withinDays)
   const windowUpper = sql`now() + (${sql.raw(String(days))} || ' days')::interval`
+  const activeOnly = !opts.includeAll
 
   const where = and(
     inArray(businessSubscriptions.payment_status, ["paid", "overdue"]),
@@ -98,7 +106,10 @@ export async function listQueue(
     // outcome (paid / refused / etc.). The "overdue first" sort surfaces
     // them at the top.
     sql`${businessSubscriptions.end_date} <= ${windowUpper}`,
-    inActiveQueue,
+    // Default: filter to active-work rows only. In `includeAll` mode we
+    // drop the predicate — resolved + scheduled rows come through and
+    // the ordering CASE below groups them at the tail.
+    activeOnly ? inActiveQueue : undefined,
   )
 
   const rows = await db
@@ -126,7 +137,31 @@ export async function listQueue(
     )
     .where(where)
     .orderBy(
-      // Overdue first, then closest expiry next.
+      // Three-tier resolution bucket:
+      //   0 = active-visible (no terminal outcome AND no future scheduled_next)
+      //   1 = scheduled-future (latest scheduled_next > now())
+      //   2 = resolved terminal (latest outcome in paid/refused)
+      // On the default path (!includeAll), only bucket-0 rows survive
+      // the `inActiveQueue` filter above, so this CASE evaluates to 0
+      // for every returned row and behaves identically to the previous
+      // shape. In includeAll mode the buckets group the tail cleanly.
+      // Same idiom the SELECT list uses; sf_subscription_created_idx
+      // (packages/db/src/schema/subscription-followups.ts:51-54)
+      // covers both correlated subqueries.
+      sql`CASE
+        WHEN (
+          SELECT outcome FROM subscription_followup
+          WHERE subscription_id = ${businessSubscriptions.id}
+          ORDER BY created_at DESC LIMIT 1
+        ) IN ('paid', 'refused') THEN 2
+        WHEN (
+          SELECT scheduled_next FROM subscription_followup
+          WHERE subscription_id = ${businessSubscriptions.id}
+          ORDER BY created_at DESC LIMIT 1
+        ) > now() THEN 1
+        ELSE 0
+      END`,
+      // Overdue first, then closest expiry next — WITHIN each bucket.
       sql`CASE WHEN ${businessSubscriptions.end_date} < now() THEN 0 ELSE 1 END`,
       businessSubscriptions.end_date,
     )
