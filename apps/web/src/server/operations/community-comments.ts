@@ -13,7 +13,11 @@ import "server-only"
 // pattern).
 
 import { community as communityService } from "@aira/services"
-import { createNotification } from "@aira/services/notifications"
+import {
+  createNotification,
+  sendPushToUser,
+} from "@aira/services/notifications"
+import { env } from "@/config/env"
 import { logger } from "@/lib/logger"
 import {
   AdminModerateCommentInputSchema,
@@ -69,24 +73,56 @@ export const createCommunityCommentOp = defineOperation({
     // author === post author still only fires ONE notification (the
     // parent-commenter branch wins) so the same person doesn't get
     // double-pinged.
+    //
+    // Two-stage fan-out:
+    //   1. createNotification writes the always-authoritative in-app
+    //      row (bell icon / notifications tab). Never rolled back.
+    //   2. sendPushToUser fires the mobile push using that row's id
+    //      as the tap-through target. Push is a delivery accelerant
+    //      on top of the in-app row — a push failure MUST NOT
+    //      surface to the user; both push AND in-app failure are
+    //      swallowed by the same try/catch below.
     try {
       const isReply = result.parent_author_id !== null
       const recipientId = isReply
         ? result.parent_author_id!
         : result.post_author_id
       if (recipientId !== ctx.userId) {
-        await createNotification(db, ctx, {
+        const commenterName = result.comment.user_name ?? "Someone"
+        const bodyPreview = clip(result.comment.body ?? "", BODY_PREVIEW_MAX)
+        const inApp = await createNotification(db, ctx, {
           userId: recipientId,
           body: {
             kind: "post_comment",
             post_id: result.comment.post_id,
             post_title: result.post_title,
             commenter_id: ctx.userId,
-            commenter_name: result.comment.user_name ?? "Someone",
-            body_preview: clip(result.comment.body ?? "", BODY_PREVIEW_MAX),
+            commenter_name: commenterName,
+            body_preview: bodyPreview,
             is_reply: isReply,
           },
         })
+        // Push copy locked in review 2026-07-27:
+        //   Title tells you WHAT happened at a glance without needing
+        //   to unlock; body carries the who + preview.
+        await sendPushToUser(
+          db,
+          recipientId,
+          {
+            title: isReply
+              ? "New reply to your comment"
+              : "New comment on your post",
+            body: `${commenterName}: ${bodyPreview}`,
+            data: {
+              kind: "post_comment",
+              notification_id: inApp.id,
+              post_id: result.comment.post_id,
+              is_reply: isReply,
+            },
+            notification_id: inApp.id,
+          },
+          { expoAccessToken: env.EXPO_ACCESS_TOKEN },
+        )
       }
     } catch (err) {
       logger.error("comment notify failed", {
