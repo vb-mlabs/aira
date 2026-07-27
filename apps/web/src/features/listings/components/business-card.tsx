@@ -53,10 +53,10 @@ export function BusinessCard({
         aria-hidden
         className="flex size-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted text-muted-foreground"
       >
-        {business.image_url ? (
+        {business.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={business.image_url}
+            src={business.logo_url}
             alt=""
             loading="lazy"
             className="size-full object-cover"
