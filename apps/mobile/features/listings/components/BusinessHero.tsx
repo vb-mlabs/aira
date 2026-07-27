@@ -107,10 +107,9 @@ export function BusinessHero({
             </View>
             {/* Inline social/contact row mirroring web's detail hero
                 (apps/web/src/features/listings/components/business-detail.tsx:89).
-                Same compact ordering as the BusinessCard. Component
-                short-circuits to null when no contact fields are set,
-                so businesses without social presence don't render an
-                empty row. */}
+                compact=false so all six channels render (Phone, WhatsApp,
+                Website, Instagram, Facebook, Directions) — the card row
+                budget doesn't apply on a full-width detail screen. */}
             <View className="mt-3">
               <SocialIcons
                 facebook_url={business.facebook_url}
@@ -118,6 +117,8 @@ export function BusinessHero({
                 whatsapp_number={business.whatsapp_number}
                 phone={business.phone}
                 website={business.website}
+                address={business.address}
+                compact={false}
               />
             </View>
           </View>

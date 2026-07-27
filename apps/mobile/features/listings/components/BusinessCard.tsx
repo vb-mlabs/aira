@@ -162,6 +162,7 @@ export function BusinessCard({
               whatsapp_number={business.whatsapp_number}
               phone={business.phone}
               website={business.website}
+              address={business.address}
             />
           </View>
         </View>
