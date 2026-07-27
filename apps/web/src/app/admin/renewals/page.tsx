@@ -33,7 +33,11 @@ export default async function AdminRenewalsPage({ searchParams }: PageProps) {
   const withinDays = parseWindow(sp.withinDays)
 
   const res = await apiServerFetch(listFollowupQueueOp, {
-    input: { withinDays },
+    // includeAll: false is the default; Task 6 wires it to the
+    // ?showAll=1 URL param. Explicit here to satisfy the validator's
+    // required-boolean output (z.enum(...).transform always resolves
+    // to a boolean).
+    input: { withinDays, includeAll: false },
   })
   const result = res.data!
   const items = result.items

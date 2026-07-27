@@ -53,10 +53,21 @@ export const FollowupQueueRowSchema = z.object({
 });
 export type FollowupQueueRow = z.infer<typeof FollowupQueueRowSchema>;
 
-/** GET /api/v1/admin/renewals/queue. */
+/** GET /api/v1/admin/renewals/queue.
+ *
+ *  `includeAll` uses a `z.enum(["0","1"]).transform(...)` rather than
+ *  `z.coerce.boolean()` because the latter parses ANY non-empty string
+ *  as truthy (including "false", "0", "no"). The chip on the page emits
+ *  exactly `1` on active state and drops the param on inactive; the
+ *  enum accepts precisely that. Matches the `?archived=1` idiom in
+ *  apps/web/src/app/admin/businesses/page.tsx. */
 export const FollowupQueueInputSchema = z
   .object({
     withinDays: z.coerce.number().int().min(1).max(365).optional(),
+    includeAll: z
+      .enum(["0", "1"])
+      .optional()
+      .transform((v) => v === "1"),
   })
   .strict();
 export type FollowupQueueInput = z.infer<typeof FollowupQueueInputSchema>;

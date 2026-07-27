@@ -22,7 +22,12 @@ export const listFollowupQueueOp = defineOperation({
   permission: "admin",
   handler: async (db, _ctx, input) => {
     const withinDays = input.withinDays ?? DEFAULT_WITHIN_DAYS
-    const result = await service.listQueue(db, { withinDays })
+    // includeAll: false is the default active-work view. The
+    // validator's z.enum(["0","1"]).transform(v=>v==="1") coerces the
+    // URL param — undefined/missing collapses to false via the
+    // ?? here so a straight `?withinDays=7` behaves exactly as before.
+    const includeAll = input.includeAll ?? false
+    const result = await service.listQueue(db, { withinDays, includeAll })
     return { items: result.items, total: result.total, withinDays }
   },
 })

@@ -22,12 +22,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("drizzle-orm", async (importActual) => {
   const actual = await importActual<typeof import("drizzle-orm")>()
+  type AndFn = typeof actual.and
+  const wrappedAnd: AndFn = ((...args: Parameters<AndFn>) => {
+    mocks.andSpy(args)
+    return actual.and(...args)
+  }) as AndFn
   return {
     ...actual,
-    and: (...args: unknown[]) => {
-      mocks.andSpy(args)
-      return actual.and(...(args as never))
-    },
+    and: wrappedAnd,
   }
 })
 
