@@ -25,9 +25,18 @@ export function MyListingsCard({ business }: MyListingsCardProps) {
     >
       <span
         aria-hidden
-        className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+        className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-primary"
       >
-        <Store className="size-5" />
+        {business.logo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={business.logo_url}
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          <Store className="size-5" />
+        )}
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
