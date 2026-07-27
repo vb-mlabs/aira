@@ -108,3 +108,6 @@ Source: `.mstack/reviews/2026-07-06-business-verification-notes.md` Concerns + d
 env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.overrides. Do BEFORE next native build. — *expo 2026-07-24-0921, 2026-07-24*
 - [ ] Investigate notifications 'Post not found' — usePost(id) returns null for some comment-reply notification post_ids; likely visibility/status filter on the community post fetch — *expo 2026-07-24-1547, 2026-07-24*
 - [ ] Verify /post/[id] modal presentation feels right on real devices; if cross-tab dismiss reads awkward, evaluate a top-level modal group instead of the per-stack presentation flag — *expo 2026-07-24-1547, 2026-07-24*
+- [ ] Consolidate apps/mobile/lib/format-phone.ts + apps/web/src/lib/format-phone.ts into a shared package once a third consumer appears — *expo 2026-07-24-1832, 2026-07-24*
+- [ ] Verify /account/notification/[id] modal on real device — first ship, focus on presentation feel + Read all not clipping + +1 phone/WhatsApp display + tap-to-call routing — *expo 2026-07-24-1832, 2026-07-24*
+- [ ] Verify cross-tab back-nav on real device: Home → biz card → arrow back + bottom Go back both return to Home; Categories → sub → biz → back returns to sub — *expo 2026-07-24-2145, 2026-07-24*
