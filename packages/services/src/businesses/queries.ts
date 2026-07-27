@@ -683,6 +683,7 @@ export function toBusiness(
     website: row.website,
     address: row.address,
     image_url: row.image_url,
+    logo_url: row.logo_url,
     facebook_url: row.facebook_url ?? null,
     instagram_url: row.instagram_url ?? null,
     whatsapp_number: row.whatsapp_number ?? null,

@@ -55,6 +55,10 @@ export const BusinessSchema = z.object({
   website: z.string().nullable(),
   address: z.string().nullable(),
   image_url: z.string().nullable(),
+  /** Square logo (identity mark). Uploaded via the admin LogoControl.
+   *  NULL falls back to the category icon on cards. See image_url note
+   *  above — output-shape URLs stay loose (already validated at write). */
+  logo_url: z.string().nullable(),
   // Output-shape URLs stay `z.string().nullable()` — they're what the
   // service returns, already-validated at write time. Input schemas
   // below apply the real `z.url()` check on the create/update path.
