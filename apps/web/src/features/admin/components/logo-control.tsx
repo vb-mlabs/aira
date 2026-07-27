@@ -141,10 +141,6 @@ export function LogoControl({ businessId, logoUrl }: LogoControlProps) {
           </span>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">
-        Square, transparent PNG ≥ 512×512 works best.
-      </p>
-
       {error && (
         <p className="text-sm text-destructive" role="alert">
           {error}

@@ -813,19 +813,37 @@ function CoreFieldsPreview({
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
-      {/* Logo (square identity mark) stacked over Feature image
+      {/* Logo (square identity mark) stacked over Cover image
           (landscape hero). Logo drives the card avatar on web + mobile;
-          feature image drives the detail-page hero. Each control owns
-          its own POST/DELETE + router.refresh(); no modals from here. */}
-      <div className="flex w-full flex-col gap-4 sm:w-56 sm:flex-shrink-0">
-        <LogoControl
-          businessId={business.id}
-          logoUrl={business.logo_url}
-        />
-        <FeatureImageControl
-          businessId={business.id}
-          imageUrl={business.image_url}
-        />
+          feature image drives the detail-page hero. Labels + micro-copy
+          teach the mental model — "cards vs detail" — without needing
+          admins to guess by shape. Matches the Gallery section's label
+          pattern below. */}
+      <div className="flex w-full flex-col gap-5 sm:w-56 sm:flex-shrink-0">
+        <div className="space-y-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Logo
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Square identity mark. Shows as the card avatar on web + mobile.
+          </p>
+          <LogoControl
+            businessId={business.id}
+            logoUrl={business.logo_url}
+          />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Cover image
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Landscape hero. Shows at the top of the business detail page.
+          </p>
+          <FeatureImageControl
+            businessId={business.id}
+            imageUrl={business.image_url}
+          />
+        </div>
       </div>
       <div className="min-w-0 flex-1 space-y-3">
         <p className="font-display text-lg text-foreground">{business.name}</p>
