@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { listNotifications, getUnreadCount, markAllRead } from "./api";
+import { listNotifications, getUnreadCount, markAllRead, markRead } from "./api";
 import type { NotificationRow } from "./api";
 
 /**
@@ -79,6 +79,24 @@ export function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: markAllRead,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+}
+
+/**
+ * Mark a single notification as read. Fired from the notification
+ * detail modal on mount — covers both the bell-tap and push-tap
+ * entry paths, since both routes end on the same modal.
+ *
+ * The server-side markRead is idempotent (returns changed: 0 on a
+ * no-op), so a second mount for the same id is safe.
+ */
+export function useMarkNotificationRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: markRead,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notifications"] });
     },

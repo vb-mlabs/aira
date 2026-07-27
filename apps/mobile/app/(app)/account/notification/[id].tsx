@@ -6,7 +6,10 @@ import { brand } from "@aira/config";
 import { TopBar } from "../../../../components/nav/TopBar";
 import { BackButton } from "../../../../components/nav/BackButton";
 import { EmptyState } from "../../../../features/listings/components/EmptyState";
-import { useNotifications } from "../../../../features/notifications/hooks";
+import {
+  useMarkNotificationRead,
+  useNotifications,
+} from "../../../../features/notifications/hooks";
 import { relativeTime } from "../../../../features/community/relative-time";
 import type { NotificationRow } from "../../../../features/notifications/api";
 
@@ -99,6 +102,21 @@ export default function NotificationDetailScreen() {
     () => data?.find((n) => n.id === id) ?? null,
     [data, id],
   );
+
+  // Mark as read once per mount — covers both the bell-tap and
+  // push-tap entry paths, since both routes end on this modal. The
+  // server-side markRead is idempotent (returns changed: 0 on a
+  // no-op) so re-mounting for the same id is safe. Fires
+  // best-effort — a failure just leaves the row unread for the next
+  // interaction to clear.
+  const markRead = useMarkNotificationRead();
+  React.useEffect(() => {
+    if (!id) return;
+    markRead.mutate(id);
+    // Intentional: markRead is stable across renders (useMutation),
+    // and re-running for the same id is idempotent on the server.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (isLoading && !notification) {
     return (
