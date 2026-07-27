@@ -75,6 +75,13 @@ export const businesses = pgTable(
      *  surfaced via BusinessAdminSchema, never on the public BusinessSchema. */
     contact_person: text("contact_person"),
     image_url: text("image_url"),
+    /** Dedicated square logo (identity mark) used as the 36×36 card
+     *  avatar on web + mobile. Uploaded via the admin LogoControl
+     *  (react-easy-crop client-side square crop → 512×512 PNG output,
+     *  transparency preserved). Nullable — rows without a logo fall
+     *  back to the category icon on the card. Distinct from
+     *  `image_url`, which stays the landscape hero for detail pages. */
+    logo_url: text("logo_url"),
     facebook_url: text("facebook_url"),
     instagram_url: text("instagram_url"),
     whatsapp_number: text("whatsapp_number"),
