@@ -46,19 +46,20 @@ export const brand = {
   },
 
   // /home (signed-in user landing) copy. These used to live as runtime-editable
-  // app_setting rows (homepage_about_title / homepage_about_body /
-  // homepage_stat_users) — they only feed one screen and only change at fork
-  // time, so they belong in the rebrand layer like the rest of the brand
-  // copy. Forks edit here; no DB migration, no admin form.
+  // app_setting rows (homepage_about_title / homepage_about_body) — they only
+  // feed one screen and only change at fork time, so they belong in the
+  // rebrand layer like the rest of the brand copy. Forks edit here; no DB
+  // migration, no admin form.
+  //
+  // The Community Members stat card on /home used to read a static
+  // `communityMembers` string from this block. It's now driven by the live
+  // countCommunityMembersOp (end_user role, not banned, not anonymized) so
+  // both surfaces render a real number. Forks that want a static override
+  // can wrap the fetch in their own branch — none in-template do.
   homepage: {
     aboutTitle: "Atlanta's Indian business directory, curated with care",
     aboutBody:
       "AIRA is Atlanta's premier community directory connecting the Indian community with local Indian businesses, services, and resources.",
-    // Displayed in the Community Members stat card on /home. Default is the
-    // em-dash so fresh forks render the same placeholder they did when the
-    // value was an "auto" app_setting fallback. Override with a literal
-    // string ("500+") if a fork wants to display a real number.
-    communityMembers: "—",
   },
 } as const
 

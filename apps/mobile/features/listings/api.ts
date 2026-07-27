@@ -55,6 +55,16 @@ export async function getBusinessCount(): Promise<BusinessCountResult> {
   return res.data ?? { count: 0 };
 }
 
+/** GET /api/v1/users/count — total community members (end_user role,
+ *  not banned, not anonymized). Home tab stat card. Co-located here
+ *  next to getBusinessCount because both are Home-tab stats, even
+ *  though this one crosses the users domain — a future refactor can
+ *  extract into its own module if the users domain grows. */
+export async function getCommunityMemberCount(): Promise<BusinessCountResult> {
+  const res = await apiGet<BusinessCountResult>("/api/v1/users/count");
+  return res.data ?? { count: 0 };
+}
+
 /** GET /api/v1/categories?roots=1 — root categories + per-slug counts in
  *  one round-trip. The bare /api/v1/categories endpoint returns ONLY counts
  *  (its default mode drives web's sidebar badge); ?roots=1 is the variant

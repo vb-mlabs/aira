@@ -33,6 +33,21 @@ export const deleteAccountOp = defineOperation({
   handler: async (db, ctx) => users.deleteAccount(db, ctx),
 })
 
+/** Community-members count. Powers the /home Community Members stat card
+ *  on web + mobile — replaces the static brand.homepage.communityMembers
+ *  placeholder that used to render "—" unconditionally. Same shape as
+ *  countActiveBusinessesOp so the two Home cards share a mental model. */
+export const countCommunityMembersOp = defineOperation({
+  name: "users.countCommunityMembers",
+  input: z.object({}).strict(),
+  output: z.object({ count: z.number().int().nonnegative() }),
+  permission: "user",
+  handler: async (db) => {
+    const count = await users.countCommunityMembers(db)
+    return { count }
+  },
+})
+
 const NameOutput = z.object({
   user: z.object({
     id: z.string(),

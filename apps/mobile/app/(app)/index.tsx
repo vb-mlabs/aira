@@ -7,6 +7,7 @@ import { StatCard } from "../../features/listings/components/StatCard";
 import { useFavoriteIds } from "../../features/favorites/hooks";
 import {
   useBusinessCount,
+  useCommunityMemberCount,
   useFeatured,
 } from "../../features/listings/hooks";
 
@@ -29,18 +30,23 @@ const TAGLINE_CAPTION = brand.tagline.split(" & ").join(" · ");
 
 export default function HomeScreen() {
   const featured = useFeatured();
-  const count = useBusinessCount();
+  const bizCountQ = useBusinessCount();
+  const memberCountQ = useCommunityMemberCount();
   const favIds = useFavoriteIds();
 
   const onRefresh = React.useCallback(() => {
     void featured.refetch();
-    void count.refetch();
-  }, [featured, count]);
+    void bizCountQ.refetch();
+    void memberCountQ.refetch();
+  }, [featured, bizCountQ, memberCountQ]);
 
-  const isRefreshing = featured.isFetching || count.isFetching;
+  const isRefreshing =
+    featured.isFetching || bizCountQ.isFetching || memberCountQ.isFetching;
 
-  const bizCount = count.data?.count ?? 0;
+  const bizCount = bizCountQ.data?.count ?? 0;
   const bizCountDisplay = bizCount > 0 ? `${bizCount}+` : "—";
+  const memberCount = memberCountQ.data?.count ?? 0;
+  const memberCountDisplay = memberCount > 0 ? `${memberCount}+` : "—";
   const featuredItems = featured.data?.items ?? [];
 
   // No SafeAreaView — the Tabs navigator's cream header handles the
@@ -89,7 +95,7 @@ export default function HomeScreen() {
 
         {/* Stats */}
         <View className="mt-8 flex-row" style={{ gap: 12 }}>
-          {count.isLoading ? (
+          {bizCountQ.isLoading || memberCountQ.isLoading ? (
             <>
               <View className="flex-1">
                 <Skeleton width="100%" height={70} borderRadius={12} />
@@ -102,7 +108,7 @@ export default function HomeScreen() {
             <>
               <StatCard value={bizCountDisplay} label="Businesses Listed" />
               <StatCard
-                value={brand.homepage.communityMembers}
+                value={memberCountDisplay}
                 label="Community Members"
               />
             </>

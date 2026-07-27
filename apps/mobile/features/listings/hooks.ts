@@ -8,6 +8,7 @@ import {
   getBusinessById,
   getBusinessCount,
   getCategoryBySlug,
+  getCommunityMemberCount,
   getMyListings,
   listCategories,
 } from "./api";
@@ -50,6 +51,16 @@ export function useBusinessCount() {
   return useQuery({
     queryKey: ["listings", "count"],
     queryFn: getBusinessCount,
+    staleTime: 60_000,
+  });
+}
+
+/** Community Members stat-card count. Shares the same staleTime as
+ *  useBusinessCount so both Home cards refresh together on pull. */
+export function useCommunityMemberCount() {
+  return useQuery({
+    queryKey: ["users", "count"],
+    queryFn: getCommunityMemberCount,
     staleTime: 60_000,
   });
 }

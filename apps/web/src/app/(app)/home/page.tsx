@@ -1,10 +1,10 @@
 // End-user landing screen after sign-in. Brand-led: centered tree-of-life
 // mark + wordmark + tagline, then a short About block, two community stat
-// cards (live Businesses count via the /api/v1/* boundary, Community
-// Members from the brand layer), and a Featured Businesses list — 5
-// random businesses drawn from the strict sponsored pool. Featured
-// section is hidden when the pool is empty so the page doesn't render a
-// hollow block.
+// cards (both live counts via the /api/v1/* boundary — Businesses Listed
+// and Community Members), and a Featured Businesses list — 5 random
+// businesses drawn from the strict sponsored pool. Featured section is
+// hidden when the pool is empty so the page doesn't render a hollow
+// block.
 
 import type { Metadata } from "next"
 import Image from "next/image"
@@ -17,6 +17,7 @@ import {
   countActiveBusinessesOp,
   listBusinessesOp,
 } from "@/server/operations/businesses"
+import { countCommunityMembersOp } from "@/server/operations/users"
 import { listMyFavoriteIdsOp } from "@/server/operations/favorites"
 
 export const metadata: Metadata = {
@@ -29,19 +30,23 @@ export default async function HomePage() {
   const session = await getSession()
   const isSignedIn = !!session
 
-  const [featuredRes, countRes, favIdsRes] = await Promise.all([
-    apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 5 } }),
-    apiServerFetch(countActiveBusinessesOp, { input: {} }),
-    // Skip the user-scoped fetch entirely when anonymous — the cards just
-    // render without a heart.
-    isSignedIn
-      ? apiServerFetch(listMyFavoriteIdsOp, { input: {} })
-      : Promise.resolve(null),
-  ])
+  const [featuredRes, bizCountRes, memberCountRes, favIdsRes] =
+    await Promise.all([
+      apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 5 } }),
+      apiServerFetch(countActiveBusinessesOp, { input: {} }),
+      apiServerFetch(countCommunityMembersOp, { input: {} }),
+      // Skip the user-scoped fetch entirely when anonymous — the cards just
+      // render without a heart.
+      isSignedIn
+        ? apiServerFetch(listMyFavoriteIdsOp, { input: {} })
+        : Promise.resolve(null),
+    ])
 
   const featured = featuredRes.data?.items ?? []
-  const bizCount = countRes.data?.count ?? 0
+  const bizCount = bizCountRes.data?.count ?? 0
   const bizCountDisplay = bizCount > 0 ? `${bizCount}+` : "—"
+  const memberCount = memberCountRes.data?.count ?? 0
+  const memberCountDisplay = memberCount > 0 ? `${memberCount}+` : "—"
   const favIds = new Set(favIdsRes?.data?.ids ?? [])
 
   return (
@@ -74,10 +79,7 @@ export default async function HomePage() {
 
       <section className="mx-auto mt-8 grid max-w-md grid-cols-2 gap-4">
         <StatCard value={bizCountDisplay} label="Businesses Listed" />
-        <StatCard
-          value={brand.homepage.communityMembers}
-          label="Community Members"
-        />
+        <StatCard value={memberCountDisplay} label="Community Members" />
       </section>
 
       {featured.length > 0 && (
