@@ -7,6 +7,13 @@
 // the tab is backgrounded, ignore overlapping requests, and survive 401s
 // quietly (no toasts; the next poll will retry).
 //
+// Conditional GET: tracks the last `Last-Modified` response header and
+// replays it as `If-Modified-Since` on subsequent polls. Servers that
+// implement freshness (unread-count, conversations, thread) reply 304
+// with no body — we keep the current data and skip JSON parsing entirely.
+// Servers that don't set Last-Modified just get treated as always-fresh
+// (the header is never sent, every response is 200 + parsed).
+//
 // Returns the latest parsed body, plus a `refetch` for explicit triggers
 // (e.g. after the user marks a thread read, refresh the bell immediately).
 
@@ -40,6 +47,10 @@ export function usePolledFetch<T>(
   const [initialLoading, setInitialLoading] = useState(enabled)
   const inFlight = useRef(false)
   const mounted = useRef(true)
+  // Last-Modified from the most recent 200 response. Sent as
+  // If-Modified-Since on subsequent polls so the server can short-circuit
+  // to 304 when nothing changed. Reset per `url` (see the effect below).
+  const lastModified = useRef<string | null>(null)
 
   const fetchOnce = useCallback(async () => {
     if (inFlight.current) return
@@ -48,8 +59,19 @@ export function usePolledFetch<T>(
     }
     inFlight.current = true
     try {
-      const res = await fetch(url, { cache: "no-store" })
+      const headers: Record<string, string> = {}
+      if (lastModified.current) {
+        headers["If-Modified-Since"] = lastModified.current
+      }
+      const res = await fetch(url, { cache: "no-store", headers })
+      // 304 — server confirmed our cached data is still fresh. Keep the
+      // current state and skip JSON parsing (a 304 response has no body).
+      if (res.status === 304) return
       if (!res.ok) return
+      // Capture the new freshness token BEFORE parsing so a body-parse
+      // failure doesn't leave the ref pointing at a stale timestamp.
+      const nextLastModified = res.headers.get("Last-Modified")
+      if (nextLastModified) lastModified.current = nextLastModified
       const body = (await res.json()) as T
       if (mounted.current) setData(body)
     } catch {
@@ -62,6 +84,10 @@ export function usePolledFetch<T>(
 
   useEffect(() => {
     mounted.current = true
+    // Reset freshness token whenever the URL changes — a token from the
+    // previous endpoint would mislead the new one into always-304'ing.
+    // Same for the initial mount (lastModified starts at null anyway).
+    lastModified.current = null
     if (!enabled) {
       return () => {
         mounted.current = false
