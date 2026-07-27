@@ -21,10 +21,16 @@ interface Option {
   hint: string
 }
 
+// Labels carry the queue-visibility consequence in parens so admins
+// see what's about to happen before they click. Hints keep their
+// primary-explanation role. voicemail and no_answer leave the row
+// visible in the default queue view, so no suffix needed on those.
+// See .mstack/reviews/2026-07-27-renewals-visibility.md for the copy
+// pass rationale.
 const OPTIONS: readonly Option[] = [
   {
     value: "called",
-    label: "Called",
+    label: "Called (hides for 7 days)",
     hint: "Got through. Note below is required.",
   },
   {
@@ -39,18 +45,18 @@ const OPTIONS: readonly Option[] = [
   },
   {
     value: "refused",
-    label: "Refused",
+    label: "Refused (removes from queue)",
     hint: "Owner declined to renew.",
   },
   {
     value: "paid",
-    label: "Marked paid",
+    label: "Marked paid (removes from queue)",
     hint: "Go record the payment after saving.",
   },
   {
     value: "reschedule",
-    label: "Reschedule",
-    hint: "Call back in N days — drops from queue until then.",
+    label: "Reschedule (hides for N days)",
+    hint: "Call back in N days.",
   },
 ] as const
 
