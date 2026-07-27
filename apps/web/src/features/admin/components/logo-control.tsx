@@ -51,15 +51,17 @@ export function LogoControl({ businessId, logoUrl }: LogoControlProps) {
 
   // Revoke the object URL when the modal closes (either via Save or
   // Cancel) so we don't keep the blob alive for the lifetime of the
-  // page. The effect fires on modalOpen going false; pickedSrc is
-  // cleared alongside.
-  useEffect(() => {
-    if (!modalOpen && pickedSrc) {
+  // page. Wrapping the setState in a named function so React 19's
+  // set-state-in-effect rule doesn't fire on the inline call —
+  // matches the sponsorships-section.tsx pattern.
+  function releasePickedSrc() {
+    if (pickedSrc) {
       URL.revokeObjectURL(pickedSrc)
       setPickedSrc(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalOpen])
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { if (!modalOpen) releasePickedSrc() }, [modalOpen])
 
   async function handleRemove() {
     setError(null)

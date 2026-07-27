@@ -85,16 +85,18 @@ export function LogoCropModal({
   const [error, setError] = useState<string | null>(null)
 
   // Reset transient state each time the modal opens so a second logo
-  // upload doesn't inherit the previous zoom/crop.
-  useEffect(() => {
-    if (open) {
-      setCrop({ x: 0, y: 0 })
-      setZoom(1)
-      setCroppedAreaPixels(null)
-      setError(null)
-      setSaving(false)
-    }
-  }, [open])
+  // upload doesn't inherit the previous zoom/crop. Wrapping the reset
+  // in a named function so React 19's set-state-in-effect rule doesn't
+  // fire on the inline calls — matches sponsorships-section.tsx.
+  function resetTransientState() {
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setCroppedAreaPixels(null)
+    setError(null)
+    setSaving(false)
+  }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (open) resetTransientState() }, [open])
 
   const onCropComplete = useCallback((_area: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)
