@@ -273,6 +273,36 @@ export async function clearBusinessFeatureImage(
   return { oldUrl };
 }
 
+export async function setBusinessLogo(
+  db: Database,
+  id: string,
+  url: string,
+): Promise<Business | null> {
+  await db
+    .update(businesses)
+    .set({ logo_url: url })
+    .where(eq(businesses.id, id));
+  return getBusinessByIdIncludingArchived(db, id);
+}
+
+export async function clearBusinessLogo(
+  db: Database,
+  id: string,
+): Promise<{ oldUrl: string | null }> {
+  const [row] = await db
+    .select({ logo_url: businesses.logo_url })
+    .from(businesses)
+    .where(eq(businesses.id, id));
+  const oldUrl = row?.logo_url ?? null;
+  if (oldUrl !== null) {
+    await db
+      .update(businesses)
+      .set({ logo_url: null })
+      .where(eq(businesses.id, id));
+  }
+  return { oldUrl };
+}
+
 export async function purgeArchivedBusinesses(
   db: Database,
   { olderThanDays }: { olderThanDays: number },

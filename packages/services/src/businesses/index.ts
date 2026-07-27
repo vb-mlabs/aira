@@ -37,6 +37,8 @@ export {
   purgeArchivedBusinesses,
   setBusinessFeatureImage,
   clearBusinessFeatureImage,
+  setBusinessLogo,
+  clearBusinessLogo,
   assignBusinessOwner,
   unassignBusinessOwner,
 } from "./service";
