@@ -11,6 +11,14 @@ import { cn } from "@aira/ui-web/utils"
 import { AdminPageHeader } from "../_components/page-header"
 import { RenewingFilter } from "./_components/renewing-filter"
 
+function formatShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
 export const metadata = { title: "Admin · Businesses" }
 export const dynamic = "force-dynamic"
 
@@ -112,7 +120,8 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-left font-semibold">Category</th>
                 <th className="px-4 py-3 text-left font-semibold">Subscription</th>
                 <th className="px-4 py-3 text-left font-semibold">Due date</th>
-                <th className="px-4 py-3 text-left font-semibold">Verified</th>
+                <th className="px-4 py-3 text-left font-semibold">Sponsorship</th>
+                <th className="px-4 py-3 text-left font-semibold">End date</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
               </tr>
             </thead>
@@ -140,12 +149,25 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                       {/* after:* pseudo-element stretches the link across the
                           entire row so any cell click navigates to the
                           detail page. The actual <Link> stays in the DOM for
-                          keyboard + screen-reader navigation. */}
+                          keyboard + screen-reader navigation. The verified
+                          checkmark sits inside the <Link> so the whole
+                          "Name ✓" reads as one row-scan target. */}
                       <Link
                         href={`/admin/businesses/${b.id}`}
-                        className="font-medium text-foreground after:absolute after:inset-0 after:content-['']"
+                        className="inline-flex items-center gap-1.5 font-medium text-foreground after:absolute after:inset-0 after:content-['']"
                       >
                         {b.name}
+                        {b.verified && (
+                          <span
+                            title={b.verification_notes ?? "Verified"}
+                            className="inline-flex"
+                          >
+                            <BadgeCheck
+                              className="size-4 fill-info text-info-foreground"
+                              aria-label="Verified"
+                            />
+                          </span>
+                        )}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
@@ -174,30 +196,30 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
                         <span className="text-muted-foreground/60">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      {b.verified ? (
-                        // Wrapping in a <span> so the title attribute
-                        // fires the native browser tooltip — Lucide's
-                        // BadgeCheck doesn't expose title as a prop.
-                        // Notes surface here at-a-glance without a
-                        // JS-driven tooltip primitive; detail page has
-                        // the full text.
+                    <td className="px-4 py-3 text-foreground">
+                      {b.latest_sponsorship_tier_name ? (
                         <span
-                          title={b.verification_notes ?? undefined}
-                          className="inline-flex"
+                          className={cn(
+                            b.latest_sponsorship_status === "scheduled" &&
+                              "text-muted-foreground",
+                          )}
                         >
-                          <BadgeCheck
-                            className="size-4 fill-info text-info-foreground"
-                            aria-label="Verified"
-                          />
+                          {b.latest_sponsorship_tier_name}
+                          {b.latest_sponsorship_status === "scheduled" && (
+                            <span className="ml-1 text-xs italic text-muted-foreground">
+                              (scheduled)
+                            </span>
+                          )}
                         </span>
                       ) : (
-                        <span
-                          aria-label="Not verified"
-                          className="text-muted-foreground/60"
-                        >
-                          —
-                        </span>
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {b.latest_sponsorship_end_date ? (
+                        formatShortDate(b.latest_sponsorship_end_date)
+                      ) : (
+                        <span className="text-muted-foreground/60">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">

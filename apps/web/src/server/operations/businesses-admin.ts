@@ -42,6 +42,13 @@ const AdminBusinessItemSchema = BusinessAdminSchema.extend({
    *  plan_id is null (plan was deleted from under it — FK is
    *  onDelete: "set null"). Admin UI collapses both cases to "—". */
   latest_plan_name: z.string().nullable(),
+  /** Tier name of the currently active OR next-scheduled sponsorship
+   *  (whichever has the latest end_date). Null when the business has no
+   *  active/scheduled sponsorship, or when the tier row is missing
+   *  (LEFT JOIN — tier_id is onDelete: "set null"). */
+  latest_sponsorship_tier_name: z.string().nullable(),
+  latest_sponsorship_status: z.enum(["scheduled", "active"]).nullable(),
+  latest_sponsorship_end_date: z.string().nullable(),
   /** Resolved owner record via getBusinessOwnerLookup. null when
    *  owner_user_id is null OR when the referenced user has been
    *  deleted/anonymised (INNER JOIN drops those rows). */
@@ -145,6 +152,28 @@ export const listAllBusinessesAdminOp = defineOperation({
       ORDER BY bs.business_id, bs.end_date DESC
     `)
 
+    // Fetch the currently active OR next-scheduled sponsorship per
+    // business — expired/cancelled rows are filtered out so the admin
+    // Sponsorship column reflects live status, not history. Tie-break
+    // by latest end_date. LEFT JOIN sponsorship_tier because tier_id is
+    // onDelete: "set null".
+    const latestSponsorships = await db.execute<{
+      business_id: string
+      status: "scheduled" | "active"
+      end_date: string
+      tier_name: string | null
+    }>(sql`
+      SELECT DISTINCT ON (sp.business_id)
+        sp.business_id,
+        sp.status,
+        sp.end_date,
+        st.name AS tier_name
+      FROM sponsorship sp
+      LEFT JOIN sponsorship_tier st ON sp.tier_id = st.id
+      WHERE sp.status IN ('active', 'scheduled')
+      ORDER BY sp.business_id, sp.end_date DESC
+    `)
+
     // Pre-compute days_remaining server-side so the admin businesses
     // caption avoids the RSC/client Date.now() hydration drift that
     // renewal-queue-table.tsx works around with suppressHydrationWarning
@@ -155,6 +184,9 @@ export const listAllBusinessesAdminOp = defineOperation({
 
     const subMap = new Map(
       latestSubs.rows.map((r) => [r.business_id, r]),
+    )
+    const spMap = new Map(
+      latestSponsorships.rows.map((r) => [r.business_id, r]),
     )
 
     // Renewing filter: keep only businesses whose latest sub end_date falls
@@ -182,6 +214,7 @@ export const listAllBusinessesAdminOp = defineOperation({
 
     const allItemsWithOwner = filtered.map((b) => {
       const sub = subMap.get(b.id)
+      const sp = spMap.get(b.id)
       return {
         ...b,
         latest_payment_status: sub?.payment_status ?? null,
@@ -190,6 +223,9 @@ export const listAllBusinessesAdminOp = defineOperation({
           ? Math.ceil((new Date(sub.end_date).getTime() - nowMs) / DAY_MS)
           : null,
         latest_plan_name: sub?.plan_name ?? null,
+        latest_sponsorship_tier_name: sp?.tier_name ?? null,
+        latest_sponsorship_status: sp?.status ?? null,
+        latest_sponsorship_end_date: sp?.end_date ?? null,
         owner: ownerLookup.get(b.id) ?? null,
       }
     })
