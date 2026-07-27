@@ -17,6 +17,7 @@ import { MessageCircle, PhoneCall } from "lucide-react"
 import { Button } from "@aira/ui-web/button"
 import { AdminBadge, type AdminBadgeVariant } from "@/features/admin"
 import { EmptyState } from "@/lib/ui"
+import { cn } from "@aira/ui-web/utils"
 import type { FollowupQueueRow } from "@aira/validators/subscription-followups"
 import { FollowupModal } from "./followup-modal"
 import { expiryLabel } from "./expiry-label"
@@ -73,12 +74,30 @@ export function RenewalQueueTable({
               <th className="px-4 py-3 text-left font-semibold">Payment</th>
               <th className="px-4 py-3 text-left font-semibold">Expiry</th>
               <th className="px-4 py-3 text-left font-semibold">Last attempt</th>
+              <th className="px-4 py-3 text-left font-semibold">Next attempt</th>
               <th className="px-4 py-3 text-right font-semibold">Contact</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {items.map((row) => {
               const overdue = row.days_remaining < 0
+              // Row resolution bucket — matches the service-layer
+              // three-tier ordering CASE in
+              // packages/services/src/subscription-followups/queries.ts.
+              // Resolved rows (paid/refused) render dimmed with a
+              // "Resolved" badge; scheduled-future rows render dimmed
+              // with a "Scheduled" badge. On the default queue view
+              // these branches never fire (the inActiveQueue filter
+              // hides both categories); they only appear when
+              // ?showAll=1 flips the includeAll flag.
+              const resolved =
+                row.last_outcome === "paid" ||
+                row.last_outcome === "refused"
+              const scheduled =
+                !resolved &&
+                row.scheduled_next !== null &&
+                new Date(row.scheduled_next) > new Date()
+              const dim = resolved || scheduled
               return (
                 <tr
                   key={row.subscription_id}
@@ -92,7 +111,11 @@ export function RenewalQueueTable({
                   tabIndex={0}
                   role="button"
                   aria-label={`Open ${row.business_name}`}
-                  className="cursor-pointer hover:bg-muted/20 focus:bg-muted/30 focus:outline-none"
+                  suppressHydrationWarning
+                  className={cn(
+                    "cursor-pointer hover:bg-muted/20 focus:bg-muted/30 focus:outline-none",
+                    dim && "opacity-60",
+                  )}
                 >
                   <td className="px-4 py-3 font-medium">{row.business_name}</td>
                   <td className="px-4 py-3 text-muted-foreground">
@@ -122,9 +145,23 @@ export function RenewalQueueTable({
                     className="px-4 py-3 text-muted-foreground"
                     suppressHydrationWarning
                   >
-                    {row.last_outcome
-                      ? `${OUTCOME_LABEL[row.last_outcome]} · ${relativeTime(row.last_followup_at)}`
-                      : "—"}
+                    <span className="inline-flex items-center gap-2">
+                      {row.last_outcome
+                        ? `${OUTCOME_LABEL[row.last_outcome]} · ${relativeTime(row.last_followup_at)}`
+                        : "—"}
+                      {resolved && (
+                        <AdminBadge variant="archived" label="Resolved" />
+                      )}
+                      {scheduled && (
+                        <AdminBadge variant="pending" label="Scheduled" />
+                      )}
+                    </span>
+                  </td>
+                  <td
+                    className="px-4 py-3 text-muted-foreground"
+                    suppressHydrationWarning
+                  >
+                    {row.scheduled_next ? relativeTime(row.scheduled_next) : "—"}
                   </td>
                   <td
                     className="px-4 py-3 text-right"
