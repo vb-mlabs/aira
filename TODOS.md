@@ -111,3 +111,4 @@ env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.
 - [ ] Consolidate apps/mobile/lib/format-phone.ts + apps/web/src/lib/format-phone.ts into a shared package once a third consumer appears — *expo 2026-07-24-1832, 2026-07-24*
 - [ ] Verify /account/notification/[id] modal on real device — first ship, focus on presentation feel + Read all not clipping + +1 phone/WhatsApp display + tap-to-call routing — *expo 2026-07-24-1832, 2026-07-24*
 - [ ] Verify cross-tab back-nav on real device: Home → biz card → arrow back + bottom Go back both return to Home; Categories → sub → biz → back returns to sub — *expo 2026-07-24-2145, 2026-07-24*
+- [ ] Wire jest-expo (already in devDeps) as the mobile package's test runner so apps/mobile/lib/nav/__tests__/goBackTo.test.ts runs via pnpm test instead of the standalone vitest.config.ts trick; remove the standalone config once done — *fix 2026-07-27-1155-back-nav-cross-tab-nested, 2026-07-27*
