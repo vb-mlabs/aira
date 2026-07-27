@@ -5,6 +5,10 @@
 // (the first time) and from the always-visible account-hub row (manual
 // re-trigger). secure-store flags drive the pre-prompt gating in
 // app/(app)/_layout.tsx.
+//
+// Counterpart: apps/mobile/lib/notification-tap.ts —
+// installNotificationHandlers() runs once at app root and handles
+// foreground behaviour + tap-to-open routing for incoming pushes.
 
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";

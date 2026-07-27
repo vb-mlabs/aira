@@ -9,6 +9,7 @@ import { ToastProvider } from "../components/ui/Toast";
 import { DrawerProvider } from "../components/nav/DrawerProvider";
 import { AppDrawer } from "../components/nav/AppDrawer";
 import { useAppFonts } from "../lib/fonts";
+import { installNotificationHandlers } from "../lib/notification-tap";
 import "../global.css";
 
 // Keep the splash up until fonts (Geist) finish loading. Pass-4 design spec
@@ -37,6 +38,14 @@ export default function RootLayout() {
       });
     }
   }, [fontsLoaded]);
+
+  // Push notification foreground behaviour + tap-to-open wiring.
+  // Installed once at root — returns a cleanup fn but production
+  // never calls it (the listener lives for the app's lifetime).
+  // See apps/mobile/lib/notification-tap.ts for the full trace.
+  React.useEffect(() => {
+    return installNotificationHandlers();
+  }, []);
 
   return (
     <SafeAreaProvider>
