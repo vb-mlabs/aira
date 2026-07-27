@@ -279,7 +279,11 @@ function CategoryGroup({ root, subs, isActive }: CategoryGroupProps) {
               key={sub.id}
               href={`/listings/${sub.slug}`}
               className={cn(
-                "flex items-center gap-3 border-b border-sidebar-border py-2 pl-12 pr-5 text-xs transition-[filter] text-sponsored-mid-foreground hover:brightness-95",
+                // Match the parent row's height + font size so the
+                // submenu reads as a first-class list, not a footnote.
+                // Parent rows use `py-2.5 text-sm`; sub-items keep the
+                // deeper pl-12 indent so the hierarchy still reads.
+                "flex items-center gap-3 border-b border-sidebar-border py-2.5 pl-12 pr-5 text-sm transition-[filter] text-sponsored-mid-foreground hover:brightness-95",
                 childActive && "font-bold",
               )}
               // Same tier2-texture the mid-slot "Sponsored" section
