@@ -57,7 +57,7 @@ export default async function AdminRenewalsPage({ searchParams }: PageProps) {
       <AdminPageHeader title="Renewals" subtitle={subtitle} />
 
       <Suspense>
-        <WindowChips current={withinDays} />
+        <WindowChips current={withinDays} showAll={false} />
       </Suspense>
 
       <RenewalQueueTable
