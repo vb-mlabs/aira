@@ -55,19 +55,21 @@ export type FollowupQueueRow = z.infer<typeof FollowupQueueRowSchema>;
 
 /** GET /api/v1/admin/renewals/queue.
  *
- *  `includeAll` uses a `z.enum(["0","1"]).transform(...)` rather than
- *  `z.coerce.boolean()` because the latter parses ANY non-empty string
- *  as truthy (including "false", "0", "no"). The chip on the page emits
- *  exactly `1` on active state and drops the param on inactive; the
- *  enum accepts precisely that. Matches the `?archived=1` idiom in
- *  apps/web/src/app/admin/businesses/page.tsx. */
+ *  `includeAll` accepts either the URL-shape enum (`"0" | "1"`, which
+ *  comes off `?showAll=1` on the page's <Link> chips) OR a raw boolean
+ *  (which is what the RSC path passes via `apiServerFetch`'s JSON body).
+ *  Both branches normalize to a boolean via `transform`. Chose union
+ *  over `z.coerce.boolean()` because the latter treats ANY non-empty
+ *  string as truthy — including "false", "0", "no" — which would silently
+ *  invert the intended semantic. Matches the `?archived=1` idiom in
+ *  apps/web/src/app/admin/businesses/page.tsx for the URL side. */
 export const FollowupQueueInputSchema = z
   .object({
     withinDays: z.coerce.number().int().min(1).max(365).optional(),
     includeAll: z
-      .enum(["0", "1"])
+      .union([z.enum(["0", "1"]), z.boolean()])
       .optional()
-      .transform((v) => v === "1"),
+      .transform((v) => v === "1" || v === true),
   })
   .strict();
 export type FollowupQueueInput = z.infer<typeof FollowupQueueInputSchema>;
