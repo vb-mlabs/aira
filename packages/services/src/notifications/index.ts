@@ -21,3 +21,10 @@ export type {
 
 export { sendPushBroadcast } from "./push"
 export type { SendPushBroadcastOptions } from "./push"
+
+export { sendPushToUser } from "./push-to-user"
+export type {
+  SendPushToUserMessage,
+  SendPushToUserOptions,
+  SendPushToUserResult,
+} from "./push-to-user"
