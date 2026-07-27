@@ -33,6 +33,7 @@ import type { City } from "@aira/validators/cities"
 import { ArchiveControl } from "./archive-control"
 import { BusinessOwnerSection } from "./business-owner-section"
 import { FeatureImageControl } from "./feature-image-section"
+import { LogoControl } from "./logo-control"
 import { GalleryControl } from "./gallery-section"
 import { PlacesAddressInput } from "./places-address-input"
 import { SubscriptionsSection } from "./subscriptions-section"
@@ -812,9 +813,15 @@ function CoreFieldsPreview({
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
-      {/* Feature image — direct upload / replace / delete. The control
-          owns its own POST/DELETE + router.refresh(); no modal needed. */}
-      <div className="w-full sm:w-56 sm:flex-shrink-0">
+      {/* Logo (square identity mark) stacked over Feature image
+          (landscape hero). Logo drives the card avatar on web + mobile;
+          feature image drives the detail-page hero. Each control owns
+          its own POST/DELETE + router.refresh(); no modals from here. */}
+      <div className="flex w-full flex-col gap-4 sm:w-56 sm:flex-shrink-0">
+        <LogoControl
+          businessId={business.id}
+          logoUrl={business.logo_url}
+        />
         <FeatureImageControl
           businessId={business.id}
           imageUrl={business.image_url}
