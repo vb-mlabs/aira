@@ -231,13 +231,20 @@ export function ListingView({
           />
         ) : (
           (() => {
-            const { sponsored, regular } = bucketBySlot(items)
+            const { top, mid, regular } = bucketBySlot(items)
             return (
               <div className="space-y-6">
                 <SlotSection
                   label="Sponsored"
                   texture="/textures/tier1-texture.webp"
-                  businesses={sponsored}
+                  businesses={top}
+                  isSignedIn={isSignedIn}
+                  favIds={favIdSet}
+                />
+                <SlotSection
+                  label="Sponsored"
+                  texture="/textures/tier2-texture.webp"
+                  businesses={mid}
                   isSignedIn={isSignedIn}
                   favIds={favIdSet}
                 />

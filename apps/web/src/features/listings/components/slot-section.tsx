@@ -2,23 +2,30 @@ import { Leaf } from "lucide-react"
 import type { Business } from "@aira/validators/businesses"
 import { BusinessCard } from "./business-card"
 
-// Two user-facing sections on category listing pages:
+// Three user-facing sections on category listing pages — matches the
+// mobile app's SlotSection layout (2026-07-27 alignment):
 //
-//   Sponsored — businesses whose sponsorship_tier.display_slot is 'top'
-//               or 'mid'. Renders top-slot cards first (sponsoredTop token
-//               pair via `data-slot="top"` -> card chrome), mid-slot after.
-//   Regular   — everyone else: sponsored-with-regular-slot businesses
-//               (rendered first inside the section, no distinguishing color)
-//               plus unsponsored businesses.
+//   Sponsored (top) — sponsorship_tier.display_slot === 'top',
+//                     tier1-texture header (olive green).
+//   Sponsored (mid) — sponsorship_tier.display_slot === 'mid',
+//                     tier2-texture header (burnt orange). Both this
+//                     and the top section carry the same "Sponsored"
+//                     label; the texture is the entire within-Sponsored
+//                     hierarchy cue.
+//   Regular         — sponsored_slot === 'regular' or NULL
+//                     (unsponsored), tier3-texture. Sponsored-with-
+//                     regular-slot businesses render first inside this
+//                     section, no distinguishing color.
 //
-// Textures preserved from the old TierSection component — the tier1-texture
-// still labels the Sponsored header, the tier3-texture still labels
-// Regular. Users never see "Level 2" or "Top" / "Mid" as labels; the
-// within-Sponsored differentiation is entirely color/chrome on the card.
+// Users never see "Level 2" or "Top" / "Mid" as text; header texture +
+// per-card chrome carry the whole visual hierarchy.
 
 interface SlotSectionProps {
   label: "Sponsored" | "Regular"
-  texture: "/textures/tier1-texture.webp" | "/textures/tier3-texture.webp"
+  texture:
+    | "/textures/tier1-texture.webp"
+    | "/textures/tier2-texture.webp"
+    | "/textures/tier3-texture.webp"
   businesses: Business[]
   isSignedIn?: boolean
   favIds?: ReadonlySet<string>
@@ -66,26 +73,28 @@ export function SlotSection({
 
 /**
  * Bucket a flat, ordered list of businesses (already sorted by the
- * getBusinessesByCategory* queries) into the two user-facing sections.
+ * getBusinessesByCategory* queries) into three user-facing sections
+ * — mirrors apps/mobile/features/listings/components/SlotSection.tsx.
  *
- * Sponsored = sponsored_slot === 'top' or 'mid'.
- * Regular   = sponsored_slot === 'regular' OR null (unsponsored).
+ * top     = sponsored_slot === 'top'
+ * mid     = sponsored_slot === 'mid'
+ * regular = sponsored_slot === 'regular' OR null (unsponsored)
  *
- * Within Sponsored the input order is preserved — the query already
- * sorted top before mid, and within each slot by tier priority + amount.
+ * Within each bucket the input order is preserved — the query already
+ * sorted by tier priority + amount within a slot.
  */
 export function bucketBySlot(items: Business[]): {
-  sponsored: Business[]
+  top: Business[]
+  mid: Business[]
   regular: Business[]
 } {
-  const sponsored: Business[] = []
+  const top: Business[] = []
+  const mid: Business[] = []
   const regular: Business[] = []
   for (const b of items) {
-    if (b.sponsored_slot === "top" || b.sponsored_slot === "mid") {
-      sponsored.push(b)
-    } else {
-      regular.push(b)
-    }
+    if (b.sponsored_slot === "top") top.push(b)
+    else if (b.sponsored_slot === "mid") mid.push(b)
+    else regular.push(b)
   }
-  return { sponsored, regular }
+  return { top, mid, regular }
 }
