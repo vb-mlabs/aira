@@ -29,7 +29,7 @@ export default async function CategoriesPage() {
           Categories
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Browse trusted Indian businesses by category
+          Browse trusted South Asian businesses by category
         </p>
       </header>
 

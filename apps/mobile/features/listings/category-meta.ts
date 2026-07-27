@@ -18,7 +18,7 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   restaurants: {
     slug: "restaurants",
     displayName: "Restaurants",
-    description: "Authentic flavours from across India",
+    description: "Authentic flavours from across South Asia",
     iconName: "silverware-fork-knife",
   },
   education: {

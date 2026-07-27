@@ -10,8 +10,8 @@ import { MarketingNav } from "@/components/marketing/marketing-nav"
 import { PhoneShowcase } from "@/components/marketing/phone-showcase"
 import { generateMetadata as buildMetadata } from "@/config/seo"
 
-const PAGE_TITLE = `${brand.name} — Atlanta's Indian business directory, curated with care`
-const PAGE_DESCRIPTION = `${brand.name} is a hand-curated directory of trusted Indian-owned businesses across metro Atlanta. Operated by ${brand.legalEntity}. Launching soon — get notified.`
+const PAGE_TITLE = `${brand.name} — Atlanta's South Asian business directory, curated with care`
+const PAGE_DESCRIPTION = `${brand.name} is a hand-curated directory of trusted South Asian-owned businesses across metro Atlanta. Operated by ${brand.legalEntity}. Launching soon — get notified.`
 
 export const metadata = buildMetadata({
   title: PAGE_TITLE,
@@ -24,7 +24,7 @@ export const metadata = buildMetadata({
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: `${brand.name} — Atlanta's Indian business directory`,
+        alt: `${brand.name} — Atlanta's South Asian business directory`,
       },
     ],
     type: "website",

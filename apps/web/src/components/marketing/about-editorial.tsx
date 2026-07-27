@@ -42,7 +42,7 @@ export function AboutEditorial() {
             <p className="text-lg leading-[1.75] text-foreground">
               We started in Atlanta because that&rsquo;s where Nisarga began.
               We&rsquo;re staying small on purpose. Trusted neighborhoods take
-              time to build, and the Indian community in Atlanta is one of
+              time to build, and the South Asian community in Atlanta is one of
               those neighborhoods.
             </p>
             <p className="text-lg leading-[1.75] text-foreground">

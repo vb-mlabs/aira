@@ -45,7 +45,7 @@ export function BusinessPanel() {
           <h2 className="mt-4 font-display text-5xl font-bold leading-[1.05] text-brand-cream-bright md:text-[68px]">
             List your business{" "}
             <em className="font-bold italic text-brand-gold">
-              where Atlanta&rsquo;s Indian community looks first.
+              where Atlanta&rsquo;s South Asian community looks first.
             </em>
           </h2>
           <p className="mt-6 text-[21px] font-medium leading-[1.55] text-brand-cream-bright">

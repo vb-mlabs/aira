@@ -57,9 +57,9 @@ export const brand = {
   // both surfaces render a real number. Forks that want a static override
   // can wrap the fetch in their own branch — none in-template do.
   homepage: {
-    aboutTitle: "Atlanta's Indian business directory, curated with care",
+    aboutTitle: "Atlanta's South Asian business directory, curated with care",
     aboutBody:
-      "AIRA is Atlanta's premier community directory connecting the Indian community with local Indian businesses, services, and resources.",
+      "AIRA is Atlanta's premier community directory connecting the South Asian community with local South Asian businesses, services, and resources.",
   },
 } as const
 
