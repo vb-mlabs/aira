@@ -30,11 +30,19 @@ export default async function HomePage() {
   const session = await getSession()
   const isSignedIn = !!session
 
+  const showStats = brand.homepage.showStatCards
+
   const [featuredRes, bizCountRes, memberCountRes, favIdsRes] =
     await Promise.all([
       apiServerFetch(listBusinessesOp, { input: { featured: true, limit: 5 } }),
-      apiServerFetch(countActiveBusinessesOp, { input: {} }),
-      apiServerFetch(countCommunityMembersOp, { input: {} }),
+      // Skip the count round-trips entirely when the stat cards are hidden —
+      // no point paying for two SELECT count(*)s the UI won't render.
+      showStats
+        ? apiServerFetch(countActiveBusinessesOp, { input: {} })
+        : Promise.resolve(null),
+      showStats
+        ? apiServerFetch(countCommunityMembersOp, { input: {} })
+        : Promise.resolve(null),
       // Skip the user-scoped fetch entirely when anonymous — the cards just
       // render without a heart.
       isSignedIn
@@ -43,9 +51,9 @@ export default async function HomePage() {
     ])
 
   const featured = featuredRes.data?.items ?? []
-  const bizCount = bizCountRes.data?.count ?? 0
+  const bizCount = bizCountRes?.data?.count ?? 0
   const bizCountDisplay = bizCount > 0 ? `${bizCount}+` : "—"
-  const memberCount = memberCountRes.data?.count ?? 0
+  const memberCount = memberCountRes?.data?.count ?? 0
   const memberCountDisplay = memberCount > 0 ? `${memberCount}+` : "—"
   const favIds = new Set(favIdsRes?.data?.ids ?? [])
 
@@ -77,10 +85,12 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="mx-auto mt-8 grid max-w-md grid-cols-2 gap-4">
-        <StatCard value={bizCountDisplay} label="Businesses Listed" />
-        <StatCard value={memberCountDisplay} label="Community Members" />
-      </section>
+      {showStats && (
+        <section className="mx-auto mt-8 grid max-w-md grid-cols-2 gap-4">
+          <StatCard value={bizCountDisplay} label="Businesses Listed" />
+          <StatCard value={memberCountDisplay} label="Community Members" />
+        </section>
+      )}
 
       {featured.length > 0 && (
         <section className="mt-12">

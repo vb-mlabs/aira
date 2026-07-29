@@ -93,27 +93,31 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Stats */}
-        <View className="mt-8 flex-row" style={{ gap: 12 }}>
-          {bizCountQ.isLoading || memberCountQ.isLoading ? (
-            <>
-              <View className="flex-1">
-                <Skeleton width="100%" height={70} borderRadius={12} />
-              </View>
-              <View className="flex-1">
-                <Skeleton width="100%" height={70} borderRadius={12} />
-              </View>
-            </>
-          ) : (
-            <>
-              <StatCard value={bizCountDisplay} label="Businesses Listed" />
-              <StatCard
-                value={memberCountDisplay}
-                label="Community Members"
-              />
-            </>
-          )}
-        </View>
+        {/* Stats — gated by brand.homepage.showStatCards (off until the
+            counts feel like social proof; target: 100+ listings). Flip in
+            packages/config/src/brand.ts, then OTA. */}
+        {brand.homepage.showStatCards && (
+          <View className="mt-8 flex-row" style={{ gap: 12 }}>
+            {bizCountQ.isLoading || memberCountQ.isLoading ? (
+              <>
+                <View className="flex-1">
+                  <Skeleton width="100%" height={70} borderRadius={12} />
+                </View>
+                <View className="flex-1">
+                  <Skeleton width="100%" height={70} borderRadius={12} />
+                </View>
+              </>
+            ) : (
+              <>
+                <StatCard value={bizCountDisplay} label="Businesses Listed" />
+                <StatCard
+                  value={memberCountDisplay}
+                  label="Community Members"
+                />
+              </>
+            )}
+          </View>
+        )}
 
         {/* Featured Businesses — hidden when empty (matches web behavior) */}
         {featuredItems.length > 0 ? (
