@@ -19,6 +19,16 @@ export const brand = {
   // falls back to the console driver (see packages/email/src/index.ts).
   supportEmail: "support@airabynisarga.com",
   socialHandle: "@airabynisarga",
+
+  // Social profile URLs. Rendered in the app sidebar Contact strip on
+  // both web + mobile and in the marketing footer. When these change,
+  // edit once here — no per-surface duplication.
+  socials: {
+    instagram: "https://www.instagram.com/airabynisarga?igsh=b2wweTEybW95aTg1",
+    facebook: "https://www.facebook.com/share/19DWYyxsJr/?mibextid=LQQJ4d",
+    linkedin: "https://www.linkedin.com/company/nisarga-group/",
+  },
+
   legalEntity: "Nisarga Group LLC",
   // Shortened parent-entity display used in auth shell footer ("AIRA by
   // Nisarga") and the marketing nav. Compose with brand.name as
@@ -60,6 +70,11 @@ export const brand = {
     aboutTitle: "Atlanta's South Asian business directory, curated with care",
     aboutBody:
       "AIRA is Atlanta's premier community directory connecting the South Asian community with local South Asian businesses, services, and resources.",
+    // Businesses Listed + Community Members stat cards. Off until the
+    // counts are large enough to feel like social proof (target: 100+
+    // listings). Flip to true when ready; both web + mobile read this
+    // flag, so no per-surface toggle to keep in sync.
+    showStatCards: false,
   },
 } as const
 
