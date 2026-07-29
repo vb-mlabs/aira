@@ -28,6 +28,28 @@ const nextConfig = {
   // @aira/db (or any other workspace dep) with `Cannot find module`.
   outputFileTracingRoot: path.join(__dirname, "../.."),
 
+  // Sharp is a native module — Next's Turbopack bundler doesn't automatically
+  // include the sibling `@img/sharp-libvips-*/lib/libvips-cpp.so.*` shared
+  // object at runtime, so the standalone build 500s with
+  // `ERR_DLOPEN_FAILED: libvips-cpp.so.<v>: cannot open shared object file`
+  // on any code path that imports sharp (avatar upload, business logo,
+  // payment evidence pipelines). Two-part fix:
+  //   1. Mark sharp as external so it's `require()`d from node_modules
+  //      rather than bundled into a Turbopack chunk.
+  //   2. Explicitly trace the native platform packages into standalone —
+  //      the tracer skips the 18MB .so file by default.
+  // Sharp's platform detection at runtime picks the right one, so tracing
+  // both glibc + musl variants keeps the deploy portable across images.
+  serverExternalPackages: ["sharp"],
+  outputFileTracingIncludes: {
+    "**/*": [
+      "../../node_modules/@img/sharp-linux-x64/**/*",
+      "../../node_modules/@img/sharp-linuxmusl-x64/**/*",
+      "../../node_modules/@img/sharp-libvips-linux-x64/**/*",
+      "../../node_modules/@img/sharp-libvips-linuxmusl-x64/**/*",
+    ],
+  },
+
   // Allow dev-time cross-origin requests from local + Replit preview hosts.
   // Next.js 16 blocks cross-origin dev requests by default; without these
   // the *.replit.dev preview iframe shows CORS warnings on every HMR ping.
