@@ -35,7 +35,13 @@ export interface CreateTemplatesOptions {
 
 export interface EmailTemplates {
   sendVerifyEmail: (
-    opts: BaseSendOpts & { name: string; verifyUrl: string },
+    opts: BaseSendOpts & {
+      name: string
+      verifyUrl: string
+      /** Minutes until verifyUrl stops working. Rendered as an "expires
+       *  in X" line in the email so users know how long they have. */
+      expiresInMinutes?: number
+    },
   ) => Promise<void>
   sendPasswordResetEmail: (
     opts: BaseSendOpts & {
@@ -79,11 +85,13 @@ export function createTemplates({
 
   return {
     async sendVerifyEmail(opts) {
+      const expiresInMinutes = opts.expiresInMinutes ?? 120
       const tree = (
         <VerifyEmail
           {...layoutChrome}
           name={opts.name}
           verifyUrl={opts.verifyUrl}
+          expiresInMinutes={expiresInMinutes}
         />
       )
       const [html, text] = await Promise.all([
@@ -100,7 +108,7 @@ export function createTemplates({
     },
 
     async sendPasswordResetEmail(opts) {
-      const expiresInMinutes = opts.expiresInMinutes ?? 60
+      const expiresInMinutes = opts.expiresInMinutes ?? 120
       const tree = (
         <PasswordResetEmail
           {...layoutChrome}

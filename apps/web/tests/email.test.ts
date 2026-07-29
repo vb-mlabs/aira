@@ -53,7 +53,7 @@ describe("sendVerifyEmail", () => {
 })
 
 describe("sendPasswordResetEmail", () => {
-  it("renders password reset with default 60-minute expiry", async () => {
+  it("renders password reset with default 2-hour expiry", async () => {
     const { driver, calls } = recordingDriver()
     _setDriverForTesting(driver)
 
@@ -66,9 +66,10 @@ describe("sendPasswordResetEmail", () => {
     const args = calls[0]!
     expect(args.subject).toBe(`Reset your ${brand.name} password`)
     expect(args.html).toContain("https://app.example.com/reset?token=xyz")
-    // React Email interleaves text nodes with HTML comments, so check
-    // plaintext for the literal "60 minutes" phrase.
-    expect(args.text).toContain("60 minutes")
+    // Whole-hour values render as "X hours" (see formatExpiry in
+    // password-reset.tsx). React Email interleaves text nodes with HTML
+    // comments, so check plaintext for the literal phrase.
+    expect(args.text).toContain("2 hours")
   })
 
   it("respects custom expiresInMinutes", async () => {

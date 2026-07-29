@@ -34,6 +34,7 @@ export default async function DevEmailsPage() {
           {...layoutChrome}
           name="Alice"
           verifyUrl="https://app.example.com/verify-email?token=demo-token"
+          expiresInMinutes={120}
         />,
       ),
     },
@@ -45,7 +46,7 @@ export default async function DevEmailsPage() {
           {...layoutChrome}
           name="Bob"
           resetUrl="https://app.example.com/reset?token=demo-token"
-          expiresInMinutes={60}
+          expiresInMinutes={120}
         />,
       ),
     },

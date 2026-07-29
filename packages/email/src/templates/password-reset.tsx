@@ -24,19 +24,20 @@ export function PasswordResetEmail({
   expiresInMinutes,
 }: PasswordResetEmailProps) {
   const greeting = name?.trim() ? name : "there"
+  const expiryLabel = formatExpiry(expiresInMinutes)
   return (
     <Layout
       brandName={brandName}
       supportEmail={supportEmail}
       legalEntity={legalEntity}
-      preview={`Reset your ${brandName} password (expires in ${expiresInMinutes} min)`}
+      preview={`Reset your ${brandName} password (expires in ${expiryLabel})`}
     >
       <Text style={{ margin: "0 0 16px 0" }}>Hi {greeting},</Text>
 
       <Text style={{ margin: "0 0 24px 0" }}>
         We received a request to reset the password for your {brandName}{" "}
         account. Tap the button below to choose a new one. This link expires
-        in {expiresInMinutes} minutes.
+        in {expiryLabel}.
       </Text>
 
       <Section style={{ padding: "8px 0 24px 0" }}>
@@ -75,4 +76,14 @@ export function PasswordResetEmail({
       </Text>
     </Layout>
   )
+}
+
+// "120" → "2 hours"; "60" → "1 hour"; "45" → "45 minutes". Whole-hour
+// values read more naturally as hours in the copy.
+function formatExpiry(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) {
+    const hours = minutes / 60
+    return `${hours} ${hours === 1 ? "hour" : "hours"}`
+  }
+  return `${minutes} minutes`
 }

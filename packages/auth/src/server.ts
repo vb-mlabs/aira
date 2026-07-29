@@ -18,6 +18,13 @@ import { createBanCheckHook } from "./hooks/ban-check"
 import { createSuperAdminBootstrapHook } from "./hooks/super-admin-bootstrap"
 import { rewriteAuthEmailUrl } from "./rewrite-auth-email-url"
 
+// TTL for every email-borne auth token (signup verify, password reset,
+// change-email confirm). One constant so the enforcement value on the
+// Better Auth config and the "expires in X" copy in the email templates
+// stay tied together — bump here and both move as a pair.
+export const EMAIL_LINK_TTL_MINUTES = 120
+const EMAIL_LINK_TTL_SECONDS = EMAIL_LINK_TTL_MINUTES * 60
+
 export interface AuthLogger {
   info: (message: string, meta?: Record<string, unknown>) => void
   warn: (message: string, meta?: Record<string, unknown>) => void
@@ -28,11 +35,18 @@ export interface AuthEmailSender {
     to: string
     name: string
     verifyUrl: string
+    /** Minutes until the token in verifyUrl stops working. Used only to
+     *  render the "expires in X" line in the email copy — the actual
+     *  server-side TTL is set on the Better Auth config below. */
+    expiresInMinutes: number
   }) => Promise<void>
   sendPasswordResetEmail: (opts: {
     to: string
     name: string
     resetUrl: string
+    /** Minutes until the token in resetUrl stops working. Same role as
+     *  on sendVerifyEmail — copy only, not enforcement. */
+    expiresInMinutes: number
   }) => Promise<void>
 }
 
@@ -108,6 +122,11 @@ export function createAuth({
       enabled: true,
       requireEmailVerification: true,
       minPasswordLength: 8,
+      // 2h reset token — a full-hour default (Better Auth's baseline) was
+      // reported as too short by users who came back to the email later.
+      // Single source of truth: bump this and the email copy follows via
+      // EMAIL_LINK_TTL_MINUTES below.
+      resetPasswordTokenExpiresIn: EMAIL_LINK_TTL_SECONDS,
       sendResetPassword: async ({ user, url }) => {
         // Rewrite Better Auth's API-prefixed URL so iOS Universal Links
         // (`/reset-password*`) can catch the tap on-device. See
@@ -116,6 +135,7 @@ export function createAuth({
           to: user.email,
           name: user.name,
           resetUrl: rewriteAuthEmailUrl(url),
+          expiresInMinutes: EMAIL_LINK_TTL_MINUTES,
         })
       },
     },
@@ -123,6 +143,10 @@ export function createAuth({
     emailVerification: {
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
+      // Matches resetPasswordTokenExpiresIn above — one TTL for every
+      // email-borne token so the copy in both templates never diverges
+      // from the actual server-side lifetime.
+      expiresIn: EMAIL_LINK_TTL_SECONDS,
       sendVerificationEmail: async ({ user, url }) => {
         // Rewrite to /verify-email so Universal Links can catch the tap
         // on-device. See rewrite-auth-email-url.ts.
@@ -130,6 +154,7 @@ export function createAuth({
           to: user.email,
           name: user.name,
           verifyUrl: rewriteAuthEmailUrl(url),
+          expiresInMinutes: EMAIL_LINK_TTL_MINUTES,
         })
       },
     },
@@ -164,11 +189,14 @@ export function createAuth({
         sendChangeEmailConfirmation: async ({ user, url }) => {
           // Same rewrite as sendVerificationEmail — change-email reuses
           // Better Auth's verify token pattern so the URL shape and
-          // Universal Link concern are identical.
+          // Universal Link concern are identical. Token TTL is governed
+          // by emailVerification.expiresIn set above, so the copy uses
+          // the same constant.
           await email.sendVerifyEmail({
             to: user.email,
             name: user.name,
             verifyUrl: rewriteAuthEmailUrl(url),
+            expiresInMinutes: EMAIL_LINK_TTL_MINUTES,
           })
         },
       },
