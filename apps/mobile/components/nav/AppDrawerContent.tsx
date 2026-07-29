@@ -197,7 +197,15 @@ export function AppDrawerContent() {
         >
           Contact Us
         </Text>
-        <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
           <FooterIconButton
             icon="email-outline"
             accessibilityLabel="Email support"
@@ -209,6 +217,21 @@ export function AppDrawerContent() {
             icon="web"
             accessibilityLabel={`${brand.legalEntity} website`}
             onPress={() => void Linking.openURL(NISARGA_WEBSITE_URL)}
+          />
+          <FooterIconButton
+            icon="instagram"
+            accessibilityLabel={`${brand.name} on Instagram`}
+            onPress={() => void Linking.openURL(brand.socials.instagram)}
+          />
+          <FooterIconButton
+            icon="facebook"
+            accessibilityLabel={`${brand.legalEntity} on Facebook`}
+            onPress={() => void Linking.openURL(brand.socials.facebook)}
+          />
+          <FooterIconButton
+            icon="linkedin"
+            accessibilityLabel={`${brand.legalEntity} on LinkedIn`}
+            onPress={() => void Linking.openURL(brand.socials.linkedin)}
           />
         </View>
         <Text
