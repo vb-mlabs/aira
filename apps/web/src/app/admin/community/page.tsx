@@ -58,7 +58,15 @@ export default async function AdminCommunityPage({
         subtitle={`${counts.pending} pending · ${counts.approved} approved · ${counts.expired} expired · ${counts.rejected} rejected`}
       />
       <StatusFilter currentStatus={status} counts={counts} />
-      <CommunityTable items={items} currentStatus={status} />
+      {/* key= remounts the table when the filter changes so its useState
+          re-initialises with the newly-fetched items. Without this, the
+          client component keeps its first-mount snapshot forever and the
+          table doesn't respond to ?status= navigation. */}
+      <CommunityTable
+        key={status}
+        items={items}
+        currentStatus={status}
+      />
     </div>
   )
 }
