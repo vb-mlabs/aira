@@ -239,9 +239,11 @@ export default function AccountScreen() {
         destructive
         onConfirm={async () => {
           await signOut.mutateAsync();
-          // useSignOut's onSuccess calls qc.clear(), which flips useMe()
-          // to undefined; the (app) gate at _layout.tsx then redirects to
-          // /(auth)/welcome. One source of redirection truth.
+          // useSignOut's onSettled resets the query cache AND imperatively
+          // router.replace("/(auth)/welcome") — the gate at (app)/_layout
+          // is a safety net but no longer the sole navigation trigger, so
+          // cookie-residue / cache-timing quirks can't leave the user
+          // stuck on the account screen.
         }}
       />
       <Dialog

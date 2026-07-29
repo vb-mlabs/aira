@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
 import {
   signUpRequest,
   loginRequest,
@@ -55,13 +56,26 @@ export function useSignOut() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: signOutRequest,
-    // resetQueries (not clear) so active QueryObservers — notably the
-    // useMe() in (app)/_layout.tsx that owns the auth gate — actually get
-    // notified. queryClient.clear() destroys queries silently, leaving
-    // stale observer snapshots and the gate stuck rendering the tabs.
-    // onSettled (not onSuccess) covers the offline / server-5xx branch:
-    // signOutRequest's finally already wiped local tokens, so we still
-    // want the gate to flip regardless of the network outcome.
-    onSettled: () => qc.resetQueries(),
+    onSettled: () => {
+      // resetQueries (not clear) so active QueryObservers — notably the
+      // useMe() in (app)/_layout.tsx that owns the auth gate — actually
+      // get notified. queryClient.clear() destroys queries silently,
+      // leaving stale observer snapshots and the gate stuck rendering
+      // the tabs. onSettled (not onSuccess) covers the offline /
+      // server-5xx branch: signOutRequest's finally already wiped local
+      // tokens, so we still want the cache flushed regardless of the
+      // network outcome.
+      qc.resetQueries();
+      // Belt-and-braces navigation. The (app) gate flipping via useMe →
+      // error → Redirect IS the primary mechanism, but it's failed for
+      // real users in the wild — notably on iOS where NSURLSession
+      // caches the session cookie set at sign-in and continues sending
+      // it after clearTokens(), keeping /get-session's response valid
+      // and the gate happy. Imperative router.replace guarantees the
+      // navigation regardless of any client-side cookie residue or race
+      // in the reset → refetch → gate chain. Safe if the user is
+      // already off (app); expo-router no-ops the navigation.
+      router.replace("/(auth)/welcome");
+    },
   });
 }
