@@ -1,16 +1,21 @@
 import * as React from "react";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Linking, Platform, Pressable, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { AuthShell } from "../../components/AuthShell";
 import { Button } from "../../components/ui/Button";
 import { useResendVerify } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
 
-const RESEND_COOLDOWN_SEC = 30;
+const RESEND_COOLDOWN_SEC = 60;
 
 /**
  * Post-signup screen — "We sent a link to {email}. Tap it on this phone to
- * continue." + Open Mail button + Resend after a 30s cooldown.
+ * continue." + Open Mail button + Resend after a 60s cooldown.
+ *
+ * Cooldown throttles the Resend button only — the verification link itself
+ * is valid for 2 hours (see EMAIL_LINK_TTL_MINUTES in
+ * packages/auth/src/server.ts). Users have historically confused this
+ * countdown with the link expiry; keep them separate mentally.
  */
 export default function CheckEmailScreen() {
   const params = useLocalSearchParams<{ email?: string }>();
@@ -36,10 +41,40 @@ export default function CheckEmailScreen() {
     }
   };
 
-  const openMail = () => {
-    Linking.openURL("message://").catch(() => {
-      toast.show({ message: "No mail app installed", kind: "error" });
-    });
+  const openMail = async () => {
+    // Try native mail apps in preference order, then fall back to Gmail
+    // web. `Linking.openURL` throws when the scheme has no handler, so a
+    // try/catch loop lets us walk the list without needing
+    // LSApplicationQueriesSchemes in Info.plist — keeps this change
+    // OTA-eligible instead of forcing a store rebuild.
+    //
+    // Not using mailto: — it opens a compose screen, not the inbox, so
+    // it's the wrong intent right after signup ("check your email").
+    const candidates =
+      Platform.OS === "ios"
+        ? [
+            "message://",       // Apple Mail
+            "googlegmail://",   // Gmail
+            "ms-outlook://",    // Outlook
+            "ymail://",         // Yahoo Mail
+          ]
+        : ["googlegmail://"];   // Android: Gmail app registers this scheme
+
+    for (const url of candidates) {
+      try {
+        await Linking.openURL(url);
+        return;
+      } catch {
+        // scheme not handled on this device — try the next candidate
+      }
+    }
+
+    // Ultimate fallback: Gmail on the web. Every device has a browser.
+    try {
+      await Linking.openURL("https://mail.google.com");
+    } catch {
+      toast.show({ message: "Couldn't open a mail app", kind: "error" });
+    }
   };
 
   return (
