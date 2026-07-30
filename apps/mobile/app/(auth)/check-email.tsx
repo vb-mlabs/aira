@@ -47,11 +47,18 @@ export default function CheckEmailScreen() {
   };
 
   const openMail = async () => {
-    // Try native mail apps in preference order, then fall back to Gmail
-    // web. `Linking.openURL` throws when the scheme has no handler, so a
-    // try/catch loop lets us walk the list without needing
-    // LSApplicationQueriesSchemes in Info.plist — keeps this change
-    // OTA-eligible instead of forcing a store rebuild.
+    // iOS: walk native mail-app schemes in preference order. try/catch
+    // on Linking.openURL sidesteps LSApplicationQueriesSchemes, keeping
+    // this OTA-eligible.
+    //
+    // Android: JS cannot launch a specific app from Linking.openURL —
+    // RN's IntentModule uses Uri.parse (not Intent.parseUri) so
+    // `intent://` URIs aren't recognized, and Linking.sendIntent can't
+    // set a package/category. We fall through to Gmail web in a browser.
+    // Real Gmail-app launch needs expo-intent-launcher (native dep) —
+    // deferred to the next native build. Button label below is
+    // platform-conditional so Android users aren't surprised by the
+    // browser-fallback.
     //
     // Not using mailto: — it opens a compose screen, not the inbox, so
     // it's the wrong intent right after signup ("check your email").
@@ -63,7 +70,7 @@ export default function CheckEmailScreen() {
             "ms-outlook://",    // Outlook
             "ymail://",         // Yahoo Mail
           ]
-        : ["googlegmail://"];   // Android: Gmail app registers this scheme
+        : [];                   // Android: no JS-only scheme works; falls through to web
 
     for (const url of candidates) {
       try {
@@ -81,6 +88,13 @@ export default function CheckEmailScreen() {
       toast.show({ message: "Couldn't open a mail app", kind: "error" });
     }
   };
+
+  // iOS: "Open Mail" — matches Apple Mail branding, still the OS default
+  // even when the user has Gmail installed (the fallback chain in
+  // openMail tries Apple Mail first, then Gmail app, then Outlook, etc.).
+  // Android: "Open Gmail" — honest about the destination since we
+  // currently open Gmail web in a browser (see openMail above).
+  const openMailLabel = Platform.OS === "ios" ? "Open Mail" : "Open Gmail";
 
   return (
     <AuthShell>
@@ -102,9 +116,9 @@ export default function CheckEmailScreen() {
           fullWidth
           size="lg"
           onPress={openMail}
-          accessibilityLabel="Open Mail app"
+          accessibilityLabel={openMailLabel}
         >
-          Open Mail
+          {openMailLabel}
         </Button>
         <Pressable
           accessibilityRole="button"
