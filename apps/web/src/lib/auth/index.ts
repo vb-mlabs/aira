@@ -47,10 +47,16 @@ export const auth = createAuth({
   initialAdminEmail: env.INITIAL_ADMIN_EMAIL,
   initialSuperAdminEmail: env.INITIAL_SUPER_ADMIN_EMAIL,
   email: {
-    sendVerifyEmail: ({ to, name, verifyUrl }) =>
-      sendVerifyEmail({ to, name, verifyUrl }),
-    sendPasswordResetEmail: ({ to, name, resetUrl }) =>
-      sendPasswordResetEmail({ to, name, resetUrl }),
+    // Forward every field from the AuthEmailSender contract — including
+    // expiresInMinutes, which controls the "expires in X" line in the
+    // email copy. Dropping it here (as the previous {to, name, verifyUrl}
+    // destructure did) makes the copy silently fall back to the wrapper's
+    // default, so any future change to EMAIL_LINK_TTL_MINUTES would leave
+    // the emails saying the old value. TS contravariance won't catch the
+    // omission — the sender contract types check compatibility, not
+    // whether individual params are consumed.
+    sendVerifyEmail: (opts) => sendVerifyEmail(opts),
+    sendPasswordResetEmail: (opts) => sendPasswordResetEmail(opts),
   },
   logger: {
     info: (m, meta) => logger.info(m, meta),
