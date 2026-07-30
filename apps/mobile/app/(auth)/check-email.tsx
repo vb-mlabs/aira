@@ -6,16 +6,21 @@ import { Button } from "../../components/ui/Button";
 import { useResendVerify } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
 
-const RESEND_COOLDOWN_SEC = 60;
+const RESEND_COOLDOWN_SEC = 300;
 
 /**
  * Post-signup screen — "We sent a link to {email}. Tap it on this phone to
- * continue." + Open Mail button + Resend after a 60s cooldown.
+ * continue." + Open Mail button + Resend after a 5-minute cooldown.
  *
  * Cooldown throttles the Resend button only — the verification link itself
  * is valid for 2 hours (see EMAIL_LINK_TTL_MINUTES in
  * packages/auth/src/server.ts). Users have historically confused this
  * countdown with the link expiry; keep them separate mentally.
+ *
+ * 5 min matches typical email delivery worst-case (recipient-side spam
+ * checks + greylisting) — user has time to receive the first attempt
+ * before Resend enables, so we don't invite them to spam the endpoint
+ * on emails that were already on the way.
  */
 export default function CheckEmailScreen() {
   const params = useLocalSearchParams<{ email?: string }>();
@@ -115,7 +120,9 @@ export default function CheckEmailScreen() {
                 : "text-base font-medium text-foreground underline"
             }
           >
-            {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend email"}
+            {cooldown > 0
+              ? `Resend in ${formatCooldown(cooldown)}`
+              : "Resend email"}
           </Text>
         </Pressable>
         <Pressable
@@ -128,4 +135,14 @@ export default function CheckEmailScreen() {
       </View>
     </AuthShell>
   );
+}
+
+// Under 60s → "45s". At/above 60s → "4:53". Watching a 3-digit second
+// counter tick down for 5 minutes reads as broken; m:ss reads as a
+// familiar timer.
+function formatCooldown(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
