@@ -4,6 +4,49 @@ Items deferred from active phases. Each has a clear trigger condition for when t
 
 ---
 
+## 🎯 Next EAS native build (version 0.1.2) — bundled scope
+
+Items that **cannot** ship via OTA because they touch native config, native modules, or the install-time dep tree. Whenever the next `eas build --profile production --platform all` is warranted (a plugin change, another SDK bump, or accumulated urgency), these ride together in one build → one store submission → one review cycle.
+
+**When to trigger**: any single one of these becomes urgent, OR the list gets large enough that the store-review cost is amortized. Not urgent as of 2026-07-30 (OTAs #1–#4 landed the JS-side fixes; users on 0.1.1 are functional).
+
+### Bundle contents
+
+- **[HIGH] `expo-intent-launcher` for Android Open-Gmail button.** Currently on Android the "Open Gmail" button on `/check-email` opens Gmail *web* in a browser because JS-only can't launch a specific Android app. `expo-intent-launcher` unlocks `Intent.ACTION_MAIN + CATEGORY_APP_EMAIL` (system email-app chooser) or explicit `com.google.android.gm` package launch. Wire in `apps/mobile/app/(auth)/check-email.tsx`'s `openMail` (see the comment block there for the RN-limit context). — *originally: expo 2026-07-30-1654*
+
+- **[HIGH] Wire Sentry (`@sentry/react-native` via its Expo config plugin).** `expo.monitoring` in `.mstack/config.json` is currently `none` — every OTA we've shipped this quarter went out without crash-signal observability. Rollback decisions have been on user-reports-only. Native change (SDK ships with native modules). Repeatedly flagged across every recent expo release report. — *originally: expo 2026-07-08-1816, then 2026-07-13-1700, 2026-07-20-1900, 2026-07-27-1330, 2026-07-29-0856*
+
+- **[MED] Patch-bump `expo` + `expo-updates`.** `expo 54.0.35 → ~54.0.36`, `expo-updates 29.0.18 → ~29.0.19`. expo-doctor flags on every preflight. Harmless for OTA today but blocks a clean native build and could bite when the JS bundle assumes newer API. — *originally: expo 2026-07-20-1900, then 2026-07-24-0921, 2026-07-27-1330, 2026-07-29-0856*
+
+- **[MED] Dedup React 19.1.0 / 19.2.4.** The 2026-07-27 vuln fix (`e2be247`) introduced `use-sync-external-store` which brought React 19.2.4 alongside the existing 19.1.0. Resolve via a `pnpm.overrides` entry pinning both `react` and `react-dom`. Bundle-time-only concern (Metro dedups for JS), but a native build with duplicate React can cause hook-instance issues on RN side. Also cleans up the ui-web dupe from the earlier avatar consolidation. — *originally: expo 2026-07-08-1816, expo 2026-07-24-0921, expo 2026-07-27-1330, expo 2026-07-29-0856*
+
+### After the build ships, downstream cleanup
+
+- Bump the "Current runtime in the field" line in `CLAUDE.md` to reference the new native version (`0.1.2` on build 9 or whatever the auto-increment lands at).
+- Revisit the Android "Open Gmail" button label — probably back to "Open Mail" once `expo-intent-launcher` is doing the real work, since Android users will land in their actual mail app not just Gmail.
+- Drop the `expo/expo-updates patch drift` + `dedup React` items below (they'll be resolved).
+
+---
+
+## 📮 Waiting for next web Publish (Replit Deploy)
+
+These are on the branch but need a Replit Publish to reach prod. Ship next time you Publish web for any reason.
+
+- **`28f18d3`** — `chore(web/auth): forward expiresInMinutes through Better Auth adapter` — fixes silent drift between token TTL and email copy.
+- **`7ecb4db`** — `chore(web/auth): temp debug logging on /get-session + /sign-out` — the auth-debug logging that helped diagnose the iOS cookie residue. **Should be removed once the sign-out fix (OTA #3) is confirmed working in prod** — see the removal-note TODO below.
+
+---
+
+## 🌐 Not code — deliverability + config
+
+- **[HIGH] Postmark deliverability audit** for `airabynisarga.com`: verify SPF, DKIM, DMARC DNS records; confirm sender signature is "Verified" in Postmark dashboard; check sender reputation score. Actual root cause of "emails come late" reports — the code-side (Postmark integration, `sendEmail` call) is fine; delivery is dashboard/DNS work. Cooldown bumps (30→60→300s in OTA #1/#2) are mitigations, not cures. — *originally: expo 2026-07-30-1517*
+
+- **Add `EXPO_TOKEN` as a dedicated Replit secret.** Currently we alias `EXPO_ACCESS_TOKEN` when running `eas update`. Works, but a real `EXPO_TOKEN` secret removes the aliasing tax on every OTA. — *originally: expo 2026-07-29-0856*
+
+- **Verify sign-out fix in the wild** for another 24-48h. OTA #3 (`0e25904b`, credentials:omit) was the first fix with actual evidence backing it (iOS cookie residue confirmed via auth-debug logs). If any user still reports sign-out no-op after force-close cycle, get device logs BEFORE another code change. — *originally: expo 2026-07-30-1517*
+
+---
+
 ## 2026-05-25 — Design system v1.0 (`/mlabs-design-system`)
 
 Source: `.mstack/design-system/DESIGN.md` § Open questions + `design-system-v1-status` memory.
@@ -133,3 +176,4 @@ env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.
 - [ ] Verify sign-out fix (Updates.reloadAsync) actually resolves the recurrent bug; if user reports again, get device logs BEFORE another blind fix — *expo 2026-07-30-1517, 2026-07-30*
 - [ ] Postmark deliverability audit — SPF/DKIM/DMARC on airabynisarga.com + sender-signature verification in Postmark dashboard. Actual cause of 'emails come late'. — *expo 2026-07-30-1517, 2026-07-30*
 - [ ] Remove auth-debug logging in apps/web/src/app/api/auth/[...all]/route.ts once iOS cookie-residue hypothesis is confirmed or ruled out (fourth-recurrence sign-out investigation) — *auth-debug 2026-07-30, 2026-07-30*
+- [ ] Bundle expo-intent-launcher in next native build (0.1.2). Wire Android openMail to Intent.ACTION_MAIN + CATEGORY_APP_EMAIL for system email-app chooser (or explicit com.google.android.gm package). See apps/mobile/app/(auth)/check-email.tsx:49-70 openMail comment. — *expo 2026-07-30-1654, 2026-07-30*
