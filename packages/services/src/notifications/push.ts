@@ -100,7 +100,7 @@ export async function sendPushBroadcast(
         // + channelId gate Android heads-up + lockscreen; without them
         // Android 8+ drops these to tray-only.
         priority: "high",
-        channelId: "default",
+        channelId: "aira_alerts_v1",
       },
     })
   }

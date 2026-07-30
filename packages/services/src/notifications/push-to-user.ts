@@ -106,7 +106,7 @@ export async function sendPushToUser(
       // push referencing it lands with the expected UX. iOS ignores
       // channelId (harmless) and treats "high" as ready-to-deliver.
       priority: "high" as const,
-      channelId: "default",
+      channelId: "aira_alerts_v1",
     } satisfies ExpoPushMessage,
   }))
 

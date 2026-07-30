@@ -73,19 +73,28 @@ export function installNotificationHandlers(): () => void {
   // channel at IMPORTANCE_HIGH the OS auto-creates a `default` channel
   // at IMPORTANCE_DEFAULT, which suppresses heads-up + lock-screen wake
   // + reliable sound. Server callers (packages/services/src/notifications/
-  // push*.ts) reference channelId: "default" — same name, so the push
-  // lands on our HIGH channel instead of the OS auto-created one.
+  // push*.ts) reference channelId: "aira_alerts_v1" — same name, so the
+  // push lands on our HIGH channel.
+  //
+  // Why `_v1` suffix: Android does not let apps raise the importance of
+  // an existing channel (only users can, from Settings). OTA #5 (2026-
+  // 07-30) shipped a channel named "default" at HIGH, but users who had
+  // AIRA installed before OTA #5 already had a "default" channel Expo
+  // auto-created at IMPORTANCE_DEFAULT — our HIGH config was silently
+  // ignored for them. Escaping the trap: use a fresh channel ID. Any
+  // future config change that needs an importance bump gets `_v2`, etc.
+  //
+  // deleteNotificationChannelAsync on the old "default" channel is
+  // best-effort cleanup so users don't see a stale entry in Settings >
+  // Apps > AIRA > Notifications. Guarded — the delete throws on OS
+  // versions or edge cases where the channel doesn't exist.
   //
   // iOS ignores notification channels entirely — safe to skip.
   //
-  // Fire-and-forget: the promise is awaited only inside its own IIFE so
-  // installNotificationHandlers can stay synchronous (its parent effect
-  // in _layout.tsx uses the returned cleanup fn as-is). setNotification-
-  // ChannelAsync is idempotent — same channelId with same config is a
-  // no-op; user-modified prefs on existing channels are preserved by the
-  // OS regardless of what we pass here.
+  // Fire-and-forget: installNotificationHandlers stays synchronous (its
+  // parent effect in _layout.tsx uses the returned cleanup fn as-is).
   if (Platform.OS === "android") {
-    void Notifications.setNotificationChannelAsync("default", {
+    void Notifications.setNotificationChannelAsync("aira_alerts_v1", {
       name: "AIRA notifications",
       importance: Notifications.AndroidImportance.HIGH,
       sound: "default",
@@ -94,6 +103,10 @@ export function installNotificationHandlers(): () => void {
       enableVibrate: true,
       lockscreenVisibility:
         Notifications.AndroidNotificationVisibility.PUBLIC,
+    });
+    void Notifications.deleteNotificationChannelAsync("default").catch(() => {
+      // Channel might not exist (fresh install post-fix) or delete not
+      // permitted on this OS version — safe to swallow.
     });
   }
 
