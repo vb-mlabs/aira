@@ -232,6 +232,19 @@ export function createAuth({
       session: { create: { before: beforeSessionCreate } },
       user: { create: { after: afterUserCreate } },
     },
+
+    // Replit's proxy forwards the real client IP in x-forwarded-for, but
+    // Better Auth's default IP resolution didn't spot it — the log showed
+    // "Rate limiting could not determine a client IP and is falling back
+    // to a single shared per-path bucket", meaning every user shared one
+    // rate-limit bucket per endpoint (20 concurrent sign-ins could trip
+    // each other's limits). Telling Better Auth which header to trust
+    // restores per-IP bucketing.
+    advanced: {
+      ipAddress: {
+        ipAddressHeaders: ["x-forwarded-for"],
+      },
+    },
   })
 
   return auth
