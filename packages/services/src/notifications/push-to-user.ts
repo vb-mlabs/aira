@@ -73,7 +73,21 @@ export async function sendPushToUser(
   options: SendPushToUserOptions,
 ): Promise<SendPushToUserResult> {
   const devices = await listDevicesForUserIds(db, [userId])
+  // push-debug (temp; remove once Android delivery is confirmed working).
+  // Log at every fan-out decision so we can trace: was the user registered,
+  // what channelId/priority did we send, what did Expo say per ticket.
+  console.info("[push-debug] fan-out start", {
+    user_id: userId,
+    notification_id: message.notification_id,
+    device_count: devices.length,
+    channelId: "aira_alerts_v1",
+    priority: "high",
+  })
   if (devices.length === 0) {
+    console.warn("[push-debug] no devices registered — nothing to send", {
+      user_id: userId,
+      notification_id: message.notification_id,
+    })
     return { devices_attempted: 0, devices_completed: 0, devices_pending: 0 }
   }
 
@@ -135,7 +149,13 @@ export async function sendPushToUser(
       let tickets: ExpoPushTicket[]
       try {
         tickets = await expo.sendPushNotificationsAsync(chunk)
-      } catch {
+      } catch (err) {
+        console.error("[push-debug] Expo send threw", {
+          user_id: userId,
+          notification_id: message.notification_id,
+          chunk_size: chunk.length,
+          error: err instanceof Error ? err.message : String(err),
+        })
         // Network/timeout — in-flight chunk stays pending; receipt-poll
         // follow-up will reconcile when it lands.
         cursor += chunk.length
@@ -145,6 +165,13 @@ export async function sendPushToUser(
         const ticket = tickets[i]
         const item = items[cursor + i]
         if (ticket.status === "ok") {
+          console.info("[push-debug] ticket ok", {
+            user_id: userId,
+            notification_id: message.notification_id,
+            device_id: item.device.id,
+            ticket_id: ticket.id,
+            expo_push_token_tail: item.device.expo_push_token.slice(-8),
+          })
           deliveries.push({
             notification_id: message.notification_id,
             user_device_id: item.device.id,
@@ -154,6 +181,14 @@ export async function sendPushToUser(
           })
         } else {
           const errorCode = ticket.details?.error ?? null
+          console.warn("[push-debug] ticket error", {
+            user_id: userId,
+            notification_id: message.notification_id,
+            device_id: item.device.id,
+            error_code: errorCode,
+            error_message: ticket.message ?? null,
+            expo_push_token_tail: item.device.expo_push_token.slice(-8),
+          })
           deliveries.push({
             notification_id: message.notification_id,
             user_device_id: item.device.id,
