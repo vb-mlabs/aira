@@ -61,7 +61,46 @@ export async function GET(request: Request): Promise<Response> {
       transport: summariseAuthTransport(request),
     })
   }
-  return handlers.GET(request)
+  // Verify-email debug: log token shape on request + status/body on
+  // response. Both real users on iOS + Android hit "Link expired"
+  // within minutes of signup; token TTL is 2h and the mobile client
+  // uses GET (OTA #6 fix), so this shouldn't be firing. Trace the
+  // actual failure code so we can stop guessing.
+  const isVerify = path.endsWith("/verify-email")
+  let verifyReqSnapshot:
+    | { tokenTail: string | null; tokenLen: number; queryKeys: string[] }
+    | null = null
+  if (isVerify) {
+    const url = new URL(request.url)
+    const token = url.searchParams.get("token")
+    verifyReqSnapshot = {
+      tokenTail: token ? `…${token.slice(-16)}` : null,
+      tokenLen: token?.length ?? 0,
+      queryKeys: Array.from(url.searchParams.keys()),
+    }
+    logger.info("auth-debug verify-email request", {
+      transport: summariseAuthTransport(request),
+      ...verifyReqSnapshot,
+    })
+  }
+  const res = await handlers.GET(request)
+  if (isVerify) {
+    // Peek at the JSON body (Better Auth returns { status, user } on ok
+    // and { code, message } on error). Clone so the caller still gets
+    // the un-consumed stream.
+    let bodyPeek: unknown = null
+    try {
+      bodyPeek = await res.clone().json()
+    } catch {
+      /* non-JSON response, e.g. redirect — skip */
+    }
+    logger.info("auth-debug verify-email response", {
+      status: res.status,
+      body: bodyPeek,
+      ...verifyReqSnapshot,
+    })
+  }
+  return res
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -77,6 +116,15 @@ export async function POST(request: Request): Promise<Response> {
       transport: summariseAuthTransport(request),
     })
     await writeLogoutAudit(request)
+  }
+  // Trace stale-bundle POSTs to /verify-email — pre-OTA-6 mobile clients
+  // sent POST for verify. Better Auth's endpoint is GET-only so this
+  // returns 405/404, leaving no other trace. Distinguishing "user on
+  // old bundle" from "real token error" is the point of the log.
+  if (path.endsWith("/verify-email")) {
+    logger.warn("auth-debug verify-email POST (client on stale bundle?)", {
+      transport: summariseAuthTransport(request),
+    })
   }
   const res = await handlers.POST(request)
   if (path.endsWith("/sign-out")) {
