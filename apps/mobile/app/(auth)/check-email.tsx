@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Linking, Platform, Pressable, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import * as IntentLauncher from "expo-intent-launcher";
 import { AuthShell } from "../../components/AuthShell";
 import { Button } from "../../components/ui/Button";
 import { useResendVerify } from "../../features/auth/hooks";
@@ -48,36 +49,43 @@ export default function CheckEmailScreen() {
 
   const openMail = async () => {
     // iOS: walk native mail-app schemes in preference order. try/catch
-    // on Linking.openURL sidesteps LSApplicationQueriesSchemes, keeping
-    // this OTA-eligible.
+    // on Linking.openURL sidesteps LSApplicationQueriesSchemes.
     //
-    // Android: JS cannot launch a specific app from Linking.openURL —
-    // RN's IntentModule uses Uri.parse (not Intent.parseUri) so
-    // `intent://` URIs aren't recognized, and Linking.sendIntent can't
-    // set a package/category. We fall through to Gmail web in a browser.
-    // Real Gmail-app launch needs expo-intent-launcher (native dep) —
-    // deferred to the next native build. Button label below is
-    // platform-conditional so Android users aren't surprised by the
-    // browser-fallback.
+    // Android: use expo-intent-launcher to fire ACTION_MAIN with
+    // CATEGORY_APP_EMAIL — Android's built-in "which email app" chooser
+    // (or default app if one is set). Works with Gmail, Outlook,
+    // Samsung Email, ProtonMail, whatever the user has installed.
+    // Requires the native module which ships in this native build
+    // (0.1.2+). Not OTA-safe; earlier builds fall through to the web
+    // fallback below.
     //
     // Not using mailto: — it opens a compose screen, not the inbox, so
     // it's the wrong intent right after signup ("check your email").
-    const candidates =
-      Platform.OS === "ios"
-        ? [
-            "message://",       // Apple Mail
-            "googlegmail://",   // Gmail
-            "ms-outlook://",    // Outlook
-            "ymail://",         // Yahoo Mail
-          ]
-        : [];                   // Android: no JS-only scheme works; falls through to web
-
-    for (const url of candidates) {
+    if (Platform.OS === "android") {
       try {
-        await Linking.openURL(url);
+        await IntentLauncher.startActivityAsync(
+          "android.intent.action.MAIN",
+          { category: "android.intent.category.APP_EMAIL" },
+        );
         return;
       } catch {
-        // scheme not handled on this device — try the next candidate
+        // No email app installed on this device, or the intent was
+        // rejected — fall through to the web fallback below.
+      }
+    } else {
+      const candidates = [
+        "message://",       // Apple Mail
+        "googlegmail://",   // Gmail
+        "ms-outlook://",    // Outlook
+        "ymail://",         // Yahoo Mail
+      ];
+      for (const url of candidates) {
+        try {
+          await Linking.openURL(url);
+          return;
+        } catch {
+          // scheme not handled on this device — try the next candidate
+        }
       }
     }
 
@@ -89,12 +97,11 @@ export default function CheckEmailScreen() {
     }
   };
 
-  // iOS: "Open Mail" — matches Apple Mail branding, still the OS default
-  // even when the user has Gmail installed (the fallback chain in
-  // openMail tries Apple Mail first, then Gmail app, then Outlook, etc.).
-  // Android: "Open Gmail" — honest about the destination since we
-  // currently open Gmail web in a browser (see openMail above).
-  const openMailLabel = Platform.OS === "ios" ? "Open Mail" : "Open Gmail";
+  // Unified "Open Mail" — both platforms now open the actual mail app
+  // (iOS: scheme fallback chain; Android: ACTION_MAIN CATEGORY_APP_EMAIL
+  // via expo-intent-launcher). Only falls through to Gmail web when no
+  // mail app is installed at all.
+  const openMailLabel = "Open Mail";
 
   return (
     <AuthShell>

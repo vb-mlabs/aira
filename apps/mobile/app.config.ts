@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: "AIRA",
   slug: "aira-mobile",
   scheme: "aira",
-  version: "0.1.1",
+  version: "0.1.2",
   // EAS Update OTA scope. Updates only flow within the same marketing
   // `version` string — bumping `version` invalidates in-flight OTAs and
   // is the deliberate ceremony at every store release. See
