@@ -130,3 +130,6 @@ env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.
 - [ ] Fix expo/expo-updates patch drift + dedup React 19.1/19.2 before next native build — *expo 2026-07-29-0856, 2026-07-29*
 - [ ] Add EXPO_TOKEN as a Replit secret so future OTAs don't need EXPO_ACCESS_TOKEN aliasing — *expo 2026-07-29-0856, 2026-07-29*
 - [ ] Wire Sentry (@sentry/react-native) — expo.monitoring is currently 'none', we have no signal for OTA rollback — *expo 2026-07-29-0856, 2026-07-29*
+- [ ] Verify sign-out fix (Updates.reloadAsync) actually resolves the recurrent bug; if user reports again, get device logs BEFORE another blind fix — *expo 2026-07-30-1517, 2026-07-30*
+- [ ] Postmark deliverability audit — SPF/DKIM/DMARC on airabynisarga.com + sender-signature verification in Postmark dashboard. Actual cause of 'emails come late'. — *expo 2026-07-30-1517, 2026-07-30*
+- [ ] Remove auth-debug logging in apps/web/src/app/api/auth/[...all]/route.ts once iOS cookie-residue hypothesis is confirmed or ruled out (fourth-recurrence sign-out investigation) — *auth-debug 2026-07-30, 2026-07-30*
