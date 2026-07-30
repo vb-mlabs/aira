@@ -2,9 +2,11 @@
 
 **App:** aira-mobile · **Platform:** both (iOS + Android) · **Channel/profile:** preview → production
 **Mode:** ota
-**Status:** no-go (preflight failed)
+**Status:** shipped
 **Versions:** version 0.1.1 · runtimeVersion 0.1.1 (policy: appVersion)
-**Commit:** `4ace2a1` (pushed to `origin/feat/business-logo`) · **Build/Update IDs:** —
+**Commit:** `d8eb916` (working-tree fingerprint at publish; branch `feat/business-logo` HEAD = `4ace2a1` pushed) · **Update group:** `8554c69d-13fd-4813-b5fe-62efbafd85e4`
+**Dashboard:** https://expo.dev/accounts/million-labs/projects/aira-mobile/updates/8554c69d-13fd-4813-b5fe-62efbafd85e4
+**Update IDs:** iOS `019fae5c-bda5-711e-ad39-61662e94c6c9` · Android `019fae5c-bda5-7be8-a6d6-4f45963ef976`
 
 ## Scope
 
@@ -35,12 +37,22 @@ OTA is safe from a native-code angle. **Blocked by missing `.env.production.loca
 
 ## Execution log
 
-- Split-committed 7 concerns across working tree (see git log).
+- Split-committed 7 concerns across working tree (see git log; commits `177ca55` → `4ace2a1`).
 - Pushed `feat/business-logo` → origin.
 - Full monorepo `pnpm typecheck` → 10/10 pass.
-- Preflight → NO-GO (env file).
+- Preflight → NO-GO (missing `apps/mobile/.env.production.local`).
+- User created env file with `EXPO_PUBLIC_API_BASE_URL=https://airabynisarga.com` (apex, per CLAUDE.md apex-only rule).
+- Preflight re-verified → GO.
+- User approved publish via AskUserQuestion confirm gate.
+- First `eas update` attempt failed on auth (`Expo user account required`). User approved reusing the workspace `EXPO_ACCESS_TOKEN` secret as `EXPO_TOKEN` for the CLI.
+- Second attempt succeeded:
 
-_Waiting on user to provide `EXPO_PUBLIC_API_BASE_URL` value for `apps/mobile/.env.production.local` before proceeding to preview → production runway._
+  ```
+  EXPO_TOKEN="$EXPO_ACCESS_TOKEN" EAS_PROJECT_ID="21065081-2afd-43d4-aef7-7ce10de55a8b" \
+    pnpm dlx eas-cli update --branch production --message "mobile UX polish + sign-out fix" --non-interactive
+  ```
+
+  Result: iOS + Android bundles uploaded (3.65 MB each), 71 assets/platform (well under the 2000 cap), fingerprint computed, group `8554c69d` published to production branch on runtime 0.1.1.
 
 ## Sources
 
@@ -52,6 +64,9 @@ _Waiting on user to provide `EXPO_PUBLIC_API_BASE_URL` value for `apps/mobile/.e
 
 - **Fix expo/expo-updates patch drift** (expo 54.0.35 → 54.0.36; expo-updates 29.0.18 → 29.0.19) via `npx expo install --check`. Non-blocking; run before next native build.
 - **Duplicate React** (19.1.0 + 19.2.4) — worth resolving with a `pnpm.overrides` entry or removing the offending devDep before shipping the next native build. In JS-only OTA it's likely fine (bundle deduplicates), but on native build it'll flag doctor warnings and could cause hook-instance issues.
+- **Add EXPO_TOKEN as a Replit secret** — currently we alias EXPO_ACCESS_TOKEN. Same value works today, but a dedicated EXPO_TOKEN secret removes the aliasing tax on future OTAs.
 - **Configure EAS env** — even though not required for OTA today, having the same env vars declared in `eas env` would let CI or team members run `eas update` without needing local `.env.production.local`.
-- **Monitoring is `none`** — `expo.monitoring` in `.mstack/config.json` says none. Sentry via `@sentry/react-native` recommended before more OTAs go out. Flying blind on crashes.
+- **Monitoring is `none`** — `expo.monitoring` in `.mstack/config.json` says none. Sentry via `@sentry/react-native` recommended before more OTAs go out. Flying blind on crashes without a monitoring signal to trigger rollback.
+- **Web-side deferred changes** are still uncommitted-to-prod: sharp fix (`apps/web/next.config.mjs` uncommitted!), admin community filter (committed `177ca55`), sidebar socials (`f9005d1`), home stats (`92005e0`), email 2h TTL (`c182b3e`). Needs Replit Publish. See "Web publish" gap below.
+- **Update CLAUDE.md** — bump the "Current runtime in the field" line to reference this OTA (2026-07-29 group `8554c69d`) so future debug reports can trace what shipped when.
 

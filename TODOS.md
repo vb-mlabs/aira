@@ -127,3 +127,6 @@ env: export EXPO_PUBLIC_API_BASE_URL; resolve react 19.1.0/19.2.4 dupe via pnpm.
 - [ ] If admins complain that ?showAll resets on every fresh page load, persist as user preference (user.preferences JSON) — cheap to add via existing user-preferences validator surface. — *plan 2026-07-27-renewals-visibility, 2026-07-27*
 - [ ] Consider surfacing active-sponsorship state on renewal queue rows — same 'customer engagement' surface; sponsorship changes the operator's talk track. Out of scope for the visibility pass but worth flagging. — *plan 2026-07-27-renewals-visibility, 2026-07-27*
 - [ ] LATERAL JOIN refactor of listQueue — collapse 5 correlated subqueries into one JOIN per row. Blocked by the 2026-06-10 decision that Drizzle's .orderBy() builder can't compose LATERAL; revisit if the correlated-subquery count becomes measurable or a Drizzle upgrade lifts the constraint. — *review 2026-07-27-renewals-visibility, 2026-07-27*
+- [ ] Fix expo/expo-updates patch drift + dedup React 19.1/19.2 before next native build — *expo 2026-07-29-0856, 2026-07-29*
+- [ ] Add EXPO_TOKEN as a Replit secret so future OTAs don't need EXPO_ACCESS_TOKEN aliasing — *expo 2026-07-29-0856, 2026-07-29*
+- [ ] Wire Sentry (@sentry/react-native) — expo.monitoring is currently 'none', we have no signal for OTA rollback — *expo 2026-07-29-0856, 2026-07-29*
