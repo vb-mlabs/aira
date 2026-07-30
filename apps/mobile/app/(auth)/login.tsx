@@ -1,11 +1,11 @@
 import * as React from "react";
 import { Pressable, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { AuthShell } from "../../components/AuthShell";
 import { Input } from "../../components/ui/Input";
 import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/Button";
-import { useLogin, useResendVerify } from "../../features/auth/hooks";
+import { useLogin } from "../../features/auth/hooks";
 import { useToast } from "../../components/ui/Toast";
 import { ApiError } from "../../lib/api/client";
 import { LoginSchema } from "@aira/validators";
@@ -19,9 +19,7 @@ export default function LoginScreen() {
     password?: string;
     form?: string;
   }>({});
-  const [unverified, setUnverified] = React.useState(false);
   const login = useLogin();
-  const resend = useResendVerify();
   const toast = useToast();
 
   const submit = async () => {
@@ -36,17 +34,29 @@ export default function LoginScreen() {
       return;
     }
     setErrors({});
-    setUnverified(false);
     try {
       await login.mutateAsync(parsed.data);
       // Gate at (auth)/_layout.tsx redirects to /(app) once useMe()
       // refetches and returns emailVerified: true. Single source of truth
       // for authenticated transitions — no explicit replace here.
     } catch (e) {
-      if (e instanceof ApiError && e.code === "email_not_verified") {
-        setUnverified(true);
-        setErrors({ form: "Please verify your email to sign in." });
-      } else if (e instanceof ApiError) {
+      // Better Auth returns { code: "EMAIL_NOT_VERIFIED", ... } (UPPER_CASE
+      // per the Better Auth error-code convention) at 403 when a user tries
+      // to sign in with correct credentials but an unverified email. Better
+      // Auth ALSO auto-sends a fresh verification email as part of that
+      // response (see sign-in.mjs:312-324 — runInBackgroundOrAwait on the
+      // sendVerificationEmail hook), so redirecting the user to the
+      // "check your email" screen is truthful: a link really was just sent.
+      // Matches the sign-up terminal state so users see one consistent
+      // flow regardless of whether they came from Sign Up or Sign In.
+      if (e instanceof ApiError && e.code === "EMAIL_NOT_VERIFIED") {
+        router.replace({
+          pathname: "/(auth)/check-email",
+          params: { email: parsed.data.email },
+        });
+        return;
+      }
+      if (e instanceof ApiError) {
         setErrors({ form: "Wrong email or password." });
       } else {
         toast.show({
@@ -91,24 +101,6 @@ export default function LoginScreen() {
         />
         {errors.form ? (
           <Text className="text-sm text-destructive">{errors.form}</Text>
-        ) : null}
-        {unverified ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              if (email) {
-                resend.mutate(email);
-                toast.show({
-                  message: "Verification email sent",
-                  kind: "success",
-                });
-              }
-            }}
-          >
-            <Text className="text-base font-medium text-foreground underline">
-              Resend verification email
-            </Text>
-          </Pressable>
         ) : null}
         <Link href="/(auth)/forgot-password" asChild>
           <Pressable accessibilityRole="link">

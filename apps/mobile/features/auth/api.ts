@@ -130,7 +130,32 @@ export async function resetPasswordRequest(
 export async function verifyEmailRequest(
   token: string,
 ): Promise<{ ok: true }> {
-  await apiPost("/api/auth/verify-email", { token });
+  // Better Auth's /verify-email endpoint is GET-only with the token as a
+  // query parameter (node_modules/better-auth/dist/api/routes/email-
+  // verification.mjs:124-130). Previously we were POST-ing with the token
+  // in the body, which the endpoint's route validation rejected outright
+  // — the mobile screen then rendered a misleading "Link expired" for
+  // what was actually "wrong HTTP method". Web worked because the browser
+  // just followed the emailed link as a plain GET.
+  //
+  // Not passing callbackURL: without it, Better Auth returns 200 JSON
+  // {status:true,user:null} instead of a 302 redirect. The mobile screen
+  // handles routing on success via useMe invalidation → gate flip. If we
+  // ever pass callbackURL, we'd need to opt out of fetch's automatic
+  // redirect-following.
+  const url = `${API_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "X-Client": "mobile" },
+    credentials: "omit",
+  });
+  if (!res.ok) {
+    throw new ApiError({
+      status: res.status,
+      code: "auth.verify_failed",
+      message: "Could not verify email",
+    });
+  }
   return { ok: true };
 }
 

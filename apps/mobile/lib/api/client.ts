@@ -15,6 +15,7 @@
 
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { z } from "zod";
 import { ApiErrorResponse } from "@aira/validators";
 import { ApiError } from "@aira/api";
 
@@ -238,6 +239,22 @@ async function parseError(res: Response): Promise<ApiError> {
   if (parsed.success) {
     const { code, message, field } = parsed.data.error;
     return new ApiError({ status: res.status, code, message, field });
+  }
+  // Better Auth returns errors with { code, message } at the top level
+  // (better-call's serializer) rather than nested under `error`. Fallback
+  // so screens can branch on Better Auth codes (EMAIL_NOT_VERIFIED,
+  // INVALID_CREDENTIALS, TOKEN_EXPIRED, etc.) instead of collapsing every
+  // Better Auth error to "unknown". Preserved as-is — including
+  // UPPER_CASE convention — so call sites match Better Auth's own codes.
+  const betterAuthShape = z
+    .object({ code: z.string().min(1), message: z.string().min(1) })
+    .safeParse(payload);
+  if (betterAuthShape.success) {
+    return new ApiError({
+      status: res.status,
+      code: betterAuthShape.data.code,
+      message: betterAuthShape.data.message,
+    });
   }
   return new ApiError({
     status: res.status,
