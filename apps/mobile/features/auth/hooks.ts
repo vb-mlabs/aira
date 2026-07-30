@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
+import * as Updates from "expo-updates";
 import {
   signUpRequest,
   loginRequest,
@@ -53,29 +53,33 @@ export function useResendVerify() {
 }
 
 export function useSignOut() {
-  const qc = useQueryClient();
   return useMutation({
     mutationFn: signOutRequest,
-    onSettled: () => {
-      // resetQueries (not clear) so active QueryObservers — notably the
-      // useMe() in (app)/_layout.tsx that owns the auth gate — actually
-      // get notified. queryClient.clear() destroys queries silently,
-      // leaving stale observer snapshots and the gate stuck rendering
-      // the tabs. onSettled (not onSuccess) covers the offline /
-      // server-5xx branch: signOutRequest's finally already wiped local
-      // tokens, so we still want the cache flushed regardless of the
-      // network outcome.
-      qc.resetQueries();
-      // Belt-and-braces navigation. The (app) gate flipping via useMe →
-      // error → Redirect IS the primary mechanism, but it's failed for
-      // real users in the wild — notably on iOS where NSURLSession
-      // caches the session cookie set at sign-in and continues sending
-      // it after clearTokens(), keeping /get-session's response valid
-      // and the gate happy. Imperative router.replace guarantees the
-      // navigation regardless of any client-side cookie residue or race
-      // in the reset → refetch → gate chain. Safe if the user is
-      // already off (app); expo-router no-ops the navigation.
-      router.replace("/(auth)/welcome");
+    onSettled: async () => {
+      // Nuclear-option sign-out: restart the JS runtime after tokens are
+      // wiped. Previous attempts (qc.resetQueries → useMe refetch → gate
+      // <Redirect>, then + imperative router.replace) each looked correct
+      // on paper but shipped 3 rounds of "sign out doesn't work" reports
+      // because *any* of {cookie residue, cache-notify race, gate-render
+      // timing, modal-blocking-navigation, expo-router group-path
+      // resolution} could defeat the whole chain silently. Updates.reload
+      // ends the entire class of bugs: JS runtime restarts, app/index.tsx
+      // cold-boot runs, meRequest hits 401 (tokens gone), user lands at
+      // (auth)/welcome via the same code path any first-open uses.
+      //
+      // reloadAsync is a no-op in the classic Expo Go client — safe there
+      // (dev QA doesn't test sign-out end-to-end anyway). onSettled runs
+      // regardless of network outcome so users whose server-side sign-out
+      // request errored still get the local restart + welcome screen.
+      try {
+        await Updates.reloadAsync();
+      } catch {
+        // Extremely rare — Updates unavailable (e.g. bare-workflow, or
+        // reload disabled in eas.json). If we can't reload, the tokens
+        // are already cleared by signOutRequest's finally, so the app
+        // is in an incoherent state either way. Swallow to keep the
+        // mutation's promise resolving cleanly.
+      }
     },
   });
 }
