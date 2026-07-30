@@ -142,6 +142,7 @@ async function performRefresh(): Promise<string | null> {
       "X-Client": "mobile",
       Authorization: `Bearer ${refresh}`,
     },
+    credentials: "omit",
   });
   if (!res.ok) {
     await clearTokens();
@@ -256,6 +257,13 @@ export async function apiRequest<T>(
       ...init,
       headers,
       body: encodeBody(init.body),
+      // Never send or store cookies — mobile is bearer-only end to end.
+      // Without this, iOS NSURLSession auto-persists the Set-Cookie sent
+      // by Better Auth on sign-in and re-attaches it to every request
+      // forever, defeating sign-out (clearTokens can't reach the OS
+      // cookie jar). See auth-debug logs from 2026-07-30 confirming
+      // cookieSession: true on /get-session after mobile signOut+reload.
+      credentials: "omit",
     });
   };
 

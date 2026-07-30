@@ -85,6 +85,7 @@ export async function loginRequest(
   const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
     headers: { "X-Client": "mobile", Authorization: `Bearer ${signIn.token}` },
+    credentials: "omit",
   });
   if (!res.ok) {
     await clearTokens();
@@ -157,6 +158,7 @@ export async function signOutRequest(): Promise<void> {
           "X-Client": "mobile",
           Authorization: `Bearer ${refresh}`,
         },
+        credentials: "omit",
       });
     }
   } finally {
@@ -173,6 +175,7 @@ export async function meRequest(): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/api/auth/get-session`, {
     method: "GET",
     headers,
+    credentials: "omit",
   });
   if (!res.ok) {
     throw new ApiError({
