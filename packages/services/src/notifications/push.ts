@@ -96,6 +96,11 @@ export async function sendPushBroadcast(
           title: args.title,
           message: args.message,
         },
+        // Same rationale as sendPushToUser (../push-to-user.ts) — priority
+        // + channelId gate Android heads-up + lockscreen; without them
+        // Android 8+ drops these to tray-only.
+        priority: "high",
+        channelId: "default",
       },
     })
   }

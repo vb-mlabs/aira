@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
+import { Platform } from "react-native";
 
 // F20-community-push — mobile-side push tap handler.
 //
@@ -68,6 +69,34 @@ function handleTap(response: Notifications.NotificationResponse): void {
  * mount once at root and never call it.
  */
 export function installNotificationHandlers(): () => void {
+  // Android channel — created idempotently at every launch. Without a
+  // channel at IMPORTANCE_HIGH the OS auto-creates a `default` channel
+  // at IMPORTANCE_DEFAULT, which suppresses heads-up + lock-screen wake
+  // + reliable sound. Server callers (packages/services/src/notifications/
+  // push*.ts) reference channelId: "default" — same name, so the push
+  // lands on our HIGH channel instead of the OS auto-created one.
+  //
+  // iOS ignores notification channels entirely — safe to skip.
+  //
+  // Fire-and-forget: the promise is awaited only inside its own IIFE so
+  // installNotificationHandlers can stay synchronous (its parent effect
+  // in _layout.tsx uses the returned cleanup fn as-is). setNotification-
+  // ChannelAsync is idempotent — same channelId with same config is a
+  // no-op; user-modified prefs on existing channels are preserved by the
+  // OS regardless of what we pass here.
+  if (Platform.OS === "android") {
+    void Notifications.setNotificationChannelAsync("default", {
+      name: "AIRA notifications",
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: "default",
+      vibrationPattern: [0, 250, 250, 250],
+      enableLights: true,
+      enableVibrate: true,
+      lockscreenVisibility:
+        Notifications.AndroidNotificationVisibility.PUBLIC,
+    });
+  }
+
   // Foreground behaviour: same as background — surface the banner,
   // play the sound, bump the badge. `shouldShowList: true` is the
   // Expo SDK 51+ replacement for the older shouldShowAlert prop.

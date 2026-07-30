@@ -99,6 +99,14 @@ export async function sendPushToUser(
       title: message.title,
       body: message.body,
       data: message.data,
+      // priority + channelId control Android delivery. Without them,
+      // Android 8+ shows notifications in the tray only (no heads-up,
+      // no lock-screen wake). The channel is created client-side at
+      // apps/mobile/lib/notification-tap.ts with IMPORTANCE_HIGH so a
+      // push referencing it lands with the expected UX. iOS ignores
+      // channelId (harmless) and treats "high" as ready-to-deliver.
+      priority: "high" as const,
+      channelId: "default",
     } satisfies ExpoPushMessage,
   }))
 
