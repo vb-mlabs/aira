@@ -56,6 +56,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: "com.airabynisarga.app",
+    // Firebase config for Android FCM. Without this file the native
+    // build ships without google-services processing, Firebase SDK
+    // fails to initialize at runtime, and getExpoPushTokenAsync throws
+    // "Default FirebaseApp is not initialised" — which is exactly what
+    // shipped in build 8 and blocked every Android push attempt (see
+    // debug 2026-07-31, roadmap S0 open item). Downloaded from Firebase
+    // Console → Project Settings → Your apps → Android. Committed per
+    // Firebase's own guidance (not a secret — contains project id +
+    // rate-limited API key). The actual push-send credential (Firebase
+    // Admin SDK service account key) lives in EAS credentials for FCM
+    // V1, uploaded separately via the Expo dashboard.
+    googleServicesFile: "./google-services.json",
     adaptiveIcon: {
       foregroundImage: "./assets/icon.png",
       backgroundColor: "#ffffff",

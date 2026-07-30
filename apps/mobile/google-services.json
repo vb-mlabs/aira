@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "810026001638",
+    "project_id": "aira-by-nisarga-mobile-app",
+    "storage_bucket": "aira-by-nisarga-mobile-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810026001638:android:2cd193090a462f5a0a8727",
+        "android_client_info": {
+          "package_name": "com.airabynisarga.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOoFsqblem5yM0U8XeR9yGiu6q_8lfjzk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
