@@ -282,8 +282,10 @@ export const BusinessListInputSchema = z
     /** When true, only returns rows with verified=true. */
     verified: z.coerce.boolean().optional(),
     /** Admin-only flag honored by listAllBusinessesAdminOp; ignored by the
-     *  public op which always filters archived rows. */
-    includeArchived: z.coerce.boolean().optional(),
+     *  public op which always filters archived rows. When true, returns
+     *  ONLY archived rows (WHERE deleted_at IS NOT NULL); when omitted or
+     *  false, returns only active rows. */
+    archivedOnly: z.coerce.boolean().optional(),
   })
   .strict();
 export type BusinessListInput = z.infer<typeof BusinessListInputSchema>;

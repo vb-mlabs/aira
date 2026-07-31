@@ -118,9 +118,9 @@ export const restoreBusinessOp = defineOperation({
   },
 })
 
-/** Admin list — returns ALL active businesses by default, or active +
- *  archived when ?includeArchived=1. Accepts optional ?renewing=N to filter
- *  to businesses whose latest subscription expires within N days. */
+/** Admin list — returns active businesses by default, or archived-only
+ *  when ?archivedOnly=1. Accepts optional ?renewing=N to filter to
+ *  businesses whose latest subscription expires within N days. */
 export const listAllBusinessesAdminOp = defineOperation({
   name: "admin.businesses.list",
   input: AdminBusinessListInputSchema,
@@ -128,7 +128,7 @@ export const listAllBusinessesAdminOp = defineOperation({
   permission: "admin",
   handler: async (db, _ctx, input) => {
     const allItems = await businessesService.getAllBusinesses(db, {
-      includeArchived: input.includeArchived ?? false,
+      archivedOnly: input.archivedOnly,
     })
 
     // Fetch latest subscription per business in one query using DISTINCT ON.

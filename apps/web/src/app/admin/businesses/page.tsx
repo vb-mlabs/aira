@@ -31,11 +31,11 @@ interface PageProps {
 
 export default async function AdminBusinessesPage({ searchParams }: PageProps) {
   const sp = await searchParams
-  const includeArchived = sp.archived === "1"
+  const archivedOnly = sp.archived === "1"
   const renewing = sp.renewing ? parseInt(sp.renewing, 10) : undefined
   const res = await apiServerFetch(listAllBusinessesAdminOp, {
     input: {
-      includeArchived: includeArchived || undefined,
+      archivedOnly: archivedOnly || undefined,
       renewing: renewing || undefined,
     },
   })
@@ -78,23 +78,23 @@ export default async function AdminBusinessesPage({ searchParams }: PageProps) {
           href="/admin/businesses"
           className={cn(
             "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-            !includeArchived
+            !archivedOnly
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-foreground hover:border-primary/60",
           )}
         >
-          Active only
+          Active
         </Link>
         <Link
           href="/admin/businesses?archived=1"
           className={cn(
             "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-            includeArchived
+            archivedOnly
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-foreground hover:border-primary/60",
           )}
         >
-          Show archived
+          Archived
         </Link>
 
         <div className="h-4 w-px bg-border" />

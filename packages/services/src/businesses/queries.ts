@@ -4,7 +4,7 @@
 // permission: "user" before invoking these), no Next imports, no captured
 // singletons. Mirrors the rest of the @aira/services convention.
 
-import { and, asc, count, desc, eq, getTableColumns, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { businesses, businessImages, businessCategories, categories, businessSubscriptions, user } from "@aira/db/schema";
 import type { Database } from "@aira/db/client";
 import { ApiError } from "@aira/api";
@@ -365,20 +365,22 @@ export async function getBusinessesByCategory(
   return attachRelations(db, rows);
 }
 
-/** Admin-only: returns ALL businesses (or only active when includeArchived
- *  is false). No pagination — admin's a small audience and the table
- *  doesn't grow that fast. Returns BusinessAdmin (with contact_person);
+/** Admin-only: returns active businesses by default, or archived-only when
+ *  `archivedOnly: true`. No pagination — admin's a small audience and the
+ *  table doesn't grow that fast. Returns BusinessAdmin (with contact_person);
  *  public callers must NOT route through this. */
 export async function getAllBusinesses(
   db: Database,
-  opts: { includeArchived: boolean } = { includeArchived: false },
+  opts: { archivedOnly?: boolean } = {},
 ): Promise<BusinessAdmin[]> {
-  const where = opts.includeArchived ? undefined : isNull(businesses.deleted_at);
-  const builder = db
+  const where = opts.archivedOnly
+    ? isNotNull(businesses.deleted_at)
+    : isNull(businesses.deleted_at);
+  const rows = await db
     .select()
     .from(businesses)
+    .where(where)
     .orderBy(asc(businesses.name));
-  const rows = await (where ? builder.where(where) : builder);
   return attachRelationsAdmin(db, rows);
 }
 

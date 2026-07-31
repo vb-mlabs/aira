@@ -6,7 +6,7 @@ import Link from "next/link"
 import { ArrowRight, ClipboardList, Store, Users } from "lucide-react"
 import { apiServerFetch } from "@aira/api/server"
 import { requireAdmin } from "@/lib/auth/server"
-import { listBusinessesOp } from "@/server/operations/businesses"
+import { listAllBusinessesAdminOp } from "@/server/operations/businesses-admin"
 import { getCategoryMeta } from "@/features/listings"
 import { AdminPageHeader } from "./_components/page-header"
 
@@ -54,13 +54,17 @@ export default async function AdminDashboardPage() {
     isSuperAdmin ? true : q.requires === "admin",
   )
 
-  const res = await apiServerFetch(listBusinessesOp, { input: {} })
+  const res = await apiServerFetch(listAllBusinessesAdminOp, { input: {} })
   const businesses = res.data?.items ?? []
 
   const total = businesses.length
   const verified = businesses.filter((b) => b.verified).length
 
-  const recent = businesses.slice(0, 5)
+  // getAllBusinesses orders alphabetically by name; sort by created_at desc
+  // so "Recent" is actually recent.
+  const recent = [...businesses]
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+    .slice(0, 5)
 
   return (
     <div className="space-y-8">
