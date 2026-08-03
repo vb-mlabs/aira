@@ -3,7 +3,7 @@
 **Started:** 2026-08-03
 **Source:** user-report (screenshot: attached_assets/image_1785744965078.png)
 **Status:** fixed
-**Commit:** _pending — see final section_
+**Commit:** 3c8d1c4
 
 ## Symptom / repro
 
