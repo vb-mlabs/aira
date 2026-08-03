@@ -187,3 +187,103 @@ export const BusinessOwnerBroadcastOutputSchema = z.object({
 export type BusinessOwnerBroadcastOutput = z.infer<
   typeof BusinessOwnerBroadcastOutputSchema
 >;
+
+// ─── Admin user-direct broadcast (with per-platform diagnostics) ──────────
+//
+// Sibling to BusinessOwnerBroadcast but targets `user_device` rows
+// directly instead of joining through `businesses`. Powers the
+// /admin/users "Notify users" tool, whose primary use is debugging
+// iOS push delivery — the by_platform branch lets an admin send an
+// iOS-only test blast and read back per-platform ticket outcomes to
+// distinguish send-side vs receive-side failures.
+//
+// Deliberately a NEW discriminated union rather than a branch on
+// BroadcastTargetSchema — the owner target's shape (by_city,
+// by_categories, by_businesses) is business-scoped and doesn't
+// compose with user-scoped narrowing.
+
+export const UserBroadcastTargetSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("all_users_with_device") }).strict(),
+  z
+    .object({
+      kind: z.literal("by_platform"),
+      platform: z.enum(["ios", "android"]),
+    })
+    .strict(),
+]);
+export type UserBroadcastTarget = z.infer<typeof UserBroadcastTargetSchema>;
+
+export const SendUserBroadcastInputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(120),
+    message: z.string().trim().min(1).max(2000),
+    target: UserBroadcastTargetSchema,
+  })
+  .strict();
+export type SendUserBroadcastInput = z.infer<
+  typeof SendUserBroadcastInputSchema
+>;
+
+/** Per-platform push counters. iOS + Android bucketed independently
+ *  so admins can see "24 iOS delivered, 12 iOS not-registered, 40
+ *  Android delivered" at a glance — exactly the split needed to
+ *  triage platform-specific delivery issues. */
+export const UserBroadcastPlatformCountsSchema = z.object({
+  devices_attempted: z.number().int().nonnegative(),
+  devices_completed: z.number().int().nonnegative(),
+  devices_pending: z.number().int().nonnegative(),
+});
+export type UserBroadcastPlatformCounts = z.infer<
+  typeof UserBroadcastPlatformCountsSchema
+>;
+
+export const SendUserBroadcastOutputSchema = z.object({
+  ok: z.literal(true),
+  /** Distinct users matched by the audience. 0 is legal — audit row
+   *  still written for the attempt trace. */
+  recipient_count: z.number().int().nonnegative(),
+  by_platform: z.object({
+    ios: UserBroadcastPlatformCountsSchema,
+    android: UserBroadcastPlatformCountsSchema,
+  }),
+  /** Map of Expo ticket error codes to occurrence counts. Empty when
+   *  every attempted device got an OK ticket. Keys are Expo's error
+   *  strings (DeviceNotRegistered, MessageTooBig, MismatchSenderId,
+   *  InvalidCredentials, ...) — kept as an open map rather than a
+   *  fixed enum because Expo may introduce new codes over time. */
+  error_code_counts: z.record(z.string(), z.number().int().nonnegative()),
+});
+export type SendUserBroadcastOutput = z.infer<
+  typeof SendUserBroadcastOutputSchema
+>;
+
+export const PreviewUserBroadcastInputSchema = z
+  .object({ target: UserBroadcastTargetSchema })
+  .strict();
+export type PreviewUserBroadcastInput = z.infer<
+  typeof PreviewUserBroadcastInputSchema
+>;
+
+/** Preview payload — surfaced in the compose step so the admin knows
+ *  the scope of the audience BEFORE they hit Send. by_platform mirrors
+ *  the Send-step output so the compose-step and Sent-step shapes read
+ *  identically in the UI. */
+export const UserBroadcastPlatformPreviewSchema = z.object({
+  users: z.number().int().nonnegative(),
+  devices: z.number().int().nonnegative(),
+});
+export type UserBroadcastPlatformPreview = z.infer<
+  typeof UserBroadcastPlatformPreviewSchema
+>;
+
+export const PreviewUserBroadcastOutputSchema = z.object({
+  user_count: z.number().int().nonnegative(),
+  device_count: z.number().int().nonnegative(),
+  by_platform: z.object({
+    ios: UserBroadcastPlatformPreviewSchema,
+    android: UserBroadcastPlatformPreviewSchema,
+  }),
+});
+export type PreviewUserBroadcastOutput = z.infer<
+  typeof PreviewUserBroadcastOutputSchema
+>;
