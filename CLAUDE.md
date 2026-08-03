@@ -228,13 +228,18 @@ The full runway lives in `/mstack-expo`; the notes below are the
 project-specific state + the two Replit-ish gotchas that trip you up
 if you invoke `eas-cli` directly.
 
-**Current runtime in the field (as of 2026-07-22).** Build **8** on
-runtime **`0.1.1`** (iOS + Android, submitted 2026-07-14). The repo's
-`apps/mobile/app.config.ts` has `version: "0.1.1"` and
-`runtimeVersion.policy: "appVersion"`, so a plain OTA targets `0.1.1`
+**Current runtime in the field (as of 2026-08-03).** Build **10** on
+runtime **`0.1.2`** (iOS + Android, submitted 2026-07-30). Latest
+production OTA on this runtime: group
+`b39cef84-29b9-4a6a-9787-2db489d8faae` (published 2026-08-03, message:
+"fix(mobile/nav): tab bar clears system chrome"). The repo's
+`apps/mobile/app.config.ts` has `version: "0.1.2"` and
+`runtimeVersion.policy: "appVersion"`, so a plain OTA targets `0.1.2`
 by default — no `--runtime-version` override needed. **Update the
 "current runtime in the field" line above whenever a new store build
-ships** — it's the source of truth for whether a new OTA reaches users.
+ships or a production OTA lands** — it's the source of truth for
+whether a new OTA reaches users. Prior lineage in the field: build 8
+on `0.1.1` (submitted 2026-07-14) and builds 5–7 on `0.1.0`.
 
 **Preflight — always check BOTH lists together.** `eas update:list`
 alone can mislead: if the last OTAs used a `--runtime-version 0.1.0`
