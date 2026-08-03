@@ -1,6 +1,7 @@
 import { apiServerFetch } from "@aira/api/server"
 import { listUsersOp } from "@/server/operations/admin"
 import { UserList } from "@/features/admin"
+import { UserBroadcastButton } from "@/features/admin/components/user-broadcast-modal"
 import { AdminPageHeader } from "../_components/page-header"
 import type { UserRole } from "@/features/admin/types"
 
@@ -39,6 +40,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
       <AdminPageHeader
         title="Users"
         subtitle="Search, filter, and manage accounts."
+        actions={<UserBroadcastButton />}
       />
       <UserList
         items={result.items}
