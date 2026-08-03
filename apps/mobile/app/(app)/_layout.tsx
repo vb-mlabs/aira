@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Redirect, router, Tabs } from "expo-router";
 import { Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMe } from "../../features/auth/hooks";
 import { useUnreadCount } from "../../features/notifications/hooks";
 import { NotificationsPrePrompt } from "../../components/NotificationsPrePrompt";
@@ -53,6 +54,14 @@ export default function AppLayout() {
   const me = useMe();
   // Warm cache for P2's bell badge. No UI consumer in P1.
   useUnreadCount();
+  // Bottom-tabs' auto safe-area only kicks in when tabBarStyle omits
+  // `height` / `paddingBottom`. We set both (fixed 76pt design), which
+  // overrides that default and made the bar collide with Android's
+  // 3-button nav on Samsung One UI (reported 2026-08-03). Read the
+  // inset explicitly and add it to both dimensions so gesture-nav,
+  // 3-button-nav, foldables, and Android 15 edge-to-edge all clear
+  // the system chrome without changing the intended 76pt design body.
+  const insets = useSafeAreaInsets();
   const [prePromptVisible, setPrePromptVisible] = React.useState(false);
 
   // F21 push pre-prompt gate. Shows once after first sign-in. The manual
@@ -119,14 +128,15 @@ export default function AppLayout() {
               {children}
             </Text>
           ),
-          // Cream bg matches the shared header. Height bumped 64 → 76
-          // for better vertical spacing between icon + label; still
-          // sits above the iOS home-indicator safe-area which the
-          // navigator adds on top. Hairline divider unchanged.
+          // Cream bg matches the shared header. 76pt is the design body
+          // height (bumped 64 → 76 for icon+label spacing); we add
+          // insets.bottom on top so the bar clears iOS home-indicator,
+          // Android 3-button nav, and gesture-nav pills without
+          // overlapping. See useSafeAreaInsets() call above for rationale.
           tabBarStyle: {
-            height: 76,
+            height: 76 + insets.bottom,
             paddingTop: 8,
-            paddingBottom: 8,
+            paddingBottom: 8 + insets.bottom,
             backgroundColor: "#EAE0CB",
             borderTopColor: "rgba(61,40,20,0.12)",
           },
