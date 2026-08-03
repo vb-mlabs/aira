@@ -210,6 +210,18 @@ export type AuditMeta =
       title: string;
       recipient_count: number;
     }
+  // Admin fan-out to end-users (via /admin/users "Notify users"). No
+  // per-recipient target — one audit row per fan-out. platform_filter
+  // captures the audience scope for post-hoc triage; 'all' when no
+  // platform narrowing was applied. recipient_count is the number of
+  // distinct users that matched the audience (devices are downstream
+  // and captured via notification_delivery, not the audit trail).
+  | {
+      kind: "admin.user_broadcast_sent";
+      title: string;
+      recipient_count: number;
+      platform_filter: "all" | "ios" | "android";
+    }
   // Admin hard-deletes a pre-launch waitlist row from /admin/waitlist.
   // target.id = waitlist.id. email + waitlist_type captured pre-delete so
   // the audit row remains useful after the source row is gone.
@@ -267,6 +279,7 @@ export const KNOWN_AUDIT_ACTIONS = [
   "business.owner_assigned",
   "business.owner_unassigned",
   "business.broadcast_sent",
+  "admin.user_broadcast_sent",
   "waitlist.delete",
 ] as const;
 export type KnownAuditAction = (typeof KNOWN_AUDIT_ACTIONS)[number];
@@ -329,6 +342,7 @@ export const AUDIT_ACTION_LABEL_OVERRIDES: Partial<Record<KnownAuditAction, stri
     "business.owner_assigned": "Owner assigned",
     "business.owner_unassigned": "Owner unassigned",
     "business.broadcast_sent": "Broadcast sent",
+    "admin.user_broadcast_sent": "User broadcast sent",
     "business.contact_person_changed": "Contact person changed",
     "business.category_slug_cascaded": "Category renamed",
     "business.verification_changed": "Verification changed",

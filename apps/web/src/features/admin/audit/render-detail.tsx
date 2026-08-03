@@ -217,6 +217,18 @@ export function RenderAuditDetail({ action, metadata }: RenderDetailProps) {
           {m.recipient_count === 1 ? "owner" : "owners"}
         </>
       )
+    case "admin.user_broadcast_sent":
+      return (
+        <>
+          User broadcast &ldquo;{truncate(m.title, 60)}&rdquo; to{" "}
+          {m.recipient_count}{" "}
+          {m.recipient_count === 1 ? "user" : "users"} (
+          {m.platform_filter === "all"
+            ? "all platforms"
+            : `${m.platform_filter} only`}
+          )
+        </>
+      )
 
     // ─── app_setting.* ───────────────────────────────────────────────
     case "app_setting.updated":
