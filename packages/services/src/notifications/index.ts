@@ -28,3 +28,6 @@ export type {
   SendPushToUserOptions,
   SendPushToUserResult,
 } from "./push-to-user"
+
+export { sendUserPushBroadcast } from "./push-users"
+export type { SendUserPushBroadcastOptions } from "./push-users"

@@ -24,12 +24,17 @@ import {
   businesses,
   businessCategories,
   notifications as notificationsTable,
+  userDevice,
 } from "@aira/db/schema"
 import { createAudit } from "@aira/db/audit"
 import type { Database } from "@aira/db/client"
 import { ApiError } from "@aira/api"
 import type { CallerContext } from "@aira/api/context"
-import type { BroadcastTarget } from "@aira/validators"
+import type {
+  BroadcastTarget,
+  PreviewUserBroadcastOutput,
+  UserBroadcastTarget,
+} from "@aira/validators"
 import { createNotification } from "../notifications"
 
 export type AdminResult = {
@@ -442,4 +447,167 @@ export async function sendBusinessOwnerBroadcast(
     devices_pending: 0,
     notifications: inserted,
   }
+}
+
+// ─── Admin user-direct broadcast (with per-platform diagnostics) ──────────
+//
+// Sibling to sendBusinessOwnerBroadcast, scoped to user_device rows
+// directly (no business-owner join). Primary use is triaging push
+// delivery — an admin can send an iOS-only test blast and read back
+// per-platform ticket outcomes to distinguish send-side vs receive-side
+// failures.
+//
+// Filters banned users out (isNull(banned_at)) for parity with
+// resolveTargetUserIds. by_platform additionally narrows the device
+// filter so a user with both iOS + Android devices only receives the
+// blast on the requested platform.
+
+/** One-shot audience count for the compose-step preview. Returns
+ *  user_count + device_count split by platform, so the compose UI can
+ *  render "42 users — 30 iOS, 12 Android (55 devices)" without a
+ *  second round-trip. */
+export async function previewUserBroadcastCounts(
+  db: Database,
+  target: UserBroadcastTarget,
+): Promise<PreviewUserBroadcastOutput> {
+  const conditions = [isNull(userTable.banned_at)]
+  if (target.kind === "by_platform") {
+    conditions.push(eq(userDevice.platform, target.platform))
+  }
+
+  const rows = await db
+    .select({
+      user_id: userDevice.user_id,
+      platform: userDevice.platform,
+    })
+    .from(userDevice)
+    .innerJoin(userTable, eq(userTable.id, userDevice.user_id))
+    .where(and(...conditions))
+
+  // Distinct users overall + per-platform. A user with one iOS and one
+  // Android device counts once toward user_count but toward BOTH
+  // by_platform user tallies.
+  const allUsers = new Set<string>()
+  const iosUsers = new Set<string>()
+  const androidUsers = new Set<string>()
+  let iosDevices = 0
+  let androidDevices = 0
+
+  for (const row of rows) {
+    allUsers.add(row.user_id)
+    if (row.platform === "ios") {
+      iosUsers.add(row.user_id)
+      iosDevices += 1
+    } else if (row.platform === "android") {
+      androidUsers.add(row.user_id)
+      androidDevices += 1
+    }
+    // Any other platform value (should be impossible per DevicePlatform
+    // enum enforced on write) is deliberately dropped from device
+    // buckets so counts stay iOS + Android only.
+  }
+
+  return {
+    user_count: allUsers.size,
+    device_count: iosDevices + androidDevices,
+    by_platform: {
+      ios: { users: iosUsers.size, devices: iosDevices },
+      android: { users: androidUsers.size, devices: androidDevices },
+    },
+  }
+}
+
+/** Distinct user ids matching the audience — used by the send path to
+ *  drive the notification bulk-insert. Same filter semantics as
+ *  previewUserBroadcastCounts (banned users excluded; by_platform
+ *  narrows to users owning at least one device on the target
+ *  platform). */
+export async function resolveUserBroadcastAudience(
+  db: Database,
+  target: UserBroadcastTarget,
+): Promise<string[]> {
+  const conditions = [isNull(userTable.banned_at)]
+  if (target.kind === "by_platform") {
+    conditions.push(eq(userDevice.platform, target.platform))
+  }
+  const rows = await db
+    .selectDistinct({ id: userDevice.user_id })
+    .from(userDevice)
+    .innerJoin(userTable, eq(userTable.id, userDevice.user_id))
+    .where(and(...conditions))
+  return rows.map((r) => r.id)
+}
+
+export interface UserBroadcastArgs {
+  title: string
+  message: string
+  target: UserBroadcastTarget
+}
+
+export interface UserBroadcastResult {
+  recipient_count: number
+  /** user_id → notification_id map for the rows inserted by this
+   *  broadcast. sendUserPushBroadcast joins this against the device
+   *  list to emit one notification_delivery row per (user, device).
+   *  Empty on zero-recipient broadcasts. */
+  notifications: Array<{ user_id: string; notification_id: string }>
+}
+
+/** Audit + in-app notification fan-out. Push delivery is a separate
+ *  concern (sendUserPushBroadcast wraps this + does the Expo round-
+ *  trip). Zero-recipient broadcasts still write the audit row for the
+ *  attempt trace. */
+export async function sendUserBroadcast(
+  db: Database,
+  ctx: CallerContext,
+  args: UserBroadcastArgs,
+): Promise<UserBroadcastResult> {
+  const { title, message, target } = args
+
+  const recipientIds = await resolveUserBroadcastAudience(db, target)
+  const recipient_count = recipientIds.length
+  const platform_filter =
+    target.kind === "all_users_with_device" ? "all" : target.platform
+
+  const audit = createAudit(db)
+  await audit({
+    actorId: ctx.userId,
+    action: "admin.user_broadcast_sent",
+    target: undefined,
+    meta: {
+      kind: "admin.user_broadcast_sent",
+      title,
+      recipient_count,
+      platform_filter,
+    },
+    client: auditClient(ctx),
+  })
+
+  if (recipient_count === 0) {
+    return { recipient_count: 0, notifications: [] }
+  }
+
+  // Reuse the existing 'generic' notification kind — every renderer
+  // (web + mobile bell + mobile detail modal) already handles it, no
+  // exhaustive-switch churn. Distinguishes broadcasts from per-user
+  // admin nudges via the audit_log.action string, not the row type.
+  const inserted = await db
+    .insert(notificationsTable)
+    .values(
+      recipientIds.map((userId) => ({
+        user_id: userId,
+        type: "generic",
+        body: {
+          kind: "generic" as const,
+          title,
+          message,
+        },
+      })),
+    )
+    .returning({
+      notification_id: notificationsTable.id,
+      user_id: notificationsTable.user_id,
+    })
+
+  return { recipient_count, notifications: inserted }
 }

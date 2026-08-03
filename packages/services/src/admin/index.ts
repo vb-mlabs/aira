@@ -10,6 +10,9 @@ export {
   sendAdminNotification,
   sendBusinessOwnerBroadcast,
   resolveTargetUserIds,
+  previewUserBroadcastCounts,
+  resolveUserBroadcastAudience,
+  sendUserBroadcast,
 } from "./service"
 
 export type {
@@ -17,6 +20,8 @@ export type {
   PasswordResetTarget,
   BusinessOwnerBroadcastArgs,
   BusinessOwnerBroadcastResult,
+  UserBroadcastArgs,
+  UserBroadcastResult,
 } from "./service"
 
 export {
