@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-03
 **Slug:** 2026-08-03-admin-notify-users
-**Status:** reviewed
+**Status:** implemented
 **Author:** framer@millionlabs.co.uk
 
 ---
