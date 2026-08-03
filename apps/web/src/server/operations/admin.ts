@@ -29,6 +29,10 @@ import {
   BusinessOwnerBroadcastOutputSchema,
   PreviewBroadcastRecipientCountInputSchema,
   PreviewBroadcastRecipientCountOutputSchema,
+  SendUserBroadcastInputSchema,
+  SendUserBroadcastOutputSchema,
+  PreviewUserBroadcastInputSchema,
+  PreviewUserBroadcastOutputSchema,
 } from "@aira/validators/admin"
 import { auth } from "@/lib/auth"
 import { buildAuthUrl } from "@/lib/email/url"
@@ -189,4 +193,31 @@ export const previewBroadcastRecipientCountOp = defineOperation({
     const userIds = await admin.resolveTargetUserIds(db, target)
     return { count: userIds.length }
   },
+})
+
+/** Admin user-direct broadcast — /admin/users "Notify users" tool.
+ *  Fans out to end-user devices directly (not linked owners) and
+ *  returns per-platform push counters + Expo error-code counts so
+ *  the admin can triage delivery loop health from the Sent step. */
+export const sendUserBroadcastOp = defineOperation({
+  name: "admin.users.broadcast",
+  input: SendUserBroadcastInputSchema,
+  output: SendUserBroadcastOutputSchema,
+  permission: "admin",
+  handler: (db, ctx, args) =>
+    notifications.sendUserPushBroadcast(db, ctx, args, {
+      expoAccessToken: env.EXPO_ACCESS_TOKEN,
+    }),
+})
+
+/** Live audience preview for the "Notify users" modal. Split by
+ *  platform so the compose UI can render
+ *  "42 users — 30 iOS, 12 Android (55 devices)" before Send. */
+export const previewUserBroadcastRecipientCountOp = defineOperation({
+  name: "admin.users.broadcast.preview",
+  input: PreviewUserBroadcastInputSchema,
+  output: PreviewUserBroadcastOutputSchema,
+  permission: "admin",
+  handler: (db, _ctx, { target }) =>
+    admin.previewUserBroadcastCounts(db, target),
 })
