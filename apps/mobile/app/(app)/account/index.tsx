@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { brand } from "@aira/config";
 import { Avatar } from "../../../components/ui/Avatar";
 import { Dialog } from "../../../components/ui/Dialog";
 import { Skeleton } from "../../../components/ui/Skeleton";
@@ -273,7 +274,51 @@ export default function AccountScreen() {
         open={showDelete}
         onClose={() => setShowDelete(false)}
         title="Delete account?"
-        description="This permanently deletes your account and all data. This cannot be undone."
+        description={
+          // Multi-paragraph body + external legal link. The link opens
+          // the marketing site's deletion policy in the system browser
+          // via Linking.openURL (apex-only rule — brand.url from
+          // @aira/config, never hand-typed). Kept inline here rather
+          // than lifted into a shared component because this is the
+          // only rich Dialog body in the app today.
+          <>
+            <Text className="text-base text-mutedForeground">
+              Deleting your account removes your login, profile,
+              favorites, posts, comments, and related account data,
+              except information we may retain under our Privacy Policy.
+            </Text>
+            <Text className="text-base text-mutedForeground">
+              If your email is linked to an active business listing, you
+              will lose access to it. The membership and listing will
+              remain active until the membership expires and will be
+              removed if not renewed.
+            </Text>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Account Deletion Information"
+              accessibilityHint="Opens the account deletion policy on our website"
+              onPress={() => {
+                void Linking.openURL(`${brand.url}/legal#deletion`);
+              }}
+              className="mt-1 flex-row items-center"
+              style={{ gap: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={18}
+                color="#4F653B"
+              />
+              <Text className="flex-1 text-base font-medium text-primary">
+                Account Deletion Information
+              </Text>
+              <MaterialCommunityIcons
+                name="open-in-new"
+                size={16}
+                color="#7A6B4E"
+              />
+            </Pressable>
+          </>
+        }
         confirmLabel="Delete"
         destructive
         onConfirm={async () => {

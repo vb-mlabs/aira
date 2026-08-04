@@ -1,12 +1,15 @@
 import * as React from "react";
-import { Modal, Pressable, View, Text } from "react-native";
+import { Modal, Pressable, ScrollView, View, Text } from "react-native";
 import { Button } from "./Button";
 
 export interface DialogProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  description?: string;
+  /** Body content. A plain string is wrapped in the standard muted-text
+   *  paragraph style; pass JSX for multi-paragraph or link-embedded
+   *  bodies (styling is then the caller's responsibility). */
+  description?: React.ReactNode;
   /** Primary action label; tap fires `onConfirm`. */
   confirmLabel?: string;
   cancelLabel?: string;
@@ -52,10 +55,24 @@ export function Dialog({
           >
             {title}
           </Text>
-          {description ? (
-            <Text className="mb-4 text-base text-mutedForeground">
-              {description}
-            </Text>
+          {description !== undefined && description !== null ? (
+            // ScrollView so long bodies (multi-paragraph, embedded
+            // links) don't push the buttons off-screen on small
+            // devices. maxHeight caps the scrollable area so the modal
+            // itself stays bounded to a comfortable read length.
+            <ScrollView
+              className="mb-4"
+              style={{ maxHeight: 360 }}
+              contentContainerStyle={{ gap: 10 }}
+            >
+              {typeof description === "string" ? (
+                <Text className="text-base text-mutedForeground">
+                  {description}
+                </Text>
+              ) : (
+                description
+              )}
+            </ScrollView>
           ) : null}
           <View className="mt-2 flex-row justify-end gap-2">
             <Button variant="ghost" size="sm" onPress={onClose}>
