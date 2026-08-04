@@ -231,11 +231,12 @@ if you invoke `eas-cli` directly.
 **Current runtime in the field (as of 2026-08-04).** Build **10** on
 runtime **`0.1.2`** (iOS + Android, submitted 2026-07-30). Latest
 production OTA on this runtime: group
-`d2d77167-9eb1-45c6-8646-9fddb13b0d34` (published 2026-08-04, message:
-"feat(mobile/account): labels + Safety/Help sub-pages + external legal
-links + delete-account dialog"). Prior known-good group for rollback:
-`b39cef84-29b9-4a6a-9787-2db489d8faae` (published 2026-08-03,
-"fix(mobile/nav): tab bar clears system chrome"). The repo's
+`cb6a7d37-3525-47eb-8764-53833e23ae1b` (published 2026-08-04, message:
+"fix(mobile/legal-links): open in browser instead of unmatched-routes
+on Android"). Prior known-good groups for rollback:
+`d2d77167-9eb1-45c6-8646-9fddb13b0d34` (2026-08-04, account redesign)
+and `b39cef84-29b9-4a6a-9787-2db489d8faae` (2026-08-03, tab-bar safe
+area). The repo's
 `apps/mobile/app.config.ts` has `version: "0.1.2"` and
 `runtimeVersion.policy: "appVersion"`, so a plain OTA targets `0.1.2`
 by default — no `--runtime-version` override needed. **Update the
