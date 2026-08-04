@@ -2,8 +2,8 @@
 
 **Started:** 2026-08-04 13:11
 **Source:** user-report (with server logs)
-**Status:** in-progress
-**Commit:** —
+**Status:** fixed
+**Commit:** a5df16d
 
 ## Symptom / repro
 Mobile PATCH `/api/v1/profile` with `{ name }` returns
@@ -70,10 +70,13 @@ Not bundled (recorded as follow-ups):
   the export, the route mount, the module comment, and this reference).
 
 ## Follow-ups
-- `requestEmailChangeOp` — same mobile bearer / Better Auth mismatch
-  (`apps/web/src/server/operations/users.ts:187`)
-- `changePasswordOp` — same
-  (`apps/web/src/server/operations/users.ts:231`)
-- Operation adapter catch — teach `defineOperation`'s catch about
-  Better Auth's `APIError` so it degrades to a proper 401 instead of a
-  masked 500
+_(all closed as part of this fix — see follow-up commit)_
+- ~~`requestEmailChangeOp` — same mobile bearer / Better Auth mismatch~~
+  → resolved via `betterAuthHeadersFor` session-token proxy
+- ~~`changePasswordOp` — same~~
+  → resolved via the same helper; behaves as "log user out on all
+  devices after password change" on mobile (see helper JSDoc)
+- ~~Operation adapter catch — teach `defineOperation`'s catch about
+  Better Auth's `APIError`~~ → resolved in `packages/api/src/operation.ts`
+  via `isBetterCallApiError` shape check; Better-Call errors now
+  surface with their real status + code and log at warn level

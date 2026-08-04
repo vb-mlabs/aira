@@ -10,17 +10,60 @@ import "server-only"
 // request scope (next/headers works).
 
 import { headers } from "next/headers"
-import { eq } from "drizzle-orm"
+import { and, eq, gt } from "drizzle-orm"
 import { createHash } from "node:crypto"
 import { z } from "zod"
-import { ApiError } from "@aira/api"
-import { user as userTable } from "@aira/db/schema"
+import { ApiError, type CallerContext } from "@aira/api"
+import type { Database } from "@aira/db/client"
+import { session as sessionTable, user as userTable } from "@aira/db/schema"
 import { createAudit } from "@aira/db/audit"
 import { users } from "@aira/services"
 import { auth } from "@/lib/auth"
 import { buildAuthUrl } from "@/lib/email/url"
 import { logger } from "@/lib/logger"
 import { defineOperation } from "./index"
+
+/** Return headers Better Auth's `auth.api.*` calls can consume.
+ *
+ *  Web callers keep the incoming request headers verbatim — the session
+ *  cookie is already there. Mobile callers arrive with our stateless JWT
+ *  in `Authorization: Bearer <jwt>`, which Better Auth's bearer plugin
+ *  can't verify (it HMAC-checks against the app secret, and the JWT is
+ *  signed by jose to a different scheme). We swap that bearer for one of
+ *  the caller's live Better Auth session tokens so the bearer plugin
+ *  can turn it into a synthetic session cookie and the downstream
+ *  endpoint's session middleware finds a real session.
+ *
+ *  Any of the user's non-expired session rows is sufficient for
+ *  Better Auth to answer "who is calling" — it doesn't tie the endpoint
+ *  behavior to a specific device except for `changePassword` with
+ *  `revokeOtherSessions: true`, which deletes ALL of the user's session
+ *  rows (including whichever we just picked) and mints a fresh one; on
+ *  mobile that fresh session lives only in a cookie the client can't
+ *  consume, so the phone's refresh token is dead on next use and mobile
+ *  falls back to sign-in. That's the intended post-password-change UX,
+ *  not a regression. */
+async function betterAuthHeadersFor(
+  db: Database,
+  ctx: CallerContext,
+  base: Headers,
+): Promise<Headers> {
+  if (ctx.source !== "mobile") return base
+  const [row] = await db
+    .select({ token: sessionTable.token })
+    .from(sessionTable)
+    .where(
+      and(
+        eq(sessionTable.userId, ctx.userId),
+        gt(sessionTable.expiresAt, new Date()),
+      ),
+    )
+    .limit(1)
+  if (!row) throw ApiError.unauthorized()
+  const proxied = new Headers(base)
+  proxied.set("Authorization", `Bearer ${row.token}`)
+  return proxied
+}
 
 export const deleteAccountOp = defineOperation({
   name: "users.deleteAccount",
@@ -207,7 +250,7 @@ export const requestEmailChangeOp = defineOperation({
           newEmail,
           callbackURL: buildAuthUrl("/account"),
         },
-        headers: await headers(),
+        headers: await betterAuthHeadersFor(db, ctx, await headers()),
       })
     } catch (err) {
       logger.error("changeEmail failed", {
@@ -252,7 +295,7 @@ export const changePasswordOp = defineOperation({
           newPassword,
           revokeOtherSessions: true,
         },
-        headers: await headers(),
+        headers: await betterAuthHeadersFor(db, ctx, await headers()),
       })
     } catch (err) {
       // Better Auth throws on wrong current password. Keep the message

@@ -142,6 +142,23 @@ function meetsPermission(actual: Permission, required: Permission): boolean {
   return hasPermission(actual, required)
 }
 
+/** Shape-check for better-call's APIError (thrown by any auth.api.* call).
+ *  We can't `instanceof` it here without pulling better-call as a runtime
+ *  dep on this universal package — but Better Auth stamps every instance
+ *  with `name === "APIError"` plus a numeric `statusCode`, which is
+ *  distinctive enough for the operation catch to branch on. */
+interface BetterCallApiErrorLike extends Error {
+  statusCode: number
+  body?: { message?: string; code?: string }
+}
+function isBetterCallApiError(err: unknown): err is BetterCallApiErrorLike {
+  return (
+    err instanceof Error &&
+    err.name === "APIError" &&
+    typeof (err as { statusCode?: unknown }).statusCode === "number"
+  )
+}
+
 function defaultRequestId(): string {
   return crypto.randomUUID()
 }
@@ -297,6 +314,30 @@ export function createOperations<DB>(deps: OperationDeps<DB>) {
         } catch (err) {
           if (isApiError(err)) {
             const res = err.toResponse()
+            res.headers.set("X-Request-Id", requestId)
+            return res
+          }
+          // Better Auth (better-call) throws its own APIError class with a
+          // numeric statusCode. Recognizing it by shape (avoids taking a
+          // runtime dep on better-call from a universal package) lets us
+          // return the real status the upstream chose instead of masking
+          // it as internal.unhandled 500. Log at warn — a handler that
+          // reaches Better Auth and gets a 4xx is caller-shaped, not a
+          // server bug worth an error-level page.
+          if (isBetterCallApiError(err)) {
+            const mapped = new ApiError({
+              status: err.statusCode,
+              code: err.body?.code ?? "auth.upstream",
+              message: err.body?.message ?? err.message ?? "Auth request failed",
+            })
+            log.warn?.("operation.upstream_api_error", {
+              op: spec.name,
+              requestId,
+              status: err.statusCode,
+              code: mapped.code,
+              message: mapped.message,
+            })
+            const res = mapped.toResponse()
             res.headers.set("X-Request-Id", requestId)
             return res
           }
