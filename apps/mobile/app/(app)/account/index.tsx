@@ -12,6 +12,7 @@ import { TopBar } from "../../../components/nav/TopBar";
 import { useMe, useSignOut } from "../../../features/auth/hooks";
 import { usePickAndUploadAvatar } from "../../../features/avatar/hooks";
 import { useDeleteAccount } from "../../../features/profile/hooks";
+import { externalWebUrl } from "../../../lib/external-web-url";
 
 /**
  * Account hub — flat row list mirroring web's /account page. Each row
@@ -298,7 +299,11 @@ export default function AccountScreen() {
               accessibilityLabel="Account Deletion Information"
               accessibilityHint="Opens the account deletion policy on our website"
               onPress={() => {
-                void Linking.openURL(`${brand.url}/legal#deletion`);
+                // externalWebUrl swaps apex → www so Android's intent
+                // filter doesn't intercept — see lib/external-web-url.ts.
+                void Linking.openURL(
+                  externalWebUrl(`${brand.url}/legal#deletion`),
+                );
               }}
               className="mt-1 flex-row items-center"
               style={{ gap: 8 }}

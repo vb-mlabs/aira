@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { brand } from "@aira/config";
 import { BackButton } from "../../../components/nav/BackButton";
 import { TopBar } from "../../../components/nav/TopBar";
+import { externalWebUrl } from "../../../lib/external-web-url";
 
 /**
  * /account/terms — Legal & Policies.
@@ -69,7 +70,10 @@ function LinkRow({
 
 export default function TermsScreen() {
   const openLegal = (anchor: string) => {
-    void Linking.openURL(`${brand.url}/legal#${anchor}`);
+    // externalWebUrl swaps apex → www so Android's intent filter
+    // doesn't intercept and bounce us back into the app with
+    // "unmatched routes". See lib/external-web-url.ts.
+    void Linking.openURL(externalWebUrl(`${brand.url}/legal#${anchor}`));
   };
 
   return (

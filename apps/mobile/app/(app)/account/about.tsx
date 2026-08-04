@@ -7,6 +7,7 @@ import Constants from "expo-constants";
 import { brand } from "@aira/config";
 import { BackButton } from "../../../components/nav/BackButton";
 import { TopBar } from "../../../components/nav/TopBar";
+import { externalWebUrl } from "../../../lib/external-web-url";
 
 /**
  * /account/about — brand hero + platform summary + operator/legal
@@ -138,7 +139,11 @@ function LinkRow({
 
 export default function AboutScreen() {
   const openUrl = (url: string) => {
-    void Linking.openURL(url);
+    // externalWebUrl swaps apex → www so Android's intent filter
+    // doesn't intercept and bounce us back into the app with
+    // "unmatched routes". See lib/external-web-url.ts. mailto: URLs
+    // pass through unchanged.
+    void Linking.openURL(externalWebUrl(url));
   };
 
   return (
