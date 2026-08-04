@@ -228,10 +228,13 @@ The full runway lives in `/mstack-expo`; the notes below are the
 project-specific state + the two Replit-ish gotchas that trip you up
 if you invoke `eas-cli` directly.
 
-**Current runtime in the field (as of 2026-08-03).** Build **10** on
+**Current runtime in the field (as of 2026-08-04).** Build **10** on
 runtime **`0.1.2`** (iOS + Android, submitted 2026-07-30). Latest
 production OTA on this runtime: group
-`b39cef84-29b9-4a6a-9787-2db489d8faae` (published 2026-08-03, message:
+`d2d77167-9eb1-45c6-8646-9fddb13b0d34` (published 2026-08-04, message:
+"feat(mobile/account): labels + Safety/Help sub-pages + external legal
+links + delete-account dialog"). Prior known-good group for rollback:
+`b39cef84-29b9-4a6a-9787-2db489d8faae` (published 2026-08-03,
 "fix(mobile/nav): tab bar clears system chrome"). The repo's
 `apps/mobile/app.config.ts` has `version: "0.1.2"` and
 `runtimeVersion.policy: "appVersion"`, so a plain OTA targets `0.1.2`
