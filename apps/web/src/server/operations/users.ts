@@ -92,13 +92,31 @@ export const updateNameOp = defineOperation({
       client: ctx.source === "mobile" ? "mobile" : "web",
     })
 
-    // Better Auth's updateUser also invalidates its in-memory session
-    // cache (so the next /api/auth/get-session call returns the new name).
-    // Bypassing it would leave session.user.name stale until next refresh.
-    await auth.api.updateUser({
-      body: { name },
-      headers: await headers(),
-    })
+    if (ctx.source === "mobile") {
+      // Mobile authenticates via our stateless JWT bearer, not a Better
+      // Auth session token. auth.api.updateUser runs its own session
+      // lookup (cookies + Better Auth's bearer plugin's session token)
+      // and would throw APIError("UNAUTHORIZED") for JWT callers — the
+      // operation adapter would then swallow that Better-Call-class
+      // error as `operation.unhandled` and return a 500. Write the row
+      // directly instead. There's no in-memory session cache to
+      // invalidate for JWT callers: subsequent requests re-decode the
+      // JWT (name isn't in the payload) and getProfileOp reads the
+      // fresh row directly from the DB.
+      await db
+        .update(userTable)
+        .set({ name })
+        .where(eq(userTable.id, ctx.userId))
+    } else {
+      // Web is cookie-authed. Better Auth's updateUser also invalidates
+      // its in-memory session cache (so the next /api/auth/get-session
+      // call returns the new name); bypassing it would leave
+      // session.user.name stale until the next refresh.
+      await auth.api.updateUser({
+        body: { name },
+        headers: await headers(),
+      })
+    }
 
     return {
       user: { id: ctx.userId, email: ctx.user.email, name },
