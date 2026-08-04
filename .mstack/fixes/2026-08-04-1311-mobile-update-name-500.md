@@ -3,7 +3,7 @@
 **Started:** 2026-08-04 13:11
 **Source:** user-report (with server logs)
 **Status:** fixed
-**Commit:** a5df16d
+**Commits:** a5df16d (updateName), 89a52e1 (changeEmail + changePassword + adapter catch)
 
 ## Symptom / repro
 Mobile PATCH `/api/v1/profile` with `{ name }` returns
