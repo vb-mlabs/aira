@@ -34,7 +34,7 @@ function Section({
 export default function TermsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <TopBar title="Terms" left={<BackButton />} />
+      <TopBar title="Legal & Policies" left={<BackButton />} />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         <View className="px-5 pt-5">
           <Text className="font-display text-2xl font-bold text-foreground">

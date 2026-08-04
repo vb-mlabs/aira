@@ -153,12 +153,19 @@ export default function AccountScreen() {
           )}
         </View>
 
-        {/* 7 sub-page rows in locked order: Favorites → My Listings →
-            My Posts → Notifications → Privacy & Security → Terms →
-            About. mx-5 mirrors the 20pt gutter every other tab uses
-            (Home, Categories, Listings); rounded-xl + overflow-hidden
-            clips the inner row borders so the group reads as one
-            card with internal hairline dividers. */}
+        {/* Sub-page rows in locked order: My Profile → Favorites →
+            My Listings → My Posts → Notifications → Safety & Community →
+            Privacy & Data → Legal & Policies → Help & Support → About.
+            mx-5 mirrors the 20pt gutter every other tab uses (Home,
+            Categories, Listings); rounded-xl + overflow-hidden clips the
+            inner row borders so the group reads as one card with
+            internal hairline dividers.
+
+            Note: the /account/privacy-security and /account/terms routes
+            are kept for backwards-compat with existing installs and any
+            in-flight push notifications that link to them; the visible
+            labels ("Privacy & Data", "Legal & Policies") are what
+            users see. */}
         <View className="mx-5 mt-6 overflow-hidden rounded-xl">
           <HubRow
             icon="account-outline"
@@ -191,16 +198,32 @@ export default function AccountScreen() {
             onPress={() => router.push("/account/notifications" as never)}
           />
           <HubRow
+            icon="shield-account-outline"
+            label="Safety & Community"
+            accessibilityHint="Community standards and how to report content"
+            onPress={() =>
+              router.push("/account/safety-community" as never)
+            }
+          />
+          <HubRow
             icon="lock-outline"
-            label="Privacy & Security"
+            label="Privacy & Data"
+            accessibilityHint="What we collect and how we use it"
             onPress={() =>
               router.push("/account/privacy-security" as never)
             }
           />
           <HubRow
             icon="file-document-outline"
-            label="Terms"
+            label="Legal & Policies"
+            accessibilityHint="Terms of service and legal notices"
             onPress={() => router.push("/account/terms" as never)}
+          />
+          <HubRow
+            icon="lifebuoy"
+            label="Help & Support"
+            accessibilityHint="Get help or contact the team"
+            onPress={() => router.push("/account/help-support" as never)}
           />
           <HubRow
             icon="information-outline"

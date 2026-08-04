@@ -66,7 +66,7 @@ export default function PrivacySecurityScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <TopBar title="Privacy & Security" left={<BackButton />} />
+      <TopBar title="Privacy & Data" left={<BackButton />} />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Relocated "Enable notifications" row from the legacy hub —
             this is the only non-content thing on the page. */}
