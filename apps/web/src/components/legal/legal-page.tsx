@@ -45,13 +45,18 @@ export function LegalPage({ title, lastUpdated, children }: LegalPageProps) {
 
 export function LegalSection({
   title,
+  id,
   children,
 }: {
   title: string
+  /** DOM id for anchor jump-links (e.g. `/legal#privacy`). When set the
+   *  wrapping <section> gets the id AND scroll-margin-top so the section
+   *  isn't hidden behind the sticky marketing nav after a jump. */
+  id?: string
   children: ReactNode
 }) {
   return (
-    <section>
+    <section id={id} className={id ? "scroll-mt-24" : undefined}>
       <h2 className="mb-4 text-2xl font-bold tracking-tight">{title}</h2>
       <div className="space-y-4 text-muted-foreground">{children}</div>
     </section>

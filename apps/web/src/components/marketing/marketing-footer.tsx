@@ -30,9 +30,13 @@ const forBusinessesContactLink = {
   external: true,
 }
 
+// One /legal source of truth — anchor fragments jump to the right
+// section. The old /privacy and /terms routes 308-redirect to their
+// section anchors so any external links stay live.
 const legalLinks = [
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
+  { href: "/legal", label: "Legal" },
+  { href: "/legal#privacy", label: "Privacy" },
+  { href: "/legal#terms", label: "Terms" },
   { href: `mailto:${brand.supportEmail}`, label: "Support" },
 ]
 
