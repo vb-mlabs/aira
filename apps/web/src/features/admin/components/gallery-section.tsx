@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useTransition, useCallback } from "react"
+import { useState, useTransition, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useDropzone } from "react-dropzone"
-import { X, Upload, Loader2 } from "lucide-react"
+import { X, Upload } from "lucide-react"
 import type { BusinessImage } from "@aira/validators"
+import { ImageCropModal } from "./image-crop-modal"
 
 interface GallerySectionProps {
   businessId: string
@@ -17,49 +18,55 @@ const MAX_IMAGES = 3
  * Self-contained gallery dropzone + thumbnail grid + delete control.
  * No card chrome — caller composes it inside whatever section it needs.
  * Owns its own upload / delete state.
+ *
+ * Uploads run through the ImageCropModal at 1200×800 (3:2) so the
+ * admin can zoom and reposition the crop before the file leaves the
+ * browser. Server-side cover-resize still runs as a defensive
+ * fallback, but the client crop guarantees the framing that ships is
+ * the framing the admin picked.
  */
 export function GalleryControl({ businessId, images }: GallerySectionProps) {
   const router = useRouter()
-  const [uploading, setUploading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [pickedSrc, setPickedSrc] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, startDeleteTransition] = useTransition()
 
   const canUpload = images.length < MAX_IMAGES
 
   const onDrop = useCallback(
-    async (accepted: File[]) => {
+    (accepted: File[]) => {
       const file = accepted[0]
       if (!file) return
+      // Revoke any prior object URL before minting a fresh one so a
+      // second pick doesn't leak. modalOpen effect resets internal
+      // state — matches logo-control + feature-image-section.
+      if (pickedSrc) URL.revokeObjectURL(pickedSrc)
+      const src = URL.createObjectURL(file)
+      setPickedSrc(src)
+      setModalOpen(true)
       setError(null)
-      setUploading(true)
-
-      try {
-        const form = new FormData()
-        form.append("file", file)
-        const res = await fetch(`/api/v1/admin/businesses/${businessId}/images`, {
-          method: "POST",
-          body: form,
-        })
-        if (!res.ok) {
-          const payload = await res.json().catch(() => null)
-          throw new Error(payload?.error?.message ?? "Upload failed.")
-        }
-        router.refresh()
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed.")
-      } finally {
-        setUploading(false)
-      }
     },
-    [businessId, router],
+    [pickedSrc],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/jpeg": [], "image/png": [], "image/webp": [] },
     maxFiles: 1,
-    disabled: !canUpload || uploading,
+    disabled: !canUpload,
   })
+
+  // Revoke the object URL when the modal closes so we don't keep the
+  // blob alive for the lifetime of the page.
+  function releasePickedSrc() {
+    if (pickedSrc) {
+      URL.revokeObjectURL(pickedSrc)
+      setPickedSrc(null)
+    }
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { if (!modalOpen) releasePickedSrc() }, [modalOpen])
 
   function handleDelete(imageId: string) {
     startDeleteTransition(async () => {
@@ -113,26 +120,16 @@ export function GalleryControl({ businessId, images }: GallerySectionProps) {
             isDragActive
               ? "border-primary bg-primary/5 text-primary"
               : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
-            (uploading) && "pointer-events-none opacity-60",
           ]
             .filter(Boolean)
             .join(" ")}
         >
           <input {...getInputProps()} />
-          {uploading ? (
-            <>
-              <Loader2 className="size-6 animate-spin" aria-hidden />
-              <span>Uploading…</span>
-            </>
-          ) : (
-            <>
-              <Upload className="size-6" aria-hidden />
-              <span>
-                {isDragActive ? "Drop to upload" : "Drop image or click to browse"}
-              </span>
-              <span className="text-xs">JPEG, PNG or WebP · max 8 MB</span>
-            </>
-          )}
+          <Upload className="size-6" aria-hidden />
+          <span>
+            {isDragActive ? "Drop to upload" : "Drop image or click to browse"}
+          </span>
+          <span className="text-xs">JPEG, PNG or WebP · max 8 MB · crop to 1200×800</span>
         </div>
       )}
 
@@ -147,6 +144,18 @@ export function GalleryControl({ businessId, images }: GallerySectionProps) {
           {error}
         </p>
       )}
+
+      <ImageCropModal
+        imageSrc={pickedSrc}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSuccess={() => router.refresh()}
+        endpoint={`/api/v1/admin/businesses/${businessId}/images`}
+        aspect={1200 / 800}
+        filename="gallery-image"
+        title="Crop gallery image"
+        saveLabel="Save image"
+      />
     </div>
   )
 }
@@ -163,7 +172,7 @@ export function GallerySection({ businessId, images }: GallerySectionProps) {
       <header className="border-b border-border px-6 py-4">
         <h2 className="text-base font-semibold">Gallery</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Up to {MAX_IMAGES} images · resized to 1200×800 cover JPEG on upload
+          Up to {MAX_IMAGES} images · crop + upload at 1200×800
         </p>
       </header>
       <div className="px-6 py-5">

@@ -3,16 +3,17 @@
 // LogoControl — 128×128 square admin tile for the business logo.
 //
 // Modelled on FeatureImageControl (empty-state dropzone / filled-state
-// hover-reveal Replace + Remove). The one difference: instead of
-// POSTing straight from onDrop, we hand the picked file to
-// LogoCropModal for a WhatsApp-style square crop. This keeps
-// wordmark logos from getting entropy-scored badly server-side.
+// hover-reveal Replace + Remove). Instead of POSTing straight from
+// onDrop, we hand the picked file to the shared ImageCropModal for a
+// WhatsApp-style square crop with zoom (aspect 1, PNG output for
+// wordmark transparency). Feature-image + gallery use the same modal
+// with different aspects.
 
 import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useDropzone } from "react-dropzone"
 import { Loader2, Upload, X } from "lucide-react"
-import { LogoCropModal } from "./logo-crop-modal"
+import { ImageCropModal } from "./image-crop-modal"
 
 interface LogoControlProps {
   businessId: string
@@ -147,12 +148,19 @@ export function LogoControl({ businessId, logoUrl }: LogoControlProps) {
         </p>
       )}
 
-      <LogoCropModal
-        businessId={businessId}
+      <ImageCropModal
         imageSrc={pickedSrc}
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSuccess={() => router.refresh()}
+        endpoint={`/api/v1/admin/businesses/${businessId}/logo`}
+        aspect={1}
+        filename="logo"
+        title="Crop logo"
+        saveLabel="Save logo"
+        // Logos may include wordmark transparency — keep alpha
+        // channel end-to-end. Server pipeline honors PNG.
+        outputMime="image/png"
       />
     </div>
   )

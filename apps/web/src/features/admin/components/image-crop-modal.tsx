@@ -1,19 +1,25 @@
 "use client"
 
-// LogoCropModal — WhatsApp-avatar-style square crop with zoom.
+// ImageCropModal — generic crop-with-zoom modal for any admin image
+// upload. Used by:
+//   - logo-control (aspect 1, PNG for wordmark transparency)
+//   - feature-image-section (aspect 1200/630, JPEG)
+//   - gallery-section (aspect 1200/800, JPEG)
 //
 // Owns react-easy-crop, the zoom slider, the canvas-to-blob helper, and
-// the POST to /api/v1/admin/businesses/[id]/logo. Emits `onSuccess`
-// (with the new URL) so the parent LogoControl can refresh + close.
+// the POST to whichever admin endpoint the caller passes. Emits
+// `onSuccess` (with the new URL) so the parent control can refresh.
 //
 // Design notes:
-// - Aspect locked to 1:1 (square) — server's cover-resize is a defensive
-//   fallback if a caller ever sends a non-square blob, but the modal
-//   itself guarantees square output.
-// - zoom slider clamped 1–3× (react-easy-crop default). Wheel zoom on
+// - Aspect is caller-controlled and constrains the crop rectangle to
+//   the exact ratio the server pipeline needs, so the user sees the
+//   crop that will actually ship rather than trusting the server-side
+//   resize fallback to guess the right region.
+// - Zoom slider clamped 1–3× (react-easy-crop default). Wheel zoom on
 //   desktop, pinch on touch — both come free from the lib.
-// - Output MIME is image/png to preserve transparency end-to-end. The
-//   server pipeline also outputs PNG (see business-image-pipeline.ts).
+// - Output MIME is caller-controlled. Default JPEG (photos, smaller
+//   uploads); logos override to PNG to preserve transparency
+//   end-to-end. Server pipelines re-encode either way.
 
 import { useState, useCallback, useEffect } from "react"
 import Cropper, { type Area } from "react-easy-crop"
@@ -22,22 +28,45 @@ import { X, Loader2 } from "lucide-react"
 import { Button } from "@aira/ui-web/button"
 import { cn } from "@aira/ui-web/utils"
 
-interface LogoCropModalProps {
-  businessId: string
-  /** Object URL of the source file the admin picked. Owned by the caller
-   *  (LogoControl) so we can revoke it on close without racing the picker. */
+export type CropOutputMime = "image/png" | "image/jpeg"
+
+export interface ImageCropModalProps {
+  /** Object URL of the source file the admin picked. Owned by the
+   *  caller so we can revoke it on close without racing the picker. */
   imageSrc: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Fires after a successful POST — parent runs router.refresh(). */
+  /** Fires after a successful POST — parent usually runs
+   *  router.refresh(). */
   onSuccess: (newUrl: string) => void
+  /** Absolute path (or full URL) for the POST target. */
+  endpoint: string
+  /** Aspect ratio for the crop rectangle (width / height). Logo=1,
+   *  cover=1200/630, gallery=1200/800, etc. */
+  aspect: number
+  /** Filename attached to the FormData part. Server pipelines don't
+   *  care about the name but the DevTools request panel does. */
+  filename?: string
+  /** Modal header text. */
+  title?: string
+  /** Primary button label. */
+  saveLabel?: string
+  /** Encoded MIME for the cropped blob. Default "image/jpeg" (small
+   *  uploads for photos). Set "image/png" for logos so transparency
+   *  survives client → server. */
+  outputMime?: CropOutputMime
+  /** JPEG quality 0..1. Ignored for PNG. Default 0.92. */
+  outputQuality?: number
 }
 
-/** Draws the cropped region onto an off-screen canvas and returns a PNG
- *  Blob. Exported for direct testing without spinning up the modal. */
+/** Draws the cropped region onto an off-screen canvas and returns a
+ *  Blob in the requested format. Exported for direct testing without
+ *  spinning up the modal. */
 export async function cropImageToBlob(
   imageSrc: string,
   crop: Area,
+  mime: CropOutputMime = "image/jpeg",
+  quality = 0.92,
 ): Promise<Blob> {
   const img = new Image()
   img.src = imageSrc
@@ -51,6 +80,12 @@ export async function cropImageToBlob(
   canvas.height = crop.height
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("Canvas 2D context not available")
+  // JPEG has no alpha channel — fill the canvas with white first so
+  // transparent source pixels don't render as black in the output.
+  if (mime === "image/jpeg") {
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, 0, crop.width, crop.height)
+  }
   ctx.drawImage(
     img,
     crop.x,
@@ -64,30 +99,40 @@ export async function cropImageToBlob(
   )
 
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) reject(new Error("Canvas toBlob returned null"))
-      else resolve(blob)
-    }, "image/png")
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) reject(new Error("Canvas toBlob returned null"))
+        else resolve(blob)
+      },
+      mime,
+      mime === "image/jpeg" ? quality : undefined,
+    )
   })
 }
 
-export function LogoCropModal({
-  businessId,
+export function ImageCropModal({
   imageSrc,
   open,
   onOpenChange,
   onSuccess,
-}: LogoCropModalProps) {
+  endpoint,
+  aspect,
+  filename = "image",
+  title = "Crop image",
+  saveLabel = "Save",
+  outputMime = "image/jpeg",
+  outputQuality = 0.92,
+}: ImageCropModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Reset transient state each time the modal opens so a second logo
-  // upload doesn't inherit the previous zoom/crop. Wrapping the reset
-  // in a named function so React 19's set-state-in-effect rule doesn't
-  // fire on the inline calls — matches sponsorships-section.tsx.
+  // Reset transient state each time the modal opens so a second upload
+  // doesn't inherit the previous zoom/crop. Wrapping the reset in a
+  // named function so React 19's set-state-in-effect rule doesn't fire
+  // on the inline calls — matches sponsorships-section.tsx.
   function resetTransientState() {
     setCrop({ x: 0, y: 0 })
     setZoom(1)
@@ -107,19 +152,22 @@ export function LogoCropModal({
     setError(null)
     setSaving(true)
     try {
-      const blob = await cropImageToBlob(imageSrc, croppedAreaPixels)
-      const form = new FormData()
-      form.append("file", blob, "logo.png")
-      const res = await fetch(
-        `/api/v1/admin/businesses/${businessId}/logo`,
-        { method: "POST", body: form },
+      const blob = await cropImageToBlob(
+        imageSrc,
+        croppedAreaPixels,
+        outputMime,
+        outputQuality,
       )
+      const ext = outputMime === "image/png" ? "png" : "jpg"
+      const form = new FormData()
+      form.append("file", blob, `${filename}.${ext}`)
+      const res = await fetch(endpoint, { method: "POST", body: form })
       if (!res.ok) {
         const payload = await res.json().catch(() => null)
         throw new Error(payload?.error?.message ?? "Upload failed.")
       }
-      const { url } = (await res.json()) as { url: string }
-      onSuccess(url)
+      const { url } = (await res.json()) as { url?: string }
+      onSuccess(url ?? "")
       onOpenChange(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.")
@@ -132,10 +180,10 @@ export function LogoCropModal({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm" />
-        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex w-[min(480px,94vw)] max-h-[90svh] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card-hover)]">
+        <Dialog.Popup className="fixed left-1/2 top-1/2 z-50 flex w-[min(560px,94vw)] max-h-[90svh] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl bg-card shadow-[var(--shadow-card-hover)]">
           <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
             <Dialog.Title className="font-display text-lg text-foreground">
-              Crop logo
+              {title}
             </Dialog.Title>
             <Dialog.Close
               className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -147,17 +195,18 @@ export function LogoCropModal({
 
           <div className="flex flex-col gap-4 px-6 py-5">
             {/* react-easy-crop needs an explicit positioned parent — it
-                absolute-positions its own layers. 320px tall matches the
-                Cropper's minimum useful size on desktop; on mobile the
-                modal itself clamps to 94vw so the crop box shrinks
-                proportionally via the aspect + fit. */}
+                absolute-positions its own layers. Height stays 320px so
+                the container is roughly the same visual scale for every
+                aspect ratio; width scales to a comfortable fit inside
+                the modal (which itself clamps to 94vw so the crop box
+                shrinks proportionally on mobile). */}
             <div className="relative h-[320px] w-full overflow-hidden rounded-lg bg-muted">
               {imageSrc ? (
                 <Cropper
                   image={imageSrc}
                   crop={crop}
                   zoom={zoom}
-                  aspect={1}
+                  aspect={aspect}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
@@ -169,13 +218,13 @@ export function LogoCropModal({
 
             <div className="flex items-center gap-3">
               <label
-                htmlFor="logo-zoom"
+                htmlFor="image-crop-zoom"
                 className="text-xs font-medium text-muted-foreground"
               >
                 Zoom
               </label>
               <input
-                id="logo-zoom"
+                id="image-crop-zoom"
                 type="range"
                 min={1}
                 max={3}
@@ -205,7 +254,7 @@ export function LogoCropModal({
                     Uploading…
                   </>
                 ) : (
-                  "Save logo"
+                  saveLabel
                 )}
               </Button>
               <Button
