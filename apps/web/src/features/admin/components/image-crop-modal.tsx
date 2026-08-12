@@ -212,6 +212,15 @@ export function ImageCropModal({
                   onCropComplete={onCropComplete}
                   restrictPosition={true}
                   showGrid={false}
+                  // "cover" makes the image fill the crop area at zoom=1
+                  // for every orientation. Under the default "contain", a
+                  // portrait image renders as a thin strip whose width equals
+                  // the crop box's width, so restrictPosition clamps
+                  // horizontal panning to zero at zoom=1 and the widget feels
+                  // stuck. With "cover" the crop is always the full landscape
+                  // rectangle and zoom + pan behave the same regardless of
+                  // input orientation.
+                  objectFit="cover"
                 />
               ) : null}
             </div>
