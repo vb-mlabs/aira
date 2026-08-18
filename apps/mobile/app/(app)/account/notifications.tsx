@@ -1,7 +1,15 @@
 import * as React from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Linking,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import * as Notifications from "expo-notifications";
 import { brand } from "@aira/config";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { useToast } from "../../../components/ui/Toast";
@@ -13,6 +21,7 @@ import {
   useMarkAllRead,
 } from "../../../features/notifications/hooks";
 import type { NotificationRow } from "../../../features/notifications/api";
+import { requestPermissionAndRegister } from "../../../lib/push";
 
 // Every notification opens the shared notification-detail modal at
 // /account/notification/<id>. The modal reads its notification straight
@@ -96,6 +105,80 @@ function groupByDay(items: NotificationRow[]): Row[] {
   return rows;
 }
 
+// Banner shown when iOS/Android has not granted notification permission.
+// Second entry point (beyond the one-shot post-login pre-prompt) into
+// lib/push.ts's requestPermissionAndRegister, so users who tapped "Maybe
+// later" — or never saw the pre-prompt — can still register the app with
+// the OS. Without this, iOS never lists AIRA under Settings → Notifications
+// and no lock-screen push is delivered. Re-polls permission on focus so
+// the banner disappears once the user grants permission (in-app or via
+// Settings).
+function EnablePushBanner() {
+  const [status, setStatus] = React.useState<
+    Notifications.PermissionStatus | null
+  >(null);
+  const [busy, setBusy] = React.useState(false);
+  const toast = useToast();
+
+  const refresh = React.useCallback(async () => {
+    const perms = await Notifications.getPermissionsAsync();
+    setStatus(perms.status);
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
+  async function handleEnable() {
+    if (busy) return;
+    setBusy(true);
+    const result = await requestPermissionAndRegister();
+    // iOS-only case: user denied earlier and canAskAgain is false, so no
+    // OS prompt will fire. lib/push.ts surfaces this specific message;
+    // route the user to Settings so they can flip the toggle themselves.
+    if (result.error === "Notifications are off for AIRA in Settings.") {
+      try {
+        await Linking.openSettings();
+      } catch {
+        toast.show({ message: "Couldn't open Settings", kind: "error" });
+      }
+    } else if (result.error) {
+      toast.show({ message: result.error, kind: "error" });
+    }
+    await refresh();
+    setBusy(false);
+  }
+
+  if (status === null || status === "granted") return null;
+
+  return (
+    <View className="mx-5 mt-3 rounded-lg border border-border bg-muted/40 px-3 py-3">
+      <Text className="text-sm text-foreground">
+        Turn on lock-screen notifications to get updates about your listings
+        and posts.
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Enable notifications"
+        disabled={busy}
+        onPress={handleEnable}
+        className="mt-2 self-start rounded-full bg-primary px-4 py-1.5"
+        style={{ opacity: busy ? 0.6 : 1 }}
+      >
+        {busy ? (
+          <ActivityIndicator size="small" color="#EAE0CB" />
+        ) : (
+          <Text className="text-sm font-semibold text-primaryForeground">
+            Enable
+          </Text>
+        )}
+      </Pressable>
+    </View>
+  );
+}
+
 export default function NotificationsScreen() {
   const { data, isLoading } = useNotifications();
   const markAllRead = useMarkAllRead();
@@ -141,6 +224,7 @@ export default function NotificationsScreen() {
           ) : null
         }
       />
+      <EnablePushBanner />
       {isLoading ? (
         <View className="px-5 pt-4" style={{ gap: 12 }}>
           <Skeleton height={60} />
