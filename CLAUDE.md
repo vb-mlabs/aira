@@ -228,15 +228,18 @@ The full runway lives in `/mstack-expo`; the notes below are the
 project-specific state + the two Replit-ish gotchas that trip you up
 if you invoke `eas-cli` directly.
 
-**Current runtime in the field (as of 2026-08-04).** Build **10** on
+**Current runtime in the field (as of 2026-08-18).** Build **10** on
 runtime **`0.1.2`** (iOS + Android, submitted 2026-07-30). Latest
 production OTA on this runtime: group
-`cb6a7d37-3525-47eb-8764-53833e23ae1b` (published 2026-08-04, message:
-"fix(mobile/legal-links): open in browser instead of unmatched-routes
-on Android"). Prior known-good groups for rollback:
-`d2d77167-9eb1-45c6-8646-9fddb13b0d34` (2026-08-04, account redesign)
-and `b39cef84-29b9-4a6a-9787-2db489d8faae` (2026-08-03, tab-bar safe
-area). The repo's
+`a8071734-0060-4f74-b1dd-ffc4b3705651` (published 2026-08-18, message:
+"fix(mobile/push): enable-notifications banner on /account/notifications"
+— fixes AIRA missing from iOS Settings → Notifications on installs
+where the user tapped "Maybe later" on the post-login pre-prompt).
+Prior known-good groups for rollback:
+`cb6a7d37-3525-47eb-8764-53833e23ae1b` (2026-08-04, legal-links
+Android intent-filter bypass) and
+`d2d77167-9eb1-45c6-8646-9fddb13b0d34` (2026-08-04, account redesign).
+The repo's
 `apps/mobile/app.config.ts` has `version: "0.1.2"` and
 `runtimeVersion.policy: "appVersion"`, so a plain OTA targets `0.1.2`
 by default — no `--runtime-version` override needed. **Update the
