@@ -3,7 +3,7 @@
 **Started:** 2026-08-18 18:00
 **Source:** user-report (attempted comment on the notifications issue ticket; posted in-thread instead)
 **Env:** production (installed builds on iPhone 16 Pro / iPhone 17 Pro)
-**Status:** ready-for-code
+**Status:** implemented
 **Investigator:** /mlabs-debug
 
 ## Symptom
