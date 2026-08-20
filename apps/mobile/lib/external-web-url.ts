@@ -1,3 +1,5 @@
+import { Platform } from "react-native"
+
 // externalWebUrl(url) — force an outbound URL to open in the system
 // browser instead of getting caught by the app's own intent filter.
 //
@@ -11,27 +13,44 @@
 // deletion policy). When Chrome kicks the URL back to the app,
 // expo-router has no matching route and shows "unmatched routes".
 //
-// Correct long-term fix: add `pathPrefix` to the intent filter so
-// only `/verify*` and `/reset-password*` are caught (mirrors the iOS
-// AASA on the web side). That's a native change → next EAS build.
-// See the [HIGH] Android intent-filter follow-up in TODOS.md.
+// iOS is scoped correctly already. Its AASA at
+// `apps/web/public/.well-known/apple-app-site-association` claims
+// only `/verify*` and `/reset-password*` on the apex host, so
+// Safari opens every other `airabynisarga.com/*` URL in-browser
+// without interception. iOS therefore does NOT need any rewrite —
+// the helper is a no-op on iOS. Rewriting on iOS actively BROKE
+// legal links, because it sent Safari to `www.airabynisarga.com/*`
+// which currently DNS-resolves to a third-party parking host
+// (`airabynisarga-com.l.ink`) that 302-redirects every path to a
+// generic 404. See `apps/web/next.config.mjs` — the dormant
+// `www → apex` 301 there activates the moment DNS for `www.`
+// points at our origin.
 //
-// Short-term OTA-safe workaround (this file): rewrite the apex host
-// to `www.` before handing to `Linking.openURL`. The intent filter's
-// host match is exact — `www.airabynisarga.com` doesn't match
-// `airabynisarga.com`, so Android falls through to Chrome. Chrome
-// then follows the marketing site's `www → apex` 301 (declared in
-// `apps/web/next.config.mjs`) and renders the apex page. The 301 is
-// browser-internal — it does NOT trigger a new startActivity
-// intent, so the app doesn't intercept the redirect either.
+// Correct long-term fix (both platforms): add `pathPrefix` to the
+// Android intent filter so only `/verify*` and `/reset-password*`
+// are caught (mirrors the iOS AASA). Then this helper can be
+// deleted entirely and every screen can call
+// `Linking.openURL(brand.url + "/...")` directly. That's a native
+// change → next EAS build. Tracked in TODOS.md under the HIGH
+// [next EAS native build] item added 2026-08-04.
 //
-// Only rewrites airabynisarga.com URLs; other hosts and mailto:
-// links pass through unchanged. Delete this helper and drop the `www`
-// use once the native intent-filter restriction ships.
+// Interim Android behavior: the `www` rewrite still fires on
+// Android. Until the parking host DNS is repointed OR the native
+// intent-filter fix ships, Android users tapping a legal link end
+// up on `airabynisarga-com.l.ink/legal` (parking 404). Removing the
+// rewrite here would swap that for an in-app "unmatched routes"
+// screen — different broken state, no better UX. The rewrite stays
+// so the diff is minimal and iOS is unblocked; Android's real fix
+// is the native one.
+//
+// Only rewrites airabynisarga.com URLs on Android; other hosts and
+// mailto: links pass through unchanged. Delete this helper and drop
+// the `www` use once the native intent-filter restriction ships.
 
 const APEX_HOST = "airabynisarga.com"
 
 export function externalWebUrl(url: string): string {
+  if (Platform.OS !== "android") return url
   try {
     const parsed = new URL(url)
     if (parsed.hostname === APEX_HOST) {
