@@ -3,7 +3,7 @@
 **Started:** 2026-08-20 12:11
 **Source:** user-report
 **Status:** fixed (iOS) / interim (Android — native fix pending, already tracked)
-**Commit:** _pending_
+**Commit:** 3f403ce
 
 ## Symptom / repro
 
@@ -90,6 +90,19 @@ un-break Android on the current build):
    the existing Android rewrite starts doing what it was designed to do.
 2. Ship the native `pathPrefix` change in the next EAS build (proper
    long-term fix, deletes this helper).
+
+## OTA delivery
+
+Published to production via `eas update` on 2026-08-20:
+
+- Group ID: `7011d5e6-a2a6-49ff-aae2-110cdbcc0f33`
+- Runtime: `0.1.2` (matches store build 10 on both platforms)
+- Platforms: android + ios
+- Commit: `3f403ce`
+- Dashboard: https://expo.dev/accounts/million-labs/projects/aira-mobile/updates/7011d5e6-a2a6-49ff-aae2-110cdbcc0f33
+
+Rollback: republish the prior group
+`a8071734-0060-4f74-b1dd-ffc4b3705651` (the notifications-banner OTA).
 
 ## Follow-ups
 

@@ -228,14 +228,17 @@ The full runway lives in `/mstack-expo`; the notes below are the
 project-specific state + the two Replit-ish gotchas that trip you up
 if you invoke `eas-cli` directly.
 
-**Current runtime in the field (as of 2026-08-18).** Build **10** on
+**Current runtime in the field (as of 2026-08-20).** Build **10** on
 runtime **`0.1.2`** (iOS + Android, submitted 2026-07-30). Latest
 production OTA on this runtime: group
-`a8071734-0060-4f74-b1dd-ffc4b3705651` (published 2026-08-18, message:
-"fix(mobile/push): enable-notifications banner on /account/notifications"
-— fixes AIRA missing from iOS Settings → Notifications on installs
-where the user tapped "Maybe later" on the post-login pre-prompt).
+`7011d5e6-a2a6-49ff-aae2-110cdbcc0f33` (published 2026-08-20, message:
+"fix(mobile/legal): stop rewriting apex→www on iOS (parking-host 404)"
+— platform-guards `externalWebUrl` so iOS opens legal links at the
+apex; Android still relies on the broken www rewrite until the native
+intent-filter `pathPrefix` fix ships).
 Prior known-good groups for rollback:
+`a8071734-0060-4f74-b1dd-ffc4b3705651` (2026-08-18, enable-notifications
+banner on /account/notifications),
 `cb6a7d37-3525-47eb-8764-53833e23ae1b` (2026-08-04, legal-links
 Android intent-filter bypass) and
 `d2d77167-9eb1-45c6-8646-9fddb13b0d34` (2026-08-04, account redesign).
