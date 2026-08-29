@@ -13,7 +13,6 @@
 
 import { useState } from "react"
 import {
-  BadgeCheck,
   Star,
   Users,
   User,
@@ -26,12 +25,6 @@ import { apiClient } from "@/lib/api-client"
 // ── Launch Offer data ─────────────────────────────────────────────────────────
 
 const PERKS = [
-  {
-    icon: <BadgeCheck className="size-4" />,
-    iconBg: "bg-primary text-primary-foreground",
-    highlight: "FREE",
-    title: "AIRA Verified Badge",
-  },
   {
     icon: <Star className="size-4" />,
     iconBg: "bg-brand-gold text-white",
@@ -52,13 +45,13 @@ const MEMBERSHIP_PLANS = [
     icon: <User className="size-4" />,
     iconBg: "bg-muted text-muted-foreground",
     title: "6-Month Membership",
-    value: "$149",
+    value: "$69",
   },
   {
     icon: <User className="size-4" />,
     iconBg: "bg-muted text-muted-foreground",
     title: "1-Year Membership",
-    value: "$229",
+    value: "$99",
   },
 ]
 
