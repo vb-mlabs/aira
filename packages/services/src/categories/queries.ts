@@ -58,12 +58,25 @@ export async function getCategoriesByCity(
 export async function getCategoryTree(
   db: Database,
   cityId: string,
+  opts: { includeInactive?: boolean } = {},
 ): Promise<CategoryTreeOutput["tree"]> {
-  const all = await getCategoriesByCity(db, cityId, { includeInactive: true });
-  const roots = all.filter((c) => c.level === 1);
+  // Public callers (sidebar, mobile roots op) want active rows only —
+  // an inactive slug wouldn't resolve through getCategoryBySlug, so a
+  // sidebar link built from one 404s. Admin surfaces that need the raw
+  // taxonomy build their own tree from getCategoriesByCity directly
+  // and don't come through here.
+  const includeInactive = opts.includeInactive ?? false;
+  const all = await getCategoriesByCity(db, cityId, { includeInactive });
+  // Belt-and-suspenders: getCategoriesByCity already filters at the DB
+  // level when includeInactive=false, but keeping the JS filter here
+  // means the invariant "public tree contains no inactive rows" holds
+  // even if a caller passes an already-mixed row set (tests, in-memory
+  // callers) or the underlying query changes shape later.
+  const visible = includeInactive ? all : all.filter((c) => c.active);
+  const roots = visible.filter((c) => c.level === 1);
   return roots.map((root) => ({
     root,
-    children: all.filter((c) => c.parent_id === root.id),
+    children: visible.filter((c) => c.parent_id === root.id),
   }));
 }
 
