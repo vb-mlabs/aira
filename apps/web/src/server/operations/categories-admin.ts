@@ -12,10 +12,23 @@ import {
   CategoryTreeOutputSchema,
 } from "@aira/validators/categories"
 import { ApiError } from "@aira/api"
+import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { defineOperation } from "./index"
 
 const CITY_ID = "city-atlanta"
+
+// The (app)/layout.tsx sidebar fetches the category tree in-process via
+// listCategoriesTreeOp. That layout is a persistent segment above every
+// authed route, so its rendered output sits in Next's Router Cache for
+// every open session until something explicitly invalidates it. Every
+// mutation here changes what the sidebar should show (renamed slug, new
+// row, deactivated row, reorder), so we punch through the cache on the
+// root layout after each write. Callers on the next request — same tab,
+// other tabs, other users — get a fresh render.
+function invalidateSidebar() {
+  revalidatePath("/", "layout")
+}
 
 export const listCategoriesAdminOp = defineOperation({
   name: "admin.categories.list",
@@ -54,6 +67,7 @@ export const createCategoryOp = defineOperation({
       parent_id: input.parent_id ?? null,
       active: input.active ?? true,
     })
+    invalidateSidebar()
     return { category }
   },
 })
@@ -75,6 +89,7 @@ export const updateCategoryOp = defineOperation({
     })
     if (!result.category)
       throw ApiError.notFound("categories.not_found", "Category not found")
+    invalidateSidebar()
     return { category: result.category }
   },
 })
@@ -101,6 +116,7 @@ export const deactivateCategoryOp = defineOperation({
     const category = await categoriesService.deactivateCategory(db, id)
     if (!category)
       throw ApiError.notFound("categories.not_found", "Category not found")
+    invalidateSidebar()
     return { category, affected_businesses }
   },
 })
@@ -112,6 +128,7 @@ export const reorderCategoriesOp = defineOperation({
   permission: "super_admin",
   handler: async (db, _ctx, { city_id, ordered_ids }) => {
     await categoriesService.reorderCategories(db, city_id, ordered_ids)
+    invalidateSidebar()
     return { ok: true }
   },
 })
