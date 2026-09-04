@@ -80,6 +80,12 @@ attached_assets/*recovery_codes*
 attached_assets/*-secret*
 attached_assets/*credentials*
 
+# mstack QA + UX audit runs: PNG-heavy evidence, kept local only.
+# The .md report on disk is still useful mid-run; treat the folder as
+# scratch and re-run the skill if you need a report later.
+.mstack/qa/
+.mstack/ux-audits/
+
 # Dev-only symlinks for design-system / marketing-page preview HTML
 # (target .mstack/ and attached_assets/ which are tracked separately;
 # the symlinks themselves use absolute paths that only resolve in this
