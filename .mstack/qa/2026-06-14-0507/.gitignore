@@ -1,6 +1,0 @@
-# Session cookies — anyone with these can sign in as the QA personas.
-.auth/
-
-# Playwright failure attachments include traces that may embed credentials
-# and inflate the diff.
-test-results/
