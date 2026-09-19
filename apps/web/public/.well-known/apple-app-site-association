@@ -6,7 +6,8 @@
         "appID": "C529274M9Y.com.airabynisarga.app",
         "paths": [
           "/verify*",
-          "/reset-password*"
+          "/reset-password*",
+          "/account/listings*"
         ]
       }
     ]
