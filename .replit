@@ -80,6 +80,10 @@ task = "shell.exec"
 args = "EXPO_FORCE_WEBCONTAINER_ENV=1 pnpm --filter @aira/mobile exec expo start --tunnel --clear"
 
 [[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
