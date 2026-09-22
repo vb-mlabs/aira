@@ -16,7 +16,15 @@
 // alongside the center masthead).
 
 import Image from "next/image"
-import { Check, ShieldCheck, Star, TrendingUp } from "lucide-react"
+import {
+  Check,
+  ShieldCheck,
+  Star,
+  Store,
+  TrendingUp,
+  Users,
+  type LucideIcon,
+} from "lucide-react"
 import { brand } from "@aira/config"
 import { GetListedDialog } from "./business-cta-pair"
 import { LaunchOfferDialog } from "./launch-offer-dialog"
@@ -53,6 +61,7 @@ export function HeroV2() {
         {/* -------- LEFT: For Users -------- */}
         <div className="order-2 flex flex-col items-center gap-6 md:order-1">
           <ColumnHeader
+            Icon={Users}
             titleLead="For"
             titleAccent="Users"
             blurb="Free to download and easy to get started. Create your login once with your email."
@@ -177,6 +186,7 @@ export function HeroV2() {
         {/* -------- RIGHT: For Business Owners -------- */}
         <div className="order-3 flex flex-col items-center gap-6">
           <ColumnHeader
+            Icon={Store}
             titleLead="For"
             titleAccent="Business Owners"
             blurb="List your business for free and grow your visibility."
@@ -199,9 +209,9 @@ export function HeroV2() {
               >
                 <span
                   aria-hidden="true"
-                  className="grid size-[42px] place-items-center rounded-full border border-border/30 bg-card text-primary"
+                  className="grid size-[42px] place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
                 >
-                  <Icon className="size-[22px]" strokeWidth={1.8} />
+                  <Icon className="size-[22px]" strokeWidth={2} />
                 </span>
                 <div className="min-w-0">
                   <strong className="mb-0.5 block text-[14px] font-bold text-foreground">
@@ -222,21 +232,32 @@ export function HeroV2() {
 
 // ---- Local building blocks ------------------------------------------------
 
-// Editorial column header — parallel to the center masthead. Title leads
-// with a neutral word and colors the audience word in `--primary`; gold
-// hairline closes the block. Center column doesn't use this — it renders
-// its own richer header with a second lede + wider max-width.
+// Editorial column header — parallel to the center masthead. Optional
+// `Icon` renders as a solid brand-color circle above the title (as shown
+// in the client brief image). Title reads in `--primary`; blurb sits
+// under; gold hairline closes the block. Center column doesn't use this —
+// it renders its own richer header with a second lede + wider max-width.
 function ColumnHeader({
+  Icon,
   titleLead,
   titleAccent,
   blurb,
 }: {
+  Icon?: LucideIcon
   titleLead: string
   titleAccent: string
   blurb: string
 }) {
   return (
-    <div className="w-full">
+    <div className="flex w-full flex-col items-center">
+      {Icon ? (
+        <span
+          aria-hidden="true"
+          className="mb-4 grid size-[68px] place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+        >
+          <Icon className="size-[34px]" strokeWidth={1.8} />
+        </span>
+      ) : null}
       <h2 className="m-0 text-center font-display text-[clamp(28px,3.2vw,36px)] font-bold leading-[1.05] tracking-tight text-primary">
         {titleLead} {titleAccent}
       </h2>
