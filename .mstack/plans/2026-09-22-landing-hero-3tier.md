@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-22
 **Slug:** 2026-09-22-landing-hero-3tier
-**Status:** reviewed
+**Status:** implemented
 **Author:** vb-mlabs (Claude Code)
 
 ---
