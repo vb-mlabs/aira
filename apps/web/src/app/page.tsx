@@ -8,6 +8,7 @@
 import { brand } from "@aira/config"
 import { AboutEditorial } from "@/components/marketing/about-editorial"
 import { BusinessPanel } from "@/components/marketing/business-panel"
+import { BusinessPanelV2 } from "@/components/marketing/business-panel-v2"
 import { Hero } from "@/components/marketing/hero"
 import { HeroV2 } from "@/components/marketing/hero-v2"
 import { HowItWorks } from "@/components/marketing/how-it-works"
@@ -60,14 +61,17 @@ export default function Home() {
       <main className="flex flex-1 flex-col">
         <HeroComponent />
         {LANDING_HERO_V2 ? (
-          <HowItWorks />
+          <>
+            <HowItWorks />
+            <BusinessPanelV2 />
+          </>
         ) : (
           <>
             <AboutEditorial />
             <PhoneShowcase />
+            <BusinessPanel />
           </>
         )}
-        <BusinessPanel />
       </main>
       <MarketingFooter />
     </>
