@@ -14,7 +14,7 @@
 // land here. Gated on NEXT_PUBLIC_LANDING_HERO_V2 via page.tsx — the
 // original BusinessPanel renders when the flag is off.
 
-import { Bell, Heart, Search, ShieldCheck } from "lucide-react"
+import { Heart, Search, ShieldCheck } from "lucide-react"
 import { brand } from "@aira/config"
 import { LiteYouTube } from "./lite-youtube"
 
@@ -34,11 +34,6 @@ const BENEFITS = [
     title: "Save Favorites",
     body: "Save and revisit your favorite businesses.",
   },
-  {
-    Icon: Bell,
-    title: "Stay Updated",
-    body: "Get updates on offers, events & new businesses.",
-  },
 ] as const
 
 export function BusinessPanelV2() {
@@ -56,8 +51,8 @@ export function BusinessPanelV2() {
           </h2>
         </div>
 
-        {/* 4-column benefits strip */}
-        <ul className="mx-auto mt-14 grid max-w-[1100px] grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4 md:gap-8">
+        {/* 3-column benefits strip — matches HeroV2 + HowItWorks pattern */}
+        <ul className="mx-auto mt-14 grid max-w-[1000px] grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
           {BENEFITS.map(({ Icon, title, body }) => (
             <li
               key={title}
