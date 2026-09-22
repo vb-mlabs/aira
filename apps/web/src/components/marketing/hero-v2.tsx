@@ -106,7 +106,7 @@ export function HeroV2() {
           <div className="w-full">
             <h1 className="m-0 text-center font-display text-[clamp(36px,4.4vw,52px)] font-bold leading-[1.02] tracking-tight">
               <span className="text-primary">Discover.</span>{" "}
-              <span className="text-primary">Support.</span>{" "}
+              <span className="text-foreground">Support.</span>{" "}
               <span className="text-primary">Grow.</span>
             </h1>
             <p className="mt-4 text-center font-display text-lg font-bold text-foreground">
@@ -237,9 +237,8 @@ function ColumnHeader({
 }) {
   return (
     <div className="w-full">
-      <h2 className="m-0 text-center font-display text-[clamp(28px,3.2vw,36px)] font-bold leading-[1.05] tracking-tight text-foreground">
-        {titleLead}{" "}
-        <span className="text-primary">{titleAccent}</span>
+      <h2 className="m-0 text-center font-display text-[clamp(28px,3.2vw,36px)] font-bold leading-[1.05] tracking-tight text-primary">
+        {titleLead} {titleAccent}
       </h2>
       <p className="mx-auto mt-3 max-w-[32ch] text-center text-[14px] leading-[1.55] text-muted-foreground">
         {blurb}
