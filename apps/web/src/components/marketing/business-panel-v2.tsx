@@ -37,14 +37,14 @@ export function BusinessPanelV2() {
   return (
     <section
       id="businesses"
-      className="scroll-mt-20 bg-[color:oklch(0.42_0.06_130)] bg-[url('/marketing-images/textures/paper-green.webp')] bg-cover bg-center py-[120px] text-brand-cream-bright"
+      className="scroll-mt-20 bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center py-[120px] text-foreground"
     >
       <div className="mx-auto max-w-[1240px] px-6">
         {/* Centered heading */}
         <div className="mx-auto max-w-[720px] text-center">
-          <h2 className="font-display text-4xl font-bold leading-[1.05] text-brand-cream-bright md:text-5xl">
+          <h2 className="font-display text-4xl font-bold leading-[1.05] text-foreground md:text-5xl">
             Why Businesses Choose{" "}
-            <em className="not-italic text-brand-gold">{brand.name}</em>
+            <em className="not-italic text-primary">{brand.name}</em>
           </h2>
         </div>
 
@@ -57,7 +57,7 @@ export function BusinessPanelV2() {
               title="Membership & Sponsorship, explained"
               posterAlt={`Play: how ${brand.name} membership and sponsorship work`}
               caption="How membership & sponsorship work."
-              captionClassName="text-brand-cream-muted"
+              captionClassName="text-muted-foreground"
             />
           </div>
 
@@ -68,12 +68,12 @@ export function BusinessPanelV2() {
                 <li key={perk.title} className="flex items-start gap-3">
                   <span
                     aria-hidden="true"
-                    className="mt-0.5 grid size-[26px] flex-shrink-0 place-items-center rounded-full bg-brand-cream-bright text-[13px] font-bold text-[color:oklch(0.42_0.06_130)]"
+                    className="mt-0.5 grid size-[26px] flex-shrink-0 place-items-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)]"
                   >
                     ✓
                   </span>
-                  <p className="text-[15px] leading-[1.55] text-brand-cream-muted">
-                    <strong className="font-bold text-brand-cream-bright">
+                  <p className="text-[15px] leading-[1.55] text-muted-foreground">
+                    <strong className="font-bold text-foreground">
                       {perk.title}
                     </strong>{" "}
                     &mdash; {perk.body}
@@ -90,7 +90,7 @@ export function BusinessPanelV2() {
               title="The Verified Badge & Stars"
               posterAlt={`Play: what the blue tick and stars mean on ${brand.name}`}
               caption="The blue tick & stars, explained."
-              captionClassName="text-brand-cream-muted"
+              captionClassName="text-muted-foreground"
             />
           </div>
         </div>
