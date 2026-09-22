@@ -1,13 +1,9 @@
-// "Why Businesses Choose AIRA" — landing section framing the value prop
-// from the customer angle (businesses choose AIRA because these are the
-// reasons customers keep coming back). Two-part layout:
-//
-//   1. Centered heading
-//   2. 4-column benefits strip: Easy Search · Trusted Businesses ·
-//      Save Favorites · Stay Updated — icon over title over body,
-//      matches the client brief crop (image_1790087420089.png).
-//   3. Two videos side-by-side underneath: "Membership & Sponsorship"
-//      and "The Verified Badge & Stars".
+// "Why Businesses Choose AIRA" — 3-column: Membership video (left) ·
+// Customer benefits (center, stacked) · Verified Badge video (right).
+// Same shape as the video/content/video layout from earlier iterations;
+// the center now carries the 3 customer-facing benefits (Easy Search /
+// Trusted Businesses / Save Favorites) as icon + title + body cards
+// stacked vertically.
 //
 // Kept `id="businesses"` so MarketingNav's "Get Listed Early" anchor and
 // the two HeroV2 Owner CTAs (GetListedDialog / LaunchOfferDialog) still
@@ -51,32 +47,10 @@ export function BusinessPanelV2() {
           </h2>
         </div>
 
-        {/* 3-column benefits strip — matches HeroV2 + HowItWorks pattern */}
-        <ul className="mx-auto mt-14 grid max-w-[1000px] grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
-          {BENEFITS.map(({ Icon, title, body }) => (
-            <li
-              key={title}
-              className="flex flex-col items-center gap-3 text-center"
-            >
-              <span
-                aria-hidden="true"
-                className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
-              >
-                <Icon className="size-6" strokeWidth={1.8} />
-              </span>
-              <h3 className="font-display text-lg font-bold leading-tight text-foreground">
-                {title}
-              </h3>
-              <p className="max-w-[24ch] text-[14px] leading-[1.55] text-muted-foreground">
-                {body}
-              </p>
-            </li>
-          ))}
-        </ul>
-
-        {/* Videos underneath — 2-column, side-by-side on desktop */}
-        <div className="mx-auto mt-16 grid max-w-[900px] grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
-          <div className="flex flex-col items-center gap-3">
+        {/* 3-column: video · benefits (stacked) · video */}
+        <div className="mt-14 grid grid-cols-1 items-center gap-12 md:grid-cols-[1.15fr_1fr_1.15fr] md:gap-10">
+          {/* -------- LEFT: Membership video -------- */}
+          <div className="order-2 flex flex-col items-center gap-3 md:order-1">
             <LiteYouTube
               videoId="dLipSrr3tBY"
               title="Membership & Sponsorship, explained"
@@ -85,7 +59,32 @@ export function BusinessPanelV2() {
               captionClassName="text-muted-foreground"
             />
           </div>
-          <div className="flex flex-col items-center gap-3">
+
+          {/* -------- CENTER: 3 customer-benefit cards stacked -------- */}
+          <ul className="order-1 flex flex-col items-center gap-8 md:order-2">
+            {BENEFITS.map(({ Icon, title, body }) => (
+              <li
+                key={title}
+                className="flex flex-col items-center gap-2 text-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+                >
+                  <Icon className="size-6" strokeWidth={1.8} />
+                </span>
+                <h3 className="font-display text-lg font-bold leading-tight text-foreground">
+                  {title}
+                </h3>
+                <p className="max-w-[26ch] text-[14px] leading-[1.55] text-muted-foreground">
+                  {body}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          {/* -------- RIGHT: Verified badge video -------- */}
+          <div className="order-3 flex flex-col items-center gap-3">
             <LiteYouTube
               videoId="snDcgvdaSQg"
               title="The Verified Badge & Stars"
