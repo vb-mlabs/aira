@@ -12,7 +12,6 @@
 // BusinessPanel keeps rendering when the flag is off.
 
 import { brand } from "@aira/config"
-import { BusinessCtaPair } from "./business-cta-pair"
 import { LiteYouTube } from "./lite-youtube"
 
 const PERKS = [
@@ -43,17 +42,10 @@ export function BusinessPanelV2() {
       <div className="mx-auto max-w-[1240px] px-6">
         {/* Centered heading */}
         <div className="mx-auto max-w-[720px] text-center">
-          <span className="block text-[13px] font-bold uppercase tracking-[4px] text-brand-cream-muted">
-            For business owners
-          </span>
-          <h2 className="mt-4 font-display text-4xl font-bold leading-[1.05] text-brand-cream-bright md:text-5xl">
+          <h2 className="font-display text-4xl font-bold leading-[1.05] text-brand-cream-bright md:text-5xl">
             Why Businesses Choose{" "}
             <em className="not-italic text-brand-gold">{brand.name}</em>
           </h2>
-          <p className="mx-auto mt-5 max-w-[560px] text-[16px] leading-[1.6] text-brand-cream-muted">
-            Curated placement, real credibility, and a growing community that
-            comes back. Watch how membership and the verified badge work.
-          </p>
         </div>
 
         {/* 3-column: video · content · video */}
@@ -69,7 +61,7 @@ export function BusinessPanelV2() {
             />
           </div>
 
-          {/* -------- CENTER: perks + CTAs -------- */}
+          {/* -------- CENTER: perks -------- */}
           <div className="order-1 flex flex-col items-center gap-8 md:order-2">
             <ul className="w-full max-w-[420px] space-y-4">
               {PERKS.map((perk) => (
@@ -89,10 +81,6 @@ export function BusinessPanelV2() {
                 </li>
               ))}
             </ul>
-
-            <div className="flex w-full justify-center">
-              <BusinessCtaPair />
-            </div>
           </div>
 
           {/* -------- RIGHT: Verified badge video -------- */}
