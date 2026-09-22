@@ -104,9 +104,6 @@ export function HeroV2() {
         {/* -------- CENTER: Value prop + Phone -------- */}
         <div className="order-1 flex flex-col items-center gap-8 md:order-2">
           <div className="w-full">
-            <span className="mb-4 block text-center font-sans text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
-              {brand.tagline}
-            </span>
             <h1 className="m-0 text-center font-display text-[clamp(36px,4.4vw,52px)] font-bold leading-[1.02] tracking-tight">
               <span className="text-primary">Discover.</span>{" "}
               <span className="text-primary">Support.</span>{" "}
@@ -225,11 +222,10 @@ export function HeroV2() {
 
 // ---- Local building blocks ------------------------------------------------
 
-// Editorial column header — parallel to the center masthead. Eyebrow uses
-// brand.tagline so all three columns tie together at the top; title
-// leads with a neutral word and colors the audience word in `--primary`;
-// gold hairline closes the block. Center column doesn't use this — it
-// renders its own richer header with a second lede + wider max-width.
+// Editorial column header — parallel to the center masthead. Title leads
+// with a neutral word and colors the audience word in `--primary`; gold
+// hairline closes the block. Center column doesn't use this — it renders
+// its own richer header with a second lede + wider max-width.
 function ColumnHeader({
   titleLead,
   titleAccent,
@@ -241,9 +237,6 @@ function ColumnHeader({
 }) {
   return (
     <div className="w-full">
-      <span className="mb-4 block text-center font-sans text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
-        {brand.tagline}
-      </span>
       <h2 className="m-0 text-center font-display text-[clamp(28px,3.2vw,36px)] font-bold leading-[1.05] tracking-tight text-foreground">
         {titleLead}{" "}
         <span className="text-primary">{titleAccent}</span>
