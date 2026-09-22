@@ -31,41 +31,37 @@ export function HowItWorks() {
   return (
     <section className="px-6 pb-20">
       <div className="mx-auto max-w-[1240px]">
-        <div className="rounded-3xl border border-border/25 bg-card/70 px-6 py-10 shadow-[var(--shadow-card)] md:px-10 md:py-12">
-          <h2 className="mb-10 text-center font-display text-[clamp(26px,3vw,34px)] font-bold text-foreground">
-            How {brand.name} <span className="text-primary">Works</span>
-          </h2>
+        <h2 className="mb-10 text-center font-display text-[clamp(26px,3vw,34px)] font-bold text-foreground">
+          How {brand.name} <span className="text-primary">Works</span>
+        </h2>
 
-          <ol className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
-            {STEPS.map(({ Icon, title, body }, i) => (
-              <li
-                key={title}
-                className="flex items-start gap-4"
+        <ol className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
+          {STEPS.map(({ Icon, title, body }, i) => (
+            <li
+              key={title}
+              className="flex flex-col items-center gap-3 text-center"
+            >
+              <span
+                aria-hidden="true"
+                className="grid size-10 place-items-center rounded-full bg-primary font-display text-lg font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)]"
               >
-                <span
-                  aria-hidden="true"
-                  className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-display text-base font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)]"
-                >
-                  {i + 1}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="grid size-14 shrink-0 place-items-center text-primary"
-                >
-                  <Icon className="size-10" strokeWidth={1.6} />
-                </span>
-                <div className="min-w-0 pt-1">
-                  <h3 className="font-display text-lg font-bold leading-tight text-foreground">
-                    {title}
-                  </h3>
-                  <p className="mt-1 text-[14px] leading-[1.55] text-muted-foreground">
-                    {body}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
+                {i + 1}
+              </span>
+              <span
+                aria-hidden="true"
+                className="grid size-14 place-items-center text-primary"
+              >
+                <Icon className="size-10" strokeWidth={1.6} />
+              </span>
+              <h3 className="font-display text-lg font-bold leading-tight text-foreground">
+                {title}
+              </h3>
+              <p className="max-w-[28ch] text-[14px] leading-[1.55] text-muted-foreground">
+                {body}
+              </p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )
