@@ -1,35 +1,43 @@
-// "Why Businesses Choose AIRA" — repurposed BusinessPanel for the new
-// landing flow. Same olive/green surface as the original, but restructured
-// into three columns: video LEFT · pitch + perks + CTAs CENTER · video
-// RIGHT. Both existing marketing videos (Membership & Sponsorship,
-// The Verified Badge & Stars) flank the value-prop content.
+// "Why Businesses Choose AIRA" — landing section framing the value prop
+// from the customer angle (businesses choose AIRA because these are the
+// reasons customers keep coming back). Two-part layout:
 //
-// Kept `id="businesses"` so MarketingNav's "Get Listed Early" anchor
-// (href="#businesses") and the primary/secondary Owner CTAs from HeroV2
-// (which reuse GetListedDialog / LaunchOfferDialog) all still land here.
+//   1. Centered heading
+//   2. 4-column benefits strip: Easy Search · Trusted Businesses ·
+//      Save Favorites · Stay Updated — icon over title over body,
+//      matches the client brief crop (image_1790087420089.png).
+//   3. Two videos side-by-side underneath: "Membership & Sponsorship"
+//      and "The Verified Badge & Stars".
 //
-// Gated behind NEXT_PUBLIC_LANDING_HERO_V2 via page.tsx — the original
-// BusinessPanel keeps rendering when the flag is off.
+// Kept `id="businesses"` so MarketingNav's "Get Listed Early" anchor and
+// the two HeroV2 Owner CTAs (GetListedDialog / LaunchOfferDialog) still
+// land here. Gated on NEXT_PUBLIC_LANDING_HERO_V2 via page.tsx — the
+// original BusinessPanel renders when the flag is off.
 
+import { Bell, Heart, Search, ShieldCheck } from "lucide-react"
 import { brand } from "@aira/config"
 import { LiteYouTube } from "./lite-youtube"
 
-const PERKS = [
+const BENEFITS = [
   {
-    title: "Verified badge",
-    body: "the blue tick that tells customers we've checked you're real.",
+    Icon: Search,
+    title: "Easy Search",
+    body: "Find businesses by category, location & more.",
   },
   {
-    title: "Sponsored placement",
-    body: "top of your category for a fixed monthly tier.",
+    Icon: ShieldCheck,
+    title: "Trusted Businesses",
+    body: `Look for Verified Badge and ${brand.name} Reviews.`,
   },
   {
-    title: "Multi-category listing",
-    body: "show up in every category that fits.",
+    Icon: Heart,
+    title: "Save Favorites",
+    body: "Save and revisit your favorite businesses.",
   },
   {
-    title: "Broadcast to your audience",
-    body: "opt-in push notifications when there's news for your category.",
+    Icon: Bell,
+    title: "Stay Updated",
+    body: "Get updates on offers, events & new businesses.",
   },
 ] as const
 
@@ -48,10 +56,32 @@ export function BusinessPanelV2() {
           </h2>
         </div>
 
-        {/* 3-column: video · content · video */}
-        <div className="mt-14 grid grid-cols-1 items-center gap-12 md:grid-cols-[1.15fr_1fr_1.15fr] md:gap-10">
-          {/* -------- LEFT: Membership video -------- */}
-          <div className="order-2 flex flex-col items-center gap-3 md:order-1">
+        {/* 4-column benefits strip */}
+        <ul className="mx-auto mt-14 grid max-w-[1100px] grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4 md:gap-8">
+          {BENEFITS.map(({ Icon, title, body }) => (
+            <li
+              key={title}
+              className="flex flex-col items-center gap-3 text-center"
+            >
+              <span
+                aria-hidden="true"
+                className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+              >
+                <Icon className="size-6" strokeWidth={1.8} />
+              </span>
+              <h3 className="font-display text-lg font-bold leading-tight text-foreground">
+                {title}
+              </h3>
+              <p className="max-w-[24ch] text-[14px] leading-[1.55] text-muted-foreground">
+                {body}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        {/* Videos underneath — 2-column, side-by-side on desktop */}
+        <div className="mx-auto mt-16 grid max-w-[900px] grid-cols-1 gap-10 md:grid-cols-2 md:gap-12">
+          <div className="flex flex-col items-center gap-3">
             <LiteYouTube
               videoId="dLipSrr3tBY"
               title="Membership & Sponsorship, explained"
@@ -60,31 +90,7 @@ export function BusinessPanelV2() {
               captionClassName="text-muted-foreground"
             />
           </div>
-
-          {/* -------- CENTER: perks -------- */}
-          <div className="order-1 flex flex-col items-center gap-8 md:order-2">
-            <ul className="w-full max-w-[420px] space-y-4">
-              {PERKS.map((perk) => (
-                <li key={perk.title} className="flex items-start gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 grid size-[26px] flex-shrink-0 place-items-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)]"
-                  >
-                    ✓
-                  </span>
-                  <p className="text-[15px] leading-[1.55] text-muted-foreground">
-                    <strong className="font-bold text-foreground">
-                      {perk.title}
-                    </strong>{" "}
-                    &mdash; {perk.body}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* -------- RIGHT: Verified badge video -------- */}
-          <div className="order-3 flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-3">
             <LiteYouTube
               videoId="snDcgvdaSQg"
               title="The Verified Badge & Stars"
