@@ -50,7 +50,7 @@ export function HowItWorks() {
                   {i + 1}
                 </span>
               </div>
-              <h3 className="font-display text-lg font-bold leading-tight text-foreground">
+              <h3 className="flex min-h-[2lh] items-center justify-center font-display text-lg font-bold leading-tight text-foreground">
                 {title}
               </h3>
               <p className="max-w-[28ch] text-[14px] leading-[1.55] text-muted-foreground">
