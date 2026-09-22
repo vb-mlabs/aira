@@ -13,6 +13,7 @@ import { Hero } from "@/components/marketing/hero"
 import { HeroV2 } from "@/components/marketing/hero-v2"
 import { HowItWorks } from "@/components/marketing/how-it-works"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingFooterV2 } from "@/components/marketing/marketing-footer-v2"
 import { MarketingNav } from "@/components/marketing/marketing-nav"
 import { PhoneShowcase } from "@/components/marketing/phone-showcase"
 import { env } from "@/config/env"
@@ -73,7 +74,7 @@ export default function Home() {
           </>
         )}
       </main>
-      <MarketingFooter />
+      {LANDING_HERO_V2 ? <MarketingFooterV2 /> : <MarketingFooter />}
     </>
   )
 }
