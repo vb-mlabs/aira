@@ -73,11 +73,12 @@ export function HeroV2() {
                 key={bullet}
                 className="flex items-start gap-2.5 text-[14px] text-foreground"
               >
-                <Check
+                <span
                   aria-hidden="true"
-                  className="mt-0.5 size-[18px] shrink-0 text-primary"
-                  strokeWidth={2.2}
-                />
+                  className="mt-0.5 grid size-[22px] shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+                >
+                  <Check className="size-[14px]" strokeWidth={2.6} />
+                </span>
                 <span>{bullet}</span>
               </li>
             ))}
