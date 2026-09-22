@@ -10,6 +10,7 @@ import { AboutEditorial } from "@/components/marketing/about-editorial"
 import { BusinessPanel } from "@/components/marketing/business-panel"
 import { Hero } from "@/components/marketing/hero"
 import { HeroV2 } from "@/components/marketing/hero-v2"
+import { HowItWorks } from "@/components/marketing/how-it-works"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingNav } from "@/components/marketing/marketing-nav"
 import { PhoneShowcase } from "@/components/marketing/phone-showcase"
@@ -58,6 +59,7 @@ export default function Home() {
       <MarketingNav />
       <main className="flex flex-1 flex-col">
         <HeroComponent />
+        {LANDING_HERO_V2 ? <HowItWorks /> : null}
         <AboutEditorial />
         <PhoneShowcase />
         <BusinessPanel />
