@@ -49,7 +49,7 @@ export function BusinessPanelV2() {
         </div>
 
         {/* 3-column: video · content · video */}
-        <div className="mt-14 grid grid-cols-1 items-center gap-12 md:grid-cols-[1fr_1.15fr_1fr] md:gap-10">
+        <div className="mt-14 grid grid-cols-1 items-center gap-12 md:grid-cols-[1.15fr_1fr_1.15fr] md:gap-10">
           {/* -------- LEFT: Membership video -------- */}
           <div className="order-2 flex flex-col items-center gap-3 md:order-1">
             <LiteYouTube
