@@ -168,17 +168,13 @@ export function HeroV2() {
             <div className="mt-3 grid grid-cols-2 gap-3">
               <StoreBadge
                 href="#"
-                topline="Get it on"
-                store="Google Play"
-                iconPath="M3 3.3v17.4c0 .5.6.8 1 .5l12-8.7c.4-.3.4-.9 0-1.2L4 3c-.4-.3-1 0-1 .3z"
-                srLabel={`Get ${brand.name} on Google Play (link coming soon)`}
+                src="/marketing-images/store-google-play.svg"
+                alt={`Get ${brand.name} on Google Play (link coming soon)`}
               />
               <StoreBadge
                 href="#"
-                topline="Download on the"
-                store="App Store"
-                iconPath="M16.4 13.1c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.9-1.4-.1-2.8.9-3.6.9-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 2.9 2.4 1.2-.1 1.6-.8 3-.8s1.8.8 3.1.7c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.4-.9-2.4-3.6zM14.2 6.2c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z"
-                srLabel={`Download ${brand.name} on the App Store (link coming soon)`}
+                src="/marketing-images/store-appstore.svg"
+                alt={`Download ${brand.name} on the App Store (link coming soon)`}
               />
             </div>
           </div>
@@ -300,40 +296,32 @@ function QrPlaceholder({ label }: { label: string }) {
   )
 }
 
+// Official store badges — SVGs live in public/marketing-images/. Anchor stays
+// href="#" until real Play Store + App Store URLs land (follow-up ticket
+// tracked in the review's open questions).
 function StoreBadge({
   href,
-  topline,
-  store,
-  iconPath,
-  srLabel,
+  src,
+  alt,
 }: {
   href: string
-  topline: string
-  store: string
-  iconPath: string
-  srLabel: string
+  src: string
+  alt: string
 }) {
   return (
     <a
       href={href}
-      aria-label={srLabel}
-      className="flex items-center gap-2.5 rounded-[10px] bg-foreground px-3 py-2 text-brand-cream-bright no-underline transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      aria-label={alt}
+      className="block transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 24 24"
-        className="size-[22px] shrink-0 fill-current"
-      >
-        <path d={iconPath} />
-      </svg>
-      <span className="leading-[1.1]">
-        <span className="block text-[9px] uppercase tracking-[0.5px] opacity-85">
-          {topline}
-        </span>
-        <span className="block font-display text-[15px] font-bold">
-          {store}
-        </span>
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element -- static SVG, no LCP concern */}
+      <img
+        src={src}
+        alt={alt}
+        width={135}
+        height={41}
+        className="block h-auto w-full"
+      />
     </a>
   )
 }
