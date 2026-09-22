@@ -186,6 +186,12 @@ export function HeroV2() {
 
         {/* -------- RIGHT: For Business Owners -------- */}
         <div className="order-3 flex flex-col items-center gap-6">
+          {/* Audience separator on mobile only — For Users and For Business
+              Owners visually merge without a boundary when the columns stack. */}
+          <hr
+            aria-hidden="true"
+            className="mx-auto -mb-2 h-px w-20 border-0 bg-brand-gold/40 md:hidden"
+          />
           <ColumnHeader
             Icon={Store}
             titleLead="For"
