@@ -1,14 +1,22 @@
-// 3-tier landing hero — "For Users | Phone | For Business Owners" with
-// centered "Discover. Support. Grow." headline. Gated behind
-// NEXT_PUBLIC_LANDING_HERO_V2 on page.tsx; falls back to the pre-launch
-// Hero when the flag is off. Reuses GetListedDialog + LaunchOfferDialog
-// from the sibling modules so both Owner CTAs open the same dialogs the
-// BusinessPanel section uses (single source of truth for pricing + signup).
+// 3-tier landing hero — "For Users | Discover. Support. Grow. | For
+// Business Owners" as three parallel columns starting from the same top
+// band. Each column gets a matching editorial header (brand-tagline
+// eyebrow + Cormorant title + blurb + brass-gold hairline). Center
+// column's title carries the value prop and the phone sits underneath;
+// left/right column bodies (bullets+QR / CTAs+benefits) drop under
+// their matching headers.
 //
-// Visual reference: .mstack/mockups/landing-hero-3tier/v1/index.html.
+// Gated behind NEXT_PUBLIC_LANDING_HERO_V2 on page.tsx; falls back to
+// the pre-launch Hero when the flag is off. Reuses GetListedDialog +
+// LaunchOfferDialog from the sibling modules so both Owner CTAs open
+// the same dialogs the BusinessPanel section uses.
+//
+// Visual reference: .mstack/mockups/landing-hero-3tier/v1/index.html
+// (v1 mockup + user feedback 2026-09-22 to hoist column headers up
+// alongside the center masthead).
 
 import Image from "next/image"
-import { Check, ShieldCheck, Star, Store, TrendingUp, Users } from "lucide-react"
+import { Check, ShieldCheck, Star, TrendingUp } from "lucide-react"
 import { brand } from "@aira/config"
 import { GetListedDialog } from "./business-cta-pair"
 import { LaunchOfferDialog } from "./launch-offer-dialog"
@@ -41,50 +49,16 @@ const BENEFITS = [
 export function HeroV2() {
   return (
     <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-24 pt-14">
-      {/* Centered masthead */}
-      <div className="mx-auto max-w-[900px] text-center">
-        <span className="mb-4 inline-block font-sans text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
-          {brand.tagline}
-        </span>
-        <h1 className="m-0 font-display text-[clamp(38px,5.5vw,64px)] font-bold leading-[1.02] tracking-tight">
-          <span className="text-primary">Discover.</span>{" "}
-          <span className="text-primary">Support.</span>{" "}
-          <span className="text-primary">Grow.</span>
-        </h1>
-        <p className="mt-5 font-display text-xl font-bold text-foreground">
-          America&rsquo;s South Asian Business Directory
-        </p>
-        <p className="mx-auto mt-1 max-w-[560px] text-[15px] leading-[1.55] text-muted-foreground">
-          Built for communities across the USA. Now serving Atlanta and growing
-          city by city.
-        </p>
-        <div
-          aria-hidden="true"
-          className="mx-auto mt-6 h-px w-[60px] bg-brand-gold/70"
-        />
-      </div>
-
-      {/* 3-column grid — phone in center */}
-      <div className="mx-auto mt-10 grid max-w-[1240px] grid-cols-1 items-start gap-14 md:mt-12 md:grid-cols-[1fr_minmax(280px,360px)_1fr] md:gap-12">
+      <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-14 md:grid-cols-[1fr_minmax(300px,380px)_1fr] md:gap-12">
         {/* -------- LEFT: For Users -------- */}
-        <div className="order-2 flex flex-col items-center gap-5 md:order-1">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <span
-              aria-hidden="true"
-              className="grid size-[68px] place-items-center rounded-full border border-border/30 bg-card text-primary shadow-[var(--shadow-card)]"
-            >
-              <Users className="size-[34px]" strokeWidth={1.6} />
-            </span>
-            <h2 className="font-display text-[28px] font-bold leading-tight text-foreground">
-              For Users
-            </h2>
-            <p className="max-w-[32ch] text-[15px] text-muted-foreground">
-              Free to download and easy to get started. Create your login once
-              with your email.
-            </p>
-          </div>
+        <div className="order-2 flex flex-col items-center gap-6 md:order-1">
+          <ColumnHeader
+            titleLead="For"
+            titleAccent="Users"
+            blurb="Free to download and easy to get started. Create your login once with your email."
+          />
 
-          <ul className="mt-1 flex w-full flex-col gap-2.5">
+          <ul className="w-full space-y-2.5">
             {USER_BULLETS.map((bullet) => (
               <li
                 key={bullet}
@@ -100,7 +74,7 @@ export function HeroV2() {
             ))}
           </ul>
 
-          <div className="mt-3 w-full">
+          <div className="w-full">
             <h3 className="mb-3 text-center font-display text-lg font-bold text-foreground">
               Scan to Download the App
             </h3>
@@ -114,21 +88,43 @@ export function HeroV2() {
                 topline="Get it on"
                 store="Google Play"
                 iconPath="M3 3.3v17.4c0 .5.6.8 1 .5l12-8.7c.4-.3.4-.9 0-1.2L4 3c-.4-.3-1 0-1 .3z"
-                srLabel="Get AIRA on Google Play (link coming soon)"
+                srLabel={`Get ${brand.name} on Google Play (link coming soon)`}
               />
               <StoreBadge
                 href="#"
                 topline="Download on the"
                 store="App Store"
                 iconPath="M16.4 13.1c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.9-1.4-.1-2.8.9-3.6.9-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 2.9 2.4 1.2-.1 1.6-.8 3-.8s1.8.8 3.1.7c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.4-.9-2.4-3.6zM14.2 6.2c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z"
-                srLabel="Download AIRA on the App Store (link coming soon)"
+                srLabel={`Download ${brand.name} on the App Store (link coming soon)`}
               />
             </div>
           </div>
         </div>
 
-        {/* -------- CENTER: Phone -------- */}
-        <div className="order-1 flex justify-center md:order-2">
+        {/* -------- CENTER: Value prop + Phone -------- */}
+        <div className="order-1 flex flex-col items-center gap-8 md:order-2">
+          <div className="w-full">
+            <span className="mb-4 block text-center font-sans text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
+              {brand.tagline}
+            </span>
+            <h1 className="m-0 text-center font-display text-[clamp(36px,4.4vw,52px)] font-bold leading-[1.02] tracking-tight">
+              <span className="text-primary">Discover.</span>{" "}
+              <span className="text-primary">Support.</span>{" "}
+              <span className="text-primary">Grow.</span>
+            </h1>
+            <p className="mt-4 text-center font-display text-lg font-bold text-foreground">
+              America&rsquo;s South Asian Business Directory
+            </p>
+            <p className="mx-auto mt-1 max-w-[46ch] text-center text-[14px] leading-[1.55] text-muted-foreground">
+              Built for communities across the USA. Now serving Atlanta and
+              growing city by city.
+            </p>
+            <div
+              aria-hidden="true"
+              className="mx-auto mt-5 h-px w-[60px] bg-brand-gold/70"
+            />
+          </div>
+
           <div className="relative w-full max-w-[320px]">
             {/* Ornamental leaves — desktop only, taste-review during PR */}
             <svg
@@ -182,23 +178,14 @@ export function HeroV2() {
         </div>
 
         {/* -------- RIGHT: For Business Owners -------- */}
-        <div className="order-3 flex flex-col items-center gap-5">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <span
-              aria-hidden="true"
-              className="grid size-[68px] place-items-center rounded-full border border-border/30 bg-card text-primary shadow-[var(--shadow-card)]"
-            >
-              <Store className="size-[34px]" strokeWidth={1.6} />
-            </span>
-            <h2 className="font-display text-[28px] font-bold leading-tight text-foreground">
-              For Business Owners
-            </h2>
-            <p className="max-w-[32ch] text-[15px] text-muted-foreground">
-              List your business for free and grow your visibility.
-            </p>
-          </div>
+        <div className="order-3 flex flex-col items-center gap-6">
+          <ColumnHeader
+            titleLead="For"
+            titleAccent="Business Owners"
+            blurb="List your business for free and grow your visibility."
+          />
 
-          <div className="mt-1 flex w-full flex-col gap-2.5">
+          <div className="flex w-full flex-col gap-2.5">
             <GetListedDialog triggerClassName="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-sans text-sm font-bold tracking-[0.3px] text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
               Get Listed on {brand.name}
             </GetListedDialog>
@@ -207,7 +194,7 @@ export function HeroV2() {
             </LaunchOfferDialog>
           </div>
 
-          <ul className="mt-4 flex w-full flex-col gap-4">
+          <ul className="mt-2 flex w-full flex-col gap-4">
             {BENEFITS.map(({ Icon, title, body }) => (
               <li
                 key={title}
@@ -237,6 +224,40 @@ export function HeroV2() {
 }
 
 // ---- Local building blocks ------------------------------------------------
+
+// Editorial column header — parallel to the center masthead. Eyebrow uses
+// brand.tagline so all three columns tie together at the top; title
+// leads with a neutral word and colors the audience word in `--primary`;
+// gold hairline closes the block. Center column doesn't use this — it
+// renders its own richer header with a second lede + wider max-width.
+function ColumnHeader({
+  titleLead,
+  titleAccent,
+  blurb,
+}: {
+  titleLead: string
+  titleAccent: string
+  blurb: string
+}) {
+  return (
+    <div className="w-full">
+      <span className="mb-4 block text-center font-sans text-xs font-bold uppercase tracking-[2px] text-muted-foreground">
+        {brand.tagline}
+      </span>
+      <h2 className="m-0 text-center font-display text-[clamp(28px,3.2vw,36px)] font-bold leading-[1.05] tracking-tight text-foreground">
+        {titleLead}{" "}
+        <span className="text-primary">{titleAccent}</span>
+      </h2>
+      <p className="mx-auto mt-3 max-w-[32ch] text-center text-[14px] leading-[1.55] text-muted-foreground">
+        {blurb}
+      </p>
+      <div
+        aria-hidden="true"
+        className="mx-auto mt-5 h-px w-[60px] bg-brand-gold/70"
+      />
+    </div>
+  )
+}
 
 // CSS-only QR placeholder — ships until real QR PNGs land in
 // public/marketing-images/ (see .mstack/reviews/... open questions).
