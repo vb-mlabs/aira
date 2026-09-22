@@ -60,25 +60,24 @@ export function BusinessPanelV2() {
             />
           </div>
 
-          {/* -------- CENTER: 3 customer-benefit cards stacked -------- */}
-          <ul className="order-1 flex flex-col items-center gap-8 md:order-2">
+          {/* -------- CENTER: 3 customer-benefit cards, row-per-item -------- */}
+          <ul className="order-1 flex flex-col gap-6 md:order-2">
             {BENEFITS.map(({ Icon, title, body }) => (
-              <li
-                key={title}
-                className="flex flex-col items-center gap-2 text-center"
-              >
+              <li key={title} className="flex items-start gap-4 text-left">
                 <span
                   aria-hidden="true"
-                  className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+                  className="grid size-12 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
                 >
                   <Icon className="size-6" strokeWidth={1.8} />
                 </span>
-                <h3 className="font-display text-lg font-bold leading-tight text-foreground">
-                  {title}
-                </h3>
-                <p className="max-w-[26ch] text-[14px] leading-[1.55] text-muted-foreground">
-                  {body}
-                </p>
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg font-bold leading-tight text-foreground">
+                    {title}
+                  </h3>
+                  <p className="mt-1 text-[14px] leading-[1.55] text-muted-foreground">
+                    {body}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
