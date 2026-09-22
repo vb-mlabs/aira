@@ -63,7 +63,9 @@ export default function Home() {
         <HeroComponent />
         {LANDING_HERO_V2 ? (
           <>
+            <hr aria-hidden="true" className="mx-auto h-px w-20 border-0 bg-brand-gold/40" />
             <HowItWorks />
+            <hr aria-hidden="true" className="mx-auto h-px w-20 border-0 bg-brand-gold/40" />
             <BusinessPanelV2 />
           </>
         ) : (
