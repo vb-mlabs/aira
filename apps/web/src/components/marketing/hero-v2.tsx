@@ -57,7 +57,7 @@ const BENEFITS = [
 export function HeroV2() {
   return (
     <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-24 pt-14">
-      <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-14 md:grid-cols-[1fr_minmax(380px,460px)_1fr] md:gap-10">
+      <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-14 md:grid-cols-[1fr_minmax(380px,460px)_1fr] md:items-end md:gap-10">
         {/* -------- CENTER: Value prop + Phone (DOM-first so <h1> leads screen-reader flow) -------- */}
         <div className="flex flex-col items-center gap-8 md:order-2">
           <div className="w-full">
