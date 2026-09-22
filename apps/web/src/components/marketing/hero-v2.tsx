@@ -140,7 +140,7 @@ export function HeroV2() {
             blurb="Free to download and easy to get started. Create your login once with your email."
           />
 
-          <ul className="w-full space-y-2.5">
+          <ul className="mx-auto w-full max-w-[300px] space-y-2.5">
             {USER_BULLETS.map((bullet) => (
               <li
                 key={bullet}
@@ -157,7 +157,7 @@ export function HeroV2() {
             ))}
           </ul>
 
-          <div className="w-full">
+          <div className="mx-auto w-full max-w-[340px]">
             <h3 className="mb-3 text-center font-display text-lg font-bold text-foreground">
               Scan to Download the App
             </h3>
@@ -193,7 +193,7 @@ export function HeroV2() {
             blurb="List your business for free and grow your visibility."
           />
 
-          <div className="flex w-full flex-col gap-2.5">
+          <div className="mx-auto flex w-full max-w-[320px] flex-col gap-2.5">
             <GetListedDialog triggerClassName="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-sans text-sm font-bold tracking-[0.3px] text-primary-foreground shadow-[var(--shadow-primary-glow)] transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
               Get Listed on {brand.name}
             </GetListedDialog>
@@ -202,7 +202,7 @@ export function HeroV2() {
             </LaunchOfferDialog>
           </div>
 
-          <ul className="mt-2 flex w-full flex-col gap-4">
+          <ul className="mx-auto mt-2 flex w-full max-w-[340px] flex-col gap-4">
             {BENEFITS.map(({ Icon, title, body }) => (
               <li
                 key={title}
