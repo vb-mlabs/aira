@@ -58,61 +58,8 @@ export function HeroV2() {
   return (
     <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-24 pt-14">
       <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-14 md:grid-cols-[1fr_minmax(380px,460px)_1fr] md:gap-10">
-        {/* -------- LEFT: For Users -------- */}
-        <div className="order-2 flex flex-col items-center gap-6 md:order-1">
-          <ColumnHeader
-            Icon={Users}
-            titleLead="For"
-            titleAccent="Users"
-            blurb="Free to download and easy to get started. Create your login once with your email."
-          />
-
-          <ul className="w-full space-y-2.5">
-            {USER_BULLETS.map((bullet) => (
-              <li
-                key={bullet}
-                className="flex items-start gap-2.5 text-[14px] text-foreground"
-              >
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 grid size-[22px] shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
-                >
-                  <Check className="size-[14px]" strokeWidth={2.6} />
-                </span>
-                <span>{bullet}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="w-full">
-            <h3 className="mb-3 text-center font-display text-lg font-bold text-foreground">
-              Scan to Download the App
-            </h3>
-            <div className="grid grid-cols-2 gap-3.5">
-              <QrPlaceholder label="Google Play" />
-              <QrPlaceholder label="App Store" />
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <StoreBadge
-                href="#"
-                topline="Get it on"
-                store="Google Play"
-                iconPath="M3 3.3v17.4c0 .5.6.8 1 .5l12-8.7c.4-.3.4-.9 0-1.2L4 3c-.4-.3-1 0-1 .3z"
-                srLabel={`Get ${brand.name} on Google Play (link coming soon)`}
-              />
-              <StoreBadge
-                href="#"
-                topline="Download on the"
-                store="App Store"
-                iconPath="M16.4 13.1c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.9-1.4-.1-2.8.9-3.6.9-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 2.9 2.4 1.2-.1 1.6-.8 3-.8s1.8.8 3.1.7c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.4-.9-2.4-3.6zM14.2 6.2c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z"
-                srLabel={`Download ${brand.name} on the App Store (link coming soon)`}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* -------- CENTER: Value prop + Phone -------- */}
-        <div className="order-1 flex flex-col items-center gap-8 md:order-2">
+        {/* -------- CENTER: Value prop + Phone (DOM-first so <h1> leads screen-reader flow) -------- */}
+        <div className="flex flex-col items-center gap-8 md:order-2">
           <div className="w-full">
             <h1 className="m-0 text-center font-display text-[clamp(30px,3.4vw,40px)] font-bold leading-[1.02] tracking-tight md:whitespace-nowrap">
               <span className="text-primary">Discover.</span>{" "}
@@ -179,6 +126,59 @@ export function HeroV2() {
                 sizes="(max-width: 767px) 320px, 320px"
                 priority
                 className="block size-full rounded-[32px] bg-card object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* -------- LEFT: For Users -------- */}
+        <div className="flex flex-col items-center gap-6 md:order-1">
+          <ColumnHeader
+            Icon={Users}
+            titleLead="For"
+            titleAccent="Users"
+            blurb="Free to download and easy to get started. Create your login once with your email."
+          />
+
+          <ul className="w-full space-y-2.5">
+            {USER_BULLETS.map((bullet) => (
+              <li
+                key={bullet}
+                className="flex items-start gap-2.5 text-[14px] text-foreground"
+              >
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 grid size-[22px] shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+                >
+                  <Check className="size-[14px]" strokeWidth={2.6} />
+                </span>
+                <span>{bullet}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="w-full">
+            <h3 className="mb-3 text-center font-display text-lg font-bold text-foreground">
+              Scan to Download the App
+            </h3>
+            <div className="grid grid-cols-2 gap-3.5">
+              <QrPlaceholder label="Google Play" />
+              <QrPlaceholder label="App Store" />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <StoreBadge
+                href="#"
+                topline="Get it on"
+                store="Google Play"
+                iconPath="M3 3.3v17.4c0 .5.6.8 1 .5l12-8.7c.4-.3.4-.9 0-1.2L4 3c-.4-.3-1 0-1 .3z"
+                srLabel={`Get ${brand.name} on Google Play (link coming soon)`}
+              />
+              <StoreBadge
+                href="#"
+                topline="Download on the"
+                store="App Store"
+                iconPath="M16.4 13.1c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.9-1.4-.1-2.8.9-3.6.9-.7 0-1.9-.8-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 2.9 2.4 1.2-.1 1.6-.8 3-.8s1.8.8 3.1.7c1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.4-.9-2.4-3.6zM14.2 6.2c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z"
+                srLabel={`Download ${brand.name} on the App Store (link coming soon)`}
               />
             </div>
           </div>
