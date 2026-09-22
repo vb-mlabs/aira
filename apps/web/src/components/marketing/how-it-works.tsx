@@ -39,20 +39,17 @@ export function HowItWorks() {
           {STEPS.map(({ Icon, title, body }, i) => (
             <li
               key={title}
-              className="flex flex-col items-center gap-3 text-center"
+              className="flex flex-col items-center gap-4 text-center"
             >
-              <span
-                aria-hidden="true"
-                className="grid size-10 place-items-center rounded-full bg-primary font-display text-lg font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)]"
-              >
-                {i + 1}
-              </span>
-              <span
-                aria-hidden="true"
-                className="grid size-14 place-items-center text-primary"
-              >
+              <div className="relative grid size-16 place-items-center text-primary">
                 <Icon className="size-10" strokeWidth={1.6} />
-              </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-1 -top-1 grid size-7 place-items-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground shadow-[var(--shadow-primary-glow)]"
+                >
+                  {i + 1}
+                </span>
+              </div>
               <h3 className="font-display text-lg font-bold leading-tight text-foreground">
                 {title}
               </h3>
