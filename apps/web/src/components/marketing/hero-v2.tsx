@@ -273,16 +273,22 @@ function ColumnHeader({
   )
 }
 
-// CSS-only QR placeholder — ships until real QR PNGs land in
-// public/marketing-images/ (see .mstack/reviews/... open questions).
+// QR placeholder — cream card + dashed border + labeled "coming soon" so
+// users don't mistake the tile for a broken QR image. Real PNGs land at
+// public/marketing-images/qr-{play,appstore}.png in a follow-up.
 function QrPlaceholder({ label }: { label: string }) {
   return (
     <div
       aria-hidden="true"
-      className="grid aspect-square place-items-center rounded-[var(--radius)] border border-border/25 bg-card p-2.5"
+      className="grid aspect-square place-items-center rounded-[var(--radius)] border border-dashed border-border/50 bg-card p-3 text-center"
     >
-      <div className="grid size-full place-items-center rounded-md bg-foreground bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0_25%,oklch(0.94_0.02_80_/_12%)_25%_50%,transparent_50%_75%,oklch(0.94_0.02_80_/_12%)_75%)] bg-[size:12px_12px] text-center font-display text-[11px] font-bold tracking-[1px] text-brand-cream-bright">
-        {label}
+      <div className="flex flex-col items-center gap-1">
+        <span className="font-display text-[13px] font-bold text-foreground">
+          {label}
+        </span>
+        <span className="text-[10px] font-semibold uppercase tracking-[1.5px] text-muted-foreground">
+          QR coming soon
+        </span>
       </div>
     </div>
   )
