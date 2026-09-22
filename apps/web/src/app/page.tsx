@@ -58,7 +58,10 @@ export default function Home() {
   const HeroComponent = LANDING_HERO_V2 ? HeroV2 : Hero
   return (
     <>
-      <MarketingNav />
+      <MarketingNav
+        ctaLabel={LANDING_HERO_V2 ? "Get App" : "Get Listed Early"}
+        ctaHref={LANDING_HERO_V2 ? "#download" : "#businesses"}
+      />
       <main className="flex flex-1 flex-col">
         <HeroComponent />
         {LANDING_HERO_V2 ? (

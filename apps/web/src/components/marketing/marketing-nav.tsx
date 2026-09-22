@@ -1,14 +1,25 @@
 // Sticky nav for the marketing landing page. Cream backdrop-blur, AIRA
-// tree-of-life logo + wordmark left, "Get Listed Early" pill on the right
-// that scrolls to the #businesses section (matches the section's primary
-// CTA label). Sign-in / Sign-up links are hidden until the app is live;
-// consumer email capture lives on the Hero's WaitlistCard.
+// tree-of-life logo + wordmark left, a pill CTA on the right.
+//
+// The CTA label + anchor are props with pre-launch defaults so the
+// original landing keeps "Get Listed Early" → #businesses. The new
+// HeroV2 flow (gated on NEXT_PUBLIC_LANDING_HERO_V2) passes "Get App" →
+// #download so the header CTA matches the app-live positioning of the
+// hero's QR + store-badge block.
 
 import Image from "next/image"
 import Link from "next/link"
 import { brand } from "@aira/config"
 
-export function MarketingNav() {
+type MarketingNavProps = {
+  ctaLabel?: string
+  ctaHref?: string
+}
+
+export function MarketingNav({
+  ctaLabel = "Get Listed Early",
+  ctaHref = "#businesses",
+}: MarketingNavProps = {}) {
   return (
     <nav className="sticky top-0 z-50 bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center">
       <div className="mx-auto flex h-20 max-w-[1180px] items-center justify-between px-6">
@@ -32,10 +43,10 @@ export function MarketingNav() {
         </Link>
 
         <a
-          href="#businesses"
+          href={ctaHref}
           className="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-[13px] font-bold uppercase tracking-[0.5px] text-primary-foreground transition-transform hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          Get Listed Early
+          {ctaLabel}
         </a>
       </div>
     </nav>

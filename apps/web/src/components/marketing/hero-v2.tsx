@@ -157,7 +157,7 @@ export function HeroV2() {
             ))}
           </ul>
 
-          <div className="mx-auto w-full max-w-[340px]">
+          <div id="download" className="mx-auto w-full max-w-[340px] scroll-mt-24">
             <h3 className="mb-3 text-center font-display text-lg font-bold text-foreground">
               Scan to Download the App
             </h3>
