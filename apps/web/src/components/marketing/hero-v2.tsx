@@ -49,7 +49,7 @@ const BENEFITS = [
 export function HeroV2() {
   return (
     <section className="bg-[url('/marketing-images/textures/paper-cream.webp')] bg-cover bg-center px-6 pb-24 pt-14">
-      <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-14 md:grid-cols-[1fr_minmax(300px,380px)_1fr] md:gap-12">
+      <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-14 md:grid-cols-[1fr_minmax(380px,460px)_1fr] md:gap-10">
         {/* -------- LEFT: For Users -------- */}
         <div className="order-2 flex flex-col items-center gap-6 md:order-1">
           <ColumnHeader
@@ -104,7 +104,7 @@ export function HeroV2() {
         {/* -------- CENTER: Value prop + Phone -------- */}
         <div className="order-1 flex flex-col items-center gap-8 md:order-2">
           <div className="w-full">
-            <h1 className="m-0 text-center font-display text-[clamp(36px,4.4vw,52px)] font-bold leading-[1.02] tracking-tight">
+            <h1 className="m-0 text-center font-display text-[clamp(30px,3.4vw,40px)] font-bold leading-[1.02] tracking-tight md:whitespace-nowrap">
               <span className="text-primary">Discover.</span>{" "}
               <span className="text-foreground">Support.</span>{" "}
               <span className="text-primary">Grow.</span>
