@@ -59,9 +59,14 @@ export default function Home() {
       <MarketingNav />
       <main className="flex flex-1 flex-col">
         <HeroComponent />
-        {LANDING_HERO_V2 ? <HowItWorks /> : null}
-        <AboutEditorial />
-        <PhoneShowcase />
+        {LANDING_HERO_V2 ? (
+          <HowItWorks />
+        ) : (
+          <>
+            <AboutEditorial />
+            <PhoneShowcase />
+          </>
+        )}
         <BusinessPanel />
       </main>
       <MarketingFooter />
