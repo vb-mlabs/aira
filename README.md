@@ -141,25 +141,10 @@ guidance inline.
 ### What ships with the template
 
 - **[CLAUDE.md](./CLAUDE.md)** — project memory Claude auto-loads every session
-  (layout, conventions, scripts, brand rule, mstack workflow).
+  (layout, conventions, scripts, brand rule).
 - **[.claude/settings.json](./.claude/settings.json)** — permission allowlist
   for routine pnpm/turbo/git/gh-read commands so forkers aren't prompted for
   every benign action.
-- **[.claude/skills/](./.claude/skills/)** — the mstack skill suite (committed).
-
-### mstack slash commands
-
-| Command | When to reach for it |
-|---|---|
-| `/mlabs-plan` | Plan a new feature (interactive, writes a plan doc) |
-| `/mlabs-review` | Critique a plan and lock decisions before code |
-| `/mlabs-code` | Execute an approved review, atomic commit per task |
-| `/mlabs-qa` | Playwright-driven QA against a scenario + bug report |
-| `/mlabs-debug` | Root-cause a specific failure |
-| `/mlabs-mockup` | Generate static HTML design variants |
-| `/mlabs-design-system` · `/mlabs-ux-audit` · `/mlabs-research` · `/mlabs-auto` | (see `.claude/skills/`) |
-
-Full skill descriptions live in `.claude/skills/<name>/SKILL.md`.
 
 ## Learn more
 
