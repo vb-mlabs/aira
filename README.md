@@ -6,8 +6,6 @@ The Million Labs MVP template. Fork this for every new project.
 shadcn/ui · Drizzle · Neon · Better Auth · Postmark · Replit Object Storage
 · Expo 55 · NativeWind · pnpm workspaces + Turborepo.
 
-**New here?** Read [docs/forking-guide.md](./docs/forking-guide.md) first.
-
 ---
 
 ## Quick start
@@ -82,8 +80,7 @@ tooling/
 4. Swap `apps/web/public/og-default.png` (or rely on the `@vercel/og`
    route shipped in v1).
 
-That's the whole rebrand. For deeper per-fork changes, read
-[docs/forking-guide.md](./docs/forking-guide.md).
+That's the whole rebrand.
 
 ## Forking a new project
 
@@ -111,15 +108,7 @@ After the rename:
 ```bash
 rm pnpm-lock.yaml && pnpm install   # regenerate the lockfile under the new scope
 pnpm gen:mobile-tw                  # regenerate apps/mobile/tailwind.config.js
-# Open FORK_CHECKLIST.md for the rest of the manual steps.
 ```
-
-The generated `FORK_CHECKLIST.md` walks bundle IDs, OAuth apps,
-Postmark + Neon + EAS project setup, GitHub repo secrets, and the
-first-boot smoke test.
-
-Per-client handover (secret rotation, accounts, pre-launch gates) lives
-in [HANDOVER.md.template](./HANDOVER.md.template).
 
 ## Working with Claude Code
 
@@ -174,9 +163,5 @@ Full skill descriptions live in `.claude/skills/<name>/SKILL.md`.
 
 ## Learn more
 
-- [docs/forking-guide.md](./docs/forking-guide.md) — three tiers of change (safe / extend / don't touch)
-- [docs/template/TEMPLATE.md](./docs/template/TEMPLATE.md) — Replit import runbook + 29 lessons from the first fork (BetFrnd, 2026-05). Read before your first Replit `Publish`.
 - [docs/api-versioning.md](./docs/api-versioning.md) — `/api/v1/*` evolution policy
 - [docs/decisions/](./docs/decisions/) — architecture decisions (start at [0006](./docs/decisions/0006-monorepo.md), [0007](./docs/decisions/0007-service-layer.md), [0008](./docs/decisions/0008-codebase-conventions.md))
-- [docs/generated-artifacts.md](./docs/generated-artifacts.md) — what's generated and when to regenerate
-- [HANDOVER.md.template](./HANDOVER.md.template) — per-client handover
