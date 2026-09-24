@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIRA — Business onboarding wizard · interactive stepper (v2)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background:         oklch(0.90 0.04 85);
+      --foreground:         oklch(0.25 0.04 60);
+      --card:               #F3EBDD;
+      --card-2:             oklch(0.95 0.02 85);
+      --primary:            oklch(0.46 0.07 132);
+      --primary-fg:         oklch(0.94 0.02 80);
+      --primary-glow:       0 3px 5px oklch(0.46 0.07 132 / 35%);
+      --muted:              oklch(0.88 0.03 85);
+      --muted-fg:           oklch(0.45 0.04 60);
+      --border:             oklch(0.50 0.07 80 / 40%);
+      --border-strong:      oklch(0.50 0.07 80 / 65%);
+      --brand-gold:         oklch(0.66 0.10 80);
+      --brand-cream-bright: oklch(0.94 0.02 80);
+      --warning:            oklch(0.62 0.13 55);
+      --gradient-primary:   linear-gradient(145deg, oklch(0.52 0.08 132) 6%, oklch(0.46 0.07 132) 94%);
+      --shadow-card:        0 20px 40px -20px oklch(0.25 0.04 60 / 30%), 0 2px 8px oklch(0.25 0.04 60 / 14%);
+      --radius:             0.875rem;
+      --texture-paper:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.16  0 0 0 0 0.08  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+    * { box-sizing: border-box; }
+    html { font-family: "Lato", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body {
+      margin: 0; min-height: 100vh;
+      color: var(--foreground);
+      background-color: var(--background);
+      background-image: var(--texture-paper);
+      background-repeat: repeat;
+      background-size: 320px 320px;
+      line-height: 1.55;
+      display: flex; flex-direction: column;
+    }
+    a { color: inherit; }
+    button { font: inherit; cursor: pointer; }
+
+    /* ---------- Page shell ---------- */
+    .shell { max-width: 780px; margin: 0 auto; padding: 32px 20px 60px; width: 100%; flex: 1; display: flex; flex-direction: column; gap: 22px; }
+    .shell-head { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 999px;
+      background: var(--primary); color: var(--primary-fg);
+      display: grid; place-items: center;
+      font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 17px;
+    }
+    .brand-name {
+      font-family: "Cormorant Garamond", serif; font-weight: 700;
+      font-size: 22px; letter-spacing: 1.5px; color: var(--foreground);
+    }
+    .flow-caption {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--muted-fg);
+    }
+    .step-count {
+      font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 15px;
+      color: var(--muted-fg);
+    }
+    .step-count b { color: var(--primary); font-weight: 700; }
+
+    /* ---------- Progress ---------- */
+    .progress { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+    .progress li {
+      width: 30px; height: 30px; border-radius: 999px;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 700; font-family: "Cormorant Garamond", serif;
+      border: 1.5px solid var(--border-strong);
+      background: transparent; color: var(--muted-fg);
+      flex-shrink: 0;
+      transition: background-color .2s, color .2s, box-shadow .2s;
+    }
+    .progress li.done  { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+    .progress li.current { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); box-shadow: var(--primary-glow); transform: scale(1.06); }
+    .progress .rail { width: 16px; height: 2px; background: var(--border-strong); border: 0; border-radius: 0; transition: background-color .2s; }
+    .progress .rail.done { background: var(--primary); }
+    .progress li .tick { display: none; width: 14px; height: 14px; }
+    .progress li.done .tick { display: block; }
+    .progress li.done .num { display: none; }
+
+    /* ---------- Card ---------- */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 32px 32px 22px;
+      display: flex; flex-direction: column; gap: 18px;
+      box-shadow: var(--shadow-card);
+      min-height: 480px;
+      position: relative;
+    }
+    .step { display: none; flex-direction: column; gap: 18px; flex: 1; animation: fade .25s ease-out; }
+    .step.is-active { display: flex; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .card-eyebrow {
+      text-align: center;
+      font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--muted-fg);
+    }
+    .card-title {
+      margin: 2px 0 8px;
+      text-align: center;
+      font-family: "Cormorant Garamond", serif; font-weight: 700;
+      font-size: 32px; line-height: 1.05; letter-spacing: -0.3px;
+      color: var(--foreground);
+    }
+
+    /* ---------- Body slots ---------- */
+    .body { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .body p.lede { text-align: center; color: var(--muted-fg); font-size: 14px; margin: 0 auto; max-width: 44ch; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 13px; font-weight: 700; color: var(--foreground); }
+    .field label .req { color: var(--warning); margin-left: 2px; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 10px 12px;
+      background: var(--background);
+      border: 1px solid var(--border-strong); border-radius: 8px;
+      font: inherit; font-size: 14px; color: var(--foreground);
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px oklch(0.46 0.07 132 / 20%);
+    }
+    .field textarea { resize: vertical; min-height: 110px; }
+    .field .helper { text-align: right; font-size: 12px; color: var(--muted-fg); }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fields .full { grid-column: 1 / -1; }
+    @media (max-width: 600px) { .fields { grid-template-columns: 1fr; } }
+
+    /* ---------- Membership tiles ---------- */
+    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .tiles { grid-template-columns: 1fr; } }
+    .tile {
+      background: var(--card-2); border: 2px solid var(--border);
+      border-radius: 14px; padding: 20px 16px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      text-align: center; cursor: pointer;
+      transition: border-color .15s, background-color .15s;
+    }
+    .tile:hover { border-color: var(--border-strong); }
+    .tile.selected { border-color: var(--primary); background: oklch(0.94 0.05 132 / 15%); }
+    .tile-icon {
+      width: 40px; height: 40px; border-radius: 999px;
+      background: var(--primary); color: var(--primary-fg);
+      display: grid; place-items: center;
+    }
+    .tile-icon svg { width: 20px; height: 20px; }
+    .tile.year .tile-icon { background: var(--brand-gold); }
+    .tile-name { font-size: 14px; font-weight: 700; color: var(--foreground); }
+    .tile-price { font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 30px; color: var(--primary); }
+    .tile .radio {
+      width: 16px; height: 16px; border-radius: 999px;
+      border: 1.5px solid var(--border-strong); background: transparent;
+      display: grid; place-items: center;
+    }
+    .tile.selected .radio { border-color: var(--primary); }
+    .tile.selected .radio::after { content: ""; width: 8px; height: 8px; border-radius: 999px; background: var(--primary); }
+
+    /* ---------- Callout ---------- */
+    .callout {
+      background: oklch(0.94 0.05 80 / 60%); border: 1px solid oklch(0.66 0.10 80 / 40%);
+      border-radius: 12px; padding: 14px 14px 14px 48px;
+      position: relative;
+      font-size: 13px; line-height: 1.55; color: var(--foreground);
+    }
+    .callout::before {
+      content: "★"; position: absolute; left: 14px; top: 13px;
+      width: 26px; height: 26px; border-radius: 999px;
+      background: var(--brand-gold); color: var(--primary-fg);
+      display: grid; place-items: center; font-size: 13px;
+    }
+    .callout strong { display: block; font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 14px; margin-bottom: 3px; color: var(--foreground); }
+
+    /* ---------- Upload cells ---------- */
+    .uploads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 640px) { .uploads { grid-template-columns: 1fr; } }
+    .upload {
+      background: var(--card-2); border: 1.5px dashed var(--border-strong);
+      border-radius: 12px; padding: 16px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      text-align: center; cursor: pointer;
+      min-height: 170px; justify-content: center;
+      transition: border-color .15s, background-color .15s;
+    }
+    .upload:hover { border-color: var(--primary); background: oklch(0.94 0.05 132 / 10%); }
+    .upload-head { font-size: 13px; font-weight: 700; color: var(--foreground); line-height: 1.2; }
+    .upload-sub  { font-size: 11px; color: var(--muted-fg); }
+    .upload svg { width: 28px; height: 28px; color: var(--primary); }
+
+    /* ---------- Bullet lists (verified / review) ---------- */
+    .with-visual { display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 500px) { .with-visual { grid-template-columns: 1fr; text-align: center; justify-items: center; } }
+    .visual {
+      width: 88px; height: 88px; border-radius: 18px;
+      display: grid; place-items: center;
+      color: var(--primary);
+    }
+    .visual svg { width: 60px; height: 60px; }
+    .visual.gold { color: var(--brand-gold); border: 1.5px solid oklch(0.66 0.10 80 / 45%); background: oklch(0.94 0.05 80 / 45%); border-radius: 999px; }
+    .with-visual p { margin: 0 0 8px; font-size: 14px; color: var(--foreground); line-height: 1.55; }
+    .with-visual ul { margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted-fg); }
+    .with-visual ul li { margin: 4px 0; }
+
+    /* ---------- Price bar (add-on) ---------- */
+    .price-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: oklch(0.94 0.05 132 / 25%);
+      border: 1px solid oklch(0.46 0.07 132 / 35%);
+      border-radius: 10px; padding: 12px 14px;
+      font-size: 14px; color: var(--foreground); cursor: pointer;
+      transition: background-color .15s;
+    }
+    .price-bar:hover { background: oklch(0.94 0.05 132 / 40%); }
+    .price-bar strong { color: var(--foreground); font-weight: 700; }
+    .price-bar em { font-style: normal; color: var(--muted-fg); margin-left: 6px; font-size: 13px; }
+    .price-bar.warn { background: oklch(0.94 0.06 80 / 30%); border-color: oklch(0.66 0.10 80 / 45%); }
+    .price-bar.warn:hover { background: oklch(0.94 0.06 80 / 45%); }
+    .checkbox {
+      width: 20px; height: 20px; border: 1.5px solid var(--border-strong); border-radius: 5px; background: var(--background);
+      display: grid; place-items: center; transition: background-color .15s, border-color .15s;
+    }
+    .price-bar.checked .checkbox, .sponsor.checked .checkbox { background: var(--primary); border-color: var(--primary); }
+    .price-bar.checked .checkbox::after, .sponsor.checked .checkbox::after {
+      content: "✓"; color: var(--primary-fg); font-size: 13px; font-weight: 700;
+    }
+
+    /* ---------- Sponsorship tier cards ---------- */
+    .sponsor-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px) { .sponsor-tiles { grid-template-columns: 1fr; } }
+    .sponsor {
+      background: var(--card-2); border: 2px solid var(--border);
+      border-radius: 12px; padding: 16px;
+      display: flex; flex-direction: column; gap: 10px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    .sponsor.checked { border-color: var(--primary); }
+    .sponsor-head { display: flex; align-items: center; gap: 8px; }
+    .sponsor-head svg { width: 18px; height: 18px; color: var(--primary); }
+    .sponsor-head .name { font-weight: 700; font-size: 14px; color: var(--foreground); }
+    .sponsor-sub { font-size: 12px; color: var(--muted-fg); margin: -4px 0 4px; }
+    .sponsor table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .sponsor td { padding: 4px 0; border-bottom: 1px dashed var(--border); }
+    .sponsor td:first-child { color: var(--muted-fg); text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px; }
+    .sponsor td:last-child { text-align: right; font-weight: 700; color: var(--foreground); }
+    .sponsor .add-row { display: flex; align-items: center; justify-content: flex-end; padding-top: 4px; }
+    .sponsor-tiles .sponsor:nth-child(2) { background: oklch(0.94 0.06 80 / 25%); }
+
+    /* ---------- Order summary ---------- */
+    .order-pay { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .order-pay { grid-template-columns: 1fr; } }
+    .summary { font-size: 13px; color: var(--foreground); }
+    .summary .head { font-weight: 700; margin-bottom: 6px; font-size: 14px; }
+    .summary .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+    .summary .row:last-of-type { border: 0; }
+    .summary .row .val { font-weight: 700; }
+    .summary .subtotal { padding: 8px 0; border-top: 1px solid var(--border-strong); border-bottom: 0; margin-top: 6px; font-weight: 700; }
+    .summary .total { padding: 8px 0; border-top: 1px solid var(--border-strong); border-bottom: 0; font-weight: 700; font-size: 15px; }
+    .summary .note { font-size: 11.5px; color: var(--muted-fg); margin-top: 6px; }
+
+    .zelle {
+      background: var(--card-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; text-align: center;
+      font-size: 12.5px; color: var(--foreground);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .zelle .badge {
+      background: oklch(0.7 0.18 300); color: white; font-weight: 700;
+      border-radius: 6px; padding: 4px 14px; font-size: 13px; letter-spacing: 0.5px;
+      font-family: "Lato", sans-serif;
+    }
+    .zelle .zip { font-family: "Cormorant Garamond", serif; font-size: 15px; color: var(--foreground); font-weight: 700; }
+    .zelle .qr {
+      width: 96px; height: 96px; margin-top: 4px;
+      background:
+        conic-gradient(from 0deg at 50% 50%, transparent 0 25%, oklch(0.25 0.04 60 / 8%) 25% 50%, transparent 50% 75%, oklch(0.25 0.04 60 / 8%) 75%) 0 0 / 12px 12px,
+        oklch(0.20 0.03 60);
+      border-radius: 8px; display: grid; place-items: center;
+      color: var(--brand-cream-bright);
+      font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 11px; letter-spacing: 1px;
+    }
+
+    /* ---------- Payment proof upload ---------- */
+    .proof {
+      background: var(--card-2); border: 1.5px dashed var(--border-strong);
+      border-radius: 12px; padding: 32px 16px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: var(--muted-fg); font-size: 13px; cursor: pointer;
+      transition: border-color .15s, background-color .15s;
+    }
+    .proof:hover { border-color: var(--primary); background: oklch(0.94 0.05 132 / 10%); }
+    .proof svg { width: 34px; height: 34px; color: var(--primary); }
+    .proof .head { color: var(--foreground); font-weight: 700; font-size: 14px; }
+    .notice {
+      background: oklch(0.94 0.05 132 / 20%);
+      border: 1px solid oklch(0.46 0.07 132 / 35%);
+      border-radius: 10px; padding: 12px 14px 12px 44px;
+      font-size: 13px; color: var(--foreground); position: relative; line-height: 1.55;
+    }
+    .notice::before {
+      content: "🔒"; position: absolute; left: 12px; top: 10px;
+      width: 24px; height: 24px; border-radius: 999px;
+      background: var(--primary); color: var(--primary-fg);
+      display: grid; place-items: center; font-size: 11px;
+    }
+
+    /* ---------- Actions row ---------- */
+    .actions {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 12px; margin-top: auto;
+      border-top: 1px solid var(--border);
+    }
+    .btn-back {
+      background: transparent; color: var(--foreground);
+      border: 0; padding: 10px 6px; font-size: 14px; font-weight: 700;
+      transition: color .15s;
+    }
+    .btn-back:hover { color: var(--primary); }
+    .btn-back:disabled { color: var(--muted-fg); opacity: .5; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--gradient-primary); color: var(--primary-fg);
+      border: 0; padding: 11px 22px; border-radius: 999px;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.3px;
+      box-shadow: var(--primary-glow);
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: transform .15s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-primary.wide { padding: 12px 26px; font-size: 15px; }
+
+    /* ---------- Done state ---------- */
+    .done-state { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 60px 24px; text-align: center; }
+    .done-state.is-active { display: flex; animation: fade .3s ease-out; }
+    .done-state .check {
+      width: 84px; height: 84px; border-radius: 999px;
+      background: var(--primary); color: var(--primary-fg);
+      display: grid; place-items: center; box-shadow: var(--primary-glow);
+    }
+    .done-state .check svg { width: 44px; height: 44px; }
+    .done-state h2 { margin: 0; font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 34px; color: var(--foreground); }
+    .done-state p { max-width: 42ch; color: var(--muted-fg); font-size: 15px; margin: 0; }
+    .done-state .restart {
+      background: transparent; border: 1.5px solid var(--primary); color: var(--foreground);
+      padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* Mockup badge */
+    .mock-tag {
+      position: fixed; left: 12px; bottom: 12px; z-index: 100;
+      background: oklch(0.25 0.04 60 / 90%); color: var(--brand-cream-bright);
+      padding: 6px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="shell-head">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <span class="brand-name">AIRA</span>
+      </div>
+      <span class="flow-caption">Get your business listed</span>
+    </header>
+
+    <ol class="progress" id="progress">
+      <li data-i="0"><span class="num">1</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="1"><span class="num">2</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="2"><span class="num">3</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="3"><span class="num">4</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="4"><span class="num">5</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="5"><span class="num">6</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="6"><span class="num">7</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="7"><span class="num">8</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+      <span class="rail"></span>
+      <li data-i="8"><span class="num">9</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></li>
+    </ol>
+
+    <div class="card" id="card">
+
+      <!-- STEP 1 -->
+      <section class="step" data-step="0">
+        <div class="card-eyebrow">Step <span data-step-n>1</span> of 9 · <span class="step-count"><b data-step-remaining>8</b> to go</span></div>
+        <h2 class="card-title">Choose Your Listing Membership</h2>
+        <div class="body">
+          <p class="lede">Membership is required to list your business on AIRA and appear in regular category listings during the active plan period.</p>
+          <div class="tiles">
+            <div class="tile selected" data-toggle="tile" data-group="membership">
+              <span class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3-7 8-7s8 3 8 7"/></svg></span>
+              <div class="tile-name">6-Month Membership</div>
+              <div class="tile-price">$69</div>
+              <span class="radio"></span>
+            </div>
+            <div class="tile year" data-toggle="tile" data-group="membership">
+              <span class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8l4 12h12l4-12-6 4-4-8-4 8z"/></svg></span>
+              <div class="tile-name">1-Year Membership</div>
+              <div class="tile-price">$99</div>
+              <span class="radio"></span>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>Founding Launch Offer:</strong> FREE 1 Month Featured Launch Placement · +1 Extra Month Featured Placement for each successful referral business that joins AIRA. Available when you join with a 6-Month or 1-Year Membership during the launch period.
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="step" data-step="1">
+        <div class="card-eyebrow">Step <span data-step-n>2</span> of 9 · <span class="step-count"><b data-step-remaining>7</b> to go</span></div>
+        <h2 class="card-title">Basic Information</h2>
+        <div class="body">
+          <p class="lede">Tell us the basic details about your business.</p>
+          <div class="fields">
+            <div class="field"><label>Business Name<span class="req">*</span></label><input placeholder="Your business name"></div>
+            <div class="field"><label>Category<span class="req">*</span></label><select><option>Select category</option><option>Restaurants</option><option>Grocery</option><option>Services</option></select></div>
+            <div class="field"><label>City / Service Area<span class="req">*</span></label><input placeholder="e.g. Atlanta"></div>
+            <div class="field"><label>Phone Number<span class="req">*</span></label><input placeholder="(123) 456-7890"></div>
+            <div class="field full"><label>Website / Instagram / Facebook (optional)</label><input placeholder="Add your website or social media link"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="step" data-step="2">
+        <div class="card-eyebrow">Step <span data-step-n>3</span> of 9 · <span class="step-count"><b data-step-remaining>6</b> to go</span></div>
+        <h2 class="card-title">Business Details</h2>
+        <div class="body">
+          <div class="field">
+            <label>Short Description<span class="req">*</span></label>
+            <textarea placeholder="Tell customers what you do, your specialties, and what makes your business unique..." maxlength="300" oninput="document.getElementById('char-count').textContent = this.value.length"></textarea>
+            <span class="helper"><span id="char-count">0</span> / 300</span>
+          </div>
+          <div class="field">
+            <label>Business Email (optional)</label>
+            <input placeholder="info@yourbusiness.com">
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="step" data-step="3">
+        <div class="card-eyebrow">Step <span data-step-n>4</span> of 9 · <span class="step-count"><b data-step-remaining>5</b> to go</span></div>
+        <h2 class="card-title">Upload Business Images</h2>
+        <div class="body">
+          <p class="lede">High-quality images help customers choose your business with confidence.</p>
+          <div class="uploads">
+            <div class="upload">
+              <div class="upload-head">Upload Logo<br>(Square)</div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div class="upload-head">Upload</div>
+              <div class="upload-sub">Recommended: 500x500px</div>
+            </div>
+            <div class="upload">
+              <div class="upload-head">Banner Image<br>(Landscape)</div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div class="upload-head">Upload</div>
+              <div class="upload-sub">Recommended: 1500x500px</div>
+            </div>
+            <div class="upload">
+              <div class="upload-head">Gallery Images<br>(up to 3)</div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div class="upload-head">Upload Images</div>
+              <div class="upload-sub">Recommended: 1500x1000px</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 5 -->
+      <section class="step" data-step="4">
+        <div class="card-eyebrow">Step <span data-step-n>5</span> of 9 · <span class="step-count"><b data-step-remaining>4</b> to go</span></div>
+        <h2 class="card-title">Verified Badge</h2>
+        <div class="body">
+          <div class="with-visual">
+            <div class="visual">
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l8 3v5.6c0 4.6-3.4 8.5-8 9.4-4.6-.9-8-4.8-8-9.4V5l8-3z" opacity=".95"/><path d="M9 12l2 2 4-4" stroke="#F3EBDD" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <p>AIRA Verified Badge helps customers recognize your business as reviewed for authenticity.</p>
+              <ul>
+                <li>Business information checked by AIRA</li>
+                <li>Adds credibility to your business</li>
+                <li>Builds customer trust and confidence</li>
+              </ul>
+            </div>
+          </div>
+          <div class="price-bar" data-toggle="check">
+            <span><strong>Price:</strong> $99 one-time</span>
+            <span class="checkbox"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 6 -->
+      <section class="step" data-step="5">
+        <div class="card-eyebrow">Step <span data-step-n>6</span> of 9 · <span class="step-count"><b data-step-remaining>3</b> to go</span></div>
+        <h2 class="card-title">AIRA Review</h2>
+        <div class="body">
+          <div class="with-visual">
+            <div class="visual gold">
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.9 6 6.6.6-5 4.6L18 20l-6-3.4L6 20l1.5-6.8-5-4.6 6.6-.6L12 2z"/></svg>
+            </div>
+            <div>
+              <p>AIRA Review is a genuine review by the AIRA team — not by community members.</p>
+              <ul>
+                <li>Independent review by AIRA team</li>
+                <li>Helps customers understand your business</li>
+                <li>Strengthens credibility and trust</li>
+              </ul>
+            </div>
+          </div>
+          <div class="price-bar warn" data-toggle="check">
+            <span><strong>Price:</strong> $199 initial <em>Review Renewal — $75 / year</em></span>
+            <span class="checkbox"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 7 -->
+      <section class="step" data-step="6">
+        <div class="card-eyebrow">Step <span data-step-n>7</span> of 9 · <span class="step-count"><b data-step-remaining>2</b> to go</span></div>
+        <h2 class="card-title">Sponsorship Options</h2>
+        <div class="body">
+          <div class="sponsor-tiles">
+            <div class="sponsor" data-toggle="check">
+              <div class="sponsor-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 4 5-7"/></svg>
+                <span class="name">Sponsorship Level 1</span>
+              </div>
+              <div class="sponsor-sub">Boost your visibility with premium placement and featured exposure.</div>
+              <table>
+                <tr><td>1 Month</td><td>$50</td></tr>
+                <tr><td>3 Months</td><td>$120</td></tr>
+                <tr><td>6 Months</td><td>$210</td></tr>
+              </table>
+              <div class="add-row"><span class="checkbox"></span></div>
+            </div>
+            <div class="sponsor" data-toggle="check">
+              <div class="sponsor-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-gold);"><path d="M2 8l4 12h12l4-12-6 4-4-8-4 8z"/></svg>
+                <span class="name">Sponsorship Level 2</span>
+              </div>
+              <div class="sponsor-sub">Increase visibility with highlighted placement.</div>
+              <table>
+                <tr><td>1 Month</td><td>$35</td></tr>
+                <tr><td>3 Months</td><td>$85</td></tr>
+                <tr><td>6 Months</td><td>$135</td></tr>
+              </table>
+              <div class="add-row"><span class="checkbox"></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 8 -->
+      <section class="step" data-step="7">
+        <div class="card-eyebrow">Step <span data-step-n>8</span> of 9 · <span class="step-count"><b data-step-remaining>1</b> to go</span></div>
+        <h2 class="card-title">Review &amp; Pay</h2>
+        <div class="body">
+          <div class="order-pay">
+            <div class="summary">
+              <div class="head">Order Summary</div>
+              <div class="row"><span>Membership (6-Month)</span><span class="val">$69.00</span></div>
+              <div class="row"><span>Verified Badge</span><span class="val">$99.00</span></div>
+              <div class="row"><span>AIRA Review (Initial)</span><span class="val">$199.00</span></div>
+              <div class="row"><span>Sponsorship Level 1 (3 Months)</span><span class="val">$120.00</span></div>
+              <div class="row subtotal"><span>Subtotal</span><span>$487.00</span></div>
+              <div class="row total"><span>Total (First Payment)</span><span>$487.00</span></div>
+              <p class="note">Add-ons will be added only if selected.</p>
+            </div>
+            <div class="zelle">
+              <span class="badge">Zelle</span>
+              <div style="color: var(--muted-fg); font-size: 12px;">Send payment via Zelle</div>
+              <div style="font-size: 12px; color: var(--muted-fg);">Send payment to:</div>
+              <div class="zip">aira@nisarga.com</div>
+              <div class="qr">SCAN</div>
+              <div style="font-size: 11px; color: var(--muted-fg);">Scan QR Code</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 9 -->
+      <section class="step" data-step="8">
+        <div class="card-eyebrow">Step <span data-step-n>9</span> of 9 · <span class="step-count">last step</span></div>
+        <h2 class="card-title">Payment Proof &amp; Submit</h2>
+        <div class="body">
+          <p class="lede">After payment, upload your payment screenshot and submit.</p>
+          <div class="field">
+            <label>Upload Payment Screenshot<span class="req">*</span></label>
+            <div class="proof">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div class="head">Click to upload or drag and drop</div>
+              <div>PNG, JPG or PDF (Max 5MB)</div>
+            </div>
+          </div>
+          <div class="notice">AIRA will verify your payment and business information before activating your listing.</div>
+        </div>
+      </section>
+
+      <!-- DONE STATE -->
+      <section class="done-state" id="doneState">
+        <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+        <h2>Submitted for review</h2>
+        <p>Thanks — we've received your listing and payment proof. The AIRA team will verify your business and activate your listing within 24-48 hours. You'll get an email when you go live.</p>
+        <button class="restart" id="restart">Restart demo</button>
+      </section>
+
+      <footer class="actions" id="actions">
+        <button class="btn-back" id="btnBack">← Back</button>
+        <button class="btn-primary" id="btnNext">
+          <span id="btnNextLabel">Next</span>
+          <span>→</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="mock-tag">wizard v2 · click Next to advance</div>
+
+  <script>
+    const TOTAL = 9
+    let current = 0
+    let done = false
+
+    const steps = document.querySelectorAll('.step')
+    const dots = document.querySelectorAll('#progress li')
+    const rails = document.querySelectorAll('#progress .rail')
+    const btnBack = document.getElementById('btnBack')
+    const btnNext = document.getElementById('btnNext')
+    const btnNextLabel = document.getElementById('btnNextLabel')
+    const doneState = document.getElementById('doneState')
+    const actions = document.getElementById('actions')
+    const restart = document.getElementById('restart')
+
+    function render() {
+      if (done) {
+        steps.forEach(s => s.classList.remove('is-active'))
+        doneState.classList.add('is-active')
+        actions.style.display = 'none'
+        dots.forEach(d => { d.classList.remove('current'); d.classList.add('done') })
+        rails.forEach(r => r.classList.add('done'))
+        return
+      }
+      doneState.classList.remove('is-active')
+      actions.style.display = ''
+      steps.forEach((s, i) => s.classList.toggle('is-active', i === current))
+      dots.forEach((d, i) => {
+        d.classList.toggle('done', i < current)
+        d.classList.toggle('current', i === current)
+      })
+      rails.forEach((r, i) => r.classList.toggle('done', i < current))
+      btnBack.disabled = current === 0
+      btnNextLabel.textContent = current === TOTAL - 1 ? 'Submit My Business' : 'Next'
+      btnNext.classList.toggle('wide', current === TOTAL - 1)
+    }
+
+    btnNext.addEventListener('click', () => {
+      if (current < TOTAL - 1) { current++; window.scrollTo({ top: 0, behavior: 'smooth' }) }
+      else { done = true }
+      render()
+    })
+    btnBack.addEventListener('click', () => {
+      if (current > 0) { current--; window.scrollTo({ top: 0, behavior: 'smooth' }) }
+      render()
+    })
+    restart.addEventListener('click', () => { current = 0; done = false; render() })
+
+    // Membership tile toggle (radio within group)
+    document.querySelectorAll('[data-toggle="tile"]').forEach(tile => {
+      tile.addEventListener('click', () => {
+        const group = tile.dataset.group
+        document.querySelectorAll(`[data-group="${group}"]`).forEach(t => t.classList.remove('selected'))
+        tile.classList.add('selected')
+      })
+    })
+
+    // Price-bar / sponsor checkbox toggles
+    document.querySelectorAll('[data-toggle="check"]').forEach(el => {
+      el.addEventListener('click', () => el.classList.toggle('checked'))
+    })
+
+    // Keyboard: ← → arrows
+    document.addEventListener('keydown', (e) => {
+      if (done) return
+      if (e.key === 'ArrowRight' && current < TOTAL - 1) { btnNext.click() }
+      if (e.key === 'ArrowLeft' && current > 0) { btnBack.click() }
+    })
+
+    render()
+  </script>
+</body>
+</html>

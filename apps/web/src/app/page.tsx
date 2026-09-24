@@ -1,17 +1,34 @@
-// AIRA marketing landing page. Pre-launch — waitlist mode. Visual reference:
-// .mstack/mockups/marketing-page/v4/index.html. Section order is locked.
+// AIRA marketing landing page. Hero swap gated on
+// env.NEXT_PUBLIC_LANDING_HERO_V2 — off (default) renders the pre-launch
+// centered Hero + WaitlistCard + "Launching soon" OG; on renders the
+// 3-tier HeroV2 (Discover · Support · Grow) + app-live OG. Both flows
+// share MarketingNav + AboutEditorial + PhoneShowcase + BusinessPanel +
+// MarketingFooter. Cleanup PR after sign-off deletes the flag + old Hero.
 
 import { brand } from "@aira/config"
 import { AboutEditorial } from "@/components/marketing/about-editorial"
 import { BusinessPanel } from "@/components/marketing/business-panel"
+import { BusinessPanelV2 } from "@/components/marketing/business-panel-v2"
 import { Hero } from "@/components/marketing/hero"
+import { HeroV2 } from "@/components/marketing/hero-v2"
+import { HowItWorks } from "@/components/marketing/how-it-works"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingFooterV2 } from "@/components/marketing/marketing-footer-v2"
 import { MarketingNav } from "@/components/marketing/marketing-nav"
 import { PhoneShowcase } from "@/components/marketing/phone-showcase"
+import { env } from "@/config/env"
 import { generateMetadata as buildMetadata } from "@/config/seo"
 
-const PAGE_TITLE = `${brand.name} — Atlanta's South Asian business directory, curated with care`
-const PAGE_DESCRIPTION = `${brand.name} is a hand-curated directory of trusted South Asian-owned businesses across metro Atlanta. Operated by ${brand.legalEntity}. Launching soon — get notified.`
+const LANDING_HERO_V2 = env.NEXT_PUBLIC_LANDING_HERO_V2 === "1"
+
+const PRE_LAUNCH_TITLE = `${brand.name} — Atlanta's South Asian business directory, curated with care`
+const PRE_LAUNCH_DESCRIPTION = `${brand.name} is a hand-curated directory of trusted South Asian-owned businesses across metro Atlanta. Operated by ${brand.legalEntity}. Launching soon — get notified.`
+
+const APP_LIVE_TITLE = `${brand.name} — America's South Asian business directory. Discover. Support. Grow.`
+const APP_LIVE_DESCRIPTION = `Discover trusted South Asian-owned businesses across the USA. ${brand.name} is a curated community directory — free to download, free to be listed. Now serving Atlanta and growing city by city.`
+
+const PAGE_TITLE = LANDING_HERO_V2 ? APP_LIVE_TITLE : PRE_LAUNCH_TITLE
+const PAGE_DESCRIPTION = LANDING_HERO_V2 ? APP_LIVE_DESCRIPTION : PRE_LAUNCH_DESCRIPTION
 
 export const metadata = buildMetadata({
   title: PAGE_TITLE,
@@ -38,16 +55,31 @@ export const metadata = buildMetadata({
 })
 
 export default function Home() {
+  const HeroComponent = LANDING_HERO_V2 ? HeroV2 : Hero
   return (
     <>
-      <MarketingNav />
+      <MarketingNav
+        ctaLabel={LANDING_HERO_V2 ? "Get App" : "Get Listed Early"}
+        ctaHref={LANDING_HERO_V2 ? "#download" : "#businesses"}
+      />
       <main className="flex flex-1 flex-col">
-        <Hero />
-        <AboutEditorial />
-        <PhoneShowcase />
-        <BusinessPanel />
+        <HeroComponent />
+        {LANDING_HERO_V2 ? (
+          <>
+            <hr aria-hidden="true" className="mx-auto h-px w-20 border-0 bg-brand-gold/40" />
+            <HowItWorks />
+            <hr aria-hidden="true" className="mx-auto h-px w-20 border-0 bg-brand-gold/40" />
+            <BusinessPanelV2 />
+          </>
+        ) : (
+          <>
+            <AboutEditorial />
+            <PhoneShowcase />
+            <BusinessPanel />
+          </>
+        )}
       </main>
-      <MarketingFooter />
+      {LANDING_HERO_V2 ? <MarketingFooterV2 /> : <MarketingFooter />}
     </>
   )
 }

@@ -76,6 +76,15 @@ export const env = createEnv({
   },
   client: {
     // Public env vars must be prefixed NEXT_PUBLIC_
+
+    // Landing hero swap flag — added 2026-09-22 with the 3-tier hero. When
+    // "1", `/` renders the new HeroV2 component + app-live OG metadata;
+    // otherwise the pre-launch Hero + "Launching soon" OG stays. Public
+    // because the render swap happens in a Server Component that reads the
+    // value at build time (NEXT_PUBLIC_* is inlined by Next). Changing this
+    // in `.env.local` requires a dev-server restart, not just a page
+    // refresh. Deleted once the new hero replaces the old permanently.
+    NEXT_PUBLIC_LANDING_HERO_V2: z.enum(["0", "1"]).default("0"),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -93,6 +102,7 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
     EXPO_ACCESS_TOKEN: process.env.EXPO_ACCESS_TOKEN,
+    NEXT_PUBLIC_LANDING_HERO_V2: process.env.NEXT_PUBLIC_LANDING_HERO_V2,
   },
   // During first-deploy / fork, secrets may not be set yet. Skip validation
   // unless explicitly requested. Set SKIP_ENV_VALIDATION=1 for build steps

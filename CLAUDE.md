@@ -113,26 +113,6 @@ caching + workspace filters apply.
   cap-reached state on the composer CTA. Bump the number in the
   constant when policy changes; grep will already be pointing here.
 
-## mstack workflow (skills under `.claude/skills/`)
-
-This template ships an opinionated agent workflow. Prefer these over freelancing:
-
-| Skill | When to use |
-|---|---|
-| `/mlabs-plan` | New feature — interactive consultation, writes `.mstack/plans/<slug>.md` |
-| `/mlabs-review` | Critique a plan, lock decisions, produces approved review doc |
-| `/mlabs-code` | Execute an approved review, atomic commit per task |
-| `/mlabs-qa` | Scenario-driven Playwright QA + structured bug report |
-| `/mlabs-debug` | Root-cause investigation for a specific failure |
-| `/mlabs-mockup` | Generate static HTML design variants under `.mstack/mockups/` |
-| `/mlabs-design-system` | Design system inspection / tweaks |
-| `/mlabs-ux-audit` | UX review against the design system |
-| `/mlabs-research` | Background research for planning |
-| `/mlabs-auto` | End-to-end auto pipeline (plan → review → code) |
-
-`.mstack/` is the workflow's working directory (plans, reviews, code ledgers,
-QA reports). Treat its files as durable artifacts — don't delete without reason.
-
 ## Replit session bootstrap
 
 This workspace runs on Replit, where `~/.claude/` may be wiped between
@@ -304,13 +284,6 @@ native-code dependency, or an Expo SDK upgrade. Those need
 `eas build --profile production --platform all` → `eas submit`. Bump
 the "current runtime in the field" line above once the new build
 lands on users' phones.
-
-## When in doubt
-
-- New feature → `/mlabs-plan`, not direct edits to `apps/` or `packages/`.
-- Bug report → `/mlabs-debug` to root-cause, then plan/review/code if non-trivial.
-- Design change → `/mlabs-mockup` first to explore visually before touching `src/`.
-- Anything touching brand colors or copy → check `packages/config` is the source.
 
 ## Don't
 

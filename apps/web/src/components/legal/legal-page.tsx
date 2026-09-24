@@ -1,8 +1,8 @@
-// Shared chrome for /privacy and /terms. Marketing nav + footer wrap a
-// max-w-3xl prose body. Each section heading uses a consistent style.
+// Shared chrome for /legal. Marketing nav + footer wrap a max-w-3xl prose
+// body. Each section heading uses a consistent style.
 //
-// The `legal/` folder is in the ESLint brand-string allowlist, so
-// placeholder copy may mention the brand verbatim if needed.
+// The `legal/` folder is in the ESLint brand-string allowlist, so copy
+// may mention the brand verbatim if needed.
 
 import type { ReactNode } from "react"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
@@ -28,13 +28,6 @@ export function LegalPage({ title, lastUpdated, children }: LegalPageProps) {
           </div>
           <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
             {children}
-          </div>
-          <div className="mt-16 rounded-2xl border border-dashed border-border bg-muted/40 p-6 text-[13px] text-muted-foreground">
-            <strong className="font-semibold text-foreground">
-              Template placeholder.
-            </strong>{" "}
-            This document is a starting point. Replace every TODO marker
-            with copy reviewed by your legal counsel before launch.
           </div>
         </div>
       </main>

@@ -74,23 +74,22 @@ next-env.d.ts
 # npm cache when running with HOME=$PWD (Replit bootstrap)
 .npm/
 
-# Sensitive uploads: never commit recovery codes / secret pastes from chat
-attached_assets/*recovery-codes*
-attached_assets/*recovery_codes*
-attached_assets/*-secret*
-attached_assets/*credentials*
+# Dev artifacts pasted during design iteration; never committed.
+attached_assets/
 
-# mstack QA + UX audit runs: PNG-heavy evidence, kept local only.
-# The .md report on disk is still useful mid-run; treat the folder as
-# scratch and re-run the skill if you need a report later.
-.mstack/qa/
-.mstack/ux-audits/
+# mstack workflow (skills + artifacts) — not shipped with this fork.
+# Skills and .mstack/ artifacts live locally on the workspace that runs
+# the pipeline; forks of this repo don't inherit them. To use mstack in
+# another repo, source the skills from an authoritative location.
+.mstack/
+.claude/skills/mlabs-*/
+.claude/skills/mlabs-shared/
 
 # Dev-only symlinks for design-system / marketing-page preview HTML
-# (target .mstack/ and attached_assets/ which are tracked separately;
-# the symlinks themselves use absolute paths that only resolve in this
-# workspace). No trailing slash so the pattern matches both dirs and
-# symlinks-to-dirs.
+# (target .mstack/ which is gitignored above; the symlinks use absolute
+# paths that only resolve in this workspace). No trailing slash so the
+# pattern matches both dirs and symlinks-to-dirs.
 apps/web/public/design-preview
 apps/web/public/marketing-mockups
 apps/web/public/marketing-assets
+apps/web/public/business-onboarding-mockups
